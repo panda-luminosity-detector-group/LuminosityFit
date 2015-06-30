@@ -1,0 +1,100 @@
+{
+   "general_data":
+   {
+      "primary_dimension":
+      {
+        "is_active": true,
+        
+        "dimension_type": "THETA",
+        "track_param_type": "IP",
+        
+        "bins": 200,
+        "range_low": 0.0,
+        "range_high": 0.012
+      },
+      
+      "secondary_dimension":
+      {
+        "is_active": true,
+        
+        "dimension_type": "PHI",
+        "track_param_type": "IP",
+        
+        "bins": 200,
+        "range_low": -3.14159265358979312,
+        "range_high": 3.14159265358979312
+      }
+   },
+   
+   "selections":
+   [
+      {
+        "name": "prim",
+        "is_active": true,
+        
+        "dimension_type": "SECONDARY",
+        "track_param_type": "IP",
+        "track_type": "MC",
+        
+        "bins": 1,
+        "range_low": -10000.0,
+        "range_high": -0.1
+      }
+   ],
+   
+   "efficiency":
+   {
+      "primary_dimension":
+      { 
+        "is_active": true,
+      
+        "bins": 600,
+        "range_low": 0.0,
+        "range_high": 0.012
+      },
+      
+      "secondary_dimension":
+      { 
+        "is_active": true,
+              
+        "bins": 600,
+        "range_low": -3.14159265358979312,
+        "range_high": 3.14159265358979312
+      }
+   },
+   
+   "resolution":
+   {				
+      "primary_dimension":
+      {
+        "is_active": true,
+      
+        "bins": 200,
+        "range_low": -0.005,
+        "range_high": 0.005
+      },
+      
+      "secondary_dimension":
+      {
+        "is_active": true,
+      
+        "bins": 200,
+        "range_low": -6,
+        "range_high": 6
+      },
+
+      "primary_selection_dimension":
+      {             
+         "bins": 30,
+         "range_low": 0.003,
+         "range_high": 0.01
+      },
+         
+      "secondary_selection_dimension":
+      {              
+         "bins": 30,
+         "range_low": -3.14159265358979312,
+         "range_high": 3.14159265358979312
+      }
+   }
+}
