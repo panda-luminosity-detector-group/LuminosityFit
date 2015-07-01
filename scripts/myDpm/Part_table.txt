@@ -1,0 +1,798 @@
+ Give as seed a large float number (eg. 123456.): 
+12345.
+ Enter  P_lab(GeV/c), 
+3.
+
+    
+
+
+
+TABLE OF USED PARTICLES AND RESONANCES (I)
+
+I = NUMBER OF PARTICLE OR RESONANCE
+ANAME = NAME OF I
+AM = MASS OF I  (GEV)
+GA = WIDTH OF I (GEV)
+TAU = LIFE TIME OF I  (SEC.)
+ICH = ELECTRIC CHARGE OF I, IBAR = BARYONIC CHARGE OF I
+ K1 = FIRST DECAY CHANNEL NUMBER, K2 = LAST DECAY CHANNEL NUMBER OF I
+
+
+
+  I  ANAME  AM         GA         TAU         ICH IBARK1  K2
+
+  1  P       .9380E+00  .0000E+00  .1000E+19   1   1   1   1
+  2  AP      .9380E+00  .0000E+00  .1000E+19  -1  -1   2   2
+  3  E-      .5000E-03  .0000E+00  .1000E+19  -1   0   3   3
+  4  E+      .5000E-03  .0000E+00  .1000E+19   1   0   4   4
+  5  NUE     .0000E+00  .0000E+00  .1000E+19   0   0   5   5
+  6  ANUE    .0000E+00  .0000E+00  .1000E+19   0   0   6   6
+  7  GAM     .0000E+00  .0000E+00  .1000E+19   0   0   7   7
+  8  NEU     .9400E+00  .0000E+00  .9180E+03   0   1   8   8
+  9  ANEU    .9400E+00  .0000E+00  .9180E+03   0  -1   9   9
+ 10  MUE+    .1060E+00  .0000E+00  .2200E-05   1   0  10  10
+ 11  MUE-    .1060E+00  .0000E+00  .2200E-05  -1   0  11  11
+ 12  K0L     .4980E+00  .0000E+00  .5200E-07   0   0  12  15
+ 13  PI+     .1400E+00  .0000E+00  .2600E-07   1   0  16  16
+ 14  PI-     .1400E+00  .0000E+00  .2600E-07  -1   0  17  17
+ 15  K+      .4940E+00  .0000E+00  .1200E-07   1   0  18  23
+ 16  K-      .4940E+00  .0000E+00  .1200E-07  -1   0  24  29
+ 17  LAM     .1116E+01  .0000E+00  .2600E-09   0   1  30  31
+ 18  ALAM    .1116E+01  .0000E+00  .2600E-09   0  -1  34  35
+ 19  K0S     .4980E+00  .0000E+00  .9000E-10   0   0  38  39
+ 20  SIGM-   .1197E+01  .0000E+00  .1500E-09  -1   1  40  40
+ 21  SIGM+   .1189E+01  .0000E+00  .8000E-10   1   1  41  42
+ 22  SIGM0   .1193E+01  .0000E+00  .7000E-19   0   1  43  43
+ 23  PI0     .1350E+00  .0000E+00  .8000E-16   0   0  44  45
+ 24  K0      .4980E+00  .0000E+00  .0000E+00   0   0 136 137
+ 25  AK0     .4980E+00  .0000E+00  .0000E+00   0   0 138 139
+ 26          .0000E+00  .0000E+00  .0000E+00   0   0 330 330
+ 27  AN*-14  .1430E+01  .2000E+00  .0000E+00  -1  -1 310 316
+ 28  AN*014  .1430E+01  .2000E+00  .0000E+00   0  -1 317 323
+ 29          .0000E+00  .0000E+00  .0000E+00   0   0 330 330
+ 30          .0000E+00  .0000E+00  .0000E+00   0   0 330 330
+ 31  ETA550  .5480E+00  .1290E-05  .0000E+00   0   0  46  50
+ 32  RHO+77  .7760E+00  .1500E+00  .0000E+00   1   0  51  51
+ 33  RHO077  .7760E+00  .1500E+00  .0000E+00   0   0  52  53
+ 34  RHO-77  .7760E+00  .1500E+00  .0000E+00  -1   0  54  54
+ 35  OM0783  .7830E+00  .8490E-02  .0000E+00   0   0  55  57
+ 36  K*+892  .8960E+00  .5100E-01  .0000E+00   1   0  58  59
+ 37  K*0892  .8960E+00  .5100E-01  .0000E+00   0   0  60  61
+ 38  K*-892  .8960E+00  .5100E-01  .0000E+00  -1   0  62  63
+ 39  AK*089  .8960E+00  .5100E-01  .0000E+00   0   0  64  65
+ 40  KA+125  .1250E+01  .4500E+00  .0000E+00   1   0  66  67
+ 41  KA0125  .1250E+01  .4500E+00  .0000E+00   0   0  68  69
+ 42  KA-125  .1250E+01  .4500E+00  .0000E+00  -1   0  70  71
+ 43  AKA012  .1250E+01  .4500E+00  .0000E+00   0   0  72  73
+ 44  K*+142  .1421E+01  .1080E+00  .0000E+00   1   0  74  81
+ 45  K*0142  .1421E+01  .1080E+00  .0000E+00   0   0  82  89
+ 46  K*-142  .1421E+01  .1080E+00  .0000E+00  -1   0  90  97
+ 47  AK*014  .1421E+01  .1080E+00  .0000E+00   0   0  98 105
+ 48  S+1385  .1382E+01  .5000E-01  .0000E+00   1   1 106 108
+ 49  S01385  .1382E+01  .5000E-01  .0000E+00   0   1 109 111
+ 50  S-1385  .1382E+01  .5000E-01  .0000E+00  -1   1 112 113
+ 51  L01820  .1820E+01  .8500E-01  .0000E+00   0   1 114 122
+ 52  L02030  .2030E+01  .1800E+00  .0000E+00   0   1 123 135
+ 53  N*++12  .1232E+01  .1200E+00  .0000E+00   2   1 140 140
+ 54  N*+ 12  .1232E+01  .1200E+00  .0000E+00   1   1 141 142
+ 55  N*012   .1232E+01  .1200E+00  .0000E+00   0   1 143 144
+ 56  N*-12   .1232E+01  .1200E+00  .0000E+00  -1   1 145 145
+ 57  N*++16  .1675E+01  .2000E+00  .0000E+00   2   1 146 149
+ 58  N*+16   .1675E+01  .2000E+00  .0000E+00   1   1 150 156
+ 59  N*016   .1675E+01  .2000E+00  .0000E+00   0   1 157 163
+ 60  N*-16   .1675E+01  .2000E+00  .0000E+00  -1   1 164 167
+ 61  N*+14   .1430E+01  .2000E+00  .0000E+00   1   1 168 174
+ 62  N*014   .1430E+01  .2000E+00  .0000E+00   0   1 175 181
+ 63  N*+15   .1515E+01  .1000E+00  .0000E+00   1   1 182 188
+ 64  N*015   .1515E+01  .1000E+00  .0000E+00   0   1 189 195
+ 65  N*+18   .1775E+01  .2000E+00  .0000E+00   1   1 196 203
+ 66  N*018   .1775E+01  .2000E+00  .0000E+00   0   1 204 211
+ 67  AN--12  .1232E+01  .1200E+00  .0000E+00  -2  -1 212 212
+ 68  AN*-12  .1232E+01  .1200E+00  .0000E+00  -1  -1 213 214
+ 69  AN*012  .1232E+01  .1200E+00  .0000E+00   0  -1 215 216
+ 70  AN*+12  .1232E+01  .1200E+00  .0000E+00   1  -1 217 217
+ 71  AN--16  .1675E+01  .2000E+00  .0000E+00  -2  -1 218 221
+ 72  AN*-16  .1675E+01  .2000E+00  .0000E+00  -1  -1 222 228
+ 73  AN*016  .1675E+01  .2000E+00  .0000E+00   0  -1 229 235
+ 74  AN*+16  .1675E+01  .2000E+00  .0000E+00   1  -1 236 239
+ 75  AN*-15  .1515E+01  .1000E+00  .0000E+00  -1  -1 240 246
+ 76  AN*015  .1515E+01  .1000E+00  .0000E+00   0  -1 247 253
+ 77  DE*-24  .2400E+01  .2000E+00  .0000E+00   1   2 254 255
+ 78  RPI+49  .4890E+00  .1000E+00  .0000E+00   1   0 256 256
+ 79  RPI049  .4890E+00  .1000E+00  .0000E+00   0   0 257 257
+ 80  RPI-49  .4890E+00  .1000E+00  .0000E+00  -1   0 258 258
+ 81  PIN++   .1300E+01  .1000E+00  .0000E+00   2   1 259 260
+ 82  PIN+0   .1300E+01  .1000E+00  .0000E+00   1   1 261 263
+ 83  PIN+-   .1300E+01  .1000E+00  .0000E+00   0   1 264 266
+ 84  PIN-0   .1300E+01  .1000E+00  .0000E+00  -1   1 267 268
+ 85  PPPI    .2200E+01  .2000E+00  .0000E+00   2   2 269 270
+ 86  PNPI    .2200E+01  .2000E+00  .0000E+00   1   2 271 273
+ 87  APPPI   .2200E+01  .2000E+00  .0000E+00   0   0 274 277
+ 88  APNPI   .2200E+01  .2000E+00  .0000E+00  -1   0 278 280
+ 89  K+PPI   .1700E+01  .1500E+00  .0000E+00   2   1 281 283
+ 90  K-PPI   .1700E+01  .1500E+00  .0000E+00   0   1 284 287
+ 91  K+NPI   .1700E+01  .1500E+00  .0000E+00   1   1 288 291
+ 92  K-NPI   .1700E+01  .1500E+00  .0000E+00  -1   1 292 294
+ 93  S+1820  .1820E+01  .8500E-01  .0000E+00   1   1 295 300
+ 94  S-2030  .2030E+01  .1800E+00  .0000E+00  -1   1 301 309
+ 95  ETA*    .9580E+00  .2000E-03  .0000E+00   0   0 333 336
+ 96  PHI     .1019E+01  .4000E-02  .0000E+00   0   0 337 340
+ 97  TETA0   .1315E+01  .0000E+00  .3000E-09   0   1 341 341
+ 98  TETA-   .1321E+01  .0000E+00  .1700E-09  -1   1 342 342
+ 99  ASIG-   .1189E+01  .0000E+00  .8000E-10  -1  -1 343 344
+100  ASIG0   .1193E+01  .0000E+00  .1000E-13   0  -1 345 345
+101  ASIG+   .1197E+01  .0000E+00  .1500E-09   1  -1 346 346
+102  ATETA0  .1315E+01  .0000E+00  .3000E-09   0  -1 347 347
+103  ATETA+  .1321E+01  .0000E+00  .1700E-09   1  -1 348 348
+104  SIG*+   .1385E+01  .3600E-01  .0000E+00   1   1 349 351
+105  SIG*0   .1385E+01  .3600E-01  .0000E+00   0   1 352 354
+106  SIG*-   .1385E+01  .3900E-01  .0000E+00  -1   1 355 357
+107  TETA*0  .1534E+01  .9000E-02  .0000E+00   0   1 358 359
+108  TETA*   .1534E+01  .1000E-01  .0000E+00  -1   1 360 361
+109  OMEGA-  .1672E+01  .0000E+00  .1000E-09  -1   1 362 364
+110  ASIG*-  .1385E+01  .3400E-01  .0000E+00  -1  -1 365 367
+111  ASIG*0  .1385E+01  .3400E-01  .0000E+00   0  -1 368 370
+112  ASIG*+  .1385E+01  .3600E-01  .0000E+00   1  -1 371 373
+113  ATET*0  .1534E+01  .9000E-02  .0000E+00   0  -1 374 375
+114  ATET*+  .1534E+01  .1000E-01  .0000E+00   1  -1 376 377
+115  OMEGA+  .1672E+01  .0000E+00  .1000E-09   1  -1 378 380
+116  D0      .1867E+01  .0000E+00  .0000E+00   0   0 381 384
+117  D+      .1867E+01  .0000E+00  .0000E+00   1   0 385 386
+118  D-      .1867E+01  .0000E+00  .0000E+00  -1   0 387 388
+119  AD0     .1867E+01  .0000E+00  .0000E+00   0   0 389 392
+120  F+      .2030E+01  .0000E+00  .0000E+00   1   0 393 395
+121  F-      .2030E+01  .0000E+00  .0000E+00  -1   0 396 398
+122  ETAC    .2030E+01  .0000E+00  .0000E+00   0   0 399 401
+123  D*0     .2006E+01  .5000E-02  .0000E+00   0   0 402 403
+124  D*+     .2008E+01  .2000E-02  .0000E+00   1   0 404 406
+125  D*-     .2008E+01  .2000E-02  .0000E+00  -1   0 407 409
+126  AD*0    .2006E+01  .5000E-02  .0000E+00   0   0 410 411
+127  F*+     .2140E+01  .2000E-02  .0000E+00   1   0 412 413
+128  F*-     .2140E+01  .2000E-02  .0000E+00  -1   0 414 415
+129  PSI     .3684E+01  .2000E-03  .0000E+00   0   0 416 418
+130  JPSI    .3097E+01  .7000E-03  .0000E+00   0   0 419 421
+131  TAU+    .1807E+01  .0000E+00  .9000E-11   1   0 422 426
+132  TAU-    .1807E+01  .0000E+00  .9000E-11  -1   0 427 431
+133  NUET    .6000E+00  .0000E+00  .9000E-11   0   0 432 432
+134  ANUET   .6000E+00  .0000E+00  .9000E-11   0   0 433 433
+135  NUEM    .3000E-02  .0000E+00  .1000E+19   0   0 434 434
+136  ANUEM   .3000E-02  .0000E+00  .1000E+19   0   0 435 435
+137  C0+     .2285E+01  .0000E+00  .0000E+00   1   1 436 449
+138  A+      .2470E+01  .0000E+00  .0000E+00   1   1 450 453
+139  A0      .2470E+01  .0000E+00  .0000E+00   0   1 454 458
+140  C1++    .2410E+01  .0000E+00  .0000E+00   2   1 459 459
+141  C1+     .2420E+01  .0000E+00  .0000E+00   1   1 460 460
+142  C10     .2410E+01  .0000E+00  .0000E+00   0   1 461 461
+143  S+      .2560E+01  .0000E+00  .0000E+00   1   1 462 462
+144  S0      .2560E+01  .0000E+00  .0000E+00   0   1 463 463
+145  T0      .2730E+01  .0000E+00  .0000E+00   0   1 464 467
+146  XU++    .3610E+01  .0000E+00  .0000E+00   2   1 468 469
+147  XD+     .3610E+01  .0000E+00  .0000E+00   1   1 470 471
+148  XS+     .3790E+01  .0000E+00  .0000E+00   1   1 472 473
+149  AC0-    .2260E+01  .0000E+00  .0000E+00  -1  -1 474 487
+150  AA-     .2470E+01  .0000E+00  .0000E+00  -1  -1 488 491
+151  AA0     .2470E+01  .0000E+00  .0000E+00   0  -1 492 496
+152  AC1--   .2410E+01  .0000E+00  .0000E+00  -2  -1 497 497
+153  AC1-    .2420E+01  .0000E+00  .0000E+00  -1  -1 498 498
+154  AC10    .2410E+01  .0000E+00  .0000E+00   0  -1 499 499
+155  AS-     .2560E+01  .0000E+00  .0000E+00  -1  -1 500 500
+156  AS0     .2560E+01  .0000E+00  .0000E+00   0  -1 501 501
+157  AT0     .2730E+01  .0000E+00  .0000E+00   0  -1 502 505
+158  AXU--   .3610E+01  .0000E+00  .0000E+00  -2  -1 506 507
+159  AXD-    .3610E+01  .0000E+00  .0000E+00  -1  -1 508 509
+160  AXS     .3790E+01  .0000E+00  .0000E+00  -1  -1 510 511
+161  C1*++   .2490E+01  .0000E+00  .0000E+00   2   1 512 512
+162  C1*+    .2490E+01  .0000E+00  .0000E+00   1   1 513 513
+163  C1*0    .2490E+01  .0000E+00  .0000E+00   0   1 514 514
+164  S*+     .2610E+01  .0000E+00  .0000E+00   1   1 515 515
+165  S*0     .2610E+01  .0000E+00  .0000E+00   0   1 516 516
+166  T*0     .2770E+01  .0000E+00  .0000E+00   0   1 517 517
+167  XU*++   .3670E+01  .0000E+00  .0000E+00   2   1 518 518
+168  XD*+    .3670E+01  .0000E+00  .0000E+00   1   1 519 519
+169  XS*+    .3850E+01  .0000E+00  .0000E+00   1   1 520 520
+170  TETA++  .4890E+01  .0000E+00  .0000E+00   2   1 521 523
+171  AC1*--  .2490E+01  .0000E+00  .0000E+00  -2  -1 524 524
+172  AC1*-   .2490E+01  .0000E+00  .0000E+00  -1  -1 525 525
+173  AC1*0   .2490E+01  .0000E+00  .0000E+00   0  -1 526 526
+174  AS*-    .2610E+01  .0000E+00  .0000E+00  -1  -1 527 527
+175  AS*0    .2610E+01  .0000E+00  .0000E+00   0  -1 528 528
+176  AT*0    .2770E+01  .0000E+00  .0000E+00   0  -1 529 529
+177  AXU*--  .3670E+01  .0000E+00  .0000E+00  -2  -1 530 530
+178  AXD*-   .3670E+01  .0000E+00  .0000E+00  -1  -1 531 531
+179  AXS*-   .3850E+01  .0000E+00  .0000E+00  -1  -1 532 532
+180  ATET--  .4890E+01  .0000E+00  .0000E+00  -2  -1 324 326
+    
+
+
+
+DECAY CHANNELS OF PARTICLES  AND RESONANCES
+
+
+ANAME = PARTICLE AND RESONANCE NAME
+DNAME = DECAY CHANNEL NAME
+J = DECAY CHANNEL NUMBER
+I = NUMBER OF DECAYING PARTICLE
+WT = SUM OF DECAY CHANNEL WEIGHTS FROM K1(I) UP TO J
+NZK = PROGRAM INTERNKAL NUMBERS OF DECAY PRODUCTS
+
+
+
+  I    J       ANAME       DNAME              DECAY   PRODUCTS           WT     NZK
+
+   1    1 DECAY OF P      (CHANNEL: P      ) TO P                         1.0000    1   29   29
+   2    2 DECAY OF AP     (CHANNEL: AP     ) TO AP                        1.0000    2   29   29
+   3    3 DECAY OF E-     (CHANNEL: E-     ) TO E-                        1.0000    3   29   29
+   4    4 DECAY OF E+     (CHANNEL: E+     ) TO E+                        1.0000    4   29   29
+   5    5 DECAY OF NUE    (CHANNEL: NUE    ) TO NUE                       1.0000    5   29   29
+   6    6 DECAY OF ANUE   (CHANNEL: ANUE   ) TO ANUE                      1.0000    6   29   29
+   7    7 DECAY OF GAM    (CHANNEL: GAM    ) TO GAM                       1.0000    7   29   29
+   8    8 DECAY OF NEU    (CHANNEL: PE-NUE ) TO P       E-      NUE       1.0000    1    3    5
+   9    9 DECAY OF ANEU   (CHANNEL: APEANU ) TO AP      E+      ANUE      1.0000    2    4    6
+  10   10 DECAY OF MUE+   (CHANNEL: EANUNU ) TO E+      ANUE    NUE       1.0000    4    6    5
+  11   11 DECAY OF MUE-   (CHANNEL: E-NUAN ) TO E-      NUE     ANUE      1.0000    3    5    6
+  12   12 DECAY OF K0L    (CHANNEL: 3PI0   ) TO PI0     PI0     PI0        .2100   23   23   23
+  12   13 DECAY OF K0L    (CHANNEL: PI+-0  ) TO PI+     PI-     PI0        .1200   13   14   23
+  12   14 DECAY OF K0L    (CHANNEL: PIMUNU ) TO PI+     MUE-    NUE        .2700   13   11    5
+  12   15 DECAY OF K0L    (CHANNEL: PIE-NU ) TO PI+     E-      NUE        .4000   13    3    5
+  13   16 DECAY OF PI+    (CHANNEL: MU+NUE ) TO MUE+    NUE               1.0000   10    5   29
+  14   17 DECAY OF PI-    (CHANNEL: MU-NUE ) TO MUE-    NUE               1.0000   11    5   29
+  15   18 DECAY OF K+     (CHANNEL: MU+NUE ) TO MUE+    NUE                .6400   10    5   29
+  15   19 DECAY OF K+     (CHANNEL: PI+PI0 ) TO PI+     PI0                .2100   13   23   29
+  15   20 DECAY OF K+     (CHANNEL: PI++-  ) TO PI+     PI+     PI-        .0600   13   13   14
+  15   21 DECAY OF K+     (CHANNEL: PI+00  ) TO PI+     PI0     PI0        .0200   13   23   23
+  15   22 DECAY OF K+     (CHANNEL: M+P0NU ) TO MUE+    PI0     NUE        .0300   10   23    5
+  15   23 DECAY OF K+     (CHANNEL: E+P0NU ) TO E+      PI0     NUE        .0400    4   23    5
+  16   24 DECAY OF K-     (CHANNEL: MU-NU  ) TO MUE-    NUE                .6400   11    5   29
+  16   25 DECAY OF K-     (CHANNEL: PI-0   ) TO PI-     PI0                .2100   14   23   29
+  16   26 DECAY OF K-     (CHANNEL: PI+--  ) TO PI-     PI+     PI-        .0600   14   13   14
+  16   27 DECAY OF K-     (CHANNEL: PI-00  ) TO PI-     PI0     PI0        .0200   14   23   23
+  16   28 DECAY OF K-     (CHANNEL: M-P0NU ) TO MUE-    PI0     NUE        .0300   11   23    5
+  16   29 DECAY OF K-     (CHANNEL: E-P0NU ) TO E-      PI0     NUE        .0400    3   23    5
+  17   30 DECAY OF LAM    (CHANNEL: PPI-   ) TO P       PI-                .6400    1   14   29
+  17   31 DECAY OF LAM    (CHANNEL: NPI0   ) TO NEU     PI0                .3600    8   23   29
+  18   34 DECAY OF ALAM   (CHANNEL: APPI+  ) TO AP      PI+                .6400    2   13   29
+  18   35 DECAY OF ALAM   (CHANNEL: ANPI0  ) TO ANEU    PI0                .3600    9   23   29
+  19   38 DECAY OF K0S    (CHANNEL: PI+PI- ) TO PI+     PI-                .6900   13   14   29
+  19   39 DECAY OF K0S    (CHANNEL: PI0PI0 ) TO PI0     PI0                .3100   23   23   29
+  20   40 DECAY OF SIGM-  (CHANNEL: NPI-   ) TO NEU     PI-               1.0000    8   14   29
+  21   41 DECAY OF SIGM+  (CHANNEL: PPI0   ) TO P       PI0                .5200    1   23   29
+  21   42 DECAY OF SIGM+  (CHANNEL: NPI+   ) TO NEU     PI+                .4800    8   13   29
+  22   43 DECAY OF SIGM0  (CHANNEL: LAGA   ) TO LAM     GAM               1.0000   17    7   29
+  23   44 DECAY OF PI0    (CHANNEL: GAGA   ) TO GAM     GAM                .9900    7    7   29
+  23   45 DECAY OF PI0    (CHANNEL: GAE+E- ) TO GAM     E+      E-         .0100    7    4    3
+  24  136 DECAY OF K0     (CHANNEL: K0S    ) TO K0S                        .5000   19   29   29
+  24  137 DECAY OF K0     (CHANNEL: K0L    ) TO K0L                        .5000   12   29   29
+  25  138 DECAY OF AK0    (CHANNEL: K0S    ) TO K0S                        .5000   19   29   29
+  25  139 DECAY OF AK0    (CHANNEL: K0L    ) TO K0L                        .5000   12   29   29
+  26  330 DECAY OF        (CHANNEL:        ) TO                           1.0000   29   29   29
+  27  310 DECAY OF AN*-14 (CHANNEL: AP PI0 ) TO AP      PI0                .2250    2   23   29
+  27  311 DECAY OF AN*-14 (CHANNEL: AN  PI ) TO ANEU    PI-                .3750    9   14   29
+  27  312 DECAY OF AN*-14 (CHANNEL: AN*>PI ) TO AN--12  PI+                .1500   67   13   29
+  27  313 DECAY OF AN*-14 (CHANNEL: AN*-PI ) TO AN*-12  PI0                .0938   68   23   29
+  27  314 DECAY OF AN*-14 (CHANNEL: AN*0PI ) TO AN*012  PI-                .0562   69   14   29
+  27  315 DECAY OF AN*-14 (CHANNEL: APRHO0 ) TO AP      RPI049             .0375    2   79   29
+  27  316 DECAY OF AN*-14 (CHANNEL: AN*RHO ) TO ANEU    RPI-49             .0625    9   80   29
+  28  317 DECAY OF AN*014 (CHANNEL: AN PI0 ) TO ANEU    PI0                .2250    9   23   29
+  28  318 DECAY OF AN*014 (CHANNEL: AP PI+ ) TO AP      PI+                .3750    2   13   29
+  28  319 DECAY OF AN*014 (CHANNEL: AN*-PI ) TO AN*-12  PI+                .1500   68   13   29
+  28  320 DECAY OF AN*014 (CHANNEL: AN*0PI ) TO AN*012  PI0                .0938   69   23   29
+  28  321 DECAY OF AN*014 (CHANNEL: AN*+PI ) TO AN*+12  PI-                .0562   70   14   29
+  28  322 DECAY OF AN*014 (CHANNEL: APRHO+ ) TO AP      RPI+49             .0375    2   78   29
+  28  323 DECAY OF AN*014 (CHANNEL: AN*RHO ) TO ANEU    RPI049             .0625    9   79   29
+  29  330 DECAY OF        (CHANNEL:        ) TO                           1.0000   29   29   29
+  30  330 DECAY OF        (CHANNEL:        ) TO                           1.0000   29   29   29
+  31   46 DECAY OF ETA550 (CHANNEL: GAGA   ) TO GAM     GAM                .3800    7    7   29
+  31   47 DECAY OF ETA550 (CHANNEL: GAGAP0 ) TO PI0     GAM     GAM        .0300   23    7    7
+  31   48 DECAY OF ETA550 (CHANNEL: PI000  ) TO PI0     PI0     PI0        .3000   23   23   23
+  31   49 DECAY OF ETA550 (CHANNEL: PI+-0  ) TO PI+     PI-     PI0        .2400   13   14   23
+  31   50 DECAY OF ETA550 (CHANNEL: PI+-GA ) TO PI+     PI-     GAM        .0500   13   14    7
+  32   51 DECAY OF RHO+77 (CHANNEL: PI+0   ) TO PI+     PI0               1.0000   13   23   29
+  33   52 DECAY OF RHO077 (CHANNEL: PI+-   ) TO PI+     PI-               1.0000   13   14   29
+  33   53 DECAY OF RHO077 (CHANNEL: PI00   ) TO PI0     PI0                .0000   23   23   29
+  34   54 DECAY OF RHO-77 (CHANNEL: PI-0   ) TO PI-     PI0               1.0000   14   23   29
+  35   55 DECAY OF OM0783 (CHANNEL: PI+-0  ) TO PI+     PI-     PI0        .9000   13   14   23
+  35   56 DECAY OF OM0783 (CHANNEL: PI+-   ) TO PI+     PI-                .0100   13   14   29
+  35   57 DECAY OF OM0783 (CHANNEL: PI0GA  ) TO PI0     GAM                .0900   23    7   29
+  36   58 DECAY OF K*+892 (CHANNEL: K+PI0  ) TO K+      PI0                .3300   15   23   29
+  36   59 DECAY OF K*+892 (CHANNEL: K0PI+  ) TO K0      PI+                .6700   24   13   29
+  37   60 DECAY OF K*0892 (CHANNEL: K0PI0  ) TO K0      PI0                .3300   24   23   29
+  37   61 DECAY OF K*0892 (CHANNEL: K+PI-  ) TO K+      PI-                .6700   15   14   29
+  38   62 DECAY OF K*-892 (CHANNEL: K-PI0  ) TO K-      PI0                .3300   16   23   29
+    
+
+
+
+  I    J       ANAME       DNAME              DECAY   PRODUCTS           WT     NZK
+
+  38   63 DECAY OF K*-892 (CHANNEL: AK0PI- ) TO AK0     PI-                .6700   25   14   29
+  39   64 DECAY OF AK*089 (CHANNEL: AK0PI0 ) TO AK0     PI0                .3300   25   23   29
+  39   65 DECAY OF AK*089 (CHANNEL: K-PI+  ) TO K-      PI+                .6700   16   13   29
+  40   66 DECAY OF KA+125 (CHANNEL: K+PI0  ) TO K+      PI0                .3300   15   23   29
+  40   67 DECAY OF KA+125 (CHANNEL: K0PI+  ) TO K0      PI+                .6700   24   13   29
+  41   68 DECAY OF KA0125 (CHANNEL: K0PI0  ) TO K0      PI0                .3300   24   23   29
+  41   69 DECAY OF KA0125 (CHANNEL: K+PI-  ) TO K+      PI-                .6700   15   14   29
+  42   70 DECAY OF KA-125 (CHANNEL: K-PI0  ) TO K-      PI0                .3300   16   23   29
+  42   71 DECAY OF KA-125 (CHANNEL: K0PI-  ) TO K0      PI-                .6700   24   14   29
+  43   72 DECAY OF AKA012 (CHANNEL: AK0PI0 ) TO AK0     PI0                .3300   25   23   29
+  43   73 DECAY OF AKA012 (CHANNEL: K-PI+  ) TO K-      PI+                .6700   16   13   29
+  44   74 DECAY OF K*+142 (CHANNEL: K+PI0  ) TO K+      PI0                .1900   15   23   29
+  44   75 DECAY OF K*+142 (CHANNEL: K0PI+  ) TO K0      PI+                .3800   24   13   29
+  44   76 DECAY OF K*+142 (CHANNEL: K+89P0 ) TO K*+892  PI0                .0900   36   23   29
+  44   77 DECAY OF K*+142 (CHANNEL: K08PI+ ) TO K*0892  PI+                .2000   37   13   29
+  44   78 DECAY OF K*+142 (CHANNEL: K+RO77 ) TO K+      RHO077             .0300   15   33   29
+  44   79 DECAY OF K*+142 (CHANNEL: K0RO+7 ) TO K0      RHO+77             .0400   24   32   29
+  44   80 DECAY OF K*+142 (CHANNEL: K+OM07 ) TO K+      OM0783             .0500   15   35   29
+  44   81 DECAY OF K*+142 (CHANNEL: K+E055 ) TO K+      ETA550             .0200   15   31   29
+  45   82 DECAY OF K*0142 (CHANNEL: K0PI0  ) TO K0      PI0                .1900   24   23   29
+  45   83 DECAY OF K*0142 (CHANNEL: K+PI+  ) TO K+      PI-                .3800   15   14   29
+  45   84 DECAY OF K*0142 (CHANNEL: K089P0 ) TO K*0892  PI0                .0900   37   23   29
+  45   85 DECAY OF K*0142 (CHANNEL: K+8PI- ) TO K*+892  PI-                .2000   36   14   29
+  45   86 DECAY OF K*0142 (CHANNEL: K0R077 ) TO K0      RHO077             .0300   24   33   29
+  45   87 DECAY OF K*0142 (CHANNEL: K+R-77 ) TO K+      RHO-77             .0400   15   34   29
+  45   88 DECAY OF K*0142 (CHANNEL: K+R-77 ) TO K0      OM0783             .0500   24   35   29
+  45   89 DECAY OF K*0142 (CHANNEL: K0OM07 ) TO K0      ETA550             .0200   24   31   29
+  46   90 DECAY OF K*-142 (CHANNEL: K0E055 ) TO K-      PI0                .1900   16   23   29
+  46   91 DECAY OF K*-142 (CHANNEL: K-PI0  ) TO K0      PI-                .3800   24   14   29
+  46   92 DECAY OF K*-142 (CHANNEL: K0PI-  ) TO K*-892  PI0                .0900   38   23   29
+  46   93 DECAY OF K*-142 (CHANNEL: K-89P0 ) TO AK*089  PI-                .2000   39   14   29
+  46   94 DECAY OF K*-142 (CHANNEL: AK08P- ) TO K-      RHO077             .0300   16   33   29
+  46   95 DECAY OF K*-142 (CHANNEL: K-R077 ) TO AK0     RHO-77             .0400   25   34   29
+  46   96 DECAY OF K*-142 (CHANNEL: AK0R-7 ) TO K-      OM0783             .0500   16   35   29
+  46   97 DECAY OF K*-142 (CHANNEL: K-OM07 ) TO K-      ETA550             .0200   16   31   29
+  47   98 DECAY OF AK*014 (CHANNEL: K-E055 ) TO AK0     PI0                .1900   25   23   29
+  47   99 DECAY OF AK*014 (CHANNEL: AK0PI0 ) TO K-      PI+                .3800   16   13   29
+  47  100 DECAY OF AK*014 (CHANNEL: K-PI+  ) TO AK*089  PI0                .0900   39   23   29
+  47  101 DECAY OF AK*014 (CHANNEL: AK08P0 ) TO K*-892  PI+                .2000   38   13   29
+  47  102 DECAY OF AK*014 (CHANNEL: K-8PI+ ) TO AK0     RHO077             .0300   25   33   29
+  47  103 DECAY OF AK*014 (CHANNEL: AK0R07 ) TO K-      RHO+77             .0400   16   32   29
+  47  104 DECAY OF AK*014 (CHANNEL: AK0OM7 ) TO AK0     OM0783             .0500   25   35   29
+  47  105 DECAY OF AK*014 (CHANNEL: AK0E05 ) TO AK0     ETA550             .0200   25   31   29
+  48  106 DECAY OF S+1385 (CHANNEL: LA0PI+ ) TO LAM     PI+                .8800   17   13   29
+  48  107 DECAY OF S+1385 (CHANNEL: SI0PI+ ) TO SIGM0   PI+                .0600   22   13   29
+  48  108 DECAY OF S+1385 (CHANNEL: SI+PI0 ) TO SIGM+   PI0                .0600   21   23   29
+  49  109 DECAY OF S01385 (CHANNEL: LA0PI0 ) TO LAM     PI0                .8800   17   23   29
+  49  110 DECAY OF S01385 (CHANNEL: SI+PI- ) TO SIGM+   PI-                .0600   21   14   29
+  49  111 DECAY OF S01385 (CHANNEL: SI-PI+ ) TO SIGM-   PI+                .0600   20   13   29
+  50  112 DECAY OF S-1385 (CHANNEL: LA0PI- ) TO LAM     PI-                .8800   17   14   29
+  50  113 DECAY OF S-1385 (CHANNEL: SI0PI- ) TO SIGM0   PI-                .1200   22   14   29
+  51  114 DECAY OF L01820 (CHANNEL: NEUAK0 ) TO NEU     AK0                .1900    8   25   29
+  51  115 DECAY OF L01820 (CHANNEL: PK-    ) TO P       K-                 .1900    1   16   29
+  51  116 DECAY OF L01820 (CHANNEL: SI+PI- ) TO SIGM+   PI-                .1600   21   14   29
+  51  117 DECAY OF L01820 (CHANNEL: SI0PI0 ) TO SIGM0   PI0                .1600   22   23   29
+  51  118 DECAY OF L01820 (CHANNEL: SI-PI+ ) TO SIGM-   PI+                .1700   20   13   29
+  51  119 DECAY OF L01820 (CHANNEL: LA0ET0 ) TO LAM     ETA550             .0300   17   31   29
+  51  120 DECAY OF L01820 (CHANNEL: S+1PI- ) TO S+1385  PI-                .0300   48   14   29
+  51  121 DECAY OF L01820 (CHANNEL: S-1PI+ ) TO S-1385  PI+                .0300   50   13   29
+  51  122 DECAY OF L01820 (CHANNEL: SO1PI0 ) TO S01385  PI0                .0400   49   23   29
+  52  123 DECAY OF L02030 (CHANNEL: NEUAK0 ) TO NEU     AK0                .1000    8   25   29
+  52  124 DECAY OF L02030 (CHANNEL: PK-    ) TO P       K-                 .1000    1   16   29
+  52  125 DECAY OF L02030 (CHANNEL: LA0PI0 ) TO LAM     PI0                .2000   17   23   29
+  52  126 DECAY OF L02030 (CHANNEL: LA0OM0 ) TO LAM     OM0783             .1200   17   35   29
+  52  127 DECAY OF L02030 (CHANNEL: LA0RO0 ) TO LAM     RHO077             .1000   17   33   29
+  52  128 DECAY OF L02030 (CHANNEL: SI+RO- ) TO SIGM+   RHO-77             .0400   21   34   29
+  52  129 DECAY OF L02030 (CHANNEL: SI-RO+ ) TO SIGM-   RHO+77             .0400   20   32   29
+  52  130 DECAY OF L02030 (CHANNEL: SI0RO0 ) TO SIGM0   RHO077             .0500   22   33   29
+  52  131 DECAY OF L02030 (CHANNEL: LA0ET0 ) TO LAM     ETA550             .0750   17   31   29
+  52  132 DECAY OF L02030 (CHANNEL: SI0ET0 ) TO SIGM0   ETA550             .0750   22   31   29
+  52  133 DECAY OF L02030 (CHANNEL: SI+PI- ) TO SIGM+   PI-                .0300   21   14   29
+  52  134 DECAY OF L02030 (CHANNEL: SI-PI+ ) TO SIGM-   PI+                .0300   20   13   29
+  52  135 DECAY OF L02030 (CHANNEL: SI0PI0 ) TO SIGM0   PI0                .0400   22   23   29
+  53  140 DECAY OF N*++12 (CHANNEL: P PI+  ) TO P       PI+               1.0000    1   13   29
+  54  141 DECAY OF N*+ 12 (CHANNEL: P PI0  ) TO P       PI0                .6700    1   23   29
+  54  142 DECAY OF N*+ 12 (CHANNEL: N PI+  ) TO NEU     PI+                .3300    8   13   29
+  55  143 DECAY OF N*012  (CHANNEL: P PI-  ) TO P       PI-                .3300    1   14   29
+  55  144 DECAY OF N*012  (CHANNEL: N PI0  ) TO NEU     PI0                .6700    8   23   29
+    
+
+
+
+  I    J       ANAME       DNAME              DECAY   PRODUCTS           WT     NZK
+
+  56  145 DECAY OF N*-12  (CHANNEL: N PI-  ) TO NEU     PI-               1.0000    8   14   29
+  57  146 DECAY OF N*++16 (CHANNEL: P PI+  ) TO P       PI+                .2500    1   13   29
+  57  147 DECAY OF N*++16 (CHANNEL: N*>PI0 ) TO N*++12  PI0                .2700   53   23   29
+  57  148 DECAY OF N*++16 (CHANNEL: N*+PI+ ) TO N*+ 12  PI+                .1800   54   13   29
+  57  149 DECAY OF N*++16 (CHANNEL: PRHO+  ) TO P       RPI+49             .3000    1   78   29
+  58  150 DECAY OF N*+16  (CHANNEL: P PI0  ) TO P       PI0                .1700    1   23   29
+  58  151 DECAY OF N*+16  (CHANNEL: N PI+  ) TO NEU     PI+                .0800    8   13   29
+  58  152 DECAY OF N*+16  (CHANNEL: N*>PI- ) TO N*++12  PI-                .1800   53   14   29
+  58  153 DECAY OF N*+16  (CHANNEL: N*+PI0 ) TO N*+ 12  PI0                .0300   54   23   29
+  58  154 DECAY OF N*+16  (CHANNEL: N*0PI+ ) TO N*012   PI+                .2400   55   13   29
+  58  155 DECAY OF N*+16  (CHANNEL: PRHO0  ) TO P       RPI049             .2000    1   79   29
+  58  156 DECAY OF N*+16  (CHANNEL: NRHO+  ) TO NEU     RPI+49             .1000    8   78   29
+  59  157 DECAY OF N*016  (CHANNEL: P PI-  ) TO P       PI-                .0800    1   14   29
+  59  158 DECAY OF N*016  (CHANNEL: N PI0  ) TO NEU     PI0                .1700    8   23   29
+  59  159 DECAY OF N*016  (CHANNEL: N*+PI- ) TO N*+ 12  PI-                .2400   54   14   29
+  59  160 DECAY OF N*016  (CHANNEL: N*0PI0 ) TO N*012   PI0                .0300   55   23   29
+  59  161 DECAY OF N*016  (CHANNEL: N*-PI+ ) TO N*-12   PI+                .1800   56   13   29
+  59  162 DECAY OF N*016  (CHANNEL: PRHO-  ) TO P       RPI-49             .1000    1   80   29
+  59  163 DECAY OF N*016  (CHANNEL: NRHO0  ) TO NEU     RPI049             .2000    8   79   29
+  60  164 DECAY OF N*-16  (CHANNEL: N PI-  ) TO NEU     PI-                .2500    8   14   29
+  60  165 DECAY OF N*-16  (CHANNEL: N*0PI- ) TO N*012   PI-                .1800   55   14   29
+  60  166 DECAY OF N*-16  (CHANNEL: N*-PI0 ) TO N*-12   PI0                .2700   56   23   29
+  60  167 DECAY OF N*-16  (CHANNEL: NRHO-  ) TO NEU     RPI-49             .3000    8   80   29
+  61  168 DECAY OF N*+14  (CHANNEL: P PI0  ) TO P       PI0                .2250    1   23   29
+  61  169 DECAY OF N*+14  (CHANNEL: N PI+  ) TO NEU     PI+                .3750    8   13   29
+  61  170 DECAY OF N*+14  (CHANNEL: N*>PI- ) TO N*++12  PI-                .1500   53   14   29
+  61  171 DECAY OF N*+14  (CHANNEL: N*+PI0 ) TO N*+ 12  PI0                .0938   54   23   29
+  61  172 DECAY OF N*+14  (CHANNEL: N*0PI+ ) TO N*012   PI+                .0562   55   13   29
+  61  173 DECAY OF N*+14  (CHANNEL: PRHO0  ) TO P       RPI049             .0375    1   79   29
+  61  174 DECAY OF N*+14  (CHANNEL: NRHO+  ) TO NEU     RPI+49             .0626    8   78   29
+  62  175 DECAY OF N*014  (CHANNEL: N PI0  ) TO NEU     PI0                .2250    8   23   29
+  62  176 DECAY OF N*014  (CHANNEL: P  PI- ) TO P       PI-                .3750    1   14   29
+  62  177 DECAY OF N*014  (CHANNEL: N*+PI- ) TO N*+ 12  PI-                .1500   54   14   29
+  62  178 DECAY OF N*014  (CHANNEL: N*0PI0 ) TO N*012   PI0                .0938   55   23   29
+  62  179 DECAY OF N*014  (CHANNEL: N*-PI+ ) TO N*-12   PI+                .0562   56   13   29
+  62  180 DECAY OF N*014  (CHANNEL: PRHO-  ) TO P       RPI-49             .0375    1   80   29
+  62  181 DECAY OF N*014  (CHANNEL: NRHO0  ) TO NEU     RPI049             .0625    8   79   29
+  63  182 DECAY OF N*+15  (CHANNEL: P PI0  ) TO P       PI0                .1800    1   23   29
+  63  183 DECAY OF N*+15  (CHANNEL: N PI+  ) TO NEU     PI+                .3700    8   13   29
+  63  184 DECAY OF N*+15  (CHANNEL: N*>PI- ) TO N*++12  PI-                .1300   53   14   29
+  63  185 DECAY OF N*+15  (CHANNEL: N*+PI0 ) TO N*+ 12  PI0                .0800   54   23   29
+  63  186 DECAY OF N*+15  (CHANNEL: N*0PI+ ) TO N*012   PI+                .0400   55   13   29
+  63  187 DECAY OF N*+15  (CHANNEL: PRHO0  ) TO P       RPI049             .0700    1   79   29
+  63  188 DECAY OF N*+15  (CHANNEL: NRHO+  ) TO NEU     RPI+49             .1300    8   78   29
+  64  189 DECAY OF N*015  (CHANNEL: P PI-  ) TO P       PI-                .3700    1   14   29
+  64  190 DECAY OF N*015  (CHANNEL: N PI0  ) TO NEU     PI0                .1800    8   23   29
+  64  191 DECAY OF N*015  (CHANNEL: N*+PI- ) TO N*+ 12  PI-                .0400   54   14   29
+  64  192 DECAY OF N*015  (CHANNEL: N*0PI0 ) TO N*012   PI0                .0800   55   23   29
+  64  193 DECAY OF N*015  (CHANNEL: N*-PI+ ) TO N*-12   PI+                .1300   56   13   29
+  64  194 DECAY OF N*015  (CHANNEL: PRHO-  ) TO P       RPI-49             .1300    1   80   29
+  64  195 DECAY OF N*015  (CHANNEL: NRHO0  ) TO NEU     RPI049             .0700    8   79   29
+  65  196 DECAY OF N*+18  (CHANNEL: P PI0  ) TO P       PI0                .0700    1   23   29
+  65  197 DECAY OF N*+18  (CHANNEL: N PI+  ) TO NEU     PI+                .1300    8   13   29
+  65  198 DECAY OF N*+18  (CHANNEL: PRHO0  ) TO P       RHO077             .2300    1   33   29
+  65  199 DECAY OF N*+18  (CHANNEL: NRHO+  ) TO NEU     RHO+77             .4700    8   32   29
+  65  200 DECAY OF N*+18  (CHANNEL: LAMK+  ) TO LAM     K+                 .0500   17   15   29
+  65  201 DECAY OF N*+18  (CHANNEL: S+ K0  ) TO SIGM+   K0                 .0200   21   24   29
+  65  202 DECAY OF N*+18  (CHANNEL: S0 K+  ) TO SIGM0   K+                 .0100   22   15   29
+  65  203 DECAY OF N*+18  (CHANNEL: PETA0  ) TO P       ETA550             .0200    1   31   29
+  66  204 DECAY OF N*018  (CHANNEL: P PI-  ) TO P       PI-                .1300    1   14   29
+  66  205 DECAY OF N*018  (CHANNEL: N PI0  ) TO NEU     PI0                .0700    8   23   29
+  66  206 DECAY OF N*018  (CHANNEL: PRHO-  ) TO P       RHO-77             .4700    1   34   29
+  66  207 DECAY OF N*018  (CHANNEL: NRHO0  ) TO NEU     RHO077             .2300    8   33   29
+  66  208 DECAY OF N*018  (CHANNEL: LAMK0  ) TO LAM     K0                 .0500   17   24   29
+  66  209 DECAY OF N*018  (CHANNEL: S0 K0  ) TO SIGM0   K0                 .0100   22   24   29
+  66  210 DECAY OF N*018  (CHANNEL: S- K+  ) TO SIGM-   K+                 .0200   20   15   29
+  66  211 DECAY OF N*018  (CHANNEL: NETA/  ) TO NEU     ETA550             .0200    8   31   29
+  67  212 DECAY OF AN--12 (CHANNEL: APPI-  ) TO AP      PI-               1.0000    2   14   29
+  68  213 DECAY OF AN*-12 (CHANNEL: APPI0  ) TO AP      PI0                .6700    2   23   29
+  68  214 DECAY OF AN*-12 (CHANNEL: ANPI-  ) TO ANEU    PI-                .3300    9   14   29
+  69  215 DECAY OF AN*012 (CHANNEL: APPI+  ) TO AP      PI+                .3300    2   13   29
+  69  216 DECAY OF AN*012 (CHANNEL: ANPI0  ) TO ANEU    PI0                .6700    9   23   29
+  70  217 DECAY OF AN*+12 (CHANNEL: ANPI+  ) TO ANEU    PI+               1.0000    9   13   29
+  71  218 DECAY OF AN--16 (CHANNEL: APPI-  ) TO AP      PI-                .2500    2   14   29
+  71  219 DECAY OF AN--16 (CHANNEL: AN*=P0 ) TO AN--12  PI0                .2700   67   23   29
+  71  220 DECAY OF AN--16 (CHANNEL: AN*-P- ) TO AN*-12  PI-                .1800   68   14   29
+  71  221 DECAY OF AN--16 (CHANNEL: APRHO- ) TO AP      RPI-49             .3000    2   80   29
+  72  222 DECAY OF AN*-16 (CHANNEL: APPI0  ) TO AP      PI0                .1700    2   23   29
+    
+
+
+
+  I    J       ANAME       DNAME              DECAY   PRODUCTS           WT     NZK
+
+  72  223 DECAY OF AN*-16 (CHANNEL: ANPI-  ) TO ANEU    PI-                .0800    9   14   29
+  72  224 DECAY OF AN*-16 (CHANNEL: AN*=P+ ) TO AN--12  PI+                .1800   67   13   29
+  72  225 DECAY OF AN*-16 (CHANNEL: AN*-P0 ) TO AN*-12  PI0                .0300   68   23   29
+  72  226 DECAY OF AN*-16 (CHANNEL: AN*0P- ) TO AN*012  PI-                .2400   69   14   29
+  72  227 DECAY OF AN*-16 (CHANNEL: APRHO0 ) TO AP      RPI049             .2000    2   79   29
+  72  228 DECAY OF AN*-16 (CHANNEL: ANRHO- ) TO ANEU    RPI-49             .1000    9   80   29
+  73  229 DECAY OF AN*016 (CHANNEL: APPI+  ) TO AP      PI+                .0800    2   13   29
+  73  230 DECAY OF AN*016 (CHANNEL: ANPI0  ) TO ANEU    PI0                .1700    9   23   29
+  73  231 DECAY OF AN*016 (CHANNEL: AN*-P+ ) TO AN*-12  PI+                .2400   68   13   29
+  73  232 DECAY OF AN*016 (CHANNEL: AN*0P0 ) TO AN*012  PI0                .0300   69   23   29
+  73  233 DECAY OF AN*016 (CHANNEL: AN*+P- ) TO AN*+12  PI-                .1800   70   14   29
+  73  234 DECAY OF AN*016 (CHANNEL: APRHO+ ) TO AP      RPI+49             .1000    2   78   29
+  73  235 DECAY OF AN*016 (CHANNEL: ANRHO0 ) TO ANEU    RPI049             .2000    9   79   29
+  74  236 DECAY OF AN*+16 (CHANNEL: ANPI+  ) TO ANEU    PI+                .2500    9   13   29
+  74  237 DECAY OF AN*+16 (CHANNEL: AN*0P+ ) TO AN*012  PI+                .1800   69   13   29
+  74  238 DECAY OF AN*+16 (CHANNEL: AN*+P0 ) TO AN*+12  PI0                .2700   70   23   29
+  74  239 DECAY OF AN*+16 (CHANNEL: ANRHO+ ) TO ANEU    RPI+49             .3000    9   78   29
+  75  240 DECAY OF AN*-15 (CHANNEL: APPI0  ) TO AP      PI0                .1800    2   23   29
+  75  241 DECAY OF AN*-15 (CHANNEL: ANPI-  ) TO ANEU    PI-                .3700    9   14   29
+  75  242 DECAY OF AN*-15 (CHANNEL: AN*=P+ ) TO AN--12  PI+                .1300   67   13   29
+  75  243 DECAY OF AN*-15 (CHANNEL: AN*-P0 ) TO AN*-12  PI0                .0800   68   23   29
+  75  244 DECAY OF AN*-15 (CHANNEL: AN*0P- ) TO AN*012  PI-                .0400   69   14   29
+  75  245 DECAY OF AN*-15 (CHANNEL: APRHO0 ) TO AP      RPI049             .0700    2   79   29
+  75  246 DECAY OF AN*-15 (CHANNEL: ANRHO- ) TO ANEU    RPI-49             .1300    9   80   29
+  76  247 DECAY OF AN*015 (CHANNEL: APPI+, ) TO AP      PI+                .3700    2   13   29
+  76  248 DECAY OF AN*015 (CHANNEL: ANPI0  ) TO ANEU    PI0                .1800    9   23   29
+  76  249 DECAY OF AN*015 (CHANNEL: AN*-P+ ) TO AN*-12  PI+                .0400   68   13   29
+  76  250 DECAY OF AN*015 (CHANNEL: AN*0P0 ) TO AN*012  PI0                .0800   69   23   29
+  76  251 DECAY OF AN*015 (CHANNEL: AN*+P- ) TO AN*+12  PI-                .1300   70   14   29
+  76  252 DECAY OF AN*015 (CHANNEL: APRHO+ ) TO AP      RPI+49             .1300    2   78   29
+  76  253 DECAY OF AN*015 (CHANNEL: ANRHO0 ) TO ANEU    RPI049             .0700    9   79   29
+  77  254 DECAY OF DE*-24 (CHANNEL: PN*014 ) TO P       N*014              .5000    1   62   29
+  77  255 DECAY OF DE*-24 (CHANNEL: NN*=14 ) TO NEU     N*+14              .5000    8   61   29
+  78  256 DECAY OF RPI+49 (CHANNEL: PI+0   ) TO PI+     PI0               1.0000   13   23   29
+  79  257 DECAY OF RPI049 (CHANNEL: PI+-   ) TO PI+     PI-               1.0000   13   14   29
+  80  258 DECAY OF RPI-49 (CHANNEL: PI-0   ) TO PI-     PI0               1.0000   14   23   29
+  81  259 DECAY OF PIN++  (CHANNEL: P+0    ) TO P       PI+     PI0        .8000    1   13   23
+  81  260 DECAY OF PIN++  (CHANNEL: N++    ) TO NEU     PI+     PI+        .2000    8   13   13
+  82  261 DECAY OF PIN+0  (CHANNEL: P+-    ) TO P       PI+     PI-        .6000    1   13   14
+  82  262 DECAY OF PIN+0  (CHANNEL: P00    ) TO P       PI0     PI0        .3000    1   23   23
+  82  263 DECAY OF PIN+0  (CHANNEL: N+0    ) TO NEU     PI+     PI0        .1000    8   13   23
+  83  264 DECAY OF PIN+-  (CHANNEL: N+-    ) TO NEU     PI+     PI-        .6000    8   13   14
+  83  265 DECAY OF PIN+-  (CHANNEL: N00    ) TO NEU     PI0     PI0        .3000    8   23   23
+  83  266 DECAY OF PIN+-  (CHANNEL: P-0    ) TO P       PI-     PI0        .1000    1   14   23
+  84  267 DECAY OF PIN-0  (CHANNEL: N-0    ) TO NEU     PI-     PI0        .8000    8   14   23
+  84  268 DECAY OF PIN-0  (CHANNEL: P--    ) TO P       PI-     PI-        .2000    1   14   14
+  85  269 DECAY OF PPPI   (CHANNEL: PPPI0  ) TO P       P       PI0        .3300    1    1   23
+  85  270 DECAY OF PPPI   (CHANNEL: PNPI+  ) TO P       NEU     PI+        .6700    1    8   13
+  86  271 DECAY OF PNPI   (CHANNEL: PNPI0  ) TO P       NEU     PI0        .6600    1    8   23
+  86  272 DECAY OF PNPI   (CHANNEL: PPPI-  ) TO P       P       PI-        .1700    1    1   14
+  86  273 DECAY OF PNPI   (CHANNEL: NNPI+  ) TO NEU     NEU     PI+        .1700    8    8   13
+  87  274 DECAY OF APPPI  (CHANNEL: APPPI0 ) TO AP      P       PI0        .3200    2    1   23
+  87  275 DECAY OF APPPI  (CHANNEL: APNPI+ ) TO AP      NEU     PI+        .1700    2    8   13
+  87  276 DECAY OF APPPI  (CHANNEL: ANNPI0 ) TO ANEU    NEU     PI0        .3200    9    8   23
+  87  277 DECAY OF APPPI  (CHANNEL: ANPPI- ) TO ANEU    P       PI-        .1900    9    1   14
+  88  278 DECAY OF APNPI  (CHANNEL: APNPI0 ) TO AP      NEU     PI0        .3300    2    8   23
+  88  279 DECAY OF APNPI  (CHANNEL: APPPI- ) TO AP      P       PI-        .3300    2    1   14
+  88  280 DECAY OF APNPI  (CHANNEL: ANNPI- ) TO ANEU    NEU     PI-        .3400    9    8   14
+  89  281 DECAY OF K+PPI  (CHANNEL: K+PPI0 ) TO K+      P       PI0        .3000   15    1   23
+  89  282 DECAY OF K+PPI  (CHANNEL: K+NPI+ ) TO K+      NEU     PI+        .0500   15    8   13
+  89  283 DECAY OF K+PPI  (CHANNEL: K0PPI0 ) TO K0      P       PI+        .6500   24    1   13
+  90  284 DECAY OF K-PPI  (CHANNEL: K-PPI0 ) TO K-      P       PI0        .3800   16    1   23
+  90  285 DECAY OF K-PPI  (CHANNEL: K-NPI+ ) TO K-      NEU     PI+        .1200   16    8   13
+  90  286 DECAY OF K-PPI  (CHANNEL: AKPPI- ) TO AK0     P       PI-        .3800   25    1   14
+  90  287 DECAY OF K-PPI  (CHANNEL: AKNPI0 ) TO AK0     NEU     PI0        .1200   25    8   23
+  91  288 DECAY OF K+NPI  (CHANNEL: K+NPI0 ) TO K+      NEU     PI0        .3800   15    8   23
+  91  289 DECAY OF K+NPI  (CHANNEL: K+PPI- ) TO K+      P       PI-        .1200   15    1   14
+  91  290 DECAY OF K+NPI  (CHANNEL: K0PPI0 ) TO K0      P       PI0        .3800   24    1   23
+  91  291 DECAY OF K+NPI  (CHANNEL: K0NPI+ ) TO K0      NEU     PI+        .1200   24    8   13
+  92  292 DECAY OF K-NPI  (CHANNEL: K-NPI0 ) TO K-      NEU     PI0        .3000   16    8   23
+  92  293 DECAY OF K-NPI  (CHANNEL: K-PPI- ) TO K-      P       PI-        .0500   16    1   14
+  92  294 DECAY OF K-NPI  (CHANNEL: AKNPI- ) TO AK0     NEU     PI-        .6500   25    8   14
+  93  295 DECAY OF S+1820 (CHANNEL: PAK0   ) TO P       AK0                .3800    1   25   29
+  93  296 DECAY OF S+1820 (CHANNEL: SI+PI0 ) TO SIGM+   PI0                .2500   21   23   29
+  93  297 DECAY OF S+1820 (CHANNEL: SI0PI+ ) TO SIGM0   PI+                .2500   22   13   29
+  93  298 DECAY OF S+1820 (CHANNEL: SI+ETA ) TO SIGM+   ETA550             .0200   21   31   29
+  93  299 DECAY OF S+1820 (CHANNEL: S+1PI0 ) TO S+1385  PI0                .0500   48   23   29
+  93  300 DECAY OF S+1820 (CHANNEL: S01PI+ ) TO S01385  PI+                .0500   49   13   29
+    
+
+
+
+  I    J       ANAME       DNAME              DECAY   PRODUCTS           WT     NZK
+
+  94  301 DECAY OF S-2030 (CHANNEL: NEUK-  ) TO NEU     K-                 .2000    8   16   29
+  94  302 DECAY OF S-2030 (CHANNEL: LA0PI- ) TO LAM     PI-                .2000   17   14   29
+  94  303 DECAY OF S-2030 (CHANNEL: SI-OM0 ) TO SIGM-   OM0783             .1200   20   35   29
+  94  304 DECAY OF S-2030 (CHANNEL: LA0RO- ) TO LAM     RHO-77             .1000   17   34   29
+  94  305 DECAY OF S-2030 (CHANNEL: SI0RO- ) TO SIGM0   RHO-77             .0700   22   34   29
+  94  306 DECAY OF S-2030 (CHANNEL: SI-RO0 ) TO SIGM-   RHO077             .0700   20   33   29
+  94  307 DECAY OF S-2030 (CHANNEL: SI-ET0 ) TO SIGM-   ETA550             .1400   20   31   29
+  94  308 DECAY OF S-2030 (CHANNEL: SI0PI- ) TO SIGM0   PI-                .0500   22   14   29
+  94  309 DECAY OF S-2030 (CHANNEL: SI-0   ) TO SIGM-   PI0                .0500   20   23   29
+  95  333 DECAY OF ETA*   (CHANNEL: EPI+-  ) TO ETA550  PI+     PI-        .4800   31   13   14
+  95  334 DECAY OF ETA*   (CHANNEL: EPI00  ) TO ETA550  PI0     PI0        .2400   31   23   23
+  95  335 DECAY OF ETA*   (CHANNEL: GAPI+- ) TO PI+     PI-     GAM        .2600   13   14    7
+  95  336 DECAY OF ETA*   (CHANNEL: GAGA*  ) TO GAM     GAM                .0200    7    7   29
+  96  337 DECAY OF PHI    (CHANNEL: K+-    ) TO K+      K-                 .4700   15   16   29
+  96  338 DECAY OF PHI    (CHANNEL: KLKS   ) TO K0L     K0S                .3500   12   19   29
+  96  339 DECAY OF PHI    (CHANNEL: PI+-0  ) TO PI+     PI-     PI0        .1500   13   14   23
+  96  340 DECAY OF PHI    (CHANNEL: EGA    ) TO ETA550  GAM                .0300   31    7   29
+  97  341 DECAY OF TETA0  (CHANNEL: LPI0   ) TO LAM     PI0               1.0000   17   23   29
+  98  342 DECAY OF TETA-  (CHANNEL: LPI    ) TO LAM     PI-               1.0000   17   14   29
+  99  343 DECAY OF ASIG-  (CHANNEL: APPI0  ) TO AP      PI0                .5200    2   23   29
+  99  344 DECAY OF ASIG-  (CHANNEL: ANPI-  ) TO ANEU    PI-                .4800    9   14   29
+ 100  345 DECAY OF ASIG0  (CHANNEL: ALAGA  ) TO ALAM    GAM               1.0000   18    7   29
+ 101  346 DECAY OF ASIG+  (CHANNEL: ANPI   ) TO ANEU    PI+               1.0000    9   13   29
+ 102  347 DECAY OF ATETA0 (CHANNEL: ALPI0  ) TO ALAM    PI0               1.0000   18   23   29
+ 103  348 DECAY OF ATETA+ (CHANNEL: ALPI+  ) TO ALAM    PI+               1.0000   18   13   29
+ 104  349 DECAY OF SIG*+  (CHANNEL: LAPI+  ) TO LAM     PI+                .9000   17   13   29
+ 104  350 DECAY OF SIG*+  (CHANNEL: SI+PI0 ) TO SIGM+   PI0                .0500   21   23   29
+ 104  351 DECAY OF SIG*+  (CHANNEL: SI0PI+ ) TO SIGM0   PI+                .0500   22   13   29
+ 105  352 DECAY OF SIG*0  (CHANNEL: LAPI0  ) TO LAM     PI0                .9000   17   23   29
+ 105  353 DECAY OF SIG*0  (CHANNEL: SI+PI- ) TO SIGM+   PI-                .0500   21   14   29
+ 105  354 DECAY OF SIG*0  (CHANNEL: SI-PI+ ) TO SIGM-   PI+                .0500   20   13   29
+ 106  355 DECAY OF SIG*-  (CHANNEL: LAPI-  ) TO LAM     PI-                .9000   17   14   29
+ 106  356 DECAY OF SIG*-  (CHANNEL: SI-PI0 ) TO SIGM-   PI0                .0500   20   23   29
+ 106  357 DECAY OF SIG*-  (CHANNEL: SI0PI- ) TO SIGM0   PI-                .0500   22   14   29
+ 107  358 DECAY OF TETA*0 (CHANNEL: TE0PI0 ) TO TETA0   PI0                .3300   97   23   29
+ 107  359 DECAY OF TETA*0 (CHANNEL: TE-PI+ ) TO TETA-   PI+                .6700   98   13   29
+ 108  360 DECAY OF TETA*  (CHANNEL: TE0PI- ) TO TETA0   PI-                .6700   97   14   29
+ 108  361 DECAY OF TETA*  (CHANNEL: TE-PI0 ) TO TETA-   PI0                .3300   98   23   29
+ 109  362 DECAY OF OMEGA- (CHANNEL: TE0PI  ) TO TETA0   PI-                .2500   97   14   29
+    
+
+
+
+  I    J       ANAME       DNAME              DECAY   PRODUCTS           WT     NZK
+
+ 109  363 DECAY OF OMEGA- (CHANNEL: TE-PI  ) TO TETA-   PI0                .2500   98   23   29
+ 109  364 DECAY OF OMEGA- (CHANNEL: LAK-   ) TO LAM     K-                 .5000   17   16   29
+ 110  365 DECAY OF ASIG*- (CHANNEL: ALPI-  ) TO ALAM    PI-                .9000   18   14   29
+ 110  366 DECAY OF ASIG*- (CHANNEL: AS-PI0 ) TO ASIG-   PI0                .0500   99   23   29
+ 110  367 DECAY OF ASIG*- (CHANNEL: AS0PI- ) TO ASIG0   PI-                .0500  100   14   29
+ 111  368 DECAY OF ASIG*0 (CHANNEL: ALPI0  ) TO ALAM    PI0                .9000   18   23   29
+ 111  369 DECAY OF ASIG*0 (CHANNEL: AS+PI- ) TO ASIG+   PI-                .0500  101   14   29
+ 111  370 DECAY OF ASIG*0 (CHANNEL: AS-PI+ ) TO ASIG-   PI+                .0500   99   13   29
+ 112  371 DECAY OF ASIG*+ (CHANNEL: ALPI+  ) TO ALAM    PI+                .9000   18   13   29
+ 112  372 DECAY OF ASIG*+ (CHANNEL: AS+PI0 ) TO ASIG+   PI0                .0500  101   23   29
+ 112  373 DECAY OF ASIG*+ (CHANNEL: AS0PI+ ) TO ASIG0   PI+                .0500  100   13   29
+ 113  374 DECAY OF ATET*0 (CHANNEL: AT0PI0 ) TO ATETA0  PI0                .3300  102   23   29
+ 113  375 DECAY OF ATET*0 (CHANNEL: AT+PI- ) TO ATETA+  PI-                .6700  103   14   29
+ 114  376 DECAY OF ATET*+ (CHANNEL: AT0PI+ ) TO ATETA0  PI+                .6700  102   13   29
+ 114  377 DECAY OF ATET*+ (CHANNEL: AT+PI0 ) TO ATETA+  PI0                .3300  103   23   29
+ 115  378 DECAY OF OMEGA+ (CHANNEL: AT0PI  ) TO ATETA0  PI+                .2500  102   13   29
+ 115  379 DECAY OF OMEGA+ (CHANNEL: AT+PI  ) TO ATETA+  PI0                .2500  103   23   29
+ 115  380 DECAY OF OMEGA+ (CHANNEL: ALK+   ) TO ALAM    K+                 .5000   18   15   29
+ 116  381 DECAY OF D0     (CHANNEL: K-PI+  ) TO K-      PI+                .1000   16   13   29
+ 116  382 DECAY OF D0     (CHANNEL: K-PI+0 ) TO K-      PI+     PI0        .5000   16   13   23
+ 116  383 DECAY OF D0     (CHANNEL: K0PI+- ) TO K0      PI+     PI-        .1600   24   13   14
+ 116  384 DECAY OF D0     (CHANNEL: K0PI0  ) TO K0      PI0                .2400   24   23   29
+ 117  385 DECAY OF D+     (CHANNEL: K-PI++ ) TO K-      PI+     PI+        .7000   16   13   13
+ 117  386 DECAY OF D+     (CHANNEL: AK0PI+ ) TO AK0     PI+                .3000   25   13   29
+ 118  387 DECAY OF D-     (CHANNEL: K+PI-- ) TO K+      PI-     PI-        .7000   15   14   14
+ 118  388 DECAY OF D-     (CHANNEL: K0PI-  ) TO K0      PI-                .3000   24   14   29
+ 119  389 DECAY OF AD0    (CHANNEL: K+PI-  ) TO K+      PI-                .1000   15   14   29
+ 119  390 DECAY OF AD0    (CHANNEL: K+PI-0 ) TO K+      PI-     PI0        .5000   15   14   23
+ 119  391 DECAY OF AD0    (CHANNEL: AKPI-+ ) TO AK0     PI-     PI+        .1600   25   14   13
+ 119  392 DECAY OF AD0    (CHANNEL: AK0PI0 ) TO AK0     PI0                .2400   25   23   29
+ 120  393 DECAY OF F+     (CHANNEL: ETAPIF ) TO ETA550  PI+                .3000   31   13   29
+ 120  394 DECAY OF F+     (CHANNEL: K++-   ) TO K+      K-      K+         .4000   15   16   15
+ 120  395 DECAY OF F+     (CHANNEL: K+AK0  ) TO K+      AK0                .3000   15   25   29
+ 121  396 DECAY OF F-     (CHANNEL: ETAPI- ) TO ETA550  PI-                .3000   31   14   29
+ 121  397 DECAY OF F-     (CHANNEL: K--+   ) TO K-      K+      K-         .4000   16   15   16
+ 121  398 DECAY OF F-     (CHANNEL: K-KO   ) TO K-      K0                 .3000   16   24   29
+ 122  399 DECAY OF ETAC   (CHANNEL: PI00   ) TO PI0     PI0                .4900   23   23   29
+ 122  400 DECAY OF ETAC   (CHANNEL: PI+-   ) TO PI+     PI-                .4900   13   14   29
+ 122  401 DECAY OF ETAC   (CHANNEL: GAGA   ) TO GAM     GAM                .0200    7    7   29
+    
+
+
+
+  I    J       ANAME       DNAME              DECAY   PRODUCTS           WT     NZK
+
+ 123  402 DECAY OF D*0    (CHANNEL: D0PI0  ) TO D0      PI0                .5500  116   23   29
+ 123  403 DECAY OF D*0    (CHANNEL: D0GA   ) TO D0      GAM                .4500  116    7   29
+ 124  404 DECAY OF D*+    (CHANNEL: D0PI+  ) TO D0      PI+                .6800  116   13   29
+ 124  405 DECAY OF D*+    (CHANNEL: D+PI0  ) TO D+      PI0                .3000  117   23   29
+ 124  406 DECAY OF D*+    (CHANNEL: DFGA   ) TO D+      GAM                .0200  117    7   29
+ 125  407 DECAY OF D*-    (CHANNEL: AD0PI- ) TO AD0     PI-                .6800  119   14   29
+ 125  408 DECAY OF D*-    (CHANNEL: D-PI0  ) TO D-      PI0                .3000  118   23   29
+ 125  409 DECAY OF D*-    (CHANNEL: D-GA   ) TO D-      GAM                .0200  118    7   29
+ 126  410 DECAY OF AD*0   (CHANNEL: AD0PI0 ) TO AD0     PI0                .5500  119   23   29
+ 126  411 DECAY OF AD*0   (CHANNEL: AD0GA  ) TO AD0     GAM                .4500  119    7   29
+ 127  412 DECAY OF F*+    (CHANNEL: F+GA   ) TO F+      GAM                .9000  120    7   29
+ 127  413 DECAY OF F*+    (CHANNEL: F+GA   ) TO F+      GAM                .1000  120    7   29
+ 128  414 DECAY OF F*-    (CHANNEL: F-GA   ) TO F-      GAM                .9000  121    7   29
+ 128  415 DECAY OF F*-    (CHANNEL: F-GA   ) TO F-      GAM                .1000  121    7   29
+ 129  416 DECAY OF PSI    (CHANNEL: PSPI+- ) TO JPSI    PI+     PI-        .6000  130   13   14
+ 129  417 DECAY OF PSI    (CHANNEL: PSPI00 ) TO JPSI    PI0     PI0        .3000  130   23   23
+ 129  418 DECAY OF PSI    (CHANNEL: PSETA  ) TO JPSI    ETA550             .1000  130   31   29
+ 130  419 DECAY OF JPSI   (CHANNEL: E+E-   ) TO E+      E-                 .1000    4    3   29
+ 130  420 DECAY OF JPSI   (CHANNEL: MUE+-  ) TO MUE+    MUE-               .1000   10   11   29
+ 130  421 DECAY OF JPSI   (CHANNEL: PI+-0  ) TO PI+     PI-     PI0        .8000   13   14   23
+ 131  422 DECAY OF TAU+   (CHANNEL: M+NN   ) TO MUE+    NUEM    ANUET      .2800   10  135  134
+ 131  423 DECAY OF TAU+   (CHANNEL: E+NN   ) TO E+      NUE     ANUET      .2800    4    5  134
+ 131  424 DECAY OF TAU+   (CHANNEL: RHO+NT ) TO RHO+77  ANUET              .3500   32  134   29
+ 131  425 DECAY OF TAU+   (CHANNEL: PI+ANT ) TO PI+     ANUET              .0700   13  134   29
+ 131  426 DECAY OF TAU+   (CHANNEL: K*+ANT ) TO K*+892  ANUET              .0200   36  134   29
+ 132  427 DECAY OF TAU-   (CHANNEL: M-NN   ) TO MUE-    ANUEM   NUET       .2800   11  136  133
+ 132  428 DECAY OF TAU-   (CHANNEL: E-NN   ) TO E-      ANUE    NUET       .2800    3    6  133
+ 132  429 DECAY OF TAU-   (CHANNEL: RHO-NT ) TO RHO-77  NUET               .3500   34  133   29
+ 132  430 DECAY OF TAU-   (CHANNEL: PI-NT  ) TO PI-     NUET               .0700   14  133   29
+ 132  431 DECAY OF TAU-   (CHANNEL: K*-NT  ) TO K*-892  NUET               .0200   38  133   29
+ 133  432 DECAY OF NUET   (CHANNEL: NUET   ) TO NUET                      1.0000  133   29   29
+ 134  433 DECAY OF ANUET  (CHANNEL: ANUET  ) TO ANUET                     1.0000  134   29   29
+ 135  434 DECAY OF NUEM   (CHANNEL: NUEM   ) TO NUEM                      1.0000  135   29   29
+ 136  435 DECAY OF ANUEM  (CHANNEL: ANUEM  ) TO ANUEM                     1.0000  136   29   29
+ 137  436 DECAY OF C0+    (CHANNEL: SI+ETA ) TO SIGM+   ETA550             .0200   21   31   29
+ 137  437 DECAY OF C0+    (CHANNEL: SI+ET* ) TO SIGM+   ETA*               .0300   21   95   29
+ 137  438 DECAY OF C0+    (CHANNEL: PAK0   ) TO P       AK0                .0700    1   25   29
+ 137  439 DECAY OF C0+    (CHANNEL: TET0K+ ) TO TETA0   K+                 .0200   97   15   29
+ 137  440 DECAY OF C0+    (CHANNEL: SI*+ET ) TO SIG*+   ETA550             .0200  104   31   29
+ 137  441 DECAY OF C0+    (CHANNEL: N*+AK0 ) TO N*+ 12  ETA*               .0400   54   95   29
+ 137  442 DECAY OF C0+    (CHANNEL: N*++K- ) TO N*++12  K-                 .1300   53   16   29
+ 137  443 DECAY OF C0+    (CHANNEL: LAMRO+ ) TO LAM     RHO+77             .0700   17   32   29
+ 137  444 DECAY OF C0+    (CHANNEL: SI0RO+ ) TO SIGM0   RHO+77             .0600   22   32   29
+ 137  445 DECAY OF C0+    (CHANNEL: SI+RO0 ) TO SIGM+   RHO077             .0600   21   33   29
+ 137  446 DECAY OF C0+    (CHANNEL: SI+OME ) TO SIGM+   OM0783             .2000   21   35   29
+ 137  447 DECAY OF C0+    (CHANNEL: PAK*0  ) TO P       AK*089             .1400    1   39   29
+ 137  448 DECAY OF C0+    (CHANNEL: N*+AK* ) TO N*+ 12  AK*089             .0400   54   39   29
+ 137  449 DECAY OF C0+    (CHANNEL: N*++K* ) TO N*++12  K*-892             .1000   53   38   29
+ 138  450 DECAY OF A+     (CHANNEL: SI+AK0 ) TO SIGM+   AK0                .2500   21   25   29
+ 138  451 DECAY OF A+     (CHANNEL: TET0PI ) TO TETA0   PI+                .0300   97   13   29
+ 138  452 DECAY OF A+     (CHANNEL: SI+AK* ) TO SIGM+   AK*089             .3000   21   39   29
+ 138  453 DECAY OF A+     (CHANNEL: TET0RO ) TO TETA0   RHO+77             .4200   97   32   29
+ 139  454 DECAY OF A0     (CHANNEL: SI0AK* ) TO SIGM0   AK*089             .2200   22   39   29
+ 139  455 DECAY OF A0     (CHANNEL: SI+K*- ) TO SIGM+   K*-892             .3500   21   38   29
+ 139  456 DECAY OF A0     (CHANNEL: TET0OM ) TO TETA0   OM0783             .1900   97   35   29
+ 139  457 DECAY OF A0     (CHANNEL: TET-RO ) TO TETA-   RHO+77             .1600   98   32   29
+ 139  458 DECAY OF A0     (CHANNEL: SI*0AK ) TO SIG*0   AK*089             .0800  105   39   29
+ 140  459 DECAY OF C1++   (CHANNEL: C0+PI+ ) TO C0+     PI+               1.0000  137   13   29
+***** ERROR IN MASS, BAR.CH. OR E.CH.    -.01500     0     0
+ 141  460 DECAY OF C1+    (CHANNEL: C0+PI0 ) TO C0+     PI0               1.0000  137   23   29
+***** ERROR IN MASS, BAR.CH. OR E.CH.     .00000     0     0
+ 142  461 DECAY OF C10    (CHANNEL: C0+PI- ) TO C0+     PI-               1.0000  137   14   29
+***** ERROR IN MASS, BAR.CH. OR E.CH.    -.01500     0     0
+ 143  462 DECAY OF S+     (CHANNEL: A+GAM  ) TO A+      GAM               1.0000  138    7   29
+ 144  463 DECAY OF S0     (CHANNEL: A0GAM  ) TO A0      GAM               1.0000  139    7   29
+ 145  464 DECAY OF T0     (CHANNEL: TET0AK ) TO TETA0   AK0                .3700   97   25   29
+ 145  465 DECAY OF T0     (CHANNEL: TET0K* ) TO TETA0   K*0892             .2000   97   37   29
+ 145  466 DECAY OF T0     (CHANNEL: OM-RO+ ) TO OMEGA-  RHO+77             .3600  109   32   29
+ 145  467 DECAY OF T0     (CHANNEL: OM-PI+ ) TO OMEGA-  PI+                .0700  109   13   29
+ 146  468 DECAY OF XU++   (CHANNEL: C1++AK ) TO C1++    AK0                .5000  140   25   29
+ 146  469 DECAY OF XU++   (CHANNEL: A+PI+  ) TO A+      PI+                .5000  138   13   29
+ 147  470 DECAY OF XD+    (CHANNEL: C0+AK0 ) TO C0+     AK0                .5000  137   25   29
+ 147  471 DECAY OF XD+    (CHANNEL: A0PI+  ) TO A0      PI+                .5000  139   13   29
+ 148  472 DECAY OF XS+    (CHANNEL: A+AK0  ) TO A+      AK0                .5000  138   25   29
+ 148  473 DECAY OF XS+    (CHANNEL: T0PI+  ) TO T0      PI+                .5000  145   13   29
+ 149  474 DECAY OF AC0-   (CHANNEL: ASI-ET ) TO ASIG-   ETA550             .0200   99   31   29
+ 149  475 DECAY OF AC0-   (CHANNEL: ASI-E* ) TO ASIG-   ETA*               .0300   99   95   29
+ 149  476 DECAY OF AC0-   (CHANNEL: APK0   ) TO AP      K0                 .0700    2   24   29
+ 149  477 DECAY OF AC0-   (CHANNEL: ATET0K ) TO ATETA0  K-                 .0200  102   16   29
+ 149  478 DECAY OF AC0-   (CHANNEL: ASI*-E ) TO ASIG*-  ETA550             .0200  110   31   29
+ 149  479 DECAY OF AC0-   (CHANNEL: AN*-K0 ) TO AN*-12  K0                 .0400   68   24   29
+    
+
+
+
+  I    J       ANAME       DNAME              DECAY   PRODUCTS           WT     NZK
+
+ 149  480 DECAY OF AC0-   (CHANNEL: AN*--K ) TO AN--12  K+                 .1300   67   15   29
+ 149  481 DECAY OF AC0-   (CHANNEL: ALAMRO ) TO ALAM    RHO-77             .0700   18   34   29
+ 149  482 DECAY OF AC0-   (CHANNEL: ASI0RO ) TO ASIG0   RHO-77             .0600  100   34   29
+ 149  483 DECAY OF AC0-   (CHANNEL: ASI-RO ) TO ASIG-   RHO077             .0600   99   33   29
+ 149  484 DECAY OF AC0-   (CHANNEL: ASI-OM ) TO ASIG-   OM0783             .2000   99   35   29
+ 149  485 DECAY OF AC0-   (CHANNEL: APK*0  ) TO AP      K*0892             .1400    2   37   29
+ 149  486 DECAY OF AC0-   (CHANNEL: AN*-K* ) TO AN*-12  K*0892             .0400   68   37   29
+ 149  487 DECAY OF AC0-   (CHANNEL: AN*--K ) TO AN--12  K*+892             .1000   67   36   29
+ 150  488 DECAY OF AA-    (CHANNEL: ASI-K0 ) TO ASIG-   K0                 .2500   99   24   29
+ 150  489 DECAY OF AA-    (CHANNEL: ATETPI ) TO ATETA0  PI-                .0300  102   14   29
+ 150  490 DECAY OF AA-    (CHANNEL: ASI-K* ) TO ASIG-   K*0892             .3000   99   37   29
+ 150  491 DECAY OF AA-    (CHANNEL: ATETRO ) TO ATETA0  RHO-77             .4200  102   34   29
+ 151  492 DECAY OF AA0    (CHANNEL: ASI0K* ) TO ASIG0   K*0892             .2200  100   37   29
+ 151  493 DECAY OF AA0    (CHANNEL: ASI-K* ) TO ASIG-   K*+892             .3500   99   36   29
+ 151  494 DECAY OF AA0    (CHANNEL: ATE0OM ) TO ATETA0  OM0783             .1900  102   35   29
+ 151  495 DECAY OF AA0    (CHANNEL: ATE+RO ) TO ATETA+  RHO-77             .1600  103   34   29
+ 151  496 DECAY OF AA0    (CHANNEL: ASI*0K ) TO ASIG*0  K*0892             .0800  111   37   29
+ 152  497 DECAY OF AC1--  (CHANNEL: AC-PI- ) TO AC0-    PI-               1.0000  149   14   29
+ 153  498 DECAY OF AC1-   (CHANNEL: AC-PI0 ) TO AC0-    PI0               1.0000  149   23   29
+ 154  499 DECAY OF AC10   (CHANNEL: AC-PI+ ) TO AC0-    PI+               1.0000  149   13   29
+ 155  500 DECAY OF AS-    (CHANNEL: AA-GAM ) TO AA-     GAM               1.0000  150    7   29
+ 156  501 DECAY OF AS0    (CHANNEL: AA0GAM ) TO AA0     GAM               1.0000  151    7   29
+ 157  502 DECAY OF AT0    (CHANNEL: ATET0K ) TO ATET*0  K0                 .3700  113   24   29
+ 157  503 DECAY OF AT0    (CHANNEL: ATE0K* ) TO ATET*0  AK*089             .2000  113   39   29
+ 157  504 DECAY OF AT0    (CHANNEL: AOM+RO ) TO OMEGA+  RHO-77             .3600  115   34   29
+ 157  505 DECAY OF AT0    (CHANNEL: AOM+PI ) TO OMEGA+  PI-                .0700  115   14   29
+ 158  506 DECAY OF AXU--  (CHANNEL: AC1--K ) TO AC1--   K0                 .5000  152   24   29
+ 158  507 DECAY OF AXU--  (CHANNEL: AA-PI- ) TO AA-     PI-                .5000  150   14   29
+ 159  508 DECAY OF AXD-   (CHANNEL: AC0-K0 ) TO AC0-    K0                 .5000  149   24   29
+ 159  509 DECAY OF AXD-   (CHANNEL: AA0PI- ) TO AA0     PI-                .5000  151   14   29
+ 160  510 DECAY OF AXS    (CHANNEL: AA-K0  ) TO AA-     K0                 .5000  150   24   29
+ 160  511 DECAY OF AXS    (CHANNEL: AT0PI- ) TO AT0     PI-                .5000  157   14   29
+ 161  512 DECAY OF C1*++  (CHANNEL: C1++GA ) TO C1++    GAM               1.0000  140    7   29
+ 162  513 DECAY OF C1*+   (CHANNEL: C1++GA ) TO C1+     GAM               1.0000  141    7   29
+ 163  514 DECAY OF C1*0   (CHANNEL: C10GAM ) TO C10     GAM               1.0000  142    7   29
+ 164  515 DECAY OF S*+    (CHANNEL: S+GAM  ) TO S+      GAM               1.0000  143    7   29
+ 165  516 DECAY OF S*0    (CHANNEL: S0GAM  ) TO S0      GAM               1.0000  144    7   29
+ 166  517 DECAY OF T*0    (CHANNEL: T0GAM  ) TO T0      GAM               1.0000  145    7   29
+ 167  518 DECAY OF XU*++  (CHANNEL: XU++GA ) TO XU++    GAM               1.0000  146    7   29
+    
+
+
+
+  I    J       ANAME       DNAME              DECAY   PRODUCTS           WT     NZK
+
+ 168  519 DECAY OF XD*+   (CHANNEL: XD+GAM ) TO XD+     GAM               1.0000  147    7   29
+ 169  520 DECAY OF XS*+   (CHANNEL: XS+GAM ) TO XS+     GAM               1.0000  148    7   29
+ 170  521 DECAY OF TETA++ (CHANNEL: A+AKPI ) TO A+      AK0     PI+        .3000  138   25   13
+ 170  522 DECAY OF TETA++ (CHANNEL: T02PI+ ) TO T0      PI+     PI+        .3000  145   13   13
+ 170  523 DECAY OF TETA++ (CHANNEL: C1++2K ) TO C1++    AK0     AK0        .4000  140   25   25
+ 171  524 DECAY OF AC1*-- (CHANNEL: AC1--G ) TO AC1--   GAM               1.0000  152    7   29
+ 172  525 DECAY OF AC1*-  (CHANNEL: AC1-GA ) TO AC1-    GAM               1.0000  153    7   29
+ 173  526 DECAY OF AC1*0  (CHANNEL: AC10GA ) TO AC10    GAM               1.0000  154    7   29
+ 174  527 DECAY OF AS*-   (CHANNEL: AS-GAM ) TO AS-     GAM               1.0000  155    7   29
+ 175  528 DECAY OF AS*0   (CHANNEL: AS0GAM ) TO AS0     GAM               1.0000  156    7   29
+ 176  529 DECAY OF AT*0   (CHANNEL: AT0GAM ) TO AT0     GAM               1.0000  157    7   29
+ 177  530 DECAY OF AXU*-- (CHANNEL: AXU--G ) TO AXU--   GAM               1.0000  158    7   29
+ 178  531 DECAY OF AXD*-  (CHANNEL: AXD-GA ) TO AXD-    GAM               1.0000  159    7   29
+ 179  532 DECAY OF AXS*-  (CHANNEL: AXS-GA ) TO AXS     GAM               1.0000  160    7   29
+ 180  324 DECAY OF ATET-- (CHANNEL: AA-KPI ) TO AA-     K0      PI-        .3000  150   24   14
+ 180  325 DECAY OF ATET-- (CHANNEL: AT02PI ) TO AT0     PI-     PI-        .3000  157   14   14
+ 180  326 DECAY OF ATET-- (CHANNEL: AC1--K ) TO AC1--   K0      K0         .4000  152   24   24
+Pause - Please enter a blank line (to continue) or a DOS command.
