@@ -4,9 +4,9 @@
 #include "fit/estimatorImpl/LogLikelihoodEstimator.h"
 #include "fit/minimizerImpl/ROOT/ROOTMinimizer.h"
 #include "fit/data/Data.h"
-#include "PndLmdLumiHelper.h"
-#include "data/PndLmdDataFacade.h"
+#include "PndLmdDataFacade.h"
 #include "PndLmdComparisonStructs.h"
+#include "model/PndLmdModelFactory.h"
 
 #include <iostream>
 #include <algorithm>
@@ -87,6 +87,68 @@ std::vector<DataStructs::DimensionRange> PndLmdFitFacade::calcRange(
 	}
 
 	return ranges;
+}
+
+double PndLmdFitFacade::calcHistIntegral(const TH1D* hist,
+		std::vector<DataStructs::DimensionRange> range) const {
+	// just determine the bin range over which we have to calculate
+	if (range.size() < 1)
+		return 0.0;
+	int bin_low = 1; // first bin is underflow
+	int bin_high = hist->GetNbinsX();
+	for (int i = 0; i < hist->GetNbinsX(); i++) {
+		if (hist->GetBinCenter(i) - hist->GetBinWidth(i) / 2 < range[0].range_low
+				&& hist->GetBinCenter(i) + hist->GetBinWidth(i) / 2
+						> range[0].range_low) {
+			bin_low = i;
+		}
+		if (hist->GetBinCenter(i) - hist->GetBinWidth(i) / 2 < range[0].range_high
+				&& hist->GetBinCenter(i) + hist->GetBinWidth(i) / 2
+						> range[0].range_high) {
+			bin_high = i;
+		}
+	}
+	return hist->Integral(bin_low, bin_high, "width");
+}
+
+double PndLmdFitFacade::calcHistIntegral(const TH2D* hist,
+		std::vector<DataStructs::DimensionRange> range) const {
+	// just determine the bin range over which we have to calculate
+	if (range.size() < 2)
+		return 0.0;
+	int bin_low_x = 1; // first bin is underflow
+	int bin_high_x = hist->GetNbinsX();
+	for (int i = 0; i < hist->GetNbinsX(); i++) {
+		if (hist->GetXaxis()->GetBinCenter(i) - hist->GetXaxis()->GetBinWidth(i) / 2
+				< range[0].range_low
+				&& hist->GetXaxis()->GetBinCenter(i)
+						+ hist->GetXaxis()->GetBinWidth(i) / 2 > range[0].range_low) {
+			bin_low_x = i;
+		}
+		if (hist->GetXaxis()->GetBinCenter(i) - hist->GetXaxis()->GetBinWidth(i) / 2
+				< range[0].range_high
+				&& hist->GetXaxis()->GetBinCenter(i)
+						+ hist->GetXaxis()->GetBinWidth(i) / 2 > range[0].range_high) {
+			bin_high_x = i;
+		}
+	}
+	int bin_low_y = 1; // first bin is underflow
+	int bin_high_y = hist->GetNbinsY();
+	for (int i = 0; i < hist->GetNbinsY(); i++) {
+		if (hist->GetYaxis()->GetBinCenter(i) - hist->GetYaxis()->GetBinWidth(i) / 2
+				< range[1].range_low
+				&& hist->GetYaxis()->GetBinCenter(i)
+						+ hist->GetYaxis()->GetBinWidth(i) / 2 > range[1].range_low) {
+			bin_low_y = i;
+		}
+		if (hist->GetYaxis()->GetBinCenter(i) - hist->GetYaxis()->GetBinWidth(i) / 2
+				< range[1].range_high
+				&& hist->GetYaxis()->GetBinCenter(i)
+						+ hist->GetYaxis()->GetBinWidth(i) / 2 > range[1].range_high) {
+			bin_high_y = i;
+		}
+	}
+	return hist->Integral(bin_low_x, bin_high_x, bin_low_y, bin_high_y, "width");
 }
 
 shared_ptr<Data> PndLmdFitFacade::createData1D(
@@ -227,14 +289,13 @@ PndLmdFitOptions PndLmdFitFacade::createFitOptions(
 		model_option_ptree.put("acceptance_correction_active", false);
 		model_option_ptree.put("resolution_smearing_active", false);
 
-		PndLmdLumiHelper lumi_helper;
-
+		PndLmdModelFactory model_factory;
 		// recalcuated ranges to momentum transfer
 		DataStructs::DimensionRange temp_range;
-		temp_range.range_low = lumi_helper.getMomentumTransferFromTheta(
+		temp_range.range_low = model_factory.getMomentumTransferFromTheta(
 				lmd_data.getLabMomentum(),
 				fit_opts.getEstimatorOptions().getFitRangeX().range_low);
-		temp_range.range_high = lumi_helper.getMomentumTransferFromTheta(
+		temp_range.range_high = model_factory.getMomentumTransferFromTheta(
 				lmd_data.getLabMomentum(),
 				fit_opts.getEstimatorOptions().getFitRangeX().range_high);
 
@@ -424,16 +485,15 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data,
 	}
 
 	// now set better starting amplitude value
-	PndLmdLumiHelper lmd_helper;
 	std::vector<DataStructs::DimensionRange> range = calcRange(lmd_data,
 			fit_options.getEstimatorOptions());
 	double integral_data = 0.0;
 	std::cout << "calculating data integral..." << std::endl;
 	if (fit_dimension == 2)
-		integral_data = lmd_helper.calcHistIntegral(lmd_data.get2DHistogram(),
+		integral_data = calcHistIntegral(lmd_data.get2DHistogram(),
 				range);
 	else
-		integral_data = lmd_helper.calcHistIntegral(lmd_data.get1DHistogram(),
+		integral_data = calcHistIntegral(lmd_data.get1DHistogram(),
 				range);
 	std::cout << "calculating model integral..." << std::endl;
 	double integral_func = model->Integral(range, 1e-1);

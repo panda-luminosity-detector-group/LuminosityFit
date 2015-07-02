@@ -19,8 +19,8 @@
  *  different type of plots
  */
 
-#include "PndLmdPlotter.h"
-#include "data/PndLmdDataFacade.h"
+#include "ui/PndLmdPlotter.h"
+#include "ui/PndLmdDataFacade.h"
 
 #include <vector>
 #include <map>
@@ -179,9 +179,6 @@ void plotIPDistribution(std::vector<TString> paths, TString ref_path) {
 	TString filename("/lmd_fitted_vertex_data.root");
 
 	PndLmdDataFacade lmd_data_facade;
-
-	// A small helper class that helps to construct lmd data objects
-	PndLmdLumiHelper lumifit_helper;
 
 	// create an instance of PndLmdResultPlotter the plotting helper class
 	LumiFit::PndLmdPlotter plotter;

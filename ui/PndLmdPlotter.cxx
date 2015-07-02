@@ -14,7 +14,7 @@
 #include "fit/PndLmdLumiFitResult.h"
 #include "data/PndLmdAngularData.h"
 #include "data/PndLmdAcceptance.h"
-#include "fit/PndLmdFitFacade.h"
+#include "PndLmdFitFacade.h"
 #include "data/PndLmdFitDataBundle.h"
 
 #include <iostream>
@@ -259,7 +259,6 @@ TGraphAsymmErrors* PndLmdPlotter::createGraphFromFitResult(
 TGraphAsymmErrors* PndLmdPlotter::createVertexGraphFromFitResult(
 		const PndLmdFitOptions &fit_opt, const PndLmdHistogramData &data) const {
 
-	PndLmdModelFactory model_factory;
 	shared_ptr<Model1D> model = model_factory.generate1DVertexModel(
 			fit_opt.getModelOptionsPropertyTree());
 	if (model->init()) {
@@ -408,7 +407,6 @@ TH2D* PndLmdPlotter::createAcceptanceHistogram(
 TGraphAsymmErrors* PndLmdPlotter::generateDPMModelPartGraph(double plab,
 		LumiFit::DPMElasticParts dpm_elastic_part,
 		DataStructs::DimensionRange& plot_range) {
-	PndLmdModelFactory model_factory;
 
 	ModelVisualizationProperties1D vis_prop;
 	vis_prop.setPlotRange(plot_range);
@@ -630,10 +628,10 @@ NeatPlotting::PlotBundle PndLmdPlotter::makeGraphBundle(PndLmdAngularData& data,
 							primary_dimension_plot_range;
 
 					primary_dimension_plot_range.range_low =
-							-lumi_helper.getMomentumTransferFromTheta(data.getLabMomentum(),
+							-model_factory.getMomentumTransferFromTheta(data.getLabMomentum(),
 									primary_dimension_plot_range.range_low);
 					primary_dimension_plot_range.range_high =
-							-lumi_helper.getMomentumTransferFromTheta(data.getLabMomentum(),
+							-model_factory.getMomentumTransferFromTheta(data.getLabMomentum(),
 									primary_dimension_plot_range.range_high);
 					applyPlotRanges(ang_plot_bundle);
 					primary_dimension_plot_range = temp_primary_dimension_plot_range;
@@ -797,10 +795,10 @@ NeatPlotting::PlotBundle PndLmdPlotter::makeResidualPlotBundle1D(
 					primary_dimension_plot_range;
 
 			primary_dimension_plot_range.range_low =
-					-lumi_helper.getMomentumTransferFromTheta(data.getLabMomentum(),
+					-model_factory.getMomentumTransferFromTheta(data.getLabMomentum(),
 							primary_dimension_plot_range.range_low);
 			primary_dimension_plot_range.range_high =
-					-lumi_helper.getMomentumTransferFromTheta(data.getLabMomentum(),
+					-model_factory.getMomentumTransferFromTheta(data.getLabMomentum(),
 							primary_dimension_plot_range.range_high);
 			applyPlotRanges(residual_plot_bundle);
 			primary_dimension_plot_range = temp_primary_dimension_plot_range;

@@ -1,7 +1,7 @@
 #include "PndLmdRuntimeConfiguration.h"
 
-#include "data/PndLmdDataFacade.h"
-#include "fit/PndLmdFitFacade.h"
+#include "PndLmdDataFacade.h"
+#include "PndLmdFitFacade.h"
 
 #include <iostream>
 

@@ -2,7 +2,6 @@
 #define PNDLMDPLOTTER_H_
 
 #include "ROOTPlotHelper.hpp"
-#include "PndLmdLumiHelper.h"
 #include "model/PndLmdModelFactory.h"
 #include "fit/PndLmdFitOptions.h"
 #include "PndLmdComparisonStructs.h"
@@ -46,7 +45,6 @@ public:
 	};
 
 private:
-	PndLmdLumiHelper lumi_helper;
 	NeatPlotting::GraphAndHistogramHelper neat_plot_helper;
 
 	PndLmdModelFactory model_factory;

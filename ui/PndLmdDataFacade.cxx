@@ -6,10 +6,9 @@
  */
 
 #include "PndLmdDataFacade.h"
-#include "PndLmdAngularData.h"
-#include "PndLmdAcceptance.h"
+#include "data/PndLmdAngularData.h"
+#include "data/PndLmdAcceptance.h"
 #include "fit/data/DataStructs.h"
-#include "PndLmdLumiHelper.h"
 
 #include <sstream>
 #include <fstream>

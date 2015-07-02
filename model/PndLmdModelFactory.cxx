@@ -34,9 +34,8 @@
 #include "model/PndLmdDifferentialSmearingConvolutionModel2D.h"
 #include "PndLmdDPMModelParametrization.h"
 
-#include "data/PndLmdDataFacade.h"
+#include "ui/PndLmdDataFacade.h"
 #include "data/PndLmdAngularData.h"
-#include "PndLmdLumiHelper.h"
 
 #include <iostream>
 
@@ -304,6 +303,19 @@ shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel(
 	detector_smearing_model->setSmearingParameterization(smearing_param);
 	return detector_smearing_model;
 }
+
+double PndLmdModelFactory::getMomentumTransferFromTheta(double plab,
+		double theta) const {
+	PndLmdDPMAngModel1D model("dpm_angular_1d", LumiFit::ALL);
+	shared_ptr<Parametrization> para(
+			new PndLmdDPMModelParametrization(model.getModelParameterSet()));
+	model.getModelParameterHandler().registerParametrizations(
+			model.getModelParameterSet(), para);
+	model.getModelParameterSet().setModelParameterValue("p_lab", plab);
+	((Model1D*) &model)->init();
+	return -model.getMomentumTransferFromTheta(theta);
+}
+
 
 shared_ptr<Model1D> PndLmdModelFactory::generate1DModel(
 		const boost::property_tree::ptree& model_opt_ptree,

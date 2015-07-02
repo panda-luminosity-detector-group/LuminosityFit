@@ -9,13 +9,13 @@
 #define PNDLMDDATAFACADE_H_
 
 #include "LumiFitStructs.h"
-#include "PndLmdAbstractData.h"
+#include "PndLmdComparisonStructs.h"
+
 #include "PndLmdRuntimeConfiguration.h"
 
-#include "PndLmdSeperateDataReader.h"
-#include "PndLmdCombinedDataReader.h"
-
-#include "PndLmdComparisonStructs.h"
+#include "data/PndLmdAbstractData.h"
+#include "data/PndLmdSeperateDataReader.h"
+#include "data/PndLmdCombinedDataReader.h"
 
 #include <vector>
 

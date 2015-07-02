@@ -44,6 +44,9 @@ public:
 	PndLmdModelFactory();
 	~PndLmdModelFactory();
 
+	double getMomentumTransferFromTheta(double plab,
+			double theta) const;
+
 	void setAcceptance(const PndLmdAcceptance& acceptance_);
 	void setResolutions(const std::vector<PndLmdHistogramData>& resolutions_);
 

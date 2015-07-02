@@ -1,5 +1,5 @@
 #include "fit/data/DataStructs.h"
-#include "data/PndLmdDataFacade.h"
+#include "ui/PndLmdDataFacade.h"
 #include "data/PndLmdAngularData.h"
 #include "data/PndLmdAcceptance.h"
 

@@ -1,5 +1,5 @@
-#include "data/PndLmdDataFacade.h"
-#include "PndLmdPlotter.h"
+#include "ui/PndLmdDataFacade.h"
+#include "ui/PndLmdPlotter.h"
 #include "fit/PndLmdLumiFitResult.h"
 #include "data/PndLmdAngularData.h"
 #include "data/PndLmdAcceptance.h"

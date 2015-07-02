@@ -65,6 +65,11 @@ public:
 
 	void clearPools();
 
+	double calcHistIntegral(const TH1D* hist,
+			std::vector<DataStructs::DimensionRange> range) const;
+	double calcHistIntegral(const TH2D* hist,
+			std::vector<DataStructs::DimensionRange> range) const;
+
 	std::vector<DataStructs::DimensionRange> calcRange(
 			const PndLmdAbstractData &lmd_abs_data,
 			const EstimatorOptions &est_options) const;

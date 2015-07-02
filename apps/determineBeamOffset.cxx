@@ -1,5 +1,5 @@
-#include "data/PndLmdDataFacade.h"
-#include "fit/PndLmdFitFacade.h"
+#include "ui/PndLmdDataFacade.h"
+#include "ui/PndLmdFitFacade.h"
 #include "LumiFitStructs.h"
 
 #include <iostream>

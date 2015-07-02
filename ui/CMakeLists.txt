@@ -1,5 +1,4 @@
 set(INCLUDE_DIRECTORIES
-  ./
   $ENV{MODEL_FRAMEWORK}/include
   $ENV{ROOT_INCLUDE_DIR}
   $ENV{BOOST_ROOT}/include
@@ -12,18 +11,21 @@ set(LINK_DIRECTORIES
   $ENV{ROOT_LIBRARY_DIR}
   $ENV{BOOST_ROOT}/lib
 )
+
 link_directories(${LINK_DIRECTORIES})
-set(LINK_LIBS
-Model
+set(LINK_LIBS 
+LmdFit
 LmdFitData
+LmdModel
 )
 
 set(SRCS
-PndLmdFitOptions.cxx
-PndLmdLumiFitResult.cxx
-PndLmdFitStorage.cxx
+PndLmdDataFacade.cxx
+PndLmdFitFacade.cxx
+PndLmdPlotter.cxx
+PndLmdRuntimeConfiguration.cxx
 )
 
-add_library(LmdFit SHARED ${SRCS})
+add_library(LmdUI SHARED ${SRCS})
 
-target_link_libraries(LmdFit LINK_PRIVATE ${LINK_LIBS})
+target_link_libraries(LmdUI LINK_PRIVATE ${LINK_LIBS})

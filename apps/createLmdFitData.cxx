@@ -9,8 +9,8 @@
  * ./createLumiFitData -h
  */
 
-#include "PndLmdRuntimeConfiguration.h"
-#include "data/PndLmdDataFacade.h"
+#include "ui/PndLmdRuntimeConfiguration.h"
+#include "ui/PndLmdDataFacade.h"
 
 #include <iostream>
 #include <string>

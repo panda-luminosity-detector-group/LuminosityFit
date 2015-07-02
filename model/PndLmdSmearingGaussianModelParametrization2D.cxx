@@ -11,7 +11,6 @@
 #include "models1d/PolynomialModel1D.h"
 #include "model/PndLmdROOTDataModel2D.h"
 #include "LumiFitStructs.h"
-#include "PndLmdLumiHelper.h"
 
 #include <string>
 

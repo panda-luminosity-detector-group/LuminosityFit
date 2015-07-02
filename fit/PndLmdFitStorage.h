@@ -8,8 +8,8 @@
 #ifndef PNDLMDFITSTORAGE_H_
 #define PNDLMDFITSTORAGE_H_
 
-#include "fit/PndLmdLumiFitResult.h"
-#include "fit/PndLmdFitOptions.h"
+#include "PndLmdLumiFitResult.h"
+#include "PndLmdFitOptions.h"
 #include "fit/ModelFitResult.h"
 
 #include <map>

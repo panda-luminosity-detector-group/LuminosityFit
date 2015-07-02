@@ -2,7 +2,7 @@
 #define PNDLMDHISTOGRAMDATA_H_
 
 #include "PndLmdAbstractData.h"
-#include "PndLmdFitStorage.h"
+#include "fit/PndLmdFitStorage.h"
 
 #include "TH1D.h" // these includes I need for the dictionary generation
 #include "TH2D.h"

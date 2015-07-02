@@ -1,6 +1,6 @@
-#include "PndLmdRuntimeConfiguration.h"
-#include "fit/PndLmdFitFacade.h"
-#include "data/PndLmdDataFacade.h"
+#include "ui/PndLmdRuntimeConfiguration.h"
+#include "ui/PndLmdFitFacade.h"
+#include "ui/PndLmdDataFacade.h"
 #include "data/PndLmdAngularData.h"
 
 #include <iostream>
@@ -41,12 +41,12 @@ void runLmdFit(string input_file_dir, string config_file_url,
 	vector<PndLmdAngularData> my_lmd_data_vec = lmd_data_facade.getElasticData();
 
 	// filter out specific data
-	LumiFit::LmdDimensionOptions lmd_dim_opt;
+	/*LumiFit::LmdDimensionOptions lmd_dim_opt;
 	lmd_dim_opt.dimension_type = LumiFit::THETA_X;
 	lmd_dim_opt.track_type = LumiFit::MC_ACC;
 	LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter filter(lmd_dim_opt);
 	my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
-			my_lmd_data_vec, filter);
+			my_lmd_data_vec, filter);*/
 
 	vector<PndLmdAcceptance> my_lmd_acc_vec = lmd_data_facade.getAcceptanceData();
 	vector<PndLmdHistogramData> all_lmd_res = lmd_data_facade.getResolutionData();
