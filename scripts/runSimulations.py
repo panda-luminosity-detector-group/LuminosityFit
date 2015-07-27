@@ -15,11 +15,8 @@ def getGeneratedDataDirectory():
   found_dir_dict = dict()
   
   for gen_dir_name in os.listdir(gen_data_dir_path):
-    match_plab = re.search(str(args.lab_momentum[0]), gen_dir_name)
-    if not match_plab:
-      continue
-    match_data_type = re.search(args.sim_type[0], gen_dir_name)
-    if not match_data_type:
+    match_data_type_and_momentum = re.search(args.sim_type[0]+'_plab_'+str(args.lab_momentum[0])+'GeV', gen_dir_name)
+    if not match_data_type_and_momentum:
       continue
     
     match_num_events = re.search('^(\d*)_', gen_dir_name)
@@ -109,24 +106,30 @@ parser = argparse.ArgumentParser(description='Script for full simulation of PAND
 
 parser.add_argument('num_events', metavar='num_events', type=int, nargs=1, help='number of events to simulate')
 parser.add_argument('lab_momentum', metavar='lab_momentum', type=float, nargs=1, help='lab momentum of incoming beam antiprotons\n(required to set correct magnetic field maps etc)')
-parser.add_argument('sim_type', metavar='simulation_type', type=str, nargs=1, choices=['box', 'dpm_elastic', 'dpm_elastic_inelastic', 'noise'], help='lab momentum of incoming beam antiprotons\n(required to set correct magnetic field maps etc)')
+parser.add_argument('sim_type', metavar='simulation_type', type=str, nargs=1, choices=['box', 'dpm_elastic', 'dpm_elastic_inelastic', 'noise'], 
+                    help='Simulation type which can be one of the following: box, dpm_elastic, dpm_elastic_inelastic, noise.\n'
+                        'This information is used to automatically obtain the generator data and output naming scheme.')
 
 parser.add_argument('--gen_data_dirname', metavar='gen_data_dirname', type=str, default='',
-                    help='Name of directory containing the generator data that is used as input.'
-                    'Note that this is only the name of the directory and NOT the full path.'
-                    'The base path of the directory should be specified with the'
-                    '--gen_data_dir flag. Default will be either an empty string for direct simulations'
+                    help='Name of directory containing the generator data that is used as input.\n'
+                    'Note that this is only the name of the directory and NOT the full path.\n'
+                    'The base path of the directory should be specified with the\n'
+                    '--gen_data_dir flag. Default will be either an empty string for direct simulations\n'
                     'or the same generated name as for the generated data, based on the simulation type')
 
 parser.add_argument('--low_index', metavar='low_index', type=int, default= -1,
-                   help='Lowest index of generator file which is supposed to be used in the simulation. Default setting is -1 which will take the lowest found index.')
+                   help='Lowest index of generator file which is supposed to be used in the simulation.\n'
+                   'Default setting is -1 which will take the lowest found index.')
 parser.add_argument('--high_index', metavar='high_index', type=int, default= -1,
-                   help='Highest index of generator file which is supposed to be used in the simulation. Default setting is -1 which will take the highest found index.')
+                   help='Highest index of generator file which is supposed to be used in the simulation.\n'
+                   'Default setting is -1 which will take the highest found index.')
 
 parser.add_argument('--gen_data_dir', metavar='gen_data_dir', type=str, default=os.getenv('GEN_DATA'),
-                   help='Base directory to input files created by external generator. By default the environment variable $GEN_DATA will be used!')
+                   help='Base directory to input files created by external generator.\n'
+                   'By default the environment variable $GEN_DATA will be used!')
 
-parser.add_argument('--output_dir', metavar='output_dir', type=str, default='', help='This directory is used for the output. Default is the generator directory as a prefix, with beam offset infos etc. added')
+parser.add_argument('--output_dir', metavar='output_dir', type=str, default='', help='This directory is used for the output.\n'
+                    'Default is the generator directory as a prefix, with beam offset infos etc. added')
 
 parser.add_argument('--use_ip_offset', metavar=("ip_offset_x", "ip_offset_y", "ip_offset_z", "ip_spread_x", "ip_spread_y", "ip_spread_z"), type=float, nargs=6, default=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                    help="ip_offset_x: interaction vertex mean X position (in cm)\n"
@@ -137,10 +140,10 @@ parser.add_argument('--use_ip_offset', metavar=("ip_offset_x", "ip_offset_y", "i
             "ip_spread_z: interaction vertex Z position distribution width (in cm)")
 
 parser.add_argument('--use_beam_gradient', metavar=("beam_gradient_x", "beam_gradient_y", "beam_emittance_x", "beam_emittance_y"), type=float, nargs=4, default=[0.0, 0.0, 0.0, 0.0],
-                   help="beam_gradient_x: mean beam inclination on target in x direction dPx/dPz (in mrad)\n"
-            "beam_gradient_y: mean beam inclination on target in y direction dPy/dPz (in mrad)\n"
-            "beam_divergence_x: beam divergence in x direction (in mrad)\n"
-            "beam_divergence_y: beam divergence in y direction (in mrad)")
+                   help="beam_gradient_x: mean beam inclination on target in x direction dPx/dPz (in rad)\n"
+            "beam_gradient_y: mean beam inclination on target in y direction dPy/dPz (in rad)\n"
+            "beam_divergence_x: beam divergence in x direction (in rad)\n"
+            "beam_divergence_y: beam divergence in y direction (in rad)")
 
 parser.add_argument('--use_xy_cut', action='store_true', help='Use the x-theta & y-phi filter after the tracking stage to remove background.')
 parser.add_argument('--use_m_cut', action='store_true', help='Use the tmva based momentum cut filter after the backtracking stage to remove background.')
@@ -226,6 +229,8 @@ except OSError as exception:
     if exception.errno != errno.EEXIST:
         print 'error: thought dir does not exists but it does...'
 
+# generate simulation config parameter file
+generateSimulationParameterPropertyFile(pathname_base)
 
 joblist = []
 

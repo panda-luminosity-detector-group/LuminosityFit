@@ -73,6 +73,6 @@ for data_type_info in data_type_list:
   dirs = []
   getListOfDirectories(args.dirname[0], data_type_info.glob_pattern)    
   for dir in dirs:
-    bashcommand = default=os.getenv('VMCWORKDIR') + '/build/bin/mergeLmdData -p ' + dir + ' -t ' + data_type_info.data_type + data_type_info.pattern 
-                    
+    bashcommand = default=os.getenv('LMDFIT_BUILD_PATH') + '/bin/mergeLmdData -p ' + dir + ' -t ' + data_type_info.data_type + data_type_info.pattern 
+    
     returnvalue = subprocess.call(bashcommand.split())

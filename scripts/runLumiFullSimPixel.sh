@@ -1,11 +1,11 @@
 #!/bin/bash      
 
-cd ${VMCWORKDIR}/macro/lmd/steve
+cd ${PBS_O_WORKDIR}
 
 #include some helper functions
 . bashFunctions.sh
 
-cd ..
+cd ${VMCWORKDIR}/macro/lmd
 
 filename_index=1
 if [ ${PBS_ARRAYID} ]; then

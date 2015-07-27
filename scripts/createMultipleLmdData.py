@@ -129,7 +129,7 @@ for dir in dirs:
   filelist_path = dir
   output_path = filelist_path
 
-  resource_request = himster.JobResourceRequest(2*60)
+  resource_request = himster.JobResourceRequest(3*60)
   resource_request.number_of_nodes=1
   resource_request.processors_per_node=1
   resource_request.memory_in_mb=2000
