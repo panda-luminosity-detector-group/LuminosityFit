@@ -54,7 +54,7 @@ class IPParams:
 def createIPOffsetScenarios(ip_param_list, ip_offset_abs_list, ip_offset_mode):
   current_ip_param_list = list(ip_param_list)
   del ip_param_list[:]
-  offset_values = map(abs,ip_offset_abs_list)
+  offset_values = map(abs, ip_offset_abs_list)
   for current_ip_params in current_ip_param_list:
     for offset_value in offset_values:
       if offset_value > 0.0:
@@ -97,10 +97,10 @@ def createIPOffsetScenarios(ip_param_list, ip_offset_abs_list, ip_offset_mode):
 def createBeamTiltScenarios(ip_param_list, beam_tilt_abs_list, beam_tilt_mode):
   current_ip_param_list = list(ip_param_list)
   del ip_param_list[:]
-  beam_tilt_values = map(abs,beam_tilt_abs_list)
+  beam_tilt_values = map(abs, beam_tilt_abs_list)
   for current_ip_params in current_ip_param_list:
     for beam_tilt_value in beam_tilt_values:
-      beam_tilt_value = beam_tilt_value/1000 #convert to rad
+      beam_tilt_value = beam_tilt_value / 1000  # convert to rad
       if beam_tilt_value > 0.0:
           if beam_tilt_mode == 'a':
             current_ip_params.setBeamTiltXY(beam_tilt_value, 0.0)

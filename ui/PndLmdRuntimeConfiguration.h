@@ -39,8 +39,6 @@ class PndLmdRuntimeConfiguration {
 	double momentum;
 	unsigned int num_events;
 	double total_elastic_cross_section;
-	bool automatic_primary_resolution_range_active;
-	bool automatic_secondary_resolution_range_active;
 	boost::property_tree::ptree data_config_tree;
 
 	// fit options
@@ -84,9 +82,6 @@ public:
 	const boost::filesystem::path& getRawDataFilelistPath() const;
 	const boost::filesystem::path& getDataOutputDirectory() const;
 
-	bool isAutomaticPrimaryResolutionRangeActive() const;
-	bool isAutomaticSecondaryResolutionRangeActive() const;
-
 	const boost::property_tree::ptree& getDataConfigTree() const;
 	const boost::property_tree::ptree& getFitConfigTree() const;
 
@@ -113,11 +108,6 @@ public:
 	void setRawDataDirectory(const std::string& raw_data_directory_);
 	void setRawDataFilelistPath(const std::string& raw_data_filelist_path_);
 	void setDataOutputDirectory(const std::string& data_output_directory_);
-
-	void setAutomaticPrimaryResolutionRangeActive(
-			bool automatic_primary_resolution_range_active_);
-	void setAutomaticSecondaryResolutionRangeActive(
-			bool automatic_secondary_resolution_range_active_);
 
 	// config file read functions
 	void readSimulationParameters(const std::string& file_url);

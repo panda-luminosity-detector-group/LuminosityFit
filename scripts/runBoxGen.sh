@@ -1,6 +1,6 @@
 #! /bin/bash
 
-cd $VMCWORKDIR/macro/lmd/steve
+cd $PBS_O_WORKDIR
 random_num=$RANDOM.$RANDOM
 
 if [ $PBS_ARRAYID ]; then

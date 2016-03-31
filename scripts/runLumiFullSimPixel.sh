@@ -38,6 +38,8 @@ BoxCut=false
 ## Clean after back-propagation (momentum or MVA cut)
 #CleanSig=false
 
+radLength=0.32
+
 echo "xthetacut: $XThetaCut"
 echo "yphicut: $YPhiCut"
 echo "mcut: $CleanSig"

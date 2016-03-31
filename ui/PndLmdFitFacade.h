@@ -24,67 +24,79 @@ class PndLmdHistogramData;
 
 class PndLmdFitFacade {
 private:
-	std::set<PndLmdAcceptance> acceptance_pool;
-	std::set<PndLmdHistogramData> resolution_pool;
+  std::set<PndLmdAcceptance> acceptance_pool;
+  std::set<PndLmdHistogramData> resolution_pool;
 
-	const PndLmdRuntimeConfiguration& lmd_runtime_config;
+  const PndLmdRuntimeConfiguration& lmd_runtime_config;
 
-	// ROOT data helper class
-	ROOTDataHelper data_helper;
+  // ROOT data helper class
+  ROOTDataHelper data_helper;
 
-	ModelFitFacade model_fit_facade;
+  ModelFitFacade model_fit_facade;
 
-	PndLmdModelFactory model_factory;
+  PndLmdModelFactory model_factory;
 
-	shared_ptr<Data> createData1D(const PndLmdHistogramData &lmd_hist_data) const;
-	shared_ptr<Data> createData2D(const PndLmdHistogramData &lmd_hist_data) const;
+  static void signalHandler(int signum);
 
-	void saveFittedObjectsToFile(
-			std::vector<PndLmdAngularData>& lmd_data_vec) const;
+  shared_ptr<Data> createData1D(const PndLmdHistogramData &lmd_hist_data) const;
+  shared_ptr<Data> createData2D(const PndLmdHistogramData &lmd_hist_data) const;
 
-	EstimatorOptions constructEstimatorOptionsFromConfig(
-			const boost::property_tree::ptree& pt) const;
-	std::set<std::string, ModelStructs::string_comp> constructFreeFitParameterListFromConfig(
-			const boost::property_tree::ptree& pt) const;
+  void saveFittedObjectsToFile(
+      std::vector<PndLmdAngularData>& lmd_data_vec) const;
 
-	void freeParametersForModel(shared_ptr<Model> current_model,
-			const PndLmdFitOptions &fit_opts) const;
-	void initBeamParametersForModel(shared_ptr<Model> current_model,
-			const boost::property_tree::ptree& model_opt_ptree) const;
-	void addBeamParametersToFreeParameterList(PndLmdFitOptions &fit_opts,
-			const boost::property_tree::ptree &model_opt_ptree) const;
+  EstimatorOptions constructEstimatorOptionsFromConfig(
+      const boost::property_tree::ptree& pt) const;
+  std::set<std::string, ModelStructs::string_comp> constructFreeFitParameterListFromConfig(
+      const boost::property_tree::ptree& pt) const;
 
-	PndLmdFitOptions createFitOptions(const PndLmdAbstractData &lmd_data) const;
+  void freeParametersForModel(shared_ptr<Model> current_model,
+      const PndLmdFitOptions &fit_opts) const;
+
+  void addBeamParametersToFreeParameterList(PndLmdFitOptions &fit_opts,
+      const boost::property_tree::ptree &model_opt_ptree) const;
+
+  PndLmdFitOptions createFitOptions(const PndLmdAbstractData &lmd_data) const;
 
 public:
-	PndLmdFitFacade();
-	virtual ~PndLmdFitFacade();
+  PndLmdFitFacade();
+  virtual ~PndLmdFitFacade();
 
-	void addAcceptencesToPool(const std::vector<PndLmdAcceptance> &lmd_acc);
-	void addResolutionsToPool(const std::vector<PndLmdHistogramData> &lmd_res);
+  void setModelFactoryAcceptence(const PndLmdAcceptance &lmd_acc);
+  void setModelFactoryResolutions(
+      const std::vector<PndLmdHistogramData> &lmd_res);
 
-	void clearPools();
+  void addAcceptencesToPool(const std::vector<PndLmdAcceptance> &lmd_acc);
+  void addResolutionsToPool(const std::vector<PndLmdHistogramData> &lmd_res);
 
-	double calcHistIntegral(const TH1D* hist,
-			std::vector<DataStructs::DimensionRange> range) const;
-	double calcHistIntegral(const TH2D* hist,
-			std::vector<DataStructs::DimensionRange> range) const;
+  void clearPools();
 
-	std::vector<DataStructs::DimensionRange> calcRange(
-			const PndLmdAbstractData &lmd_abs_data,
-			const EstimatorOptions &est_options) const;
+  double calcHistIntegral(const TH1D* hist,
+      std::vector<DataStructs::DimensionRange> range) const;
+  double calcHistIntegral(const TH2D* hist,
+      std::vector<DataStructs::DimensionRange> range) const;
 
-	shared_ptr<Model> generateModel(const PndLmdAngularData &lmd_data,
-			const PndLmdFitOptions &fit_options) const;
+  std::vector<DataStructs::DimensionRange> calcRange(
+      const PndLmdAbstractData &lmd_abs_data,
+      const EstimatorOptions &est_options) const;
 
-	void doFit(PndLmdHistogramData &lmd_hist_data,
-			const PndLmdFitOptions &fit_options);
+  void initBeamParametersForModel(shared_ptr<Model> current_model,
+      const boost::property_tree::ptree& model_opt_ptree) const;
 
-	PndLmdFitDataBundle doLuminosityFits(std::vector<PndLmdAngularData>& lmd_data_vec);
+  shared_ptr<Model> generateModel(const PndLmdAngularData &lmd_data,
+      const PndLmdFitOptions &fit_options) const;
 
-	void fitElasticPPbar(PndLmdAngularData &lmd_data, const PndLmdFitOptions &fit_options);
+  void doFit(PndLmdHistogramData &lmd_hist_data,
+      const PndLmdFitOptions &fit_options);
 
-	void fitVertexData(std::vector<PndLmdHistogramData> &lmd_data);
+  PndLmdFitDataBundle doLuminosityFits(
+      std::vector<PndLmdAngularData>& lmd_data_vec);
+
+  void fitElasticPPbar(PndLmdAngularData &lmd_data,
+      const PndLmdFitOptions &fit_options);
+
+  shared_ptr<Model> createModel2D(const PndLmdAngularData& lmd_data);
+
+  void fitVertexData(std::vector<PndLmdHistogramData> &lmd_data);
 };
 
 #endif /* PNDLMDFITFACADE_H_ */

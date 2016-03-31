@@ -36,8 +36,8 @@ vector<string> find_files(const path & dir_path, const string & file_name) {
 				my_filename_filter))
 			continue;
 
-		std::cout << "adding " << fitr->path().string() << " to filelist"
-				<< std::endl;
+		//std::cout << "adding " << fitr->path().string() << " to filelist"
+		//		<< std::endl;
 		all_matching_files.push_back(fitr->path().string());
 	}
 	return all_matching_files;
@@ -53,8 +53,8 @@ vector<string> find_file(const path & dir_path, const string &dir_pattern,
 	vector<string> all_matching_files;
 
 	if (exists(dir_path)) {
-		std::cout << dir_path.string() << " exists... Looping over this directory.."
-				<< std::endl;
+		//std::cout << dir_path.string() << " exists... Looping over this directory.."
+		//		<< std::endl;
 		directory_iterator end_itr; // default construction yields past-the-end
 		for (directory_iterator itr(dir_path); itr != end_itr; ++itr) {
 			// Skip if a file
@@ -80,6 +80,7 @@ vector<string> find_file(const path & dir_path, const string &dir_pattern,
 
 template<class T> void mergeData(vector<std::string> found_files,
 		TFile *output_file) {
+  std::cout<<"Attempting to merge files...\n";
 	// A small helper class that helps to construct lmddata objects
 	PndLmdDataFacade lmd_data_facade;
 
@@ -112,8 +113,9 @@ template<class T> void mergeData(vector<std::string> found_files,
 
 	output_file->cd();
 
-	std::cout << "Saving " << merged_files.size() << " objects to file!"
-			<< std::endl;
+	std::cout << "Merged " << merged_files.size()<< " objects from " << found_files.size() << " files!"
+	      << std::endl;
+
 	for (iter = merged_files.begin(); iter != merged_files.end(); iter++) {
 		((PndLmdAbstractData*) &(*iter))->saveToRootFile();
 	}

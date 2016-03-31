@@ -73,7 +73,7 @@ if is_cluster:
   print 'This is a cluster environment... submitting jobs to cluster!'
   
   for job_index in range(low_index_used, high_index_used + 1, max_jobarray_size):
-	bashcommand = 'qsub -t ' + str(job_index) + '-' + str(min(job_index + max_jobarray_size - 1, high_index_used)) + ' -N runDPMGen_' + dirname_cleaned + ' -l nodes=1:ppn=1,walltime=00:30:00 -j oe -o ' + basedir + '/' + dirname + '/runDPMGen_' + dirname_cleaned + ' -v lab_momentum="' + str(args.lab_momentum[0]) + '",num_events="' + str(args.evts_per_sample[0]) + '",reaction_type="' + str(args.reaction_type) + '",minimal_theta_value="' + str(args.theta_min) + '",dirname="' + dirname + '",dirname_cleaned="' + dirname_cleaned + '",basedir="'+ basedir +'" -V ./runDPMGen.sh'
+	bashcommand = 'qsub -t ' + str(job_index) + '-' + str(min(job_index + max_jobarray_size - 1, high_index_used)) + ' -N runDPMGen_' + dirname_cleaned + ' -l nodes=1:ppn=1,walltime=00:30:00 -j oe -o ' + basedir + '/' + dirname + '/runDPMGen_' + dirname_cleaned + ' -v lab_momentum="' + str(args.lab_momentum[0]) + '",num_events="' + str(args.evts_per_sample[0]) + '",reaction_type="' + str(args.reaction_type) + '",minimal_theta_value="' + str(args.theta_min) + '",dirname="' + dirname + '",dirname_cleaned="' + dirname_cleaned + '",basedir="' + basedir + '" -V ./runDPMGen.sh'
 	subprocess.call(bashcommand.split())
 
 elif is_parallel:

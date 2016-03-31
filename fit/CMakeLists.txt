@@ -15,13 +15,25 @@ set(LINK_DIRECTORIES
 link_directories(${LINK_DIRECTORIES})
 set(LINK_LIBS
 Model
-LmdFitData
 )
+
+set(ROOT_DICT_HEADERS
+fit/ModelFitResult.h
+fit/EstimatorOptions.h
+fit/PndLmdFitOptions.h
+fit/PndLmdFitStorage.h
+LumiFitStructs.h
+)
+
+set(LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/LinkDef.h)
+
+execute_process(COMMAND rootcint -f LmdFitDict.cxx -c -I$ENV{MODEL_FRAMEWORK}/include -I${CMAKE_SOURCE_DIR} ${ROOT_DICT_HEADERS} ${LINKDEF})
 
 set(SRCS
 PndLmdFitOptions.cxx
 PndLmdLumiFitResult.cxx
 PndLmdFitStorage.cxx
+${CMAKE_BINARY_DIR}/LmdFitDict.cxx
 )
 
 add_library(LmdFit SHARED ${SRCS})

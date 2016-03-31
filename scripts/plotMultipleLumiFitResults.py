@@ -52,10 +52,10 @@ pattern = args.dirname_pattern[0]
 
 getListOfDirectories(args.dirname[0])
 
-bashcommand = default=os.getenv('VMCWORKDIR') + '/build/bin/plotLumiFitResults -f ' + args.dirname_pattern[0]
+bashcommand = default = os.getenv('VMCWORKDIR') + '/build/bin/plotLumiFitResults -f ' + args.dirname_pattern[0]
 
 for dir in dirs:
   bashcommand += ' ' + dir
 
-#print bashcommand
+# print bashcommand
 returnvalue = subprocess.call(bashcommand.split())

@@ -53,7 +53,7 @@ def makeFileListBunches(directory):
     print 'detected ' + str(len(bad_files)) + ' bad files'
     print 'creating file lists...'
     
-    max_bundles=len(good_files)/args.files_per_bunch
+    max_bundles = len(good_files) / args.files_per_bunch
     if len(good_files) % args.files_per_bunch > 0:
         max_bundles += 1
     output_bunch_dir = directory + '/bunches_' + str(max_bundles)
@@ -64,7 +64,7 @@ def makeFileListBunches(directory):
       if exception.errno != errno.EEXIST:
         print 'error: thought dir does not exists but it does...'
     
-    file_list_index=1
+    file_list_index = 1
     while len(good_files) > 0:
         # get next chunk of good files
         chunk_size = args.files_per_bunch
@@ -72,7 +72,7 @@ def makeFileListBunches(directory):
             chunk_size = len(good_files)
         
         chunk_of_good_files = []
-        for i in range(1, chunk_size+1):
+        for i in range(1, chunk_size + 1):
             chunk_of_good_files.append(good_files.pop())
         
         createFileListFile(output_bunch_dir + '/filelist_' + str(file_list_index) + '.txt', chunk_of_good_files)

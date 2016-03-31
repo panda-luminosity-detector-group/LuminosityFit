@@ -46,7 +46,7 @@ args = parser.parse_args()
   
 getListOfDirectories(args.dirname[0])
 
-bashcommand = default=os.getenv('VMCWORKDIR') + '/build/bin/plotIPDistribution'
+bashcommand = default = os.getenv('VMCWORKDIR') + '/build/bin/plotIPDistribution'
 for dir in dirs:
   bashcommand += ' ' + dir
 

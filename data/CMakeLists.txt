@@ -1,20 +1,3 @@
-set(ROOT_DICT_HEADERS
-fit/ModelFitResult.h
-fit/EstimatorOptions.h
-fit/PndLmdFitOptions.h
-fit/PndLmdFitStorage.h
-data/PndLmdFitDataBundle.h
-data/PndLmdAbstractData.h
-data/PndLmdHistogramData.h
-data/PndLmdAngularData.h
-data/PndLmdAcceptance.h
-LumiFitStructs.h
-)
-
-set(LINKDEF LinkDef.h)
-
-execute_process(COMMAND rootcint -f LmdFitDataDict.cxx -c -I$ENV{MODEL_FRAMEWORK}/include -I${CMAKE_SOURCE_DIR} ${ROOT_DICT_HEADERS} ${LINKDEF})
-
 set(INCLUDE_DIRECTORIES
   $ENV{MODEL_FRAMEWORK}/include
   $ENV{ROOT_INCLUDE_DIR}
@@ -22,8 +5,7 @@ set(INCLUDE_DIRECTORIES
   $ENV{VMCWORKDIR}/pnddata
   $ENV{VMCWORKDIR}/pnddata/SdsData
   $ENV{VMCWORKDIR}/pnddata/TrackData
-  $ENV{VMCWORKDIR}/trackbase
-  $ENV{VMCWORKDIR}/base/event
+  $ENV{FAIRROOTPATH}/include
   $ENV{BOOST_ROOT}/include
 )
 include_directories(${INCLUDE_DIRECTORIES})
@@ -39,7 +21,21 @@ set(LINK_LIBS
 MathMore
 PndData
 LmdTool
+LmdFit
 )
+
+set(ROOT_DICT_HEADERS
+data/PndLmdFitDataBundle.h
+data/PndLmdAbstractData.h
+data/PndLmdHistogramData.h
+data/PndLmdAngularData.h
+data/PndLmdAcceptance.h
+LumiFitStructs.h
+)
+
+set(LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/LinkDef.h)
+
+execute_process(COMMAND rootcint -f LmdFitDataDict.cxx -c -I$ENV{MODEL_FRAMEWORK}/include -I${CMAKE_SOURCE_DIR} ${ROOT_DICT_HEADERS} ${LINKDEF})
 
 set(SRCS
 PndLmdAbstractData.cxx
@@ -56,3 +52,9 @@ ${CMAKE_BINARY_DIR}/LmdFitDataDict.cxx
 add_library(LmdFitData SHARED ${SRCS})
 
 target_link_libraries(LmdFitData LINK_PRIVATE ${LINK_LIBS})
+
+add_custom_command(TARGET LmdFitData
+				   POST_BUILD
+                   COMMAND rlibmap -f -o ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libLmdFitData.rootmap -l ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libLmdFitData.so -d libMathMore libPndData libLmdTool libLmdFit -c ${LINKDEF}
+                   COMMENT "Generating root map..."
+                   )

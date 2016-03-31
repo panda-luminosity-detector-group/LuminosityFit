@@ -22,6 +22,7 @@ boost_regex
 set(SRCS
 AsymmetricDoubleGaussianModel1D.cxx
 AsymmetricGaussianModel1D.cxx
+CachedModel2D.cxx
 PndLmdBackgroundModel1D.cxx
 PndLmdDPMAngModel1D.cxx
 PndLmdDPMAngModel2D.cxx

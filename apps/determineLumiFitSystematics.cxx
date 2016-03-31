@@ -6,14 +6,7 @@
 #include "LumiFitStructs.h"
 #include "PndLmdComparisonStructs.h"
 
-#include "TFile.h"
-#include "TH1D.h"
-#include "TCanvas.h"
-#include "TStyle.h"
-#include "TLatex.h"
-#include "TLine.h"
-#include "TMultiGraph.h"
-#include "TLegend.h"
+#include "TGaxis.h"
 
 #include <iostream>               // for std::cout
 #include <map>
@@ -26,269 +19,227 @@ using std::cerr;
 using std::map;
 using std::vector;
 
-/*void saveToRootfile(std::map<PndLmdLumiFitOptions, histBundle> &comb_map,
- TFile *file) {
-
- if (comb_map.size() == 0)
- return;
-
- std::stringstream topdir_name;
- topdir_name << "fit_opt-" << comb_map.begin()->first.getFitModelOptions();
-
- file->mkdir(topdir_name.str().c_str());
- gDirectory->cd(topdir_name.str().c_str());
- for (std::map<PndLmdLumiFitOptions, histBundle>::iterator it =
- comb_map.begin(); it != comb_map.end(); it++) {
- double mean_error = it->second.mean_rel_diff_lumi_error
- / it->second.num_entries;
- it->second.hist->Draw("E1");
- std::stringstream s;
- s.precision(3);
- s << "lumifit error on rel diff: " << mean_error;
- TLatex *label = new TLatex(xmin * 0.9, 40.0, s.str().c_str());
- label->Draw();
- s.str("");
- s << "#Theta fit range: "
- << it->first.getEstimatorOptions().getFitRangeX().range_low << " - "
- << it->first.getEstimatorOptions().getFitRangeX().range_high;
- TLatex *label2 = new TLatex(xmin * 0.9, 36.0, s.str().c_str());
- label2->Draw();
-
- file->cd();
- gDirectory->cd(topdir_name.str().c_str());
- s.str("");
- s << it->first.getEstimatorOptions().getFitRangeX().range_low << " - "
- << it->first.getEstimatorOptions().getFitRangeX().range_high;
- gDirectory->mkdir(s.str().c_str());
- gDirectory->cd(s.str().c_str());
- it->second.hist->Write("reldiff_dist");
- label->Write("error_label");
- label2->Write("fit_range_label");
- }
- }*/
-
 void saveGraphBundlesToFile(
-		NeatPlotting::SystematicsAnalyser::SystematicDependencyGraphBundle &gb_mc,
-		NeatPlotting::SystematicsAnalyser::SystematicDependencyGraphBundle &gb_mc_acc,
-		NeatPlotting::SystematicsAnalyser::SystematicDependencyGraphBundle &gb_reco,
-		std::string dependency_suffix) {
+    NeatPlotting::SystematicsAnalyser::SystematicDependencyGraphBundle &gb_mc,
+    NeatPlotting::SystematicsAnalyser::SystematicDependencyGraphBundle &gb_mc_acc,
+    NeatPlotting::SystematicsAnalyser::SystematicDependencyGraphBundle &gb_reco,
+    std::string dependency_suffix) {
 
-	TLatex suffix(0.0, 0.0, dependency_suffix.c_str());
-	suffix.Write("suffix");
+  TLatex suffix(0.0, 0.0, dependency_suffix.c_str());
+  suffix.Write("suffix");
 
-	gDirectory->mkdir("mc");
-	gDirectory->cd("mc");
-	std::cout << gb_mc.mean << std::endl;
-	gDirectory->pwd();
-	gb_mc.mean->Write("mean");
-	gb_mc.sigma->Write("sigma");
-	gb_mc.mean_individual_error->Write("lumifit_error");
-	std::cout << "saved stuff" << std::endl;
-	gDirectory->cd("..");
-	gDirectory->mkdir("mc_acc");
-	gDirectory->cd("mc_acc");
-	gb_mc_acc.mean->Write("mean");
-	gb_mc_acc.sigma->Write("sigma");
-	gb_mc_acc.mean_individual_error->Write("lumifit_error");
-	gDirectory->cd("..");
-	gDirectory->mkdir("reco");
-	gDirectory->cd("reco");
-	gb_reco.mean->Write("mean");
-	gb_reco.sigma->Write("sigma");
-	gb_reco.mean_individual_error->Write("lumifit_error");
-	std::cout << "saved stuff" << std::endl;
+  gDirectory->mkdir("mc");
+  gDirectory->cd("mc");
+  std::cout << gb_mc.mean << std::endl;
+  gDirectory->pwd();
+  gb_mc.mean->Write("mean");
+  gb_mc.sigma->Write("sigma");
+  gb_mc.mean_individual_error->Write("lumifit_error");
+  std::cout << "saved stuff" << std::endl;
+  gDirectory->cd("..");
+  gDirectory->mkdir("mc_acc");
+  gDirectory->cd("mc_acc");
+  gb_mc_acc.mean->Write("mean");
+  gb_mc_acc.sigma->Write("sigma");
+  gb_mc_acc.mean_individual_error->Write("lumifit_error");
+  gDirectory->cd("..");
+  gDirectory->mkdir("reco");
+  gDirectory->cd("reco");
+  gb_reco.mean->Write("mean");
+  gb_reco.sigma->Write("sigma");
+  gb_reco.mean_individual_error->Write("lumifit_error");
+  std::cout << "saved stuff" << std::endl;
 }
 
-void determineLumiFitSystematics(std::string pathname,
-		std::string dir_name_filter, std::string dependency_suffix) {
-	std::cout << "Generating lumi comparison plots for fit results....\n";
+void determineLumiFitSystematics(std::vector<std::string> paths,
+    const std::string &filter_string, const std::string &output_directory_path,
+    std::string filename_suffix) {
+  std::cout << "Generating lumi comparison plots for fit results....\n";
 
-	// create an instance of PndLmdDataFacade for retrieving data
-	PndLmdDataFacade lmd_data_facade;
+  // ================================ BEGIN CONFIG ================================ //
+  // sets default pad margins etc that should be fine for most cases
+  // you can fine tune it and overwrite the default values
+  gStyle->SetPadRightMargin(0.165);
+  gStyle->SetPadLeftMargin(0.125);
+  gStyle->SetPadBottomMargin(0.127);
+  gStyle->SetPadTopMargin(0.1);
+  gStyle->SetPadColor(10);
+  gStyle->SetCanvasColor(10);
+  gStyle->SetStatColor(10);
 
-	vector<std::string> paths = lmd_data_facade.findFilesByName(pathname,
-			dir_name_filter, "lmd_fitted_data.root");
+  TGaxis::SetMaxDigits(3);
+  gStyle->SetOptStat(0);
+  gStyle->SetOptFit(0);
 
-	std::vector<PndLmdAngularData> mc_data_vec;
-	std::vector<PndLmdAngularData> mc_acc_data_vec;
-	std::vector<PndLmdAngularData> reco_data_vec;
+  // overwrite the default theta plot range if possible
+  //plotter.setThetaPlotRange(0.5, 16.0);
 
-	for (unsigned int j = 0; j < paths.size(); j++) {
-		std::cout << "working on: " << paths[j] << std::endl;
+  bool make_fit_range_dependency_plots(false);
 
-		// ------ get file -------------------------------------------------------
-		TFile fdata((paths[j] + "/lmd_fitted_data.root").c_str(),
-				"UPDATE");
+  // ================================= END CONFIG ================================= //
 
-		// read in data from a root file which will return a map of pairs dimension options to
-		// vectors of pointers to PndLmdAngularData objects
-		vector<PndLmdAngularData> full_data_vec = lmd_data_facade.getDataFromFile<
-				PndLmdAngularData>(fdata);
+  // A small helper class that helps to construct lmd data objects
+  PndLmdDataFacade lmd_data_facade;
 
-		// MC data case
-		LumiFit::LmdDimensionOptions lmd_dim_opt;
-		lmd_dim_opt.track_type = LumiFit::MC;
+  LumiFit::PndLmdPlotter lmd_plotter;
 
-		LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter filter(
-				lmd_dim_opt);
-		vector<PndLmdAngularData> data_vec = lmd_data_facade.filterData(
-				full_data_vec, filter);
+  //  lmd_plotter.primary_dimension_plot_range.range_low = 0.5;
+  //  lmd_plotter.primary_dimension_plot_range.range_high = 16.0;
 
-		mc_data_vec.insert(mc_data_vec.end(), data_vec.begin(), data_vec.end());
+  // get all data first
+  std::vector<PndLmdFitDataBundle> all_data;
 
-		// MC ACC data case
-		lmd_dim_opt.track_type = LumiFit::MC_ACC;
+  PndLmdRuntimeConfiguration& lmd_runtime_config =
+      PndLmdRuntimeConfiguration::Instance();
 
-		filter.setDimensionOptions(lmd_dim_opt);
-		data_vec = lmd_data_facade.filterData(full_data_vec, filter);
+  for (unsigned int i = 0; i < paths.size(); i++) {
+    // ------ get files -------------------------------------------------------
+    std::vector<std::string> file_paths = lmd_data_facade.findFilesByName(
+        paths[i], filter_string, "lmd_fitted_data.root");
 
-		mc_acc_data_vec.insert(mc_acc_data_vec.end(), data_vec.begin(),
-				data_vec.end());
+    for (unsigned int j = 0; j < file_paths.size(); j++) {
+      std::string fullpath = file_paths[j];
+      TFile fdata(fullpath.c_str(), "READ");
 
-		// RECO data case
-		lmd_dim_opt.track_type = LumiFit::RECO;
+      // read in data from a root file which will return a map of PndLmdAngularData objects
+      std::vector<PndLmdFitDataBundle> data_vec =
+          lmd_data_facade.getDataFromFile<PndLmdFitDataBundle>(fdata);
 
-		filter.setDimensionOptions(lmd_dim_opt);
-		data_vec = lmd_data_facade.filterData(full_data_vec, filter);
+      // append all data objects to the end of the corresponding data map vectors
+      all_data.insert(all_data.end(), data_vec.begin(), data_vec.end());
+    }
+  }
 
-		reco_data_vec.insert(reco_data_vec.end(), data_vec.begin(), data_vec.end());
-	}
+  for (unsigned int j = 0; j < all_data.size(); j++) {
+    std::cout << "resolutions in object: "
+        << all_data[j].getUsedResolutionsPool().size() << std::endl;
+  }
 
-	LumiFit::PndLmdPlotter plotter;
+  // =============================== BEGIN PLOTTING =============================== //
 
-	LumiFit::LmdDimensionOptions dim_op;
-	dim_op.track_type = LumiFit::MC;
+  std::stringstream basepath;
+  basepath << output_directory_path;
 
-	NeatPlotting::SystematicsAnalyser::SystematicDependencyGraphBundle mc_graph_bundle =
-			plotter.createLowerFitRangeDependencyGraphBundle(mc_data_vec, dim_op);
+  if (!boost::filesystem::exists(output_directory_path)) {
+    std::cout
+        << "The output directory path you specified does not exist! Please make sure you are pointing to an existing directory."
+        << std::endl;
+    return;
+  }
 
-	dim_op.track_type = LumiFit::MC_ACC;
-	NeatPlotting::SystematicsAnalyser::SystematicDependencyGraphBundle mc_acc_graph_bundle =
-			plotter.createLowerFitRangeDependencyGraphBundle(mc_acc_data_vec,
-					dim_op);
+  // now get all data bundles that are full phi
+  std::vector<PndLmdFitDataBundle> full_phi_vec;
+  std::vector<PndLmdElasticDataBundle> full_phi_reco_data_vec;
 
-	dim_op.track_type = LumiFit::RECO;
-	NeatPlotting::SystematicsAnalyser::SystematicDependencyGraphBundle reco_graph_bundle =
-			plotter.createLowerFitRangeDependencyGraphBundle(reco_data_vec, dim_op);
+  LumiFit::LmdDimensionOptions phi_slice_dim_opt;
+  phi_slice_dim_opt.dimension_type = LumiFit::PHI;
+  phi_slice_dim_opt.track_param_type = LumiFit::LMD;
+  phi_slice_dim_opt.track_type = LumiFit::MC;
 
-	// save results
-	TFile *file = new TFile(
-			TString(pathname) + "/lumifit_systematics-"
-					+ TString(dependency_suffix.c_str()) + ".root", "RECREATE");
+  LumiFit::Comparisons::NegatedSelectionDimensionFilter filter(
+      phi_slice_dim_opt);
 
-	saveGraphBundlesToFile(mc_graph_bundle, mc_acc_graph_bundle,
-			reco_graph_bundle, dependency_suffix);
-}
+  for (auto const& fit_data_bundle : all_data) {
 
-void createDependencyGraphs(std::string pathname,
-		std::string dependency_suffix) {
-	TFile fdata(pathname.c_str(), "READ");
+    std::vector<PndLmdElasticDataBundle> temp_full_phi_vec =
+        lmd_data_facade.filterData(fit_data_bundle.getElasticDataBundles(),
+            filter);
 
-	// create an instance of PndLmdDataFacade for retrieving data
-	PndLmdDataFacade lmd_data_facade;
+    if (temp_full_phi_vec.size() > 0)
+      full_phi_vec.push_back(fit_data_bundle);
+    full_phi_reco_data_vec.reserve(
+        full_phi_reco_data_vec.size() + temp_full_phi_vec.size());
+    for (unsigned int i = 0; i < temp_full_phi_vec.size(); ++i)
+      full_phi_reco_data_vec.push_back(temp_full_phi_vec[i]);
+  }
 
-	LumiFit::PndLmdPlotter plotter;
+  // if we just need the luminosity values and do not have to build the models again
+  // ---------- reco -- full phi stuff
+  LumiFit::LmdDimensionOptions lmd_dim_opt;
+  lmd_dim_opt.track_type = LumiFit::RECO;
+  if (full_phi_reco_data_vec[0].getPrimaryDimension().dimension_options.dimension_type
+      == LumiFit::THETA_X)
+    lmd_dim_opt.dimension_type = LumiFit::THETA_X;
 
-	// read in data from a root file which will return a map of pairs dimension options to
-	// vectors of pointers to PndLmdAngularData objects
-	vector<PndLmdAngularData> full_data_vec = lmd_data_facade.getDataFromFile<
-			PndLmdAngularData>(fdata);
+  LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter dim_filter(
+      lmd_dim_opt);
+  full_phi_reco_data_vec = lmd_data_facade.filterData(full_phi_reco_data_vec,
+      dim_filter);
 
-	// MC data case
-	LumiFit::LmdDimensionOptions lmd_dim_opt;
-	lmd_dim_opt.track_type = LumiFit::MC;
+  TGraphAsymmErrors *graph =
+      lmd_plotter.createBinningDependencyGraphBundle(full_phi_reco_data_vec,
+          lmd_dim_opt);
 
-	LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter filter(
-			lmd_dim_opt);
-	vector<PndLmdAngularData> data_vec = lmd_data_facade.filterData(full_data_vec,
-			filter);
-	std::cout << "Got " << data_vec.size() << " data entries!" << std::endl;
-
-	TGraphAsymmErrors* mc_graph = plotter.createLowerFitRangeDependencyGraph(
-			data_vec, lmd_dim_opt);
-
-	// MC ACC data case
-	lmd_dim_opt.track_type = LumiFit::MC_ACC;
-
-	filter.setDimensionOptions(lmd_dim_opt);
-	data_vec = lmd_data_facade.filterData(full_data_vec, filter);
-
-	TGraphAsymmErrors* mc_acc_graph = plotter.createLowerFitRangeDependencyGraph(
-			data_vec, lmd_dim_opt);
-
-	// RECO data case
-	lmd_dim_opt.track_type = LumiFit::RECO;
-
-	filter.setDimensionOptions(lmd_dim_opt);
-	data_vec = lmd_data_facade.filterData(full_data_vec, filter);
-
-	TGraphAsymmErrors* reco_graph = plotter.createLowerFitRangeDependencyGraph(
-			data_vec, lmd_dim_opt);
-
-	// save results
-	boost::filesystem::path fullpath(pathname);
-
-	TFile *file = new TFile(
-			TString(fullpath.remove_filename().c_str()) + "/lumifit_systematics-"
-					+ TString(dependency_suffix.c_str()) + ".root", "RECREATE");
-	mc_graph->Write("mc");
-	mc_acc_graph->Write("mc_acc");
-	reco_graph->Write("reco");
-	file->Close();
+  TCanvas c;
+  graph->Draw("AP");
+  c.SaveAs("binning.pdf");
+  // ================================ END PLOTTING ================================ //
 }
 
 void displayInfo() {
 // display info
-	cout << "Required arguments are: " << endl;
-	cout << "-d [path to data]" << endl;
-	cout << "-l [suffix label for this data]" << endl;
-	cout << "Optional arguments are: " << endl;
-	cout << "-b [bunch folder prefix]" << endl;
+  std::cout << "Required arguments are: " << std::endl;
+  std::cout << "list of directories to be scanned for elastic scattering data"
+      << std::endl;
+  std::cout << "Optional arguments are: " << std::endl;
+  std::cout << "-f [output filename suffix]" << std::endl;
+  std::cout << "-o [output directory]" << std::endl;
+  std::cout
+      << "-s [filtering string, which has to appear in the full directory path for all found paths]"
+      << std::endl;
 }
 
 int main(int argc, char* argv[]) {
-	bool is_data_set = false, is_suffix_label_set = false,
-			is_bunch_folder_prefix_set = false;
-	std::string data_path, suffix_label, bunch_folder_prefix;
+  bool is_filename_suffix_set = false;
+  std::string filename_suffix("fitresults");
+  std::string filter_string("");
 
-	int c;
+  std::stringstream tempstream;
+  tempstream << std::getenv("HOME") << "/plots";
+  std::string output_directory_path(tempstream.str());
 
-	while ((c = getopt(argc, argv, "hd:l:b:")) != -1) {
-		switch (c) {
-			case 'd':
-				data_path = optarg;
-				is_data_set = true;
-				break;
-			case 'l':
-				suffix_label = optarg;
-				is_suffix_label_set = true;
-				break;
-			case 'b':
-				bunch_folder_prefix = optarg;
-				is_bunch_folder_prefix_set = true;
-				break;
-			case '?':
-				if (optopt == 'd' || optopt == 'l' || optopt == 'b')
-					cerr << "Option -" << optopt << " requires an argument." << endl;
-				else if (isprint(optopt))
-					cerr << "Unknown option -" << optopt << "." << endl;
-				else
-					cerr << "Unknown option character" << optopt << "." << endl;
-				return 1;
-			case 'h':
-				displayInfo();
-				return 1;
-			default:
-				return 1;
-		}
-	}
+  int c;
 
-	if (is_data_set && is_suffix_label_set && is_bunch_folder_prefix_set)
-		determineLumiFitSystematics(data_path, bunch_folder_prefix, suffix_label);
-	else if (is_data_set && is_suffix_label_set) {
-		createDependencyGraphs(data_path, suffix_label);
-	} else
-		displayInfo();
-	return 0;
+  while ((c = getopt(argc, argv, "hf:s:o:")) != -1) {
+    switch (c) {
+    case 'f':
+      filename_suffix = optarg;
+      is_filename_suffix_set = true;
+      break;
+    case 's':
+      filter_string = optarg;
+      break;
+    case 'o':
+      output_directory_path = optarg;
+      break;
+    case '?':
+      if (optopt == 'f' || optopt == 's' || optopt == 'o')
+        std::cerr << "Option -" << optopt << " requires an argument."
+            << std::endl;
+      else if (isprint(optopt))
+        std::cerr << "Unknown option -" << optopt << "." << std::endl;
+      else
+        std::cerr << "Unknown option character" << optopt << "." << std::endl;
+      return 1;
+    case 'h':
+      displayInfo();
+      return 1;
+    default:
+      return 1;
+    }
+  }
+
+  int argoffset = optind;
+
+  if (argc > 1) {
+    std::vector<std::string> paths;
+    for (unsigned int i = argoffset; i < argc; i++) {
+      paths.push_back(std::string(argv[i]));
+    }
+    determineLumiFitSystematics(paths, filter_string, output_directory_path,
+        filename_suffix);
+  }
+
+  return 0;
 }
 

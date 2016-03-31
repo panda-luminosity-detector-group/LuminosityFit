@@ -6,6 +6,7 @@
 #include "fit/PndLmdFitOptions.h"
 #include "PndLmdComparisonStructs.h"
 #include "data/PndLmdFitDataBundle.h"
+#include "ui/PndLmdFitFacade.h"
 
 #ifndef __CINT__
 #include "visualization/ROOT/ROOTPlotter.h"
@@ -47,6 +48,7 @@ public:
 private:
 	NeatPlotting::GraphAndHistogramHelper neat_plot_helper;
 
+  PndLmdFitFacade lmd_fit_facade;
 	PndLmdModelFactory model_factory;
 	PndLmdFitDataBundle current_fit_bundle;
 
@@ -202,6 +204,10 @@ public:
 	NeatPlotting::SystematicsAnalyser::SystematicDependencyGraphBundle createLowerFitRangeDependencyGraphBundle(
 			const std::vector<PndLmdAngularData> &prefiltered_data,
 			const LmdDimensionOptions& dim_opt) const;
+
+	TGraphAsymmErrors* createBinningDependencyGraphBundle(
+      const std::vector<PndLmdElasticDataBundle> &prefiltered_data,
+      const LmdDimensionOptions& dim_opt) const;
 
 	// booky routines =======================================================
 

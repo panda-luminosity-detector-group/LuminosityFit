@@ -7,208 +7,233 @@
 
 #include "LumiFitStructs.h"
 #include "model/PndLmdDivergenceSmearingModel2D.h"
+#include "ui/PndLmdRuntimeConfiguration.h"
+#include "operators2d/integration/IntegralStrategyGSL2D.h"
+
+#include "boost/thread.hpp"
 
 #include <limits>
+#include <thread>
+#include <future>
+#include <functional>
+#include <random>
 
 PndLmdDivergenceSmearingModel2D::PndLmdDivergenceSmearingModel2D(
-		shared_ptr<Model2D> divergence_model_,
-		const LumiFit::LmdDimension& data_dim_x_,
-		const LumiFit::LmdDimension& data_dim_y_) :
-		divergence_model(divergence_model_), data_dim_x(data_dim_x_), data_dim_y(
-				data_dim_y_) {
+    shared_ptr<Model2D> divergence_model_,
+    const LumiFit::LmdDimension& data_dim_x_,
+    const LumiFit::LmdDimension& data_dim_y_) :
+    divergence_model(divergence_model_), data_dim_x(data_dim_x_), data_dim_y(
+        data_dim_y_) {
 }
 
 PndLmdDivergenceSmearingModel2D::~PndLmdDivergenceSmearingModel2D() {
 }
 
 std::pair<double, double> PndLmdDivergenceSmearingModel2D::getBinsizes() const {
-	return std::make_pair(data_dim_x.bin_size, data_dim_y.bin_size);
+  return std::make_pair(data_dim_x.bin_size, data_dim_y.bin_size);
 }
 
 const std::vector<DifferentialCoordinateContribution>& PndLmdDivergenceSmearingModel2D::getListOfContributors(
-		const double *x) const {
-	return list_of_contributors;
+    const double *x) const {
+  return list_of_contributors;
 }
 
 void PndLmdDivergenceSmearingModel2D::generate2DDivergenceMap() {
-	// we require a homogeneous bining for the divergence grid for this
-	// algorithm to work!
+  std::cout << "generating divergence map..." << std::endl;
 
-	/*double prim_dim_binsize = data_dim_x.bin_size;
-	 double sec_dim_binsize = data_dim_y.bin_size;
+  unsigned int nthreads =
+      PndLmdRuntimeConfiguration::Instance().getNumberOfThreads();
 
-	 unsigned int div_binning_x = 21;
-	 unsigned int div_binning_y = 21;
+  double div_bin_size_x = data_dim_x.bin_size;
+  double div_bin_size_y = data_dim_y.bin_size;
 
-	 double div_bin_size_x = divergence_model->getVar1DomainRange()
-	 / div_binning_x;
-	 double div_bin_size_y = divergence_model->getVar2DomainRange()
-	 / div_binning_y;
+  int div_bining_x = divergence_model->getVar1DomainRange() / div_bin_size_x
+      / 2.0;
+  int div_bining_y = divergence_model->getVar2DomainRange() / div_bin_size_y
+      / 2.0;
 
-	 std::vector<DataStructs::DimensionRange> int_range(2);
+  //std::cout<<divergence_model->getVar1DomainRange()<<" asdf "<<div_bin_size_x<<std::endl;
 
-	 double onehalf = 0.5 - std::numeric_limits<double>::epsilon();
-	 double rec_signum_x(-0.5);
-	 double rec_signum_y(-0.5);
+  unsigned int list_counter(0);
+  unsigned int pair_counter(0);
 
-	 std::vector<DifferentialCoordinateContribution> temp_list_of_contributors;
-	 temp_list_of_contributors.reserve(4 * div_binning_x * div_binning_y);
+  unsigned int total_pairs((2 * div_bining_x + 1) * (2 * div_bining_y + 1));
+  unsigned int pairs_per_thread(total_pairs / nthreads);
+  if (pairs_per_thread * nthreads < total_pairs)
+    ++pairs_per_thread;
 
-	 std::cout<<"calculating divergence contributions..."<<std::endl;
+  std::vector<std::vector<std::pair<int, int> > > xy_pairs_lists;
+  xy_pairs_lists.resize(nthreads);
 
-	 // loop over the divergence bining
-	 for (unsigned int ibinx = 0; ibinx < div_binning_x; ibinx++) {
-	 int_range[0].range_low = divergence_model->getVar1DomainLowerBound()
-	 + ibinx * div_bin_size_x;
-	 int_range[0].range_high = divergence_model->getVar1DomainLowerBound()
-	 + (ibinx + 1) * div_bin_size_x;
+  for (int ibinx = -div_bining_x; ibinx <= div_bining_x; ++ibinx) {
+    for (int ibiny = -div_bining_y; ibiny <= div_bining_y; ++ibiny) {
+      xy_pairs_lists[list_counter].push_back(std::make_pair(ibinx, ibiny));
+      ++pair_counter;
+      if (pair_counter % pairs_per_thread == 0)
+        list_counter++;
+    }
+  }
 
-	 double signum_x_low(-onehalf);
-	 if (int_range[0].range_low < 0.0)
-	 signum_x_low = onehalf;
-	 double signum_x_high(-onehalf);
-	 if (int_range[0].range_high < 0.0)
-	 signum_x_high = onehalf;
+  /*std::cout << "pair and list counter: " << pair_counter << " " << list_counter
+   << std::endl;
+   std::cout << "using " << (2 * div_bining_x + 1) << " x "
+   << (2 * div_bining_y + 1) << " binning!" << std::endl;
+   std::cout << "with " << nthreads << " threads with " << pairs_per_thread
+   << " pairs per thread" << std::endl;*/
 
-	 for (unsigned int ibiny = 0; ibiny < div_binning_y; ibiny++) {
-	 int_range[1].range_low = divergence_model->getVar2DomainLowerBound()
-	 + ibiny * div_bin_size_y;
-	 int_range[1].range_high = divergence_model->getVar2DomainLowerBound()
-	 + (ibiny + 1) * div_bin_size_y;
+  /* std::cout << "size: " << list_of_contributors.size() << std::endl;
+   for (unsigned int i = 0; i < list_of_contributors.size(); ++i) {
+   std::cout << list_of_contributors[i].contribution_factor << std::endl;
+   }*/
 
-	 double signum_y_low(-onehalf);
-	 if (int_range[1].range_low < 0.0)
-	 signum_y_low = onehalf;
-	 double signum_y_high(-onehalf);
-	 if (int_range[1].range_high < 0.0)
-	 signum_y_high = onehalf;
+  list_of_contributors.clear();
+  list_of_contributors.reserve((2 * div_bining_x + 1) * (2 * div_bining_y + 1));
 
-	 // calculate integral over the divergence bin
-	 double smearing_probability = divergence_model->Integral(int_range, 1e-3);
+  std::vector<std::vector<DifferentialCoordinateContribution> > list_of_contributors_per_thread;
+  list_of_contributors_per_thread.resize(nthreads);
 
-	 LumiFit::BinDimension reso_bin(int_range[0], int_range[1]);
+  //std::vector<std::vector<DifferentialCoordinateContribution> > list_of_contributors_per_thread;
+  //list_of_contributors_per_thread.resize(nthreads);
 
-	 LumiFit::BinDimension reco_bin;
+  optimizeNumericalIntegration(xy_pairs_lists);
 
-	 // calculated boundaries
-	 int recbinx_min = (reso_bin.x_range.range_low / prim_dim_binsize
-	 - signum_x_low);
-	 int recbinx_max = (reso_bin.x_range.range_high / prim_dim_binsize
-	 - signum_x_high);
-	 int recbiny_min = (reso_bin.y_range.range_low / sec_dim_binsize
-	 - signum_y_low);
-	 int recbiny_max = (reso_bin.y_range.range_high / sec_dim_binsize
-	 - signum_y_high);
+  boost::thread_group threads;
+  for (unsigned int i = 0; i < nthreads; i++) {
+    threads.create_thread(
+        boost::bind(&PndLmdDivergenceSmearingModel2D::generate2DDivergenceMap,
+            this, boost::cref(xy_pairs_lists[i]),
+            boost::ref(list_of_contributors_per_thread[i])));
+  }
+  threads.join_all();
 
-	 /*std::cout << recbinx_min << " " << reso_bin.x_range.range_low << " "
-	 << prim_dim_binsize << " " << signum_x_low << std::endl;
-	 std::cout << recbinx_max << " " << reso_bin.x_range.range_high << " "
-	 << prim_dim_binsize << " " << signum_x_high << std::endl;
-	 std::cout << recbiny_min << " " << reso_bin.y_range.range_low << " "
-	 << sec_dim_binsize << " " << signum_y_low << std::endl;
-	 std::cout << recbiny_max << " " << reso_bin.y_range.range_high << " "
-	 << sec_dim_binsize << " " << signum_y_high << std::endl;*/
+  for (unsigned int i = 0; i < list_of_contributors_per_thread.size(); ++i) {
+    list_of_contributors.insert(list_of_contributors.end(),
+        list_of_contributors_per_thread[i].begin(),
+        list_of_contributors_per_thread[i].end());
+  }
 
-	/*	for (int irecbinx = recbinx_min; irecbinx <= recbinx_max; ++irecbinx) {
-	 for (int irecbiny = recbiny_min; irecbiny <= recbiny_max; ++irecbiny) {
-	 //reco bin information
-	 reco_bin.x_range.range_low = (rec_signum_x + irecbinx)
-	 * prim_dim_binsize;
-	 reco_bin.x_range.range_high = reco_bin.x_range.range_low
-	 + prim_dim_binsize;
-	 reco_bin.y_range.range_low = (rec_signum_y + irecbiny)
-	 * sec_dim_binsize;
-	 reco_bin.y_range.range_high = reco_bin.y_range.range_low
-	 + sec_dim_binsize;
+  /*std::cout << "size: " << list_of_contributors.size() << std::endl;
+   for (unsigned int i = 0; i < list_of_contributors.size(); ++i) {
+   std::cout << list_of_contributors[i].contribution_factor << std::endl;
+   }*/
+}
 
-	 // calculate overlap with elastic data reco bins
-	 double weight = LumiFit::calculateBinOverlap(reco_bin, reso_bin);
+void PndLmdDivergenceSmearingModel2D::optimizeNumericalIntegration(
+    const std::vector<std::vector<std::pair<int, int> > >& xy_pairs_lists) {
+  unsigned int nthreads =
+      PndLmdRuntimeConfiguration::Instance().getNumberOfThreads();
 
-	 DifferentialCoordinateContribution dcc(irecbinx, irecbiny,
-	 weight * smearing_probability);
+  double div_bin_size_x = data_dim_x.bin_size;
+  double div_bin_size_y = data_dim_y.bin_size;
 
-	 temp_list_of_contributors.push_back(dcc);
-	 }
-	 }
-	 }
-	 }*/
+  shared_ptr<IntegralStrategyGSL2D> integral_strategy(
+      new IntegralStrategyGSL2D());
+  divergence_model->setIntegralStrategy(integral_strategy);
 
-	// we require a homogeneous bining for the divergence grid for this
-	// algorithm to work!
-	double div_bin_size_x = data_dim_x.bin_size;
-	double div_bin_size_y = data_dim_y.bin_size;
+  unsigned int calls(2);
+  std::vector<std::vector<DataStructs::DimensionRange> > int_ranges(nthreads);
+  std::vector<DataStructs::DimensionRange> int_range(2);
+  std::vector<std::future<unsigned int> > future_list;
+  std::vector<std::thread> thread_list;
 
-	int div_bining_x = divergence_model->getVar1DomainRange()
-			/ div_bin_size_x / 2.0;
-	int div_bining_y = divergence_model->getVar2DomainRange()
-			/ div_bin_size_y / 2.0;
+  std::mt19937 gen;
+  for (unsigned int i = 0; i < nthreads; i++) {
+    if (xy_pairs_lists[i].size() > 0) {
+      std::uniform_int_distribution<unsigned int> random_index(0,
+          xy_pairs_lists[i].size() - 1);
+      unsigned int index = random_index(gen);
 
-	std::vector<DataStructs::DimensionRange> int_range(2);
+      int_range[0].range_low = (xy_pairs_lists[i][index].first - 0.5)
+          * div_bin_size_x;
+      int_range[0].range_high = (xy_pairs_lists[i][index].first + 0.5)
+          * div_bin_size_x;
 
-	list_of_contributors.clear();
-	list_of_contributors.reserve(4 * div_bining_x * div_bining_y);
+      int_range[1].range_low = (xy_pairs_lists[i][index].second - 0.5)
+          * div_bin_size_y;
+      int_range[1].range_high = (xy_pairs_lists[i][index].second + 0.5)
+          * div_bin_size_y;
 
-	//std::cout << "calculating divergence contributions..." << std::endl;
-	//std::cout << "using bining: " << div_bining_x << " : " << div_bining_y
-	//		<< std::endl;
+      int_ranges[i]=int_range;
 
-	std::set<DifferentialCoordinateContribution, PndLmdDivergenceSmearingModel2D::IntPairLess> temp_contribution_list;
+      std::packaged_task<unsigned int()> task(
+          std::bind(&IntegralStrategyGSL2D::determineOptimalCallNumber,
+              integral_strategy.get(), divergence_model.get(),
+              std::cref(int_ranges[i]), 1e-4));
+      future_list.push_back(task.get_future());
+      thread_list.push_back(std::thread(std::move(task)));
+    }
+  }
+// wait for futures and compute maximum number of calls
 
-	// loop over the divergence bining
-	for (int ibinx = -div_bining_x; ibinx <= div_bining_x; ++ibinx) {
-		int_range[0].range_low = (ibinx - 0.5) * div_bin_size_x;
-		int_range[0].range_high = (ibinx + 0.5) * div_bin_size_x;
+  for (auto& future : future_list) {
+    unsigned int temp_calls = future.get();
+    if (temp_calls > calls)
+      calls = temp_calls;
+  }
 
-		for (int ibiny = -div_bining_y; ibiny <= div_bining_y; ++ibiny) {
-			int_range[1].range_low = (ibiny - 0.5) * div_bin_size_y;
-			int_range[1].range_high = (ibiny + 0.5) * div_bin_size_y;
+// join all threads
+  for (auto& thread : thread_list) {
+    if (thread.joinable())
+      thread.join();
+  }
 
-			// calculate integral over the divergence bin
-			double smearing_probability = divergence_model->Integral(int_range, 1e-4);
+  //std::cout << "using start call: " << calls << std::endl;
+  integral_strategy->setStartNumberOfFunctionEvaluations(calls);
+}
 
-			DifferentialCoordinateContribution dcc(ibinx, ibiny,
-					smearing_probability);
+void PndLmdDivergenceSmearingModel2D::generate2DDivergenceMap(
+    const std::vector<std::pair<int, int> >& xy_pairs,
+    std::vector<DifferentialCoordinateContribution>& list_of_contributors_for_thread) {
 
-			temp_contribution_list.insert(dcc);
-		}
-	}
+  std::vector<DataStructs::DimensionRange> int_range(2);
 
-	//std::cout << "sorting " << list_of_contributors.size()
-	//		<< " divergence contributions..." << std::endl;
+  std::set<DifferentialCoordinateContribution,
+      PndLmdDivergenceSmearingModel2D::IntPairLess> temp_contribution_list;
 
-	std::set<DifferentialCoordinateContribution, PndLmdDivergenceSmearingModel2D::IntPairLess>::const_iterator contribution_iter;
-	for(contribution_iter = temp_contribution_list.begin(); contribution_iter != temp_contribution_list.end(); ++contribution_iter)
-		list_of_contributors.push_back(*contribution_iter);
-	//std::sort(list_of_contributors.begin(), list_of_contributors.end(),
-	//		IntPairLess());
+  double div_bin_size_x = data_dim_x.bin_size;
+  double div_bin_size_y = data_dim_y.bin_size;
 
-	/*list_of_contributors.clear();
-	 list_of_contributors.reserve(temp_list_of_contributors.size());
+  int div_bining_x = divergence_model->getVar1DomainRange() / div_bin_size_x
+      / 2.0;
+  int div_bining_y = divergence_model->getVar2DomainRange() / div_bin_size_y
+      / 2.0;
 
-	 std::cout << "merging divergence contributions..." << std::endl;
+  //std::cout << "num pairs: " << xy_pairs.size() << std::endl;
+  for (unsigned int i = 0; i < xy_pairs.size(); ++i) {
 
-	 if (temp_list_of_contributors.size() > 0) {
-	 unsigned int current_position(0);
-	 list_of_contributors.push_back(temp_list_of_contributors[0]);
-	 for (unsigned int i = 1; i < temp_list_of_contributors.size(); ++i) {
-	 const DifferentialCoordinateContribution &temp_contribution =
-	 temp_list_of_contributors[i];
-	 if (temp_contribution == list_of_contributors[current_position]) {
-	 list_of_contributors[current_position].contribution_factor +=
-	 temp_contribution.contribution_factor;
-	 } else {
-	 list_of_contributors.push_back(temp_list_of_contributors[i]);
-	 ++current_position;
-	 }
-	 }
-	 }*/
-	// in case we reserved more than we needed free the remainder
-	// comment this line for more speed...
-	list_of_contributors.resize(list_of_contributors.size());
-	//std::cout << "done!" << std::endl;
+    int_range[0].range_low = (xy_pairs[i].first - 0.5) * div_bin_size_x;
+    int_range[0].range_high = (xy_pairs[i].first + 0.5) * div_bin_size_x;
+
+    int_range[1].range_low = (xy_pairs[i].second - 0.5) * div_bin_size_y;
+    int_range[1].range_high = (xy_pairs[i].second + 0.5) * div_bin_size_y;
+
+    // calculate integral over the divergence bin
+    double smearing_probability = divergence_model->Integral(int_range, 1e-4);
+
+    /*std::cout << "int range: " << int_range[0].range_low << " - "
+     << int_range[0].range_high << " :: " << int_range[1].range_low << " - "
+     << int_range[1].range_high << std::endl;
+     std::cout << "smear prob: " << smearing_probability << std::endl;*/
+    DifferentialCoordinateContribution dcc(xy_pairs[i].first,
+        xy_pairs[i].second, smearing_probability);
+
+    /*std::cout << xy_pairs[i].first << " and " << xy_pairs[i].second << " -> "
+     << (2 * div_bining_y + 1) << " * " << (xy_pairs[i].first + div_bining_x)
+     << " + " << (xy_pairs[i].second + div_bining_y) << std::endl;
+     std::cout << "adding at "
+     << (2 * div_bining_y + 1) * (xy_pairs[i].first + div_bining_x)
+     + (xy_pairs[i].second + div_bining_y) << std::endl;*/
+
+    /*list_of_contributors[(2 * div_bining_y + 1)
+     * (xy_pairs[i].first + div_bining_x)
+     + (xy_pairs[i].second + div_bining_y)] = dcc;*/
+    list_of_contributors_for_thread.push_back(dcc);
+  }
+
+  //std::cout << "done!" << std::endl;
 }
 
 void PndLmdDivergenceSmearingModel2D::updateSmearingModel() {
-	divergence_model->updateDomain();
-	generate2DDivergenceMap();
+  divergence_model->updateDomain();
+  generate2DDivergenceMap();
 }

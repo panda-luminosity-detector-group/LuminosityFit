@@ -43,5 +43,5 @@ args = parser.parse_args()
 getListOfDirectories(args.dirname[0])
 
 for dir in dirs:
-  bashcommand = default=os.getenv('VMCWORKDIR') + '/build/bin/determineBeamOffset -p ' + dir
+  bashcommand = default = os.getenv('VMCWORKDIR') + '/build/bin/determineBeamOffset -p ' + dir
   returnvalue = subprocess.call(bashcommand.split())

@@ -10,6 +10,7 @@
 
 #include "../LumiFitStructs.h"
 
+#include <map>
 #include <set>
 #include <string>
 

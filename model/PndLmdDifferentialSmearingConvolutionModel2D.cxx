@@ -95,7 +95,7 @@ void PndLmdDifferentialSmearingConvolutionModel2D::injectModelParameter(
 }
 
 void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D() {
-	//std::cout << "generating divergence smeared grid..." << std::endl;
+	std::cout << "generating divergence smeared grid..." << std::endl;
 	// create threads and let them evaluate a part of the data
 	boost::thread_group threads;
 
@@ -107,12 +107,14 @@ void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D() {
 	}
 
 	threads.join_all();
-	//std::cout << "done!" << std::endl;
+	std::cout << "done!" << std::endl;
 }
 
 void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D(
 		const binrange &br) {
 	double x[2];
+	//std::cout<<br.x_bin_low<<" "<<br.x_bin_high<<std::endl;
+	//std::cout<<br.y_bin_low<<" "<<br.y_bin_high<<std::endl;
 	for (unsigned int ix = br.x_bin_low; ix < br.x_bin_high; ix++) {
 		x[0] = data_dim_x.dimension_range.getRangeLow()
 				+ data_dim_x.bin_size * (0.5 + ix);
@@ -125,6 +127,7 @@ void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D(
 			const std::vector<DifferentialCoordinateContribution> &mc_element_contributors =
 					smearing_model->getListOfContributors(x);
 
+			//std::cout<<"contributors: "<<mc_element_contributors.size()<<std::endl;
 			std::vector<DifferentialCoordinateContribution>::const_iterator mc_element_it;
 			for (mc_element_it = mc_element_contributors.begin();
 					mc_element_it != mc_element_contributors.end(); ++mc_element_it) {
@@ -136,6 +139,13 @@ void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D(
 				//integral_unsmeared_model = integral_unsmeared_model * area_xy;
 				value = value
 						+ integral_unsmeared_model * mc_element_it->contribution_factor;
+
+
+				/*if (value != value) {
+				std::cout << xx[0] << ", " << xx[1] << std::endl;
+				         std::cout << integral_unsmeared_model << " " << mc_element_it->contribution_factor
+				         << std::endl;
+				}*/
 
 				/*if (fabs(x[0] + 0.00615) < 0.0001 && fabs(x[1] + 0.00705) < 0.0001) {
 				 std::cout << xx[0] << ", " << xx[1] << std::endl;
@@ -171,10 +181,12 @@ double PndLmdDifferentialSmearingConvolutionModel2D::eval(
 
 	if (ix >= data_dim_x.bins || iy >= data_dim_y.bins || ix < 0 || iy < 0)
 		return 0.0;
+
 	return model_grid[ix][iy];
 }
 
 void PndLmdDifferentialSmearingConvolutionModel2D::updateDomain() {
 	smearing_model->updateSmearingModel();
+	unsmeared_model->updateDomain();
 	generateModelGrid2D();
 }

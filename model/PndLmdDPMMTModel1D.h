@@ -28,6 +28,8 @@ class PndLmdDPMMTModel1D: public Model1D {
 		double hbarc2;
 		double alpha;
 		double M;
+		double alpha_squared_4pi;
+		double one_over_16pi_hbarc2;
 
 		/**
 		 * References to the values of the parameters used in the DPM description

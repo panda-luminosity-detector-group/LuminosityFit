@@ -29,18 +29,18 @@ parser.add_argument('--neglect_recoil_momentum', action='store_false', help='If 
 
 args = parser.parse_args()
 
-suffix='_recoil_corrected'
-boolval='1'
+suffix = '_recoil_corrected'
+boolval = '1'
 if not args.neglect_recoil_momentum:
-  suffix=''
-  boolval='0'  
+  suffix = ''
+  boolval = '0'  
 
 dirname = str(args.evts_per_sample[0]) + '_box_plab_' + str(args.lab_momentum[0]) + 'GeV_th_' + str(args.theta_min) + '-' + str(args.theta_max) + 'mrad' + suffix
 dirname_cleaned = re.sub('\.', 'o', dirname)
 
-basedir=args.gen_data_dir
+basedir = args.gen_data_dir
 while not os.path.isdir(basedir):
-    basedir=raw_input('Please enter valid generator base path: ')
+    basedir = raw_input('Please enter valid generator base path: ')
 
 print 'using theta range of [' + str(args.theta_min) + ' - ' + str(args.theta_max) + ']'
 
@@ -55,7 +55,7 @@ max_jobarray_size = 100
 def is_exe(fpath):
   return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
-program='qsub'
+program = 'qsub'
 is_cluster = 0
 for path in os.environ["PATH"].split(os.pathsep):
   path = path.strip('"')
@@ -63,7 +63,7 @@ for path in os.environ["PATH"].split(os.pathsep):
   if is_exe(exe_file):
     is_cluster = 1
 
-program='parallel'
+program = 'parallel'
 is_parallel = 0
 for path in os.environ["PATH"].split(os.pathsep):
   path = path.strip('"')
@@ -75,21 +75,21 @@ for path in os.environ["PATH"].split(os.pathsep):
 if is_cluster:
   print 'This is a cluster environment... submitting jobs to cluster!'
   
-  for job_index in range(low_index_used, high_index_used+1, max_jobarray_size):
-    bashcommand = 'qsub -t ' + str(job_index) + '-' + str(min(job_index+max_jobarray_size-1, high_index_used)) + ' -N runBoxGen_'+dirname_cleaned \
-                  + ' -l nodes=1:ppn=1,walltime=00:30:00 -j oe -o '+basedir + '/' + dirname + '/runBoxGen_' + dirname_cleaned+' -v lab_momentum="' \
-                  + str(args.lab_momentum[0])+'",num_events="'+str(args.evts_per_sample[0])+'",theta_min="'+str(args.theta_min)+'",theta_max="' \
-                  + str(args.theta_max)+'",dirname="'+dirname+'",dirname_cleaned="'+dirname_cleaned+'",basedir="'+basedir+'",use_recoil_mom="'+boolval+'" -V ./runBoxGen.sh'
+  for job_index in range(low_index_used, high_index_used + 1, max_jobarray_size):
+    bashcommand = 'qsub -t ' + str(job_index) + '-' + str(min(job_index + max_jobarray_size - 1, high_index_used)) + ' -N runBoxGen_' + dirname_cleaned \
+                  + ' -l nodes=1:ppn=1,walltime=00:30:00 -j oe -o ' + basedir + '/' + dirname + '/runBoxGen_' + dirname_cleaned + ' -v lab_momentum="' \
+                  + str(args.lab_momentum[0]) + '",num_events="' + str(args.evts_per_sample[0]) + '",theta_min="' + str(args.theta_min) + '",theta_max="' \
+                  + str(args.theta_max) + '",dirname="' + dirname + '",dirname_cleaned="' + dirname_cleaned + '",basedir="' + basedir + '",use_recoil_mom="' + boolval + '" -V ./runBoxGen.sh'
     subprocess.call(bashcommand.split())
 
 elif is_parallel:
   print 'This is not a cluster environment, but gnu parallel was found! Using gnu parallel!'
   
-  bashcommand = 'parallel -j'+str(cpu_cores)+' ./runBoxGen.sh '+str(args.lab_momentum[0])+' '+str(args.evts_per_sample[0])+' '+str(args.theta_min)+' '+str(args.theta_max)+' '+dirname+' '+dirname_cleaned+' '+basedir+' {}'
+  bashcommand = 'parallel -j' + str(cpu_cores) + ' ./runBoxGen.sh ' + str(args.lab_momentum[0]) + ' ' + str(args.evts_per_sample[0]) + ' ' + str(args.theta_min) + ' ' + str(args.theta_max) + ' ' + dirname + ' ' + dirname_cleaned + ' ' + basedir + ' {}'
   
-  inputcommand='seq '+str(low_index_used)+' 1 '+str(high_index_used)
+  inputcommand = 'seq ' + str(low_index_used) + ' 1 ' + str(high_index_used)
   inproc = subprocess.Popen(inputcommand.split(), stdout=subprocess.PIPE)
-  mainproc = subprocess.Popen(bashcommand.split(),stdin=subprocess.PIPE)
+  mainproc = subprocess.Popen(bashcommand.split(), stdin=subprocess.PIPE)
   mainproc.communicate(input=inproc.communicate()[0])
 else:
   print 'This is not a cluster environment, and unable to find gnu parallel! Please install gnu parallel!'

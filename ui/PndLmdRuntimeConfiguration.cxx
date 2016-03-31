@@ -98,13 +98,6 @@ const path& PndLmdRuntimeConfiguration::getDataOutputDirectory() const {
 	return data_output_directory;
 }
 
-bool PndLmdRuntimeConfiguration::isAutomaticPrimaryResolutionRangeActive() const {
-	return automatic_primary_resolution_range_active;
-}
-bool PndLmdRuntimeConfiguration::isAutomaticSecondaryResolutionRangeActive() const {
-	return automatic_secondary_resolution_range_active;
-}
-
 const ptree& PndLmdRuntimeConfiguration::getDataConfigTree() const {
 	return data_config_tree;
 }
@@ -218,16 +211,5 @@ void PndLmdRuntimeConfiguration::setDataOutputDirectory(
 		std::runtime_error(
 				"PndLmdRuntimeConfiguration: lmd data output directory containing PndLmdData objects does not exist! Please set correctly!");
 	}
-}
-
-void PndLmdRuntimeConfiguration::setAutomaticPrimaryResolutionRangeActive(
-		bool automatic_primary_resolution_range_active_) {
-	automatic_primary_resolution_range_active =
-			automatic_primary_resolution_range_active_;
-}
-void PndLmdRuntimeConfiguration::setAutomaticSecondaryResolutionRangeActive(
-		bool automatic_secondary_resolution_range_active_) {
-	automatic_secondary_resolution_range_active =
-			automatic_secondary_resolution_range_active_;
 }
 

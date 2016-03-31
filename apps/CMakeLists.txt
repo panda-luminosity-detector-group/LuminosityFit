@@ -2,6 +2,7 @@ set(INCLUDE_DIRECTORIES
   $ENV{MODEL_FRAMEWORK}/include
   $ENV{ROOT_INCLUDE_DIR}
   $ENV{BOOST_ROOT}/include
+  $ENV{VALGRIND_ROOT}/include/valgrind
 )
 include_directories(${INCLUDE_DIRECTORIES})
 
@@ -9,6 +10,7 @@ set(LINK_DIRECTORIES
   $ENV{MODEL_FRAMEWORK}/lib
   $ENV{ROOT_LIBRARY_DIR}
   $ENV{BOOST_ROOT}/lib
+  $ENV{VALGRIND_ROOT}/lib/valgrind
 )
 link_directories(${LINK_DIRECTORIES})
 
@@ -23,6 +25,11 @@ target_link_libraries(calculateElasticCrossSection LmdUI)
 
 add_executable(checkFramework checkFramework.cxx)
 target_link_libraries(checkFramework $ENV{ROOT_LIBRARIES} Model)
+
+########################### create checkDivergenceSmearing app ##################################
+
+add_executable(checkDivergenceSmearing checkDivergenceSmearing.cxx)
+target_link_libraries(checkDivergenceSmearing $ENV{ROOT_LIBRARIES} LmdUI)
 
 ########################### create acceptanceComparison app ##################################
 

@@ -15,7 +15,7 @@ def getGeneratedDataDirectory():
   found_dir_dict = dict()
   
   for gen_dir_name in os.listdir(gen_data_dir_path):
-    match_data_type_and_momentum = re.search(args.sim_type[0]+'_plab_'+str(args.lab_momentum[0])+'GeV', gen_dir_name)
+    match_data_type_and_momentum = re.search(args.sim_type[0] + '_plab_' + str(args.lab_momentum[0]) + 'GeV', gen_dir_name)
     if not match_data_type_and_momentum:
       continue
     
@@ -28,7 +28,7 @@ def getGeneratedDataDirectory():
   found_dir_dict_temp = found_dir_dict.copy()
   found_dir_dict.clear()
   for (dirname, num_events) in found_dir_dict_temp.items():
-    found_index_range = checkIndexRangeForGeneratedDataDirectory(gen_data_dir_path+'/'+dirname)
+    found_index_range = checkIndexRangeForGeneratedDataDirectory(gen_data_dir_path + '/' + dirname)
     used_start_index = args.low_index
     used_end_index = args.high_index
     if(args.low_index == -1):
@@ -46,7 +46,7 @@ def getGeneratedDataDirectory():
     sys.exit(1)
   if len(found_dir_dict) > 1:
     print 'Found more than one suitable generated data directory in ' + gen_data_dir_path + ' .'\
-          +'List of possibilities is shown below:'
+          + 'List of possibilities is shown below:'
     print found_dir_dict
     return_result = ''
     while return_result not in found_dir_dict.keys():
@@ -106,7 +106,7 @@ parser = argparse.ArgumentParser(description='Script for full simulation of PAND
 
 parser.add_argument('num_events', metavar='num_events', type=int, nargs=1, help='number of events to simulate')
 parser.add_argument('lab_momentum', metavar='lab_momentum', type=float, nargs=1, help='lab momentum of incoming beam antiprotons\n(required to set correct magnetic field maps etc)')
-parser.add_argument('sim_type', metavar='simulation_type', type=str, nargs=1, choices=['box', 'dpm_elastic', 'dpm_elastic_inelastic', 'noise'], 
+parser.add_argument('sim_type', metavar='simulation_type', type=str, nargs=1, choices=['box', 'dpm_elastic', 'dpm_elastic_inelastic', 'noise'],
                     help='Simulation type which can be one of the following: box, dpm_elastic, dpm_elastic_inelastic, noise.\n'
                         'This information is used to automatically obtain the generator data and output naming scheme.')
 
@@ -117,10 +117,10 @@ parser.add_argument('--gen_data_dirname', metavar='gen_data_dirname', type=str, 
                     '--gen_data_dir flag. Default will be either an empty string for direct simulations\n'
                     'or the same generated name as for the generated data, based on the simulation type')
 
-parser.add_argument('--low_index', metavar='low_index', type=int, default= -1,
+parser.add_argument('--low_index', metavar='low_index', type=int, default=-1,
                    help='Lowest index of generator file which is supposed to be used in the simulation.\n'
                    'Default setting is -1 which will take the lowest found index.')
-parser.add_argument('--high_index', metavar='high_index', type=int, default= -1,
+parser.add_argument('--high_index', metavar='high_index', type=int, default=-1,
                    help='Highest index of generator file which is supposed to be used in the simulation.\n'
                    'Default setting is -1 which will take the highest found index.')
 
@@ -234,11 +234,11 @@ generateSimulationParameterPropertyFile(pathname_base)
 
 joblist = []
 
-resource_request = himster.JobResourceRequest(20*60)
-resource_request.number_of_nodes=1
-resource_request.processors_per_node=1
-resource_request.memory_in_mb=2000
-resource_request.virtual_memory_in_mb=2000
+resource_request = himster.JobResourceRequest(20 * 60)
+resource_request.number_of_nodes = 1
+resource_request.processors_per_node = 1
+resource_request.memory_in_mb = 4000
+resource_request.virtual_memory_in_mb = 4000
 resource_request.node_scratch_filesize_in_mb = 3000
 job = himster.Job(resource_request, './runLumiFullSimPixel.sh', 'lmd_fullsim_' + args.sim_type[0], pathname_full + '/sim.log')
 job.setJobArraySize(low_index_used, high_index_used)

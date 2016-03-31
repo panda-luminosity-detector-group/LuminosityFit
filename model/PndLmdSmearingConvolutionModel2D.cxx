@@ -30,6 +30,7 @@ double PndLmdSmearingConvolutionModel2D::eval(const double *x) const {
 	const std::vector<ContributorCoordinateWeight> &mc_element_contributors =
 			smearing_model->getListOfContributors(x);
 
+	//std::cout<<"num contributors: "<<mc_element_contributors.size()<<std::endl;
 	double xx[2];
 	for (unsigned int contributor_index = 0;
 			contributor_index < mc_element_contributors.size(); ++contributor_index) {
@@ -44,6 +45,10 @@ double PndLmdSmearingConvolutionModel2D::eval(const double *x) const {
 				+ integral_unsmeared_model
 						* mc_element_coordinate_and_weight.smear_weight;
 	}
+
+	if(-0.0042 > x[0] && x[0] > -0.0044 && -0.0081 > x[1] && x[1] > -0.0083)
+	  std::cout<<x[0]<<":"<<x[1]<<"  value: "<<value<<std::endl;
+
 	return value;
 }
 

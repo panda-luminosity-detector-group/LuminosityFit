@@ -1,6 +1,7 @@
 import os, sys, re, errno, glob, time, glob
 import subprocess
 import multiprocessing
+import general, himster
 
 cpu_cores = multiprocessing.cpu_count()
 
@@ -11,31 +12,6 @@ import argparse
 
 dirs = []
 box_dirs = []
-
-dpm_glob_pattern = 'lmd_data.root'
-dir_pattern = ''
-tail_dir_pattern = ''
-
-def getListOfDPMDirectories(path):
-  if os.path.isdir(path):
-    if os.path.split(path)[1] == 'mc_data':
-      return
-    for dir in os.listdir(path):
-      bunch_dirs = glob.glob(path + '/bunches_*/' + tail_dir_pattern)
-      if bunch_dirs:
-        for bunch_dir in bunch_dirs:
-          filelists = glob.glob(bunch_dir + '/' + dpm_glob_pattern)
-          if filelists:
-            m = re.search(dir_pattern, bunch_dir)
-            if m:
-              dirs.append(bunch_dir)
-        return
-      else:
-        if glob.glob(path + '/Lumi_TrksQA_*.root'):
-          return
-      dirpath = path + '/' + dir
-      if os.path.isdir(dirpath):
-        getListOfDPMDirectories(dirpath)
 
 box_res_glob_pattern = 'lmd_res_data.root'
 box_acc_glob_pattern = 'lmd_acc_data.root'
@@ -94,7 +70,15 @@ def findMatchingDirs(box_data_path):
           break
   else:
     for dpm_dir in dirs:
-      matching_dir_pairs.append([dpm_dir, box_data_path])
+      #attempt to find directory with same binning
+      match = re.search('^.*(binning_\d*)/.*$', dpm_dir)
+      if match:
+        dir_searcher = general.DirectorySearcher(match.group(1))
+        dir_searcher.searchListOfDirectories(box_data_path, box_acc_glob_pattern)
+        correct_dirs = dir_searcher.getListOfDirectories()
+      
+        if correct_dirs:
+          matching_dir_pairs.append([dpm_dir, correct_dirs[0]])
   return matching_dir_pairs
           
 
@@ -123,31 +107,59 @@ parser.add_argument('--number_of_threads', metavar='number of concurrent threads
 
 args = parser.parse_args()
 
-number_of_threads = str(args.number_of_threads)
+number_of_threads = args.number_of_threads
 if args.number_of_threads > 16:
-  number_of_threads = '16'
+  number_of_threads = 16
 
 dir_pattern = args.dirname_pattern[0]
 
 tail_dir_pattern = args.tail_dir_pattern
 
-getListOfDPMDirectories(args.dirname[0])
-print dirs
+
+dpm_glob_pattern = 'lmd_data.root'
+
+dir_searcher = general.DirectorySearcher(dir_pattern)
+dir_searcher.searchListOfDirectories(args.dirname[0], dpm_glob_pattern)
+dirs = dir_searcher.getListOfDirectories()
+
 
 if args.forced_box_gen_data == '':
   getTopBoxDirectory(args.dirname[0])
   print top_level_box_directory
   getListOfBoxDirectories(top_level_box_directory)
-print box_dirs
+
 
 matches = findMatchingDirs(args.forced_box_gen_data)
 
 command_suffix = '" -V';
-if args.ref_box_gen_data != '':
-  command_suffix = '",reference_acceptance_path="'+ args.ref_box_gen_data + '" -V'
+
+
+joblist = []
 
 for match in matches:
-  bashcommand = 'qsub -N runLmdFit -l nodes=1:ppn='+number_of_threads+',walltime=02:00:00,mem=6000mb,vmem=6000mb -j oe -o ' + match[0] + '/runLmdFit_pbs.log ' \
-                + ' -v config_url="' + args.config_url[0] + '",data_path="' + match[0] + '",acceptance_resolution_path="' + match[1] \
-                + '",number_of_threads="' + number_of_threads + command_suffix + ' ./runLmdFit.sh'
-  returnvalue = subprocess.call(bashcommand.split())
+  elastic_data_path = match[0]
+  acc_res_data_path = match[1]
+
+  resource_request = himster.JobResourceRequest(12 * 60)
+  resource_request.number_of_nodes = 1
+  resource_request.processors_per_node = number_of_threads
+  resource_request.memory_in_mb = 24000
+  resource_request.virtual_memory_in_mb = 24000
+  job = himster.Job(resource_request, './runLmdFit.sh', 'runLmdFit', elastic_data_path + '/runLmdFit_pbs.log')
+  job.setJobArraySize(1, 1) 
+
+  job.addExportedUserVariable('config_url', args.config_url[0])
+  job.addExportedUserVariable('data_path', elastic_data_path)
+  job.addExportedUserVariable('acceptance_resolution_path', acc_res_data_path)
+  job.addExportedUserVariable('number_of_threads', number_of_threads)
+  if args.ref_box_gen_data != '':
+    job.addExportedUserVariable('reference_acceptance_path', args.ref_box_gen_data)
+
+  joblist.append(job)
+  
+# job threshold of this type (too many jobs could generate to much io load
+# as quite a lot of data is read in from the storage...)
+job_manager = himster.HimsterJobManager(20)
+
+job_manager.submitJobsToHimster(joblist)
+job_manager.manageJobs()

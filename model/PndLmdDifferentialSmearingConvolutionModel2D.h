@@ -6,10 +6,10 @@
 
 class PndLmdDifferentialSmearingConvolutionModel2D: public Model2D {
 	struct binrange {
-		unsigned x_bin_low;
-		unsigned x_bin_high;
-		unsigned y_bin_low;
-		unsigned y_bin_high;
+		unsigned int x_bin_low;
+		unsigned int x_bin_high;
+		unsigned int y_bin_low;
+		unsigned int y_bin_high;
 	};
 
 	shared_ptr<Model2D> unsmeared_model;

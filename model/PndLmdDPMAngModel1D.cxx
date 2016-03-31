@@ -7,6 +7,8 @@
 
 #include "PndLmdDPMAngModel1D.h"
 
+#include <cmath>
+
 #include "TMath.h"
 
 PndLmdDPMAngModel1D::PndLmdDPMAngModel1D(std::string name_,
@@ -32,11 +34,11 @@ double PndLmdDPMAngModel1D::getMomentumTransferFromTheta(
 	double t = -2.0 * pcm2->getValue()
 			* (1.0
 					+ signum
-							/ sqrt(
+							/ std::sqrt(
 									1
-											+ pow(
+											+ std::pow(
 													p_lab->getValue() * sin(theta)
-															/ (gamma->getValue() * denominator), 2.0)));
+															/ (gamma->getValue() * denominator), 2)));
 	return t;
 }
 
@@ -47,17 +49,18 @@ double PndLmdDPMAngModel1D::getThetaMomentumTransferJacobian(
 	//via f (x) ≈ [f(x + h) − f(x − h)] / 2h
 	//important!: pick h appropriately
 	double e_m = 1.0 * 1e-16; // machine precision
-	double h = pow(e_m, 0.33) * theta;
+	double h = std::pow(e_m, 0.33) * theta;
 
-	return TMath::Abs(
+	return std::fabs(
 			(getMomentumTransferFromTheta(theta + h)
 					- getMomentumTransferFromTheta(theta - h)) / (2 * h));
 }
 
 double PndLmdDPMAngModel1D::eval(const double *x) const {
-	double theta = x[0];
-	double t = getMomentumTransferFromTheta(theta);
-	double jaco = getThetaMomentumTransferJacobian(theta);
+	//return luminosity->getValue();
+
+	double t = getMomentumTransferFromTheta(x[0]);
+	double jaco = getThetaMomentumTransferJacobian(x[0]);
 	return PndLmdDPMMTModel1D::eval(&t) * jaco;
 }
 
