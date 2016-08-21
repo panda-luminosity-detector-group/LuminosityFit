@@ -85,7 +85,12 @@ class Job:
             
         return bashcommand_list
 
-class HimsterJobManager:        
+class HimsterJobManager:
+    job_command_list = []
+    himster_total_job_threshold = 1600
+    max_jobarray_size = 100
+    job_resubmit_sleep_time_in_seconds = 1800
+      
     def __init__(self, himster_total_job_threshold=1600, max_jobarray_size=100, job_resubmit_sleep_time_in_seconds=1800):
         self.job_command_list = []
         # user total job threshold

@@ -20,6 +20,7 @@ class PndLmdHistogramData;
 class PndLmdAngularData;
 class PndLmdAcceptance;
 class PndLmdResolution;
+class PndLmdMapData;
 
 class TDatabasePDG;
 class PndLmdDim;
@@ -28,6 +29,7 @@ class TClonesArray;
 
 class PndLmdDataReader {
 private:
+  std::vector<PndLmdMapData*> registered_map_data;
 	std::vector<PndLmdHistogramData*> registered_data;
 	std::vector<PndLmdAcceptance*> registered_acceptances;
 
@@ -75,6 +77,7 @@ public:
 
 	void addFilePath(TString file_path);
 
+	void registerMapData(std::vector<PndLmdMapData> &data_vec);
 	int registerData(PndLmdHistogramData* data);
 	int registerData(std::vector<PndLmdAngularData> &data_vec);
 	int registerData(std::vector<PndLmdHistogramData> &data_vec);

@@ -7,6 +7,7 @@ def refactorSimulationParameters(directory):
     text = f.read()
     f.close()
     os.remove(directory + '/sim_beam_prop.config')
+    
     if text.find("ip_offset_x") != -1:
       # ok this seems to be an old parameter file so read all the values
       # and the write them out in the new format
@@ -22,14 +23,59 @@ def refactorSimulationParameters(directory):
       text = re.sub('beam_emittance_x', 'beam_divergence_x', text);
       text = re.sub('beam_emittance_y', 'beam_divergence_y', text);
       
-     
       f = open(directory + '/sim_params.config', 'w')
       f.write(text)
       f.close()
 
+def refactor2SimulationParameters(directory):
+    # read file
+    f = open(directory + '/sim_params.config', 'r')
+    text = f.read()
+    f.close()
+    
+    newtext = text
+    #ok in case the simulation parameter file is just a bit ill formatted fix that
+    newtext = fixLine(newtext, 'ip_mean_x')
+    newtext = fixLine(newtext, 'ip_mean_y')
+    newtext = fixLine(newtext, 'ip_mean_z')
+    newtext = fixLine(newtext, 'ip_standard_deviation_x')
+    newtext = fixLine(newtext, 'ip_standard_deviation_y')
+    newtext = fixLine(newtext, 'ip_standard_deviation_z')
+    newtext = fixLine(newtext, 'beam_tilt_x')
+    newtext = fixLine(newtext, 'beam_tilt_y')
+    newtext = fixLine(newtext, 'beam_divergence_x')
+    newtext = fixLine(newtext, 'beam_divergence_y')
+    
+    if newtext != text:
+      print 'fixing sim params file'
+      os.remove(directory + '/sim_params.config')
+      f = open(directory + '/sim_params.config', 'w')
+      f.write(newtext)
+      f.close()
+      
+
+def fixLine(text, search_str):
+    p = re.compile('^' + str(search_str) + '=\d*\.\d*$', re.MULTILINE)
+    m = p.search(text)
+    if not m:
+        p = re.compile('^\s*(' + str(search_str) + ')\s*=\s*(\d*\.\d*)\s*$', re.MULTILINE)
+        mm = p.search(text)
+        if mm:
+            text = re.sub(p, mm.group(1)+'='+mm.group(2), text)
+        else:
+            p = re.compile('^\s*(' + str(search_str) + ')\s*=\s*(\d*\.\d*)\s*', re.MULTILINE)
+            mm = p.search(text)
+            if mm:
+                p = re.compile('^\s*' + str(search_str) + '\s*=\s*\d*\.\d*\s*', re.MULTILINE)
+                text = re.sub(p, mm.group(1)+'='+mm.group(2)+'\n', text)
+                
+    
+    return text
+
 class DirectorySearcher:    
-    def __init__(self, pattern_):
+    def __init__(self, pattern_, not_contain_pattern_ = ''):
         self.pattern = pattern_
+        self.not_contain_pattern = not_contain_pattern_
         self.dirs = []
         
     def getListOfDirectories(self):
@@ -42,6 +88,10 @@ class DirectorySearcher:
         sim_params = glob.glob(path + '/sim_beam_prop.config')
         if sim_params:
             refactorSimulationParameters(path)
+            
+        sim_params = glob.glob(path + '/sim_params.config')
+        if sim_params:
+            refactor2SimulationParameters(path)
     
         if os.path.split(path)[1] == 'mc_data':
           return
@@ -66,8 +116,10 @@ class DirectorySearcher:
               shutil.move(path + '/' + param_filename, path + '/mc_data/' + param_filename)
             print 'successfully moved all mc files there!'
         
-        
-          
+        if self.not_contain_pattern is not '':
+          m = re.search(self.not_contain_pattern, path)
+          if m:
+            return;
         files = glob.glob(path + '/' + glob_pattern)
         if files:
           m = re.search(self.pattern, path)

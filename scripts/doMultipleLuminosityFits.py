@@ -13,8 +13,8 @@ import argparse
 dirs = []
 box_dirs = []
 
-box_res_glob_pattern = 'lmd_res_data.root'
-box_acc_glob_pattern = 'lmd_acc_data.root'
+box_res_glob_pattern = 'lmd_res_data_*of*.root'
+box_acc_glob_pattern = 'lmd_acc_data_*of*.root'
 
 top_level_box_directory = ''
 
@@ -71,6 +71,7 @@ def findMatchingDirs(box_data_path):
   else:
     for dpm_dir in dirs:
       #attempt to find directory with same binning
+      print 'checking for matching directory for ' + dpm_dir
       match = re.search('^.*(binning_\d*)/.*$', dpm_dir)
       if match:
         dir_searcher = general.DirectorySearcher(match.group(1))
@@ -116,12 +117,11 @@ dir_pattern = args.dirname_pattern[0]
 tail_dir_pattern = args.tail_dir_pattern
 
 
-dpm_glob_pattern = 'lmd_data.root'
+dpm_glob_pattern = 'lmd_data_*of*.root'
 
 dir_searcher = general.DirectorySearcher(dir_pattern)
 dir_searcher.searchListOfDirectories(args.dirname[0], dpm_glob_pattern)
 dirs = dir_searcher.getListOfDirectories()
-
 
 if args.forced_box_gen_data == '':
   getTopBoxDirectory(args.dirname[0])
@@ -143,8 +143,8 @@ for match in matches:
   resource_request = himster.JobResourceRequest(12 * 60)
   resource_request.number_of_nodes = 1
   resource_request.processors_per_node = number_of_threads
-  resource_request.memory_in_mb = 24000
-  resource_request.virtual_memory_in_mb = 24000
+  resource_request.memory_in_mb = 30000
+  resource_request.virtual_memory_in_mb = 30000
   job = himster.Job(resource_request, './runLmdFit.sh', 'runLmdFit', elastic_data_path + '/runLmdFit_pbs.log')
   job.setJobArraySize(1, 1) 
 
@@ -159,7 +159,7 @@ for match in matches:
   
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
-job_manager = himster.HimsterJobManager(20)
+job_manager = himster.HimsterJobManager(1000)
 
 job_manager.submitJobsToHimster(joblist)
 job_manager.manageJobs()

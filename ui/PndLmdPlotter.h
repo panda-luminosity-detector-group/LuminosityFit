@@ -215,6 +215,9 @@ public:
 	NeatPlotting::Booky makeLumiFitResultOverviewBooky(
 			std::vector<PndLmdAngularData> &data_vec);
 
+  NeatPlotting::PlotBundle createAcceptanceErrorPlot(
+      std::vector<PndLmdAcceptance> &accs) const;
+
 	void createAcceptanceComparisonBooky(
 			std::vector<std::pair<PndLmdAcceptance, PndLmdAcceptance> > &acc_matches);
 

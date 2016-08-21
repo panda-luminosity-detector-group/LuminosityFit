@@ -55,19 +55,28 @@ void PndLmdFitFacade::setModelFactoryResolutions(
     const std::vector<PndLmdHistogramData> &lmd_res) {
   model_factory.setResolutions(lmd_res);
 }
+void PndLmdFitFacade::setModelFactoryResolutionMap(
+    const PndLmdMapData &lmd_res) {
+  model_factory.setResolutionMapData(lmd_res);
+}
 
 void PndLmdFitFacade::addAcceptencesToPool(
     const std::vector<PndLmdAcceptance> &lmd_acc) {
-  acceptance_pool.insert(lmd_acc.begin(), lmd_acc.end());
+  acceptance_pool.insert(acceptance_pool.end(), lmd_acc.begin(), lmd_acc.end());
 }
 void PndLmdFitFacade::addResolutionsToPool(
     const std::vector<PndLmdHistogramData> &lmd_res) {
   resolution_pool.insert(lmd_res.begin(), lmd_res.end());
 }
+void PndLmdFitFacade::addResolutionMapsToPool(
+    const std::vector<PndLmdMapData> &lmd_res) {
+  resolution_map_pool.insert(lmd_res.begin(), lmd_res.end());
+}
 
 void PndLmdFitFacade::clearPools() {
   acceptance_pool.clear();
   resolution_pool.clear();
+  resolution_map_pool.clear();
 }
 
 std::vector<DataStructs::DimensionRange> PndLmdFitFacade::calcRange(
@@ -353,135 +362,77 @@ PndLmdFitOptions PndLmdFitFacade::createFitOptions(
   return fit_opts;
 }
 
-shared_ptr<Model> PndLmdFitFacade::generateModel(
-    const PndLmdAngularData &lmd_data,
-    const PndLmdFitOptions &fit_options) const {
-  // create a new model via the factory
-  shared_ptr<Model> model = model_factory.generateModel(
-      fit_options.getModelOptionsPropertyTree(), lmd_data);
-
-  // free parameters
-  if (model.get()) {
-    //always free luminosity
-    std::cout << "freeing model parameters..." << std::endl;
-    model->getModelParameterSet().freeModelParameter("luminosity");
-
-    //loop over all other free parameter names
-    std::set<std::string, ModelStructs::string_comp> free_parameter_names =
-        fit_options.getFreeParameterSet();
-
-    for (std::set<std::string, ModelStructs::string_comp>::iterator it =
-        free_parameter_names.begin(); it != free_parameter_names.end(); it++) {
-      model->getModelParameterSet().freeModelParameter(*it);
-    }
-  }
-
-  return model;
-}
-
-void PndLmdFitFacade::doFit(PndLmdHistogramData &lmd_hist_data,
-    const PndLmdFitOptions &fit_options) {
-
-  cout << "Attempting to perform fit with following fit options:" << endl;
-  cout << fit_options << endl;
-
-//first check if this model with the fit options have already been fitted
-  ModelFitResult fit_result = lmd_hist_data.getFitResult(fit_options);
-  if (fit_result.getFitParameters().size() > 0) {
-    cout << "Fit was already performed! Skipping..." << endl;
-    return;
-  }
-
-  // create estimator
-  shared_ptr<ModelEstimator> estimator;
-  if (fit_options.estimator_type == LumiFit::CHI2)
-    estimator.reset(new Chi2Estimator());
-  else
-    estimator.reset(new LogLikelihoodEstimator());
-
-  PndLmdRuntimeConfiguration& lmd_runtime_config =
-      PndLmdRuntimeConfiguration::Instance();
-
-  estimator->setNumberOfThreads(lmd_runtime_config.getNumberOfThreads());
-
-  model_fit_facade.setEstimator(estimator);
-
-  model_fit_facade.setEstimatorOptions(fit_options.getEstimatorOptions());
-
-  CALLGRIND_START_INSTRUMENTATION;
-  fit_result = model_fit_facade.Fit();
-  CALLGRIND_STOP_INSTRUMENTATION;
-  CALLGRIND_DUMP_STATS;
-
-// store fit results
-  cout << "Adding fit result to storage..." << endl;
-
-  lmd_hist_data.addFitResult(fit_options, fit_result);
-  cout << "fit storage now contains " << lmd_hist_data.getFitResults().size()
-      << " entries!" << endl;
-}
-
 PndLmdFitDataBundle PndLmdFitFacade::doLuminosityFits(
     std::vector<PndLmdAngularData>& lmd_data_vec) {
-  cout << "Running LumiFit...." << endl;
-
+  PndLmdDataFacade lmd_data_facade;
   PndLmdFitDataBundle data_bundle;
 
-  PndLmdDataFacade lmd_data_facade;
-
   std::vector<PndLmdAcceptance> matching_acc;
-  std::vector<PndLmdHistogramData> matching_res;
 
-  std::vector<PndLmdAcceptance> empty_acc_vec;
-  std::vector<PndLmdHistogramData> empty_res_vec;
+  cout << "Running LumiFit on " << lmd_data_vec.size()
+      << " angular data sets...." << endl;
 
-  for (unsigned int elastic_data_index = 0;
-      elastic_data_index < lmd_data_vec.size(); ++elastic_data_index) {
-    PndLmdFitOptions fit_options(
-        createFitOptions(lmd_data_vec[elastic_data_index]));
+  for (auto& lmd_data : lmd_data_vec) {
 
-    std::vector<PndLmdAcceptance> *acc_vec_link = &empty_acc_vec;
-    std::vector<PndLmdHistogramData> *res_vec_link = &empty_res_vec;
+    PndLmdFitOptions fit_options(createFitOptions(lmd_data));
 
     if (fit_options.getModelOptionsPropertyTree().get<bool>(
         "resolution_smearing_active")) {
-      matching_res = lmd_data_facade.getMatchingResolutions(resolution_pool,
-          lmd_data_vec[elastic_data_index]);
-      model_factory.setResolutions(matching_res);
-      res_vec_link = &matching_res;
+      //matching_res = lmd_data_facade.getMatchingResolutions(resolution_pool,
+      //    lmd_data_vec[elastic_data_index]);
+      //model_factory.setResolutions(matching_res);
+      if (resolution_map_pool.size() > 0) {
+        if (resolution_map_pool.begin()->getHitMap().size() == 0) {
+          std::cout
+              << "Requesting fit with resolution smearing, however resolution map data is empty!"
+              << "Hence skipping this fit!\n";
+          continue;
+        }
+        model_factory.setResolutionMapData(*resolution_map_pool.begin());
+      } else {
+        std::cout
+            << "Requesting fit with resolution smearing, however no resolution map data was specified!"
+            << "Hence skipping this fit!\n";
+        continue;
+      }
     }
 
     if (fit_options.getModelOptionsPropertyTree().get<bool>(
         "acceptance_correction_active")) {
       matching_acc = lmd_data_facade.getMatchingAcceptances(acceptance_pool,
-          lmd_data_vec[elastic_data_index]);
+          lmd_data);
 
-      for (unsigned int acc_index = 0; acc_index < matching_acc.size();
-          ++acc_index) {
+      for (auto const& acc : matching_acc) {
         // set acc in factory
-        model_factory.setAcceptance(matching_acc[acc_index]);
-        fitElasticPPbar(lmd_data_vec[elastic_data_index], fit_options);
+        model_factory.setAcceptance(acc);
+
+        fitElasticPPbar(lmd_data);
+
+        data_bundle.addFittedElasticData(lmd_data);
+        data_bundle.attachAcceptanceToCurrentData(
+            model_factory.getAcceptance());
+        if (fit_options.getModelOptionsPropertyTree().get<bool>(
+            "resolution_smearing_active"))
+          data_bundle.attachResolutionMapDataToCurrentData(
+              model_factory.getResolutionMapData());
       }
-
-      acc_vec_link = &matching_acc;
-
     } else {
-      fitElasticPPbar(lmd_data_vec[elastic_data_index], fit_options);
-    }
+      fitElasticPPbar(lmd_data);
 
-    data_bundle.addFittedElasticData(lmd_data_vec[elastic_data_index],
-        *acc_vec_link, *res_vec_link);
+      data_bundle.addFittedElasticData(lmd_data);
+    }
+    data_bundle.addCurrentDataBundleToList();
   }
 
   return data_bundle;
 }
 
-void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data,
-    const PndLmdFitOptions &fit_options) {
+void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
   // generate model
 
-  shared_ptr<Model> model = model_factory.generateModel(
-      fit_options.getModelOptionsPropertyTree(), lmd_data);
+  PndLmdFitOptions fit_options(createFitOptions(lmd_data));
+
+  shared_ptr<Model> model = generateModel(lmd_data, fit_options);
 
   // init beam parameters in model
   initBeamParametersForModel(model, fit_options.getModelOptionsPropertyTree());
@@ -539,44 +490,15 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data,
   doFit(lmd_data, fit_options);
 }
 
-shared_ptr<Model> PndLmdFitFacade::createModel2D(
-    const PndLmdAngularData& lmd_data) {
-  PndLmdFitDataBundle data_bundle;
-
-  PndLmdDataFacade lmd_data_facade;
-
-  std::vector<PndLmdAcceptance> matching_acc;
-  std::vector<PndLmdHistogramData> matching_res;
-
-  std::vector<PndLmdAcceptance> empty_acc_vec;
-  std::vector<PndLmdHistogramData> empty_res_vec;
-
+shared_ptr<Model> PndLmdFitFacade::generateModel(
+    const PndLmdAngularData &lmd_data) {
   PndLmdFitOptions fit_options(createFitOptions(lmd_data));
 
-  std::vector<PndLmdAcceptance> *acc_vec_link = &empty_acc_vec;
-  std::vector<PndLmdHistogramData> *res_vec_link = &empty_res_vec;
+  return generateModel(lmd_data, fit_options);
+}
 
-  if (fit_options.getModelOptionsPropertyTree().get<bool>(
-      "resolution_smearing_active")) {
-    matching_res = lmd_data_facade.getMatchingResolutions(resolution_pool,
-        lmd_data);
-    model_factory.setResolutions(matching_res);
-    res_vec_link = &matching_res;
-  }
-
-  if (fit_options.getModelOptionsPropertyTree().get<bool>(
-      "acceptance_correction_active")) {
-    matching_acc = lmd_data_facade.getMatchingAcceptances(acceptance_pool,
-        lmd_data);
-
-    if (matching_acc.size() > 0) {
-      // set acc in factory
-      model_factory.setAcceptance(matching_acc[0]);
-    }
-
-    acc_vec_link = &matching_acc;
-  }
-
+shared_ptr<Model> PndLmdFitFacade::generateModel(
+    const PndLmdAngularData &lmd_data, const PndLmdFitOptions &fit_options) {
   shared_ptr<Model> model = model_factory.generateModel(
       fit_options.getModelOptionsPropertyTree(), lmd_data);
 
@@ -590,7 +512,54 @@ shared_ptr<Model> PndLmdFitFacade::createModel2D(
     model->getModelParameterSet().printInfo();
   }
 
+  // free parameters
+  freeParametersForModel(model, fit_options);
+
   return model;
+}
+
+void PndLmdFitFacade::doFit(PndLmdHistogramData &lmd_hist_data,
+    const PndLmdFitOptions &fit_options) {
+
+  cout << "Attempting to perform fit with following fit options:" << endl;
+  cout << fit_options << endl;
+
+  ModelFitResult fit_result;
+//first check if this model with the fit options have already been fitted
+  /*ModelFitResult fit_result = lmd_hist_data.getFitResult(fit_options);
+   if (fit_result.getFitParameters().size() > 0) {
+   cout << "Fit was already performed! Skipping..." << endl;
+   return;
+   }*/
+
+  // create estimator
+  shared_ptr<ModelEstimator> estimator;
+  if (fit_options.estimator_type == LumiFit::CHI2)
+    estimator.reset(new Chi2Estimator());
+  else
+    estimator.reset(new LogLikelihoodEstimator());
+
+  PndLmdRuntimeConfiguration& lmd_runtime_config =
+      PndLmdRuntimeConfiguration::Instance();
+
+  estimator->setNumberOfThreads(lmd_runtime_config.getNumberOfThreads());
+
+  model_fit_facade.setEstimator(estimator);
+
+  model_fit_facade.setEstimatorOptions(fit_options.getEstimatorOptions());
+
+  CALLGRIND_START_INSTRUMENTATION;
+  fit_result = model_fit_facade.Fit();
+  CALLGRIND_STOP_INSTRUMENTATION;
+  CALLGRIND_DUMP_STATS;
+
+// store fit results
+  cout << "Adding fit result to storage..." << endl;
+
+  lmd_hist_data.addFitResult(fit_options, fit_result);
+  cout << "fit storage now contains "
+      << lmd_hist_data.getFitResults().at(fit_options).size() << " entries!"
+      << endl;
 }
 
 void PndLmdFitFacade::fitVertexData(

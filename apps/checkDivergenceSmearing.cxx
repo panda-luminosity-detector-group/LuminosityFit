@@ -17,10 +17,39 @@
 
 #include "callgrind.h"
 
+
 using std::string;
 using std::cout;
 using std::cerr;
 using std::endl;
+
+void makeSinglePlot(shared_ptr<Model2D> model, string name, bool symmetrize=false) {
+  //plot smeared model
+  double var_min = -4.0;
+  double var_max = 4.0;
+  if(symmetrize) {
+    var_min = -1.96;
+    var_max = 1.96;
+  }
+      DataStructs::DimensionRange plot_range_thx(var_min, var_max);
+          DataStructs::DimensionRange plot_range_thy(var_min, var_max);
+ROOTPlotter root_plotter;
+
+  ModelVisualizationProperties1D vis_prop_th;
+  vis_prop_th.setPlotRange(plot_range_thx);
+    vis_prop_th.setEvaluations(200);
+
+  ModelVisualizationProperties1D vis_prop_phi;
+  vis_prop_phi.setPlotRange(plot_range_thy);
+    vis_prop_phi.setEvaluations(200);
+
+  std::pair<ModelVisualizationProperties1D, ModelVisualizationProperties1D> vis_prop_pair =
+      std::make_pair(vis_prop_th, vis_prop_phi);
+
+  TH2D* model_hist = root_plotter.createHistogramFromModel2D(model, vis_prop_pair);
+
+  model_hist->Write(name.c_str());
+}
 
 void plotSmeared2DModel(string input_file_dir, string config_file_url,
     string acceptance_file_dir, unsigned int nthreads) {
@@ -31,24 +60,24 @@ void plotSmeared2DModel(string input_file_dir, string config_file_url,
   std::stringstream model_name;
 
   //Just take very simple box model
-  //model_name << "box_model";
-  //shared_ptr<Model2D> signal_model(new BoxModel2D(model_name.str()));
-  model_name << "gaus_model";
-  shared_ptr<Model2D> signal_model(new GaussianModel2D(model_name.str()));
+  model_name << "box_model";
+  shared_ptr<Model2D> signal_model(new BoxModel2D(model_name.str()));
+  //model_name << "gaus_model";
+  //shared_ptr<Model2D> signal_model(new GaussianModel2D(model_name.str()));
 
   // at this point we introduce "non numerical" discretization from the data
   // thats why the data object is required here
 
   // make the binning twice as fine
   LumiFit::LmdDimension temp_prim_dim;
-  temp_prim_dim.bins = 100;
-  temp_prim_dim.dimension_range.setRangeLow(-5.0);
-  temp_prim_dim.dimension_range.setRangeHigh(5.0);
+  temp_prim_dim.bins = 14;
+  temp_prim_dim.dimension_range.setRangeLow(-4.0);
+  temp_prim_dim.dimension_range.setRangeHigh(4.0);
   temp_prim_dim.calculateBinSize();
   LumiFit::LmdDimension temp_sec_dim;
-  temp_sec_dim.bins = 100;
-  temp_sec_dim.dimension_range.setRangeLow(-5.0);
-  temp_sec_dim.dimension_range.setRangeHigh(5.0);
+  temp_sec_dim.bins = 14;
+  temp_sec_dim.dimension_range.setRangeLow(-4.0);
+  temp_sec_dim.dimension_range.setRangeHigh(4.0);
   temp_sec_dim.calculateBinSize();
 
   shared_ptr<GaussianModel2D> divergence_model(
@@ -74,16 +103,16 @@ void plotSmeared2DModel(string input_file_dir, string config_file_url,
   // set the parameter values
   //signal_model->getModelParameterSet().freeModelParameter("tilt_x");
   //signal_model->getModelParameterSet().freeModelParameter("tilt_y");
-  /* signal_model->getModelParameterSet().setModelParameterValue("lower_edge_var1",
+   signal_model->getModelParameterSet().setModelParameterValue("lower_edge_var1",
    -2.0);
    signal_model->getModelParameterSet().setModelParameterValue("upper_edge_var1",
    2.0);
    signal_model->getModelParameterSet().setModelParameterValue("lower_edge_var2",
    -2.0);
    signal_model->getModelParameterSet().setModelParameterValue("upper_edge_var2",
-   2.0);*/
+   2.0);
 
-  signal_model->getModelParameterSet().setModelParameterValue(
+  /*signal_model->getModelParameterSet().setModelParameterValue(
       "gauss_sigma_var1", 1.12);
   signal_model->getModelParameterSet().setModelParameterValue(
       "gauss_sigma_var2", 1.12);
@@ -91,11 +120,11 @@ void plotSmeared2DModel(string input_file_dir, string config_file_url,
       0.0);
   signal_model->getModelParameterSet().setModelParameterValue("gauss_mean_var2",
       0.0);
-
+*/
   divergence_model->getModelParameterSet().setModelParameterValue(
-      "gauss_sigma_var1", 0.15);
+      "gauss_sigma_var1", 0.5);
   divergence_model->getModelParameterSet().setModelParameterValue(
-      "gauss_sigma_var2", 0.15);
+      "gauss_sigma_var2", 0.5);
   divergence_model->getModelParameterSet().setModelParameterValue(
       "gauss_mean_var1", 0.0);
   divergence_model->getModelParameterSet().setModelParameterValue(
@@ -139,7 +168,7 @@ void plotSmeared2DModel(string input_file_dir, string config_file_url,
       << std::endl;
 
   //plot smeared model
-  const double var_min = -10.0;
+ /* const double var_min = -10.0;
   const double var_max = 10.0;
 
   DataStructs::DimensionRange plot_range_thx(var_min, var_max);
@@ -158,18 +187,31 @@ void plotSmeared2DModel(string input_file_dir, string config_file_url,
   std::pair<ModelVisualizationProperties1D, ModelVisualizationProperties1D> vis_prop_pair =
       std::make_pair(vis_prop_th, vis_prop_phi);
 
-  TH2D* model_hist = root_plotter.createHistogramFromModel2D(div_smeared_model,
-      vis_prop_pair);
+  TH2D* model_hist = root_plotter.createHistogramFromModel2D(div_smeared_model, vis_prop_pair);
+  TH2D* signal_hist = root_plotter.createHistogramFromModel2D(signal_model, vis_prop_pair);
+  TH2D* div_hist = root_plotter.createHistogramFromModel2D(divergence_model, vis_prop_pair);
 
   TCanvas c;
 
   model_hist->Draw("colz");
   model_hist->GetXaxis()->SetTitle("x");
   model_hist->GetYaxis()->SetTitle("y");
+*/
+  TFile outfile("div_test.root", "RECREATE");
+  outfile.cd();
 
   std::stringstream strstream;
-  strstream << "div_smeared_test_plot.pdf";
-  c.SaveAs(strstream.str().c_str());
+  strstream << "div_smeared";
+  makeSinglePlot(div_smeared_model, strstream.str());
+
+  strstream.str("");
+  strstream << "raw_model";
+  makeSinglePlot(signal_model, strstream.str());
+
+  strstream.str("");
+  strstream << "divergence_model";
+  makeSinglePlot(divergence_model, strstream.str(), true);
+
 
   lmd_runtime_config.setNumberOfThreads(nthreads);
 

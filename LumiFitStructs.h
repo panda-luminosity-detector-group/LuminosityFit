@@ -93,6 +93,17 @@ const boost::unordered_map<std::string, ModelStructs::InterpolationType> StringT
 				ModelStructs::LINEAR)("SPLINE", ModelStructs::SPLINE);
 #endif
 
+enum TransformationOption { 
+        APPROX, CORRECT
+};
+
+#ifndef __CINT__
+const boost::unordered_map<std::string, TransformationOption> StringToTransformationOption =
+                boost::assign::map_list_of("APPROX", APPROX)("CORRECT", CORRECT);
+const boost::unordered_map<TransformationOption, std::string> TransformationOptionToString =
+                boost::assign::map_list_of(APPROX, "APPROX")(CORRECT, "CORRECT");
+#endif
+
 enum DPMElasticParts {
 	COUL, INT, HAD, HAD_RHO_B_SIGTOT, ALL_RHO_B_SIGTOT, ALL
 };

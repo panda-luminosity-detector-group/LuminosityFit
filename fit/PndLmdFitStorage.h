@@ -13,18 +13,17 @@
 #include "fit/ModelFitResult.h"
 
 #include <map>
-
-using std::map;
+#include <vector>
 
 class PndLmdFitStorage {
-	map<PndLmdFitOptions, ModelFitResult> fit_results;
+	std::map<PndLmdFitOptions, std::vector<ModelFitResult> > fit_results;
 
 public:
 	PndLmdFitStorage();
 	virtual ~PndLmdFitStorage();
 
-	const map<PndLmdFitOptions, ModelFitResult>& getFitResults() const;
-	ModelFitResult getFitResult(const PndLmdFitOptions &fit_options) const;
+	const std::map<PndLmdFitOptions, std::vector<ModelFitResult> >& getFitResults() const;
+	std::vector<ModelFitResult> getFitResults(const PndLmdFitOptions &fit_options) const;
 	void addFitResult(const PndLmdFitOptions &fit_options, const ModelFitResult &fit_result_);
 };
 

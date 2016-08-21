@@ -8,7 +8,7 @@
         "dimension_type": "THETA_X",
         "track_param_type": "IP",
         
-        "bins": 400,
+        "bins": 300,
         "range_low": -0.013,
         "range_high": 0.013
       },
@@ -20,7 +20,7 @@
         "dimension_type": "THETA_Y",
         "track_param_type": "IP",
         
-        "bins": 400,
+        "bins": 300,
         "range_low": -0.013,
         "range_high": 0.013
       }
@@ -30,7 +30,7 @@
    [
       {
         "name": "prim",
-        "is_active": true,
+        "is_active": false,
         
         "dimension_type": "SECONDARY",
         "track_param_type": "IP",
@@ -48,7 +48,7 @@
       { 
         "is_active": true,
       
-        "bins": 400,
+        "bins": 300,
         "range_low": -0.013,
         "range_high": 0.013
       },
@@ -57,7 +57,7 @@
       { 
         "is_active": true,
               
-        "bins": 400,
+        "bins": 300,
         "range_low": -0.013,
         "range_high": 0.013
       }
@@ -69,20 +69,20 @@
       {
         "is_active": true,
       
-        "bins": 40,
-        "use_automatic_range": true,
-        "range_low": -0.015,
-        "range_high": 0.015
+        "bins": 400,
+        "use_automatic_range": false,
+        "range_low": -0.001,
+        "range_high": 0.001
       },
       
       "secondary_dimension":
       {
         "is_active": true,
       
-        "bins": 40,
-        "use_automatic_range": true,
-        "range_low": -0.015,
-        "range_high": 0.015
+        "bins": 400,
+        "use_automatic_range": false,
+        "range_low": -0.001,
+        "range_high": 0.001
       },
 
       "primary_selection_dimension":

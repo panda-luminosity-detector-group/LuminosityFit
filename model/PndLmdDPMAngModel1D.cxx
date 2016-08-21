@@ -9,20 +9,36 @@
 
 #include <cmath>
 
+#include "TLorentzVector.h"
 #include "TMath.h"
 
 PndLmdDPMAngModel1D::PndLmdDPMAngModel1D(std::string name_,
-		LumiFit::DPMElasticParts elastic_type_) :
+		LumiFit::DPMElasticParts elastic_type_, LumiFit::TransformationOption trafo_type) :
 		PndLmdDPMMTModel1D(name_, elastic_type_) {
 
 	initModelParameters();
+
+  if (trafo_type == LumiFit::CORRECT) {
+    trafo_func = &PndLmdDPMAngModel1D::getMomentumTransferFromThetaCorrect;
+  } else {
+    trafo_func = &PndLmdDPMAngModel1D::getMomentumTransferFromThetaApprox;
+  }
 }
 
 PndLmdDPMAngModel1D::~PndLmdDPMAngModel1D() {
 	// TODO Auto-generated destructor stub
 }
 
-double PndLmdDPMAngModel1D::getMomentumTransferFromTheta(
+double PndLmdDPMAngModel1D::getMomentumTransferFromThetaCorrect(const double theta) const {
+    TLorentzVector before(0,0,p_lab->getValue(), E_lab->getValue());
+    TLorentzVector after(before);
+    after.SetTheta(theta);
+
+    //after.Boost(0.0, 0.0, -beta_lab_cms->getValue());
+    return (after-before).M2();
+}
+
+double PndLmdDPMAngModel1D::getMomentumTransferFromThetaApprox(
 		const double theta) const {
 	// read lmd note/tdr for a derivation of this formula
 	double signum = -1.0;
@@ -42,6 +58,10 @@ double PndLmdDPMAngModel1D::getMomentumTransferFromTheta(
 	return t;
 }
 
+double PndLmdDPMAngModel1D::getMomentumTransferFromTheta(const double theta) const {
+	return (this->*trafo_func)(theta);
+}
+
 double PndLmdDPMAngModel1D::getThetaMomentumTransferJacobian(
 		const double theta) const {
 	//numerical derivate calculation
@@ -52,14 +72,14 @@ double PndLmdDPMAngModel1D::getThetaMomentumTransferJacobian(
 	double h = std::pow(e_m, 0.33) * theta;
 
 	return std::fabs(
-			(getMomentumTransferFromTheta(theta + h)
-					- getMomentumTransferFromTheta(theta - h)) / (2 * h));
+			((this->*trafo_func)(theta + h)
+					- (this->*trafo_func)(theta - h)) / (2 * h));
 }
 
 double PndLmdDPMAngModel1D::eval(const double *x) const {
 	//return luminosity->getValue();
 
-	double t = getMomentumTransferFromTheta(x[0]);
+	double t = (this->*trafo_func)(x[0]);
 	double jaco = getThetaMomentumTransferJacobian(x[0]);
 	return PndLmdDPMMTModel1D::eval(&t) * jaco;
 }

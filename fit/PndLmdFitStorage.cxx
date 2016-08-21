@@ -8,30 +8,29 @@
 #include "PndLmdFitStorage.h"
 
 PndLmdFitStorage::PndLmdFitStorage() {
-	// TODO Auto-generated constructor stub
+  // TODO Auto-generated constructor stub
 
 }
 
 PndLmdFitStorage::~PndLmdFitStorage() {
-	// TODO Auto-generated destructor stub
+  // TODO Auto-generated destructor stub
 }
 
-const map<PndLmdFitOptions, ModelFitResult>& PndLmdFitStorage::getFitResults() const {
-	return fit_results;
+const std::map<PndLmdFitOptions, std::vector<ModelFitResult> >& PndLmdFitStorage::getFitResults() const {
+  return fit_results;
 }
 
-ModelFitResult PndLmdFitStorage::getFitResult(
-		const PndLmdFitOptions &fit_options) const {
-	ModelFitResult return_result;
-	map<PndLmdFitOptions, ModelFitResult>::const_iterator fit_result =
-			fit_results.find(fit_options);
-	if (fit_result != fit_results.end())
-		return_result = fit_result->second;
+std::vector<ModelFitResult> PndLmdFitStorage::getFitResults(
+    const PndLmdFitOptions &fit_options) const {
+  std::vector<ModelFitResult> return_result;
+  auto const& fit_result = fit_results.find(fit_options);
+  if (fit_result != fit_results.end())
+    return_result = fit_result->second;
 
-	return return_result;
+  return return_result;
 }
 
 void PndLmdFitStorage::addFitResult(const PndLmdFitOptions &fit_options,
-		const ModelFitResult &fit_result_) {
-	fit_results[fit_options] = fit_result_;
+    const ModelFitResult &fit_result_) {
+  fit_results[fit_options].push_back(fit_result_);
 }

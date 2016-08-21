@@ -173,6 +173,7 @@ void plotLumiFitResults(std::vector<std::string> paths,
     bundle.drawOnCurrentPad(plot_style);
     c.SaveAs(filename.str().c_str());
   }
+
   if (make_tilt_overview_plots && full_phi_reco_data_vec.size() > 1) {
     std::stringstream filename;
     filename << basepath.str() << "/";
@@ -297,10 +298,10 @@ void plotLumiFitResults(std::vector<std::string> paths,
           > 0)
         continue;
 
-      const map<PndLmdFitOptions, ModelFitResult>& fit_results =
+      const std::map<PndLmdFitOptions, std::vector<ModelFitResult> >& fit_results =
           full_phi_reco_data_vec[reco_data_obj_index].getFitResults();
 
-      map<PndLmdFitOptions, ModelFitResult>::const_iterator fit_result_iter;
+      std::map<PndLmdFitOptions, std::vector<ModelFitResult> >::const_iterator fit_result_iter;
       for (fit_result_iter = fit_results.begin();
           fit_result_iter != fit_results.end(); ++fit_result_iter) {
         c.Clear();
@@ -405,7 +406,7 @@ void plotLumiFitResults(std::vector<std::string> paths,
             filter_mc);
 
     if (full_phi_mc_data_vec.size() == 1) {
-      const map<PndLmdFitOptions, ModelFitResult>& fit_results =
+      const std::map<PndLmdFitOptions, std::vector<ModelFitResult> >& fit_results =
           full_phi_mc_data_vec[0].getFitResults();
       if (fit_results.size() > 0) {
 
@@ -433,7 +434,7 @@ void plotLumiFitResults(std::vector<std::string> paths,
             filter_mc_acc);
 
     if (full_phi_mc_acc_data_vec.size() == 1) {
-      const map<PndLmdFitOptions, ModelFitResult>& fit_results =
+      const std::map<PndLmdFitOptions, std::vector<ModelFitResult> >& fit_results =
           full_phi_mc_acc_data_vec[0].getFitResults();
 
       if (fit_results.size() > 0) {

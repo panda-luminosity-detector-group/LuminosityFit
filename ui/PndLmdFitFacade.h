@@ -24,8 +24,9 @@ class PndLmdHistogramData;
 
 class PndLmdFitFacade {
 private:
-  std::set<PndLmdAcceptance> acceptance_pool;
+  std::vector<PndLmdAcceptance> acceptance_pool;
   std::set<PndLmdHistogramData> resolution_pool;
+  std::set<PndLmdMapData> resolution_map_pool;
 
   const PndLmdRuntimeConfiguration& lmd_runtime_config;
 
@@ -64,9 +65,11 @@ public:
   void setModelFactoryAcceptence(const PndLmdAcceptance &lmd_acc);
   void setModelFactoryResolutions(
       const std::vector<PndLmdHistogramData> &lmd_res);
+  void setModelFactoryResolutionMap(const PndLmdMapData &lmd_res);
 
   void addAcceptencesToPool(const std::vector<PndLmdAcceptance> &lmd_acc);
   void addResolutionsToPool(const std::vector<PndLmdHistogramData> &lmd_res);
+  void addResolutionMapsToPool(const std::vector<PndLmdMapData> &lmd_res);
 
   void clearPools();
 
@@ -82,19 +85,17 @@ public:
   void initBeamParametersForModel(shared_ptr<Model> current_model,
       const boost::property_tree::ptree& model_opt_ptree) const;
 
-  shared_ptr<Model> generateModel(const PndLmdAngularData &lmd_data,
-      const PndLmdFitOptions &fit_options) const;
-
-  void doFit(PndLmdHistogramData &lmd_hist_data,
-      const PndLmdFitOptions &fit_options);
-
   PndLmdFitDataBundle doLuminosityFits(
       std::vector<PndLmdAngularData>& lmd_data_vec);
 
-  void fitElasticPPbar(PndLmdAngularData &lmd_data,
+  void fitElasticPPbar(PndLmdAngularData &lmd_data);
+
+  shared_ptr<Model> generateModel(const PndLmdAngularData &lmd_data);
+  shared_ptr<Model> generateModel(const PndLmdAngularData &lmd_data,
       const PndLmdFitOptions &fit_options);
 
-  shared_ptr<Model> createModel2D(const PndLmdAngularData& lmd_data);
+  void doFit(PndLmdHistogramData &lmd_hist_data,
+      const PndLmdFitOptions &fit_options);
 
   void fitVertexData(std::vector<PndLmdHistogramData> &lmd_data);
 };

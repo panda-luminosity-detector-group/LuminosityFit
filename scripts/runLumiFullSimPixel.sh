@@ -52,6 +52,8 @@ numTrks=1
 
 #ok we want to simulate only on the node so also the output files of the simulation so change the pathname to /local/scratch/dirname
 dirname=`echo $dirname | sed -e 's/\//_/g'`
+
+#workpathname=/data/work/himspecf/pflueger/test123/new
 workpathname=/local/scratch/$dirname
 if [ ! -d $workpathname ]; then
   mkdir -p $workpathname

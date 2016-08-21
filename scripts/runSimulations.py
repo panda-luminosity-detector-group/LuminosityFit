@@ -85,21 +85,23 @@ def checkIndexRangeForGeneratedDataDirectory(dir_path):
   return [lowest_index, highest_index]
     
 def generateSimulationParameterPropertyFile(output_dirname):
-  f = open(output_dirname + '/sim_params.config', 'w')
-  f.write('ip_mean_x=' + str(args.use_ip_offset[0]))
-  f.write('ip_mean_y=' + str(args.use_ip_offset[1]))
-  f.write('ip_mean_z=' + str(args.use_ip_offset[2]))
+  config_fileurl = output_dirname + '/sim_params.config'
+  if not os.path.isfile(config_fileurl):
+    f = open(config_fileurl, 'w')
+    f.write('ip_mean_x=' + str(args.use_ip_offset[0]) + '\n')
+    f.write('ip_mean_y=' + str(args.use_ip_offset[1]) + '\n')
+    f.write('ip_mean_z=' + str(args.use_ip_offset[2]) + '\n')
   
-  f.write('ip_standard_deviation_x=' + str(args.use_ip_offset[3]))
-  f.write('ip_standard_deviation_y=' + str(args.use_ip_offset[4]))
-  f.write('ip_standard_deviation_z=' + str(args.use_ip_offset[5]))
+    f.write('ip_standard_deviation_x=' + str(args.use_ip_offset[3]) + '\n')
+    f.write('ip_standard_deviation_y=' + str(args.use_ip_offset[4]) + '\n')
+    f.write('ip_standard_deviation_z=' + str(args.use_ip_offset[5]) + '\n')
   
-  f.write('beam_tilt_x=' + str(args.use_beam_gradient[0]))
-  f.write('beam_tilt_y=' + str(args.use_beam_gradient[1]))
-  f.write('beam_divergence_x=' + str(args.use_beam_gradient[2]))
-  f.write('beam_divergence_y=' + str(args.use_beam_gradient[3]))
+    f.write('beam_tilt_x=' + str(args.use_beam_gradient[0]) + '\n')
+    f.write('beam_tilt_y=' + str(args.use_beam_gradient[1]) + '\n')
+    f.write('beam_divergence_x=' + str(args.use_beam_gradient[2]) + '\n')
+    f.write('beam_divergence_y=' + str(args.use_beam_gradient[3]) + '\n')
 
-  f.close()
+    f.close()
 
 
 parser = argparse.ArgumentParser(description='Script for full simulation of PANDA Luminosity Detector via externally generated MC data.', formatter_class=argparse.RawTextHelpFormatter)
@@ -280,7 +282,8 @@ joblist.append(job)
 
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
-job_manager = himster.HimsterJobManager(1600)
+job_manager = himster.HimsterJobManager(1000)
+job_manager.job_resubmit_sleep_time_in_seconds = 3600
 
 job_manager.submitJobsToHimster(joblist)
 job_manager.manageJobs()

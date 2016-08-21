@@ -14,6 +14,7 @@
 #include "PndLmdRuntimeConfiguration.h"
 
 #include "data/PndLmdAbstractData.h"
+#include "data/PndLmdMapData.h"
 #include "data/PndLmdSeperateDataReader.h"
 #include "data/PndLmdCombinedDataReader.h"
 
@@ -26,6 +27,7 @@
 
 class PndLmdAngularData;
 class PndLmdAcceptance;
+
 /**
  * Class providing a simplified UI for constructing, reading and filling lmd
  * data objects. This class should be used primarily used by the standard user.
@@ -35,6 +37,7 @@ class PndLmdDataFacade {
 
   const PndLmdRuntimeConfiguration& lmd_runtime_config;
 
+  std::vector<PndLmdMapData> lmd_map_data;
   std::vector<PndLmdAngularData> lmd_angular_data;
   std::vector<PndLmdHistogramData> lmd_vertex_data;
   std::vector<PndLmdHistogramData> lmd_hist_data;
@@ -107,9 +110,14 @@ public:
   std::vector<PndLmdAcceptance> getAcceptanceData() const;
   std::vector<PndLmdHistogramData> getResolutionData() const;
   std::vector<PndLmdHistogramData> getVertexData() const;
+  std::vector<PndLmdMapData> getMapData() const;
+  std::vector<std::string> findFiles(const boost::filesystem::path & dir_path,
+      const std::string & file_name) const;
+  std::vector<std::string> findFile(const boost::filesystem::path & dir_path,
+      const std::string &dir_pattern, const std::string & file_name) const;
 
   std::vector<PndLmdAcceptance> getMatchingAcceptances(
-      const std::set<PndLmdAcceptance> &acceptance_pool,
+      const std::vector<PndLmdAcceptance> &acceptance_pool,
       const PndLmdAngularData &lmd_data) const;
   std::vector<PndLmdHistogramData> getMatchingResolutions(
       const std::set<PndLmdHistogramData> &resolution_pool,
@@ -183,5 +191,7 @@ public:
    std::vector<PndLmdHistogramData> &lmd_vertex_vec);*/
 
 };
+
+template<> std::vector<PndLmdMapData> PndLmdDataFacade::getDataFromFile(TFile& f) const;
 
 #endif /* PNDLMDDATAFACADE_H_ */

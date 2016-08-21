@@ -107,13 +107,13 @@ TH2D * PndLmdHistogramData::get2DHistogram() const {
 	return hist_2d;
 }
 
-const map<PndLmdFitOptions, ModelFitResult>& PndLmdHistogramData::getFitResults() const {
+const std::map<PndLmdFitOptions, std::vector<ModelFitResult> >& PndLmdHistogramData::getFitResults() const {
 	return fit_storage.getFitResults();
 }
 
-ModelFitResult PndLmdHistogramData::getFitResult(
+std::vector<ModelFitResult> PndLmdHistogramData::getFitResults(
 		const PndLmdFitOptions &fit_options) const {
-	return fit_storage.getFitResult(fit_options);
+	return fit_storage.getFitResults(fit_options);
 }
 
 void PndLmdHistogramData::addFitResult(const PndLmdFitOptions &fit_options,

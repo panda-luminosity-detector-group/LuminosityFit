@@ -94,16 +94,17 @@ namespace LumiFit {
         elastic_bundle.getSimulationParametersPropertyTree();
 
     std::stringstream ss;
-    ss << "IP_pos_" << sim_prop.get<double>("ip_mean_x") << "_"
-        << sim_prop.get<double>("ip_standard_deviation_x") << "_"
-        << sim_prop.get<double>("ip_mean_y") << "_"
-        << sim_prop.get<double>("ip_standard_deviation_y") << "_"
-        << sim_prop.get<double>("ip_mean_z") << "_"
-        << sim_prop.get<double>("ip_standard_deviation_z") << "-beam_tilt_"
-        << sim_prop.get<double>("beam_tilt_x") << "_"
-        << sim_prop.get<double>("beam_divergence_x") << "_"
-        << sim_prop.get<double>("beam_tilt_y") << "_"
-        << sim_prop.get<double>("beam_divergence_y");
+    /*ss << "IP_pos_" << sim_prop.get<double>("ip_mean_x") << "_"
+     << sim_prop.get<double>("ip_standard_deviation_x") << "_"
+     << sim_prop.get<double>("ip_mean_y") << "_"
+     << sim_prop.get<double>("ip_standard_deviation_y") << "_"
+     << sim_prop.get<double>("ip_mean_z") << "_"
+     << sim_prop.get<double>("ip_standard_deviation_z") << "-beam_tilt_"
+     << sim_prop.get<double>("beam_tilt_x") << "_"
+     << sim_prop.get<double>("beam_divergence_x") << "_"
+     << sim_prop.get<double>("beam_tilt_y") << "_"
+     << sim_prop.get<double>("beam_divergence_y");*/
+    ss << "test";
     return ss.str();
   }
 
@@ -191,21 +192,28 @@ namespace LumiFit {
           current_fit_bundle.getUsedAcceptancesPool()[used_acceptance_index]);
     }
 
-    if (elastic_data_bundle.getUsedResolutionsIndexRanges().size() > 0) {
-      std::vector<PndLmdHistogramData> used_resolutions;
-      for (unsigned int res_index_range = 0;
-          res_index_range
-              < elastic_data_bundle.getUsedResolutionsIndexRanges().size();
-          ++res_index_range) {
-        used_resolutions.insert(used_resolutions.end(),
-            current_fit_bundle.getUsedResolutionsPool().begin()
-                + elastic_data_bundle.getUsedResolutionsIndexRanges()[res_index_range].first,
-            current_fit_bundle.getUsedResolutionsPool().begin()
-                + elastic_data_bundle.getUsedResolutionsIndexRanges()[res_index_range].second);
-      }
-      //model_factory.setResolutions(used_resolutions);
+    /*if (elastic_data_bundle.getUsedResolutionsIndexRanges().size() > 0) {
+     std::vector<PndLmdMapData> used_resolutions;
+     for (unsigned int res_index_range = 0;
+     res_index_range
+     < elastic_data_bundle.getUsedResolutionsIndexRanges().size();
+     ++res_index_range) {
+     used_resolutions.insert(used_resolutions.end(),
+     current_fit_bundle.getUsedResolutionsPool().begin()
+     + elastic_data_bundle.getUsedResolutionsIndexRanges()[res_index_range].first,
+     current_fit_bundle.getUsedResolutionsPool().begin()
+     + elastic_data_bundle.getUsedResolutionsIndexRanges()[res_index_range].second);
+     }
+     //model_factory.setResolutions(used_resolutions);
 
-      lmd_fit_facade.setModelFactoryResolutions(used_resolutions);
+     lmd_fit_facade.setModelFactoryResolutionMap(used_resolutions);
+     }*/
+
+    if (elastic_data_bundle.getUsedResolutionIndices().size() > 0) {
+      unsigned int used_resolution_index =
+          elastic_data_bundle.getUsedResolutionIndices()[0];
+      lmd_fit_facade.setModelFactoryResolutionMap(
+          current_fit_bundle.getUsedResolutionsPool()[used_resolution_index]);
     }
 
     shared_ptr<Model> model = lmd_fit_facade.generateModel(elastic_data_bundle,
@@ -217,17 +225,17 @@ namespace LumiFit {
 
     // now just overwrite all parameters in the model from the fit result
     model->getModelParameterHandler().initModelParametersFromFitResult(
-        elastic_data_bundle.getFitResult(fit_opt));
+        elastic_data_bundle.getFitResults(fit_opt)[0]);
 
-    model->getModelParameterSet().printInfo();
     if (model->init()) {
       std::cout << "Error: not all parameters have been set!" << std::endl;
+      model->getModelParameterSet().printInfo();
     }
     // trigger model calculations
     model->updateModel();
 
     const std::set<ModelStructs::minimization_parameter> &fit_params =
-        elastic_data_bundle.getFitResult(fit_opt).getFitParameters();
+        elastic_data_bundle.getFitResults(fit_opt)[0].getFitParameters();
     std::set<ModelStructs::minimization_parameter>::const_iterator fit_param_it;
 
     for (fit_param_it = fit_params.begin(); fit_param_it != fit_params.end();
@@ -257,7 +265,7 @@ namespace LumiFit {
 
 // now just overwrite all parameters in the model from the fit result
     model->getModelParameterHandler().initModelParametersFromFitResult(
-        data.getFitResult(fit_opt));
+        data.getFitResults(fit_opt)[0]);
 
     ModelVisualizationProperties1D vis_prop = create1DVisualizationProperties(
         fit_opt.getEstimatorOptions(), data);
@@ -276,7 +284,7 @@ namespace LumiFit {
 
 // now just overwrite all parameters in the model from the fit result
     model->getModelParameterHandler().initModelParametersFromFitResult(
-        data.getFitResult(fit_opt));
+        data.getFitResults(fit_opt)[0]);
 
     ModelVisualizationProperties1D vis_prop = create1DVisualizationProperties(
         fit_opt.getEstimatorOptions(), data);
@@ -480,7 +488,7 @@ namespace LumiFit {
         if (ip_setting_case->second[i].getPrimaryDimension().dimension_options.dimension_type
             == LumiFit::X) {
           ModelFitResult fit_result =
-              ip_setting_case->second[i].getFitResults().begin()->second;
+              ip_setting_case->second[i].getFitResults().begin()->second[0];
 
           if (fit_result.getFitParameters().size() > 0) {
             double diff = error_scaling_factor
@@ -499,7 +507,7 @@ namespace LumiFit {
         } else if (ip_setting_case->second[i].getPrimaryDimension().dimension_options.dimension_type
             == LumiFit::Y) {
           ModelFitResult fit_result =
-              ip_setting_case->second[i].getFitResults().begin()->second;
+              ip_setting_case->second[i].getFitResults().begin()->second[0];
 
           if (fit_result.getFitParameters().size() > 0) {
             double diff = error_scaling_factor
@@ -661,7 +669,7 @@ namespace LumiFit {
         ang_plot_bundle.plot_axis.y_axis_title = ss.str();
       }
       if (draw_model) {
-        ModelFitResult fit_res = data.getFitResult(fit_options);
+        ModelFitResult fit_res = data.getFitResults(fit_options)[0];
 
         if (fit_dimension == 1) {
           if (0 == fit_res.getFitStatus()) {
@@ -698,7 +706,7 @@ namespace LumiFit {
       TH2D* model(0);
 
       if (draw_model) {
-        ModelFitResult fit_res = data.getFitResult(fit_options);
+        ModelFitResult fit_res = data.getFitResults(fit_options)[0];
 
         std::cout << fit_res.getFitStatus() << " "
             << fit_res.getFitParameters().size() << std::endl;
@@ -709,8 +717,12 @@ namespace LumiFit {
       }
 
       if (draw_data && draw_model) {
-        TH2D* diff = neat_plot_helper.makeDifferenceHistogram(hist, model);
+        TH2D* diff = neat_plot_helper.makeRelativeDifferenceHistogram(model,
+            hist);
         ang_plot_bundle.addHistogram(diff, style);
+        ang_plot_bundle.plot_axis.z_axis_range.low = -0.2;
+        ang_plot_bundle.plot_axis.z_axis_range.high = 0.2;
+        ang_plot_bundle.plot_axis.z_axis_range.active = true;
       } else {
         if (draw_data)
           ang_plot_bundle.addHistogram(hist, style);
@@ -740,7 +752,7 @@ namespace LumiFit {
         double lumi_ref = data.getReferenceLuminosity();
 
         PndLmdLumiFitResult fit_res;
-        fit_res.setModelFitResult(data.getFitResult(fit_options));
+        fit_res.setModelFitResult(data.getFitResults(fit_options)[0]);
 
         if (fit_res.getModelFitResult().getFitStatus() == 0) {
           strstream << std::setprecision(3) << "#Delta L/L = "
@@ -791,7 +803,7 @@ namespace LumiFit {
     TH1D* hist = data.get1DHistogram();
     TGraphAsymmErrors *graph(0);
 
-    ModelFitResult fit_res = data.getFitResult(fit_options);
+    ModelFitResult fit_res = data.getFitResults(fit_options)[0];
     if (0 == fit_res.getFitStatus()) {
       graph = createGraphFromFitResult(fit_options, data);
     }
@@ -932,7 +944,7 @@ namespace LumiFit {
       const PndLmdHistogramData & data) const {
     std::cout << "Creating vertex graph bundle!" << std::endl;
 
-    const map<PndLmdFitOptions, ModelFitResult>& fit_results =
+    const std::map<PndLmdFitOptions, std::vector<ModelFitResult> >& fit_results =
         data.getFitResults();
 
     NeatPlotting::PlotBundle ver_plot_bundle;
@@ -952,7 +964,7 @@ namespace LumiFit {
 
     std::cout << "num fit results: " << fit_results.size() << std::endl;
     if (fit_results.size() > 0) {
-      if (fit_results.begin()->second.getFitStatus() == 0) {
+      if (fit_results.begin()->second[0].getFitStatus() == 0) {
         style.draw_option = "PE";
         style.line_style.line_color = kRed;
         style.marker_style.marker_color = kRed;
@@ -1118,7 +1130,7 @@ namespace LumiFit {
       if (ip_setting_case->getFitResults().size() > 0) {
         PndLmdLumiFitResult fit_result;
         fit_result.setModelFitResult(
-            ip_setting_case->getFitResults().begin()->second);
+            ip_setting_case->getFitResults().begin()->second[0]);
 
         lumi = calulateRelDiff(fit_result.getLuminosity(),
             fit_result.getLuminosityError(),
@@ -1206,7 +1218,7 @@ namespace LumiFit {
       if (ip_setting_case->getFitResults().size() > 0) {
         PndLmdLumiFitResult fit_result;
         fit_result.setModelFitResult(
-            ip_setting_case->getFitResults().begin()->second);
+            ip_setting_case->getFitResults().begin()->second[0]);
 
         lumi = calulateRelDiff(fit_result.getLuminosity(),
             fit_result.getLuminosityError(),
@@ -1378,9 +1390,9 @@ namespace LumiFit {
       // ok we are actually only interested in the dimension type and track type
 
       // loop over fit results
-      map<PndLmdFitOptions, ModelFitResult> fit_results =
+      std::map<PndLmdFitOptions, std::vector<ModelFitResult> > fit_results =
           top_it->getFitResults();
-      for (map<PndLmdFitOptions, ModelFitResult>::iterator it =
+      for (std::map<PndLmdFitOptions, std::vector<ModelFitResult> >::iterator it =
           fit_results.begin(); it != fit_results.end(); it++) {
 
         // PAD1: if we have MC data and momentum transfer and we fit that with mc_t model
@@ -1607,10 +1619,9 @@ namespace LumiFit {
       }
       // ok we are actually only interested in the dimension type and track type
       // loop over fit results
-      map<PndLmdFitOptions, ModelFitResult> fit_results =
+      std::map<PndLmdFitOptions, std::vector<ModelFitResult> > fit_results =
           top_it->getFitResults();
-      for (map<PndLmdFitOptions, ModelFitResult>::iterator it =
-          fit_results.begin(); it != fit_results.end(); it++) {
+      for (auto it = fit_results.begin(); it != fit_results.end(); it++) {
 
         // set the appropriate acceptance and resolutions in the factory
         // in principle there could be multiple acceptances used here but we assume there is just 1
@@ -1652,7 +1663,7 @@ namespace LumiFit {
             ordered_plots[it->first][pad_coord] = createLumiFit2DPlotBundle(
                 data);
 
-            ModelFitResult fit_res = top_it->getFitResult(it->first);
+            ModelFitResult fit_res = top_it->getFitResults(it->first)[0];
             if (0 == fit_res.getFitStatus()) {
               TH2D* model = create2DHistogramFromFitResult(it->first, *top_it);
               pad_coord = std::make_pair(1, 2);
@@ -1730,7 +1741,7 @@ namespace LumiFit {
             ordered_plots[it->first][pad_coord] = createLumiFit2DPlotBundle(
                 data);
 
-            ModelFitResult fit_res = top_it->getFitResult(it->first);
+            ModelFitResult fit_res = top_it->getFitResults(it->first)[0];
             if (0 == fit_res.getFitStatus()) {
               TH2D* model = create2DHistogramFromFitResult(it->first, *top_it);
               pad_coord = std::make_pair(2, 2);
@@ -1825,7 +1836,7 @@ namespace LumiFit {
               ordered_plots[it->first][pad_coord] = createLumiFit2DPlotBundle(
                   data);
 
-              ModelFitResult fit_res = top_it->getFitResult(it->first);
+              ModelFitResult fit_res = top_it->getFitResults(it->first)[0];
               if (0 == fit_res.getFitStatus()) {
                 TH2D* model = create2DHistogramFromFitResult(it->first,
                     *top_it);
@@ -2091,6 +2102,71 @@ namespace LumiFit {
     booky.createBooky("acceptance_comparison_booky.pdf");
   }
 
+  NeatPlotting::PlotBundle PndLmdPlotter::createAcceptanceErrorPlot(
+      std::vector<PndLmdAcceptance> &accs) const {
+    NeatPlotting::DataObjectStyle style;
+    style.draw_option = "PE";
+    style.marker_style.marker_style = 20;
+
+    NeatPlotting::DataObjectStyle style2;
+    style2.draw_option = "COL";
+
+    NeatPlotting::PlotBundle plot_bundle;
+
+    if (accs.size() > 0) {
+      const PndLmdAcceptance& acc = accs[0];
+
+      // ---------- 2d stuff ----------
+      TVirtualPad *current_pad = gPad;
+
+      TEfficiency *eff = acc.getAcceptance2D(); // false = angular acceptance
+      TCanvas c;
+      eff->Draw("colz");
+      c.Update();
+
+      TH2D* acchist2d = new TH2D(*((TH2D*) eff->GetPaintedHistogram()));
+      //TH2D* acchist2d_new = new TH2D(*((TH2D*) eff->GetPaintedHistogram()));
+
+      double dx = (acchist2d->GetXaxis()->GetXmax()
+          - acchist2d->GetXaxis()->GetXmin())
+          / acchist2d->GetXaxis()->GetNbins();
+      double dy = (acchist2d->GetYaxis()->GetXmax()
+          - acchist2d->GetYaxis()->GetXmin())
+          / acchist2d->GetYaxis()->GetNbins();
+
+      for (unsigned int ix = 1; ix < acchist2d->GetXaxis()->GetNbins() + 1;
+          ++ix) {
+        for (unsigned int iy = 1; iy < acchist2d->GetYaxis()->GetNbins() + 1;
+            ++iy) {
+          int bin = eff->FindFixBin(
+              acchist2d->GetXaxis()->GetXmin() + (0.5 + ix) * dx,
+              acchist2d->GetYaxis()->GetXmin() + (0.5 + iy) * dy);
+          double err_low = eff->GetEfficiencyErrorLow(bin);
+          double err_high = eff->GetEfficiencyErrorUp(bin);
+
+          double error(err_high);
+          if (err_low > err_high)
+            error = -err_low;
+
+          if (eff->GetEfficiency(bin) > 0.0) {
+            // std::cout << err_low << " " << err_high << " " << error<< std::endl;
+            acchist2d->SetBinContent(ix, iy, error);
+          } else {
+            acchist2d->SetBinContent(ix, iy, 0);
+          }
+        }
+      }
+
+      gPad = current_pad; // reset the pad to previous
+
+      plot_bundle.addHistogram(acchist2d, style2);
+      //plot_bundle.plot_axis.z_axis_range.active = true;
+      //plot_bundle.plot_axis.z_axis_range.low = -0.02;
+      //plot_bundle.plot_axis.z_axis_range.high = 0.02;
+    }
+    return plot_bundle;
+  }
+
 // resolution booky stuff
   NeatPlotting::Booky PndLmdPlotter::makeResolutionFitResultBooky(
       const std::vector<PndLmdHistogramData> &data_vec, int x, int y) const {
@@ -2173,17 +2249,17 @@ namespace LumiFit {
 
       NeatPlotting::GraphPoint graph_point;
 
-      const map<PndLmdFitOptions, ModelFitResult> &fit_results =
+      const std::map<PndLmdFitOptions, std::vector<ModelFitResult> > &fit_results =
           prefiltered_data[i].getFitResults();
 
-      for (map<PndLmdFitOptions, ModelFitResult>::const_iterator iter =
+      for (std::map<PndLmdFitOptions, std::vector<ModelFitResult>>::const_iterator iter =
           fit_results.begin(); iter != fit_results.end(); iter++) {
 
         if (compareLumiModelOptions(iter->first.getModelOptionsPropertyTree(),
             dim_opt)) {
           std::pair<double, double> lumival = calulateRelDiff(
-              getLuminosity(iter->second), getLuminosityError(iter->second),
-              lumi_ref);
+              getLuminosity(iter->second[0]),
+              getLuminosityError(iter->second[0]), lumi_ref);
           graph_point.x =
               iter->first.getEstimatorOptions().getFitRangeX().range_low;
           graph_point.y = lumival.first;
@@ -2210,17 +2286,17 @@ namespace LumiFit {
 
       NeatPlotting::GraphPoint graph_point;
 
-      const map<PndLmdFitOptions, ModelFitResult> &fit_results =
+      const std::map<PndLmdFitOptions, std::vector<ModelFitResult>> &fit_results =
           prefiltered_data[i].getFitResults();
 
-      for (map<PndLmdFitOptions, ModelFitResult>::const_iterator iter =
+      for (std::map<PndLmdFitOptions, std::vector<ModelFitResult>>::const_iterator iter =
           fit_results.begin(); iter != fit_results.end(); iter++) {
 
         if (compareLumiModelOptions(iter->first.getModelOptionsPropertyTree(),
             dim_opt)) {
           std::pair<double, double> lumival = calulateRelDiff(
-              getLuminosity(iter->second), getLuminosityError(iter->second),
-              lumi_ref);
+              getLuminosity(iter->second[0]),
+              getLuminosityError(iter->second[0]), lumi_ref);
           systematics_analyzer.insertDependencyValues(
               iter->first.getEstimatorOptions().getFitRangeX().range_low,
               lumival.first, lumival.second);
@@ -2235,40 +2311,61 @@ namespace LumiFit {
       const std::vector<PndLmdElasticDataBundle> &prefiltered_data,
       const LmdDimensionOptions& dim_opt) const {
 
-    std::vector<NeatPlotting::GraphPoint> points;
+    std::map<double, std::pair<NeatPlotting::GraphPoint, unsigned int> > points;
 
     for (auto const& prefiltered_data_obj : prefiltered_data) {
       double lumi_ref = prefiltered_data_obj.getReferenceLuminosity();
 
       NeatPlotting::GraphPoint graph_point;
 
-      const map<PndLmdFitOptions, ModelFitResult> &fit_results =
+      const std::map<PndLmdFitOptions, std::vector<ModelFitResult> > &fit_results =
           prefiltered_data_obj.getFitResults();
 
-      for (map<PndLmdFitOptions, ModelFitResult>::const_iterator iter =
-          fit_results.begin(); iter != fit_results.end(); iter++) {
+      if (fit_results.size() == 1) {
+        std::map<PndLmdFitOptions, std::vector<ModelFitResult> >::const_iterator iter =
+            fit_results.begin();
 
-        if(iter->second.getFitStatus() != 0)
-          continue;
-        if (compareLumiModelOptions(iter->first.getModelOptionsPropertyTree(),
-            dim_opt)) {
-          auto fit_params = iter->second.getFitParameters();
-          for(auto fit_param : fit_params) {
-            std::cout<<"fit parameter: "<<fit_param.name.second<<" "<<fit_param.value<<std::endl;
+        unsigned int counter(0);
+        for (auto const& fit_result : iter->second) {
+          if (fit_result.getFitStatus() != 0)
+            continue;
+          if (compareLumiModelOptions(iter->first.getModelOptionsPropertyTree(),
+              dim_opt)) {
+            auto fit_params = fit_result.getFitParameters();
+            for (auto fit_param : fit_params) {
+              std::cout << "fit parameter: " << fit_param.name.second << " "
+                  << fit_param.value << std::endl;
+            }
+            std::pair<double, double> lumival = calulateRelDiff(
+                getLuminosity(fit_result), getLuminosityError(fit_result),
+                lumi_ref);
+            points[prefiltered_data_obj.getPrimaryDimension().bins].first.y +=
+                lumival.first;
+            points[prefiltered_data_obj.getPrimaryDimension().bins].first.y_err_low +=
+                std::pow(lumival.first, 2);
+            ++points[prefiltered_data_obj.getPrimaryDimension().bins].second;
           }
-          std::pair<double, double> lumival = calulateRelDiff(
-              getLuminosity(iter->second), getLuminosityError(iter->second),
-              lumi_ref);
-          graph_point.x = prefiltered_data_obj.getPrimaryDimension().bins;
-          graph_point.y = lumival.first;
-          graph_point.y_err_low = lumival.second;
-          graph_point.y_err_high = lumival.second;
-          points.push_back(graph_point);
         }
+      } else {
+        std::cout
+            << "Error: only one type of fit options allowed per bundle!\n";
       }
     }
 
-    return neat_plot_helper.makeGraph(points);
+    std::vector<NeatPlotting::GraphPoint> points_vec;
+
+    for (auto const& map_element : points) {
+      NeatPlotting::GraphPoint gp(map_element.second.first);
+      gp.x = map_element.first;
+      gp.y = gp.y / map_element.second.second;
+      gp.y_err_low = std::sqrt(
+          gp.y_err_low / map_element.second.second - std::pow(gp.y, 2));
+      gp.y_err_high = gp.y_err_low;
+      std::cout << gp.y << " " << gp.y_err_low << std::endl;
+      points_vec.push_back(gp);
+    }
+
+    return neat_plot_helper.makeGraph(points_vec);
   }
 
 }

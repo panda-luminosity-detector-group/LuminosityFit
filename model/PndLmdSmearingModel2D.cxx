@@ -33,8 +33,8 @@ const std::vector<ContributorCoordinateWeight>& PndLmdSmearingModel2D::findNeare
 	for (unsigned int i = 0; i < last_found_neighbour_indices.size(); ++i) {
 		const RecoBinSmearingContributions &temprecobin(
 				smearing_parameterization[last_found_neighbour_indices[i] + 1]);
-		current_distance_x = fabs(temprecobin.reco_bin_x - x[0]);
-		current_distance_y = fabs(temprecobin.reco_bin_y - x[1]);
+		current_distance_x = std::fabs(temprecobin.reco_bin_x - x[0]);
+		current_distance_y = std::fabs(temprecobin.reco_bin_y - x[1]);
 		if (current_distance_x < search_distance_x
 				&& current_distance_y < search_distance_y) {
 			++(last_found_neighbour_indices[i]);
@@ -48,8 +48,8 @@ const std::vector<ContributorCoordinateWeight>& PndLmdSmearingModel2D::findNeare
 	for (unsigned int i = 0; i < smearing_parameterization.size(); ++i) {
 		const RecoBinSmearingContributions &temprecobin(
 				smearing_parameterization[i]);
-		current_distance_x = fabs(temprecobin.reco_bin_x - x[0]);
-		current_distance_y = fabs(temprecobin.reco_bin_y - x[1]);
+		current_distance_x = std::fabs(temprecobin.reco_bin_x - x[0]);
+		current_distance_y = std::fabs(temprecobin.reco_bin_y - x[1]);
 
 		if (current_distance_x < search_distance_x
 				&& current_distance_y < search_distance_y) {
@@ -87,9 +87,9 @@ void PndLmdSmearingModel2D::determineSearchDistance() {
 		for (smear_element_it = (++smearing_parameterization.begin());
 				smear_element_it != smearing_parameterization.end();
 				++smear_element_it) {
-			current_distance_x = fabs(
+			current_distance_x = std::fabs(
 					smear_element_it->reco_bin_x - first_smear_element_it->reco_bin_x);
-			current_distance_y = fabs(
+			current_distance_y = std::fabs(
 					smear_element_it->reco_bin_y - first_smear_element_it->reco_bin_y);
 
 			if (first) {
@@ -128,6 +128,11 @@ void PndLmdSmearingModel2D::setSmearingParameterization(
 		const std::vector<RecoBinSmearingContributions>& smearing_parameterization_) {
 	smearing_parameterization = smearing_parameterization_;
 	determineSearchDistance();
+}
+
+void PndLmdSmearingModel2D::setSearchDistances(double search_distance_x_, double search_distance_y_) {
+  search_distance_x = search_distance_x_;
+  search_distance_y = search_distance_y_;
 }
 
 const std::vector<ContributorCoordinateWeight>& PndLmdSmearingModel2D::getListOfContributors(

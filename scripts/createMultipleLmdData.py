@@ -76,6 +76,8 @@ for bins in range(args.general_dimension_bins_low, args.general_dimension_bins_h
       except OSError as exception:
         if exception.errno != errno.EEXIST:
           print 'error: thought dir does not exists but it does...'
+      if os.path.isfile(path+'/dataconfig.json'):
+          os.remove(path+'/dataconfig.json')
       config_modifier.writeConfigToPath(config, path+'/dataconfig.json')
       config_paths.append(path)
 

@@ -15,18 +15,18 @@
 #include "boost/thread/mutex.hpp"
 
 struct ContributorCoordinateWeight {
-	double bin_center_x;
-	double bin_center_y;
+  double bin_center_x;
+  double bin_center_y;
 
-	double area;
-	double smear_weight;
+  double area;
+  double smear_weight;
 };
 
 struct RecoBinSmearingContributions {
-	double reco_bin_x;
-	double reco_bin_y;
+  double reco_bin_x;
+  double reco_bin_y;
 
-	std::vector<ContributorCoordinateWeight> contributor_coordinate_weight_list;
+  std::vector<ContributorCoordinateWeight> contributor_coordinate_weight_list;
 };
 
 class PndLmdSmearingModel2D {
@@ -50,6 +50,7 @@ public:
 	virtual ~PndLmdSmearingModel2D();
 
 	void setSmearingParameterization(const std::vector<RecoBinSmearingContributions>& smearing_parameterization_);
+	void setSearchDistances(double search_distance_x_, double search_distance_y_);
 
 	virtual const std::vector<ContributorCoordinateWeight>& getListOfContributors(
 			const double *x);

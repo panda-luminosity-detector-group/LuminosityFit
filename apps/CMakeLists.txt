@@ -26,6 +26,11 @@ target_link_libraries(calculateElasticCrossSection LmdUI)
 add_executable(checkFramework checkFramework.cxx)
 target_link_libraries(checkFramework $ENV{ROOT_LIBRARIES} Model)
 
+########################### create fitRawDPMElasticData app ##################################
+
+#add_executable(fitRawDPMElasticData fitRawDPMElasticData.cxx)
+#target_link_libraries(fitRawDPMElasticData LmdUI)
+
 ########################### create checkDivergenceSmearing app ##################################
 
 add_executable(checkDivergenceSmearing checkDivergenceSmearing.cxx)
@@ -35,6 +40,9 @@ target_link_libraries(checkDivergenceSmearing $ENV{ROOT_LIBRARIES} LmdUI)
 
 add_executable(compareAcceptances compareAcceptances.cxx)
 target_link_libraries(compareAcceptances LmdUI)
+
+add_executable(analyzeAcceptances analyzeAcceptances.cxx)
+target_link_libraries(analyzeAcceptances LmdUI)
 
 ########################### create lumiFitData app ##################################
 
@@ -50,6 +58,11 @@ target_link_libraries(determineBeamOffset LmdUI)
 
 add_executable(determineLumiFitSystematics determineLumiFitSystematics.cxx)
 target_link_libraries(determineLumiFitSystematics LmdUI)
+
+########################### create lumi resolution plotter app ##################################
+
+add_executable(makeResolutionPlots makeResolutionPlots.cxx)
+target_link_libraries(makeResolutionPlots LmdUI)
 
 ########################### create mergeLmdData app ##################################
 
@@ -80,11 +93,6 @@ target_link_libraries(runLmdFit LmdUI)
 #add_executable(phiSliceData phiSliceData.cxx)
 #target_link_libraries(phiSliceData Lmd LmdTool MathMore Eve)
 
-########################### create fitRawDPMElasticData app ##################################
-
-#add_executable(fitRawDPMElasticData fitRawDPMElasticData.cxx)
-#target_link_libraries(fitRawDPMElasticData LmdFit)
-
 ########################### create resolutionModelFitTesting1D app ##################################
 
 #add_executable(resolutionModelFitTesting1D resolutionModelFitTesting1D.cxx)
@@ -104,11 +112,6 @@ target_link_libraries(runLmdFit LmdUI)
 #add_executable(makeTalkPlots makeTalkPlots.cxx)
 #target_link_libraries(makeTalkPlots LmdFit)
 
-########################### create lumi resolution plotter app ##################################
-
-#add_executable(plotResolutionParametrization plotResolutionParametrization.cxx)
-#target_link_libraries(plotResolutionParametrization LmdFit)
-
 ########################### create DPMModel plotter app ##################################
 
 #add_executable(plotDPMModelParts plotDPMModelParts.cxx)
@@ -116,5 +119,5 @@ target_link_libraries(runLmdFit LmdUI)
 
 ########################### create DPMModel2D plotter app ##################################
 
-#add_executable(plotShifted2DDPMModel plotShifted2DDPMModel.cxx)
-#target_link_libraries(plotShifted2DDPMModel LmdFit)
+add_executable(plot2DDPMModel plot2DDPMModel.cxx)
+target_link_libraries(plot2DDPMModel LmdUI)

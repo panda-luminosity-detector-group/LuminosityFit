@@ -7,6 +7,7 @@
 #include "LumiFitStructs.h"
 #include "data/PndLmdAcceptance.h"
 #include "data/PndLmdHistogramData.h"
+#include "data/PndLmdMapData.h"
 #include "model/PndLmdSmearingModel2D.h"
 
 #include "boost/property_tree/ptree_fwd.hpp"
@@ -19,43 +20,48 @@ class PndLmdAngularData;
  */
 class PndLmdModelFactory {
 private:
-	PndLmdAcceptance acceptance;
-	std::vector<PndLmdHistogramData> resolutions;
+  PndLmdAcceptance acceptance;
+  std::vector<PndLmdHistogramData> resolutions;
+  PndLmdMapData resolution_map_data;
 
-	shared_ptr<PndLmdSmearingModel2D> generate2DSmearingModel(
-			const PndLmdHistogramData &data) const;
+  shared_ptr<PndLmdSmearingModel2D> generate2DSmearingModel() const;
 
-	/**
-	 * 1D Model generator method
-	 * @param model_opt_ptree are the options which model will be built and returned
-	 */
-	shared_ptr<Model1D> generate1DModel(
-			const boost::property_tree::ptree& model_opt_ptree,
-			const PndLmdAngularData& data) const;
+  shared_ptr<PndLmdSmearingModel2D> generate2DSmearingModel(
+      const PndLmdHistogramData &data) const;
 
-	/**
-	 * 2D Model generator method
-	 * @param model_opt_ptree are the options which model will be built and returned
-	 */
-	shared_ptr<Model2D> generate2DModel(
-			const boost::property_tree::ptree& model_opt_ptree,
-			const PndLmdAngularData& data) const;
+  /**
+   * 1D Model generator method
+   * @param model_opt_ptree are the options which model will be built and returned
+   */
+  shared_ptr<Model1D> generate1DModel(
+      const boost::property_tree::ptree& model_opt_ptree,
+      const PndLmdAngularData& data) const;
+
+  /**
+   * 2D Model generator method
+   * @param model_opt_ptree are the options which model will be built and returned
+   */
+  shared_ptr<Model2D> generate2DModel(
+      const boost::property_tree::ptree& model_opt_ptree,
+      const PndLmdAngularData& data) const;
 public:
-	PndLmdModelFactory();
-	~PndLmdModelFactory();
+  PndLmdModelFactory();
+  ~PndLmdModelFactory();
 
-	double getMomentumTransferFromTheta(double plab,
-			double theta) const;
+  double getMomentumTransferFromTheta(double plab, double theta) const;
 
-	void setAcceptance(const PndLmdAcceptance& acceptance_);
-	void setResolutions(const std::vector<PndLmdHistogramData>& resolutions_);
+  const PndLmdAcceptance& getAcceptance() const;
+  const PndLmdMapData& getResolutionMapData() const;
+  void setAcceptance(const PndLmdAcceptance& acceptance_);
+  void setResolutionMapData(const PndLmdMapData& res_map_);
+  void setResolutions(const std::vector<PndLmdHistogramData>& resolutions_);
 
-	shared_ptr<Model1D> generate1DVertexModel(
-			const boost::property_tree::ptree& model_opt_ptree) const;
+  shared_ptr<Model1D> generate1DVertexModel(
+      const boost::property_tree::ptree& model_opt_ptree) const;
 
-	shared_ptr<Model> generateModel(
-			const boost::property_tree::ptree& model_opt_ptree,
-			const PndLmdAngularData& data) const;
+  shared_ptr<Model> generateModel(
+      const boost::property_tree::ptree& model_opt_ptree,
+      const PndLmdAngularData& data) const;
 };
 
 #endif /* PNDLMDMODELFACTORY_H_ */

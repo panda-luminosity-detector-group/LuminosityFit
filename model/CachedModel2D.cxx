@@ -112,7 +112,7 @@ void CachedModel2D::optimizeNumericalIntegration() {
       new SimpleIntegralStrategy2D());
   model->setIntegralStrategy(integral_strategy);
 
-  unsigned int calls(2);
+  unsigned int calls(3);
   /*std::vector<std::future<unsigned int> > future_list;
   std::vector<std::thread> thread_list;
 

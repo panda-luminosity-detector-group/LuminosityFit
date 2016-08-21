@@ -31,13 +31,13 @@ public:
 	// histogram filling methods
 	virtual void addData(double primary_value, double secondary_value = 0);
 
-	const map<PndLmdFitOptions, ModelFitResult>& getFitResults() const;
-	ModelFitResult getFitResult(const PndLmdFitOptions &fit_options) const;
+	const std::map<PndLmdFitOptions, std::vector<ModelFitResult>>& getFitResults() const;
+	std::vector<ModelFitResult> getFitResults(const PndLmdFitOptions &fit_options) const;
 	void addFitResult(const PndLmdFitOptions &fit_options, const ModelFitResult &fit_result_);
 
 	PndLmdHistogramData& operator=(const PndLmdHistogramData &lmd_hist_data);
 
-	ClassDef(PndLmdHistogramData, 2);
+	ClassDef(PndLmdHistogramData, 3);
 };
 
 #endif /* PNDLMDHISTOGRAMDATA_H_ */

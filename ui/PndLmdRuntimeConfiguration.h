@@ -48,18 +48,17 @@ class PndLmdRuntimeConfiguration {
 	boost::property_tree::ptree simulation_parameter_tree;
 
 	PndLmdRuntimeConfiguration();
-	PndLmdRuntimeConfiguration(PndLmdRuntimeConfiguration const&); // Don't Implement
-	virtual ~PndLmdRuntimeConfiguration();
 
-	// this and the copy constructor could actually be deleted
-	// but only in c++11 and above
-	void operator=(PndLmdRuntimeConfiguration const&); // Don't implement
+	virtual ~PndLmdRuntimeConfiguration();
 
 public:
 	static PndLmdRuntimeConfiguration& Instance() {
 		static PndLmdRuntimeConfiguration runtime_config_instance;
 		return runtime_config_instance;
 	}
+
+  PndLmdRuntimeConfiguration(PndLmdRuntimeConfiguration const&) = delete;
+  void operator=(PndLmdRuntimeConfiguration const&) = delete;
 
 	// getters
 	unsigned int getNumberOfThreads() const;

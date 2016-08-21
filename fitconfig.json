@@ -8,11 +8,11 @@
         "with_integral_scaling": false,
         
         "fit_range_x_active": false,
-        "fit_range_x_low": 0.002,
+        "fit_range_x_low": -0.012,
         "fit_range_x_high": 0.012,
         
         "fit_range_y_active": false,
-        "fit_range_y_low": 0.001,
+        "fit_range_y_low": -0.012,
         "fit_range_y_high": 0.012
       },
       
@@ -20,14 +20,15 @@
       {
          "fit_dimension": 2,
          "dpm_elastic_parts": "ALL",
+         "theta_t_trafo_option": "APPROX",
 	     
 	     "divergence_smearing_active": false,
 	     "fix_beam_divs": false,
-	     "beam_div_x": 0.0003,
-	     "beam_div_y": 0.0003,
+	     "beam_div_x": 0.0002,
+	     "beam_div_y": 0.0002,
 	     "elastic_data_input_directory": "",
 
-	     "fix_beam_tilts": false,
+	     "fix_beam_tilts": true,
 	     "beam_tilt_x": 0.0,
 	     "beam_tilt_y": 0.0,
 	     

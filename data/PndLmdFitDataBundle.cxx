@@ -30,7 +30,7 @@ const std::vector<PndLmdAcceptance>& PndLmdFitDataBundle::getUsedAcceptancesPool
   return used_acceptances_pool;
 }
 
-const std::vector<PndLmdHistogramData>& PndLmdFitDataBundle::getUsedResolutionsPool() const {
+const std::vector<PndLmdMapData>& PndLmdFitDataBundle::getUsedResolutionsPool() const {
   return used_resolutions_pool;
 }
 
@@ -65,72 +65,63 @@ std::vector<std::pair<unsigned int, unsigned int> > PndLmdFitDataBundle::convert
   return position_ranges;
 }
 
-std::vector<unsigned int> PndLmdFitDataBundle::addAcceptancesToPool(
-    const std::vector<PndLmdAcceptance> &new_acceptances) {
-  std::vector<unsigned int> positions;
-  positions.reserve(new_acceptances.size());
+unsigned int PndLmdFitDataBundle::addAcceptanceToPool(
+    const PndLmdAcceptance &new_acceptance) {
 
-  for (unsigned int new_acc_index = 0; new_acc_index < new_acceptances.size();
-      ++new_acc_index) {
-
-    // first check if this acceptance already exists
-    std::vector<PndLmdAcceptance>::iterator search_result_iter = std::find(
-        used_acceptances_pool.begin(), used_acceptances_pool.end(),
-        new_acceptances[new_acc_index]);
-    unsigned int position(used_acceptances_pool.size());
-    if (search_result_iter == used_acceptances_pool.end()) {
-      // if not add and return position is the last element
-      used_acceptances_pool.push_back(new_acceptances[new_acc_index]);
-    } else {
-      // if so just return the found position index
-      position = search_result_iter - used_acceptances_pool.begin();
-    }
-    positions.push_back(position);
+  // first check if this acceptance already exists
+  std::vector<PndLmdAcceptance>::iterator search_result_iter = std::find(
+      used_acceptances_pool.begin(), used_acceptances_pool.end(),
+      new_acceptance);
+  unsigned int position(used_acceptances_pool.size());
+  if (search_result_iter == used_acceptances_pool.end()) {
+    // if not add and return position is the last element
+    used_acceptances_pool.push_back(new_acceptance);
+  } else {
+    // if so just return the found position index
+    position = search_result_iter - used_acceptances_pool.begin();
   }
-  return positions;
+
+  return position;
 }
 
-std::vector<std::pair<unsigned int, unsigned int> > PndLmdFitDataBundle::addResolutionsToPool(
-    const std::vector<PndLmdHistogramData>& new_resolutions) {
+unsigned int PndLmdFitDataBundle::addResolutionToPool(
+    const PndLmdMapData& new_resolution) {
 
-  std::vector<std::pair<unsigned int, unsigned int> > positions;
-  std::vector<unsigned int> single_positions;
-  single_positions.reserve(new_resolutions.size());
-
-  for (unsigned int new_res_index = 0; new_res_index < new_resolutions.size();
-      ++new_res_index) {
-    // first check if this acceptance already exists
-    std::vector<PndLmdHistogramData>::iterator search_result_iter = std::find(
-        used_resolutions_pool.begin(), used_resolutions_pool.end(),
-        new_resolutions[new_res_index]);
-    if (search_result_iter == used_resolutions_pool.end()) {
-      // if not add and return position is the last element
-      used_resolutions_pool.push_back(new_resolutions[new_res_index]);
-      single_positions.push_back(used_resolutions_pool.size() - 1);
-    } else {
-      // if so just return the found position index
-      single_positions.push_back(
-          search_result_iter - used_resolutions_pool.begin());
-    }
+  // first check if this acceptance already exists
+  std::vector<PndLmdMapData>::iterator search_result_iter = std::find(
+      used_resolutions_pool.begin(), used_resolutions_pool.end(),
+      new_resolution);
+  unsigned int position(used_resolutions_pool.size());
+  if (search_result_iter == used_resolutions_pool.end()) {
+    // if not add and return position is the last element
+    used_resolutions_pool.push_back(new_resolution);
+    std::cout<<"adding resolution to pool...\n";
+    //used_resolutions_pool[used_resolutions_pool.size()-1].clearMap();
+  } else {
+    // if so just return the found position index
+    position = search_result_iter - used_resolutions_pool.begin();
   }
 
+  return position;
   // sort the vector
-  std::sort(single_positions.begin(), single_positions.end());
-  return convertToIndexRanges(single_positions);
+  //std::sort(single_positions.begin(), single_positions.end());
+  //return convertToIndexRanges(single_positions);
 }
 
 void PndLmdFitDataBundle::addFittedElasticData(
-    const PndLmdAngularData &elastic_data,
-    const std::vector<PndLmdAcceptance> &acceptances,
-    const std::vector<PndLmdHistogramData> &resolutions) {
-
-  PndLmdElasticDataBundle elastic_data_bundle(elastic_data);
-  elastic_data_bundle.used_acceptance_indices = addAcceptancesToPool(
-      acceptances);
-  elastic_data_bundle.used_resolutions_index_ranges = addResolutionsToPool(
-      resolutions);
-
-  elastic_data_bundles.push_back(elastic_data_bundle);
+    const PndLmdAngularData &elastic_data) {
+  current_elastic_data_bundle = PndLmdElasticDataBundle(elastic_data);
+}
+void PndLmdFitDataBundle::attachAcceptanceToCurrentData(const PndLmdAcceptance &acceptance) {
+  current_elastic_data_bundle.used_acceptance_indices.push_back(addAcceptanceToPool(
+      acceptance));
+}
+void PndLmdFitDataBundle::attachResolutionMapDataToCurrentData(const PndLmdMapData &resolution) {
+  current_elastic_data_bundle.used_resolution_map_indices.push_back(addResolutionToPool(
+      resolution));
+}
+void PndLmdFitDataBundle::addCurrentDataBundleToList() {
+  elastic_data_bundles.push_back(current_elastic_data_bundle);
 }
 
 void PndLmdFitDataBundle::saveDataBundleToRootFile(

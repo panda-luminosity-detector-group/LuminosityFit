@@ -30,6 +30,7 @@ data/PndLmdAbstractData.h
 data/PndLmdHistogramData.h
 data/PndLmdAngularData.h
 data/PndLmdAcceptance.h
+data/PndLmdMapData.h
 LumiFitStructs.h
 )
 
@@ -41,6 +42,7 @@ set(SRCS
 PndLmdAbstractData.cxx
 PndLmdAcceptance.cxx
 PndLmdAngularData.cxx
+PndLmdMapData.cxx
 PndLmdCombinedDataReader.cxx
 PndLmdDataReader.cxx
 PndLmdFitDataBundle.cxx

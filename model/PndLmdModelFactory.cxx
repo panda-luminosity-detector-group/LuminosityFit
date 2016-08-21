@@ -54,6 +54,116 @@ PndLmdModelFactory::~PndLmdModelFactory() {
 
 }
 
+shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel() const {
+  // convert to a vector for faster access due to better caching
+  std::cout
+      << "converting detector smearing contributions to vector for fast access..."
+      << std::endl;
+
+  TH2D histx("ax", "", 200, -0.013, 0.013, 200, -0.013, 0.013);
+  //TH2D histy("ay", "", 200, -0.013, 0.013, 200, -0.013, 0.013);
+
+  /*TTree *tree = (TTree*)resolution_map_data.getDataTree()->Clone("asdf");
+   Point2D mc;
+   Point2D reco;
+   tree->SetBranchAddress("reco_x", &reco.x);
+   tree->SetBranchAddress("reco_y", &reco.y);
+   tree->SetBranchAddress("mc_x", &mc.x);
+   tree->SetBranchAddress("mc_y", &mc.y);
+
+   std::map<Point2D, Point2DCloud> prefill_map;
+
+   for (unsigned int i = 0; i < tree->GetEntries(); ++i) {
+   tree->GetEntry(i);
+
+   ++prefill_map[reco].points[mc];
+   ++prefill_map[reco].total_count;
+   }*/
+
+  const auto& hit_map = resolution_map_data.getHitMap();
+
+  std::cout << "hit map size: " << hit_map.size() << std::endl;
+
+  std::map<Point2D, std::map<Point2D, double> > temp_map;
+
+  unsigned long average_contributors(0);
+  for (auto const& mc_bin : hit_map) {
+    unsigned int overall_count(0);
+    average_contributors += mc_bin.second.points.size();
+    for (auto const& reco_bin_item : mc_bin.second.points) {
+      temp_map[reco_bin_item.first][mc_bin.first] +=
+          (1.0 * reco_bin_item.second) / mc_bin.second.total_count;
+
+      overall_count += reco_bin_item.second;
+    }
+    if (overall_count != mc_bin.second.total_count)
+      std::cout << "overall_count missmatch! (should be "
+          << mc_bin.second.total_count << "): " << overall_count << std::endl;
+
+  }
+  std::cout << "average reco bins per mc bin: "
+      << 1.0 * average_contributors / hit_map.size() << std::endl;
+
+  std::vector<RecoBinSmearingContributions> smearing_param;
+  smearing_param.reserve(temp_map.size());
+
+  average_contributors = 0;
+  for (auto const& reco_bin : temp_map) {
+    RecoBinSmearingContributions rbsc;
+    rbsc.reco_bin_x = reco_bin.first.x;
+    rbsc.reco_bin_y = reco_bin.first.y;
+
+    rbsc.contributor_coordinate_weight_list.reserve(reco_bin.second.size());
+
+    double overall_smear(0.0);
+    average_contributors += reco_bin.second.size();
+    //std::cout<<"size: "<<reco_bin.second.size()<<std::endl;
+    for (auto const& contribution_list_item : reco_bin.second) {
+      ContributorCoordinateWeight cw;
+      cw.bin_center_x = contribution_list_item.first.x;
+      cw.bin_center_y = contribution_list_item.first.y;
+
+      // cw.area = resolution_map_data.getPrimaryDimension().bin_size
+      // * resolution_map_data.getSecondaryDimension().bin_size;
+      cw.smear_weight = contribution_list_item.second;
+      rbsc.contributor_coordinate_weight_list.push_back(cw);
+
+      overall_smear += cw.smear_weight;
+      histx.Fill(rbsc.reco_bin_x - cw.bin_center_x,
+          rbsc.reco_bin_y - cw.bin_center_y);
+      //   histy.Fill(rbsc.reco_bin_y, cw.bin_center_y);
+      //std::cout << rbsc.reco_bin_x << " : " << rbsc.reco_bin_y << " -> "
+      // << cw.bin_center_x << " : " << cw.bin_center_y << " = "
+      // << cw.smear_weight << std::endl;
+    }
+    smearing_param.push_back(rbsc);
+    //std::cout << "smear weight: " << overall_smear << std::endl;
+  }
+  std::cout << "average mc bins per reco bin: "
+      << 1.0 * average_contributors / temp_map.size() << std::endl;
+  std::cout << "done!" << std::endl;
+
+  TVirtualPad *current_pad = gPad;
+  TCanvas can;
+  histx.Draw("colz");
+  can.Update();
+  can.SaveAs("corrx.pdf");
+  //histy.Draw("colz");
+  // can.Update();
+  // can.SaveAs("corry.pdf");
+
+  gPad = current_pad; // reset pad to the one before*/
+
+  shared_ptr<PndLmdSmearingModel2D> detector_smearing_model(
+      new PndLmdSmearingModel2D());
+
+  detector_smearing_model->setSmearingParameterization(smearing_param);
+  detector_smearing_model->setSearchDistances(
+      resolution_map_data.getPrimaryDimension().bin_size / 2,
+      resolution_map_data.getSecondaryDimension().bin_size / 2);
+  return detector_smearing_model;
+}
+
 shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel(
     const PndLmdHistogramData &data) const {
   std::map<std::pair<double, double>, std::map<LumiFit::BinDimension, double> > resolution_map;
@@ -199,7 +309,7 @@ shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel(
                   double weight = LumiFit::calculateBinOverlap(reco_bin,
                       reso_bin);
 
-                  if(weight < 1e-14)
+                  if (weight < 1e-14)
                     continue;
 
                   double prim_var_rec = recohist2d->GetXaxis()->GetBinCenter(
@@ -310,7 +420,7 @@ shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel(
 
 double PndLmdModelFactory::getMomentumTransferFromTheta(double plab,
     double theta) const {
-  PndLmdDPMAngModel1D model("dpm_angular_1d", LumiFit::ALL);
+  PndLmdDPMAngModel1D model("dpm_angular_1d", LumiFit::ALL, LumiFit::APPROX);
   shared_ptr<Parametrization> para(
       new PndLmdDPMModelParametrization(model.getModelParameterSet()));
   model.getModelParameterHandler().registerParametrizations(
@@ -328,12 +438,16 @@ shared_ptr<Model1D> PndLmdModelFactory::generate1DModel(
   LumiFit::DPMElasticParts elastic_parts = LumiFit::StringToDPMElasticParts.at(
       model_opt_ptree.get<std::string>("dpm_elastic_parts"));
 
+  LumiFit::TransformationOption trans_option =
+      LumiFit::StringToTransformationOption.at(
+          model_opt_ptree.get<std::string>("theta_t_trafo_option"));
+
   if (model_opt_ptree.get<bool>("momentum_transfer_active")) {
     current_model.reset(new PndLmdDPMMTModel1D("dpm_mt_1d", elastic_parts));
     // set free parameters
   } else {
     current_model.reset(
-        new PndLmdDPMAngModel1D("dpm_angular_1d", elastic_parts));
+        new PndLmdDPMAngModel1D("dpm_angular_1d", elastic_parts, trans_option));
   }
 
   shared_ptr<Parametrization> dpm_parametrization(
@@ -408,10 +522,15 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
   std::stringstream model_name;
   model_name << "dpm_angular_2d";
 
+  LumiFit::TransformationOption trans_option =
+      LumiFit::StringToTransformationOption.at(
+          model_opt_ptree.get<std::string>("theta_t_trafo_option"));
+
   shared_ptr<PndLmdDPMAngModel1D> dpm_angular_1d(
       new PndLmdDPMAngModel1D("dpm_angular_1d",
           LumiFit::StringToDPMElasticParts.at(
-              model_opt_ptree.get<std::string>("dpm_elastic_parts"))));
+              model_opt_ptree.get<std::string>("dpm_elastic_parts")),
+          trans_option));
 
   shared_ptr<Parametrization> dpm_parametrization(
       new PndLmdDPMModelParametrization(
@@ -431,7 +550,6 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
 
     std::cout << "using fast 2d dpm model..." << std::endl;
 
-    // make the binning twice as fine
     LumiFit::LmdDimension temp_prim_dim(data.getPrimaryDimension());
     LumiFit::LmdDimension temp_sec_dim(data.getSecondaryDimension());
 
@@ -500,7 +618,8 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
 
       TVirtualPad* curpad = gPad;
       TCanvas c;
-      acceptance.getAcceptance2D()->Draw("colz");
+      TEfficiency* eff2 = acceptance.getAcceptance2D();
+      eff2->Draw("colz");
       c.Update();
       TH2 *hist = acceptance.getAcceptance2D()->GetPaintedHistogram();
 
@@ -512,12 +631,24 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
               + (0.5 + ix) * data_primary_dimension.bin_size;
           pos.second = data_secondary_dimension.dimension_range.getRangeLow()
               + (0.5 + iy) * data_secondary_dimension.bin_size;
-          datamap[pos] = hist->Interpolate(pos.first, pos.second);
+
+          /*int bin = eff2->FindFixBin(pos.first, pos.second);
+          double eff_value = eff2->GetEfficiency(bin)
+              + 0.5
+                  * (eff2->GetEfficiencyErrorUp(bin)
+                      - eff2->GetEfficiencyErrorLow(bin))
+                  / std::sqrt(2 * M_PI);
+
+          datamap[pos] = eff_value;*/
+          int bin = hist->FindFixBin(pos.first, pos.second);
+          datamap[pos] = hist->GetBinContent(bin);
+
+          //datamap[pos] = hist->Interpolate(pos.first, pos.second);
           /*std::cout << data_primary_dimension.dimension_range.getRangeLow()
-              << " " << ix << " " << data_primary_dimension.bin_size
-              << std::endl;
-          std::cout << pos.first << ", " << pos.second << ": "
-              << hist->Interpolate(pos.first, pos.second) << std::endl;*/
+           << " " << ix << " " << data_primary_dimension.bin_size
+           << std::endl;
+           std::cout << pos.first << ", " << pos.second << ": "
+           << hist->Interpolate(pos.first, pos.second) << std::endl;*/
         }
       }
 
@@ -556,7 +687,7 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
 
     current_model.reset(
         new PndLmdSmearingConvolutionModel2D(model_name.str(), current_model,
-            generate2DSmearingModel(data)));
+            generate2DSmearingModel()));
   }
 
   // every model has superior parameters which have to be set by the user
@@ -574,8 +705,22 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
   return current_model;
 }
 
+const PndLmdAcceptance& PndLmdModelFactory::getAcceptance() const {
+  return acceptance;
+}
+const PndLmdMapData& PndLmdModelFactory::getResolutionMapData() const {
+  return resolution_map_data;
+}
+
 void PndLmdModelFactory::setAcceptance(const PndLmdAcceptance& acceptance_) {
   acceptance = acceptance_;
+}
+
+void PndLmdModelFactory::setResolutionMapData(const PndLmdMapData& res_map_) {
+  resolution_map_data = res_map_;
+  // in case map is empty, try to fill it from root tree
+  if (resolution_map_data.getHitMap().size() == 0)
+    resolution_map_data.convertFromRootTree();
 }
 
 void PndLmdModelFactory::setResolutions(

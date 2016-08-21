@@ -59,10 +59,10 @@ void determineLumiFitSystematics(std::vector<std::string> paths,
   // ================================ BEGIN CONFIG ================================ //
   // sets default pad margins etc that should be fine for most cases
   // you can fine tune it and overwrite the default values
-  gStyle->SetPadRightMargin(0.165);
-  gStyle->SetPadLeftMargin(0.125);
+  gStyle->SetPadRightMargin(0.07);
+  gStyle->SetPadLeftMargin(0.138);
   gStyle->SetPadBottomMargin(0.127);
-  gStyle->SetPadTopMargin(0.1);
+  gStyle->SetPadTopMargin(0.03);
   gStyle->SetPadColor(10);
   gStyle->SetCanvasColor(10);
   gStyle->SetStatColor(10);
@@ -154,25 +154,64 @@ void determineLumiFitSystematics(std::vector<std::string> paths,
   }
 
   // if we just need the luminosity values and do not have to build the models again
-  // ---------- reco -- full phi stuff
+
+
+  NeatPlotting::PlotBundle bundle;
+  //plot_style.palette_color_style = 1;
+  bundle.plot_axis.x_axis_title = "#theta_{x} & #theta_{y} binning";
+  bundle.plot_axis.y_axis_title = "#frac{L_{fit}-L_{ref}}{L_{ref}} /%";
+
+  NeatPlotting::DataObjectStyle style;
+  style.draw_option = "PE";
+
+  NeatPlotting::PlotStyle plot_style;
+  plot_style.y_axis_style.axis_title_text_offset = 1.22;
+
+
   LumiFit::LmdDimensionOptions lmd_dim_opt;
-  lmd_dim_opt.track_type = LumiFit::RECO;
+  lmd_dim_opt.track_type = LumiFit::MC_ACC;
   if (full_phi_reco_data_vec[0].getPrimaryDimension().dimension_options.dimension_type
       == LumiFit::THETA_X)
     lmd_dim_opt.dimension_type = LumiFit::THETA_X;
 
   LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter dim_filter(
       lmd_dim_opt);
+  auto acc_full_phi_data_vec = lmd_data_facade.filterData(
+      full_phi_reco_data_vec, dim_filter);
+
+
+  if (acc_full_phi_data_vec.size() > 0) {
+    TGraphAsymmErrors *graph = lmd_plotter.createBinningDependencyGraphBundle(
+        acc_full_phi_data_vec, lmd_dim_opt);
+
+    style.marker_style.marker_style = 24;
+    style.marker_style.marker_size = 1.3;
+    bundle.addGraph(graph, style);
+  }
+
+  lmd_dim_opt.track_type = LumiFit::RECO;
+  if (full_phi_reco_data_vec[0].getPrimaryDimension().dimension_options.dimension_type
+      == LumiFit::THETA_X)
+    lmd_dim_opt.dimension_type = LumiFit::THETA_X;
+
+  dim_filter = LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter(
+      lmd_dim_opt);
   full_phi_reco_data_vec = lmd_data_facade.filterData(full_phi_reco_data_vec,
       dim_filter);
 
-  TGraphAsymmErrors *graph =
-      lmd_plotter.createBinningDependencyGraphBundle(full_phi_reco_data_vec,
-          lmd_dim_opt);
+  if (full_phi_reco_data_vec.size() > 0) {
+    TGraphAsymmErrors *graph = lmd_plotter.createBinningDependencyGraphBundle(
+        full_phi_reco_data_vec, lmd_dim_opt);
+
+    style.marker_style.marker_color = 9;
+    style.marker_style.marker_style = 32;
+    style.marker_style.marker_size = 1.3;
+    bundle.addGraph(graph, style);
+  }
 
   TCanvas c;
-  graph->Draw("AP");
-  c.SaveAs("binning.pdf");
+  bundle.drawOnCurrentPad(plot_style);
+  c.SaveAs("acc_only_binning.pdf");
   // ================================ END PLOTTING ================================ //
 }
 

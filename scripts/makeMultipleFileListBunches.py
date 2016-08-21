@@ -19,6 +19,11 @@ def getListOfDirectories(path):
     for dir in os.listdir(path):
       dirpath = path + '/' + dir
       if os.path.isdir(dirpath):
+        if not args.force:
+          match = re.search('bunches.*', dirpath)
+          if match:
+            print 'skipping bunch creation for directory ' + path  + ' as it already was bunched. Please used the --force option to bunch this directory anyway!'
+            return
         getListOfDirectories(dirpath)
       else:
         match = re.search('Lumi_TrksQA_\d*\.root', dir)
@@ -85,6 +90,7 @@ parser.add_argument('dirname', metavar='dirname_to_scan', type=str, nargs=1,
                     help='Name of directory to scan recursively for qa files and create bunches')
 parser.add_argument('--files_per_bunch', metavar='files_per_bunch', type=int, default=4, help='number of root files used for a bunch')
 parser.add_argument('--directory_pattern', metavar='directory_pattern', type=str, default='.*', help='Only directories with according to this pattern will be used.')
+parser.add_argument('--force', action='store_true', help='force recreation')
 
 args = parser.parse_args()
 

@@ -1,7 +1,8 @@
-#include "PndLmdPlotter.h"
-#include "fit/PndLmdFitFacade.h"
+#include "ui/PndLmdPlotter.h"
+#include "ui/PndLmdFitFacade.h"
+#include "ui/PndLmdDataFacade.h"
 
-#include "PndLmdRuntimeConfiguration.h"
+#include "ui/PndLmdRuntimeConfiguration.h"
 
 #include <iostream>
 #include <string>
@@ -23,31 +24,43 @@ void plot2DModel(string input_file_dir, string config_file_url,
 	PndLmdRuntimeConfiguration& lmd_runtime_config = PndLmdRuntimeConfiguration::Instance();
 	lmd_runtime_config.setNumberOfThreads(nthreads);
 
+	lmd_runtime_config.readFitConfigFile(config_file_url);
 	lmd_runtime_config.setElasticDataInputDirectory(input_file_dir);
 	lmd_runtime_config.setAcceptanceResolutionInputDirectory(acceptance_file_dir);
 
 	LumiFit::LmdDimensionOptions data_dim_opt;
-	data_dim_opt.track_type = LumiFit::RECO;
+	data_dim_opt.track_type = LumiFit::MC_ACC;
+	data_dim_opt.dimension_type = LumiFit::THETA_X;
 
-	PndLmdFitFacade lmd_fit_facade;
-	shared_ptr<Model> model = lmd_fit_facade.generateModel(data_dim_opt);
+  // get lmd data and objects from files
+  PndLmdDataFacade lmd_data_facade;
+  vector<PndLmdAngularData> my_lmd_data_vec = lmd_data_facade.getElasticData();
+
+  LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter filter(data_dim_opt);
+  my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
+      my_lmd_data_vec, filter);
+
+  vector<PndLmdAcceptance> my_lmd_acc_vec = lmd_data_facade.getAcceptanceData();
+  vector<PndLmdHistogramData> all_lmd_res = lmd_data_facade.getResolutionData();
+  vector<PndLmdMapData> all_lmd_res_map = lmd_data_facade.getMapData();
+  // ------------------------------------------------------------------------
+
+  // start fitting
+  PndLmdFitFacade lmd_fit_facade;
+  // add acceptance data to pools
+  // the corresponding acceptances to the data will automatically be taken
+  // if not found then this fit is skipped
+  lmd_fit_facade.addAcceptencesToPool(my_lmd_acc_vec);
+  lmd_fit_facade.addResolutionsToPool(all_lmd_res);
+  lmd_fit_facade.addResolutionMapsToPool(all_lmd_res_map);
+
+	shared_ptr<Model> model = lmd_fit_facade.generateModel(my_lmd_data_vec[0]);
 
 	const double theta_min = -0.01;
 	const double theta_max = 0.01;
 
 	DataStructs::DimensionRange plot_range_thx(theta_min, theta_max);
 	DataStructs::DimensionRange plot_range_thy(theta_min, theta_max);
-
-	// create 2d model and initialize tilt parameters
-  double tilt_x(0.0);
-  double tilt_y(0.0);
-
-	model->getModelParameterSet().freeModelParameter("tilt_x");
-	model->getModelParameterSet().freeModelParameter("tilt_y");
-	model->getModelParameterSet().setModelParameterValue("tilt_x", tilt_x);
-	model->getModelParameterSet().setModelParameterValue("tilt_y", tilt_y);
-
-	model->getModelParameterSet().printInfo();
 
 	// integral - just for testing purpose
 	/*std::vector<DataStructs::DimensionRange> int_range;
@@ -81,7 +94,6 @@ void plot2DModel(string input_file_dir, string config_file_url,
 	model_hist->GetXaxis()->SetTitle("#theta / rad");
 	model_hist->GetYaxis()->SetTitle("#phi / rad");
 	std::stringstream titletext;
-	titletext << "tilt_{x}=" << tilt_x << " rad, tilt_{y}=" << tilt_y << " rad";
 	model_hist->SetTitle(titletext.str().c_str());
 
 	//c.SetLogz(1);
@@ -89,12 +101,10 @@ void plot2DModel(string input_file_dir, string config_file_url,
 	std::stringstream strstream;
 	strstream.precision(3);
 
-	strstream << "DPMModel2D_tiltxy-" << tilt_x << "-" << tilt_y << "_plab-"
-			<< lmd_runtime_config.getMomentum() << ".pdf";
+	strstream << "DPMModel2D.pdf";
 	c.SaveAs(strstream.str().c_str());
 	strstream.str("");
-	strstream << "DPMModel2D_tiltxy-" << tilt_x << "-" << tilt_y << "_plab-"
-			<< lmd_runtime_config.getMomentum() << ".png";
+	strstream << "DPMModel2D.png";
 	c.SaveAs(strstream.str().c_str());
 
 	boost::chrono::thread_clock::time_point stop =

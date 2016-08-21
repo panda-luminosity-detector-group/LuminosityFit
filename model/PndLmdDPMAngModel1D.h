@@ -11,12 +11,20 @@
 #include "PndLmdDPMMTModel1D.h"
 
 class PndLmdDPMAngModel1D: public PndLmdDPMMTModel1D {
+// function pointer used to switch between different algorithms for interpolation
+  typedef double (PndLmdDPMAngModel1D::*trans_function)(const double theta) const;
+
+  trans_function trafo_func;
+
 public:
-    PndLmdDPMAngModel1D(std::string name_, LumiFit::DPMElasticParts elastic_type_);
+    PndLmdDPMAngModel1D(std::string name_, LumiFit::DPMElasticParts elastic_type_, LumiFit::TransformationOption trafo_type);
     virtual ~PndLmdDPMAngModel1D();
 
-    double getMomentumTransferFromTheta(const double theta) const;
+    double getMomentumTransferFromThetaCorrect(const double theta) const;
+    double getMomentumTransferFromThetaApprox(const double theta) const;
 
+    double getMomentumTransferFromTheta(const double theta) const;
+    
     double getThetaMomentumTransferJacobian(const double theta) const;
 
     /**
