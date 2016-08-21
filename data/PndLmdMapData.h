@@ -10,6 +10,9 @@ struct Point2D {
   double x;
   double y;
 
+  Point2D() : x(0.0), y(0.0) {}
+  Point2D(double x_, double y_) : x(x_), y(y_) {}
+
   bool operator<(const Point2D &rhs) const {
     if(x < rhs.x)
       return true;
