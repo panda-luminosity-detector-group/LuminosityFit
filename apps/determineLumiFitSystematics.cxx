@@ -179,10 +179,14 @@ void determineLumiFitSystematics(std::vector<std::string> paths,
   auto acc_full_phi_data_vec = lmd_data_facade.filterData(
       full_phi_reco_data_vec, dim_filter);
 
+  TFile output_rootfile("depend.root", "RECREATE");
 
   if (acc_full_phi_data_vec.size() > 0) {
     TGraphAsymmErrors *graph = lmd_plotter.createBinningDependencyGraphBundle(
         acc_full_phi_data_vec, lmd_dim_opt);
+
+    output_rootfile.cd();
+    graph->Write("mc_acc_vs_binning_graph");
 
     style.marker_style.marker_style = 24;
     style.marker_style.marker_size = 1.3;
@@ -203,11 +207,17 @@ void determineLumiFitSystematics(std::vector<std::string> paths,
     TGraphAsymmErrors *graph = lmd_plotter.createBinningDependencyGraphBundle(
         full_phi_reco_data_vec, lmd_dim_opt);
 
+    output_rootfile.cd();
+    graph->Write("reco_vs_binning_graph");
+
     style.marker_style.marker_color = 9;
     style.marker_style.marker_style = 32;
     style.marker_style.marker_size = 1.3;
     bundle.addGraph(graph, style);
   }
+
+  output_rootfile.Write();
+  output_rootfile.Close();
 
   TCanvas c;
   bundle.drawOnCurrentPad(plot_style);

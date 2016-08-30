@@ -73,8 +73,8 @@ def fixLine(text, search_str):
     return text
 
 class DirectorySearcher:    
-    def __init__(self, pattern_, not_contain_pattern_ = ''):
-        self.pattern = pattern_
+    def __init__(self, patterns_, not_contain_pattern_ = ''):
+        self.patterns = patterns_
         self.not_contain_pattern = not_contain_pattern_
         self.dirs = []
         
@@ -122,11 +122,17 @@ class DirectorySearcher:
             return;
         files = glob.glob(path + '/' + glob_pattern)
         if files:
-          m = re.search(self.pattern, path)
-          if m:
-            self.dirs.append(path)
+          is_good = True
+          for pattern in self.patterns:
+            m = re.search(pattern, path)
+            if not m:
+              is_good = False
+              break
+          if is_good:
+            self.dirs.append(path)            
           
-        # if we did not get any exit criterium then change into subdirectories
+        print path
+        # if we did not get any exit criterium then change into subdirectories            
         for dir in next(os.walk(path))[1]:
           dirpath = path + '/' + dir
           if os.path.isdir(dirpath):

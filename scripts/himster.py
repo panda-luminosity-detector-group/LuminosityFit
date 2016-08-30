@@ -91,7 +91,7 @@ class HimsterJobManager:
     max_jobarray_size = 100
     job_resubmit_sleep_time_in_seconds = 1800
       
-    def __init__(self, himster_total_job_threshold=1600, max_jobarray_size=100, job_resubmit_sleep_time_in_seconds=1800):
+    def __init__(self, himster_total_job_threshold=1600, job_resubmit_sleep_time_in_seconds=1800, max_jobarray_size=100):
         self.job_command_list = []
         # user total job threshold
         self.himster_total_job_threshold = himster_total_job_threshold

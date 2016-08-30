@@ -53,5 +53,5 @@ for data_type_info in data_type_list:
   for dir in dirs:
     print 'starting merge for ' + dir
     bashcommand = default = os.getenv('LMDFIT_BUILD_PATH') + '/bin/mergeLmdData -p ' + dir + ' -t ' + data_type_info.data_type + ' -n ' + str(args.num_samples) + ' -s ' + str(args.sample_size) + data_type_info.pattern 
-    #print bashcommand    
+    print bashcommand    
     returnvalue = subprocess.call(bashcommand.split())

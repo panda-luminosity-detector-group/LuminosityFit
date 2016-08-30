@@ -44,26 +44,27 @@ def getListOfBoxDirectories(path):
 
 def getTopBoxDirectory(path):
   if os.path.isdir(path):
-    if not re.search('box', path):
-      if not os.listdir(path):
-        return
-      if glob.glob(path + '/*.root'):
-        return
-      for dir in os.listdir(path):
-        getTopBoxDirectory(path + '/' + dir)
-    else:
-      global top_level_box_directory
-      top_level_box_directory = path
+    found = False
+    for dir in next(os.walk(path))[1]:
+      if re.search('box', dir):
+        global top_level_box_directory
+        top_level_box_directory = path + '/' + dir
+        found = True
+        break;
+    if not found:
+      getTopBoxDirectory(os.path.dirname(path))
+
 
 def findMatchingDirs(box_data_path):
   matching_dir_pairs = []
   if box_data_path == '':
     for dpm_dir in dirs:
-      match = re.search('^(.*/)dpm_.*?(/.*/)\d*-\d*x\d*_(.*cut)/.*(/.*?)$', dpm_dir)
-      pattern = '^' + match.group(1) + 'box_.*?' + match.group(2) + '.*' + match.group(3) + '/.*' + match.group(4) + '$'
-      print pattern
+      print dpm_dir
+      match = re.search('^(.*/)dpm_.*?(/.*/)\d*/\d*-\d*_(.*cut)/.*/(binning_\d*)/merge_data$', dpm_dir)
+      pattern = '^' + match.group(1) + 'box_.*?' + match.group(2) + '.*' + match.group(3) + '/.*' + match.group(4) + '/merge_data$'
+      #print pattern
       for box_dir in box_dirs:
-        print box_dir
+        #print box_dir
         box_match = re.search(pattern, box_dir)
         if box_match:
           matching_dir_pairs.append([dpm_dir, box_dir])
@@ -112,24 +113,28 @@ number_of_threads = args.number_of_threads
 if args.number_of_threads > 16:
   number_of_threads = 16
 
-dir_pattern = args.dirname_pattern[0]
-
 tail_dir_pattern = args.tail_dir_pattern
-
 
 dpm_glob_pattern = 'lmd_data_*of*.root'
 
-dir_searcher = general.DirectorySearcher(dir_pattern)
+patterns = [args.dirname_pattern[0], args.tail_dir_pattern]
+dir_searcher = general.DirectorySearcher(patterns)
+
 dir_searcher.searchListOfDirectories(args.dirname[0], dpm_glob_pattern)
 dirs = dir_searcher.getListOfDirectories()
 
 if args.forced_box_gen_data == '':
   getTopBoxDirectory(args.dirname[0])
-  print top_level_box_directory
-  getListOfBoxDirectories(top_level_box_directory)
-
+  print 'box top dir: ' + top_level_box_directory
+  #getListOfBoxDirectories(top_level_box_directory)
+  box_dir_searcher = general.DirectorySearcher(patterns)
+  box_dir_searcher.searchListOfDirectories(top_level_box_directory, box_acc_glob_pattern)
+  box_dirs = box_dir_searcher.getListOfDirectories()
+  
 
 matches = findMatchingDirs(args.forced_box_gen_data)
+
+print matches
 
 command_suffix = '" -V';
 

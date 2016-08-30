@@ -26,8 +26,8 @@ parser.add_argument('--dir_pattern', metavar='path name pattern', type=str, defa
 parser.add_argument('--force', action='store_true', help='number of events to use')
 parser.add_argument('--num_events', metavar='num_events', type=int, default=0, help='number of events to use')
 parser.add_argument('--elastic_cross_section', metavar='elastic_cross_section', type=float, default=1.0, help='Total elastic cross section. Relevant for luminosity extraction performance tests!')
-parser.add_argument('--general_dimension_bins_low', metavar='general_dimension_bins_low', type=int, default=100, help='binning of data min')
-parser.add_argument('--general_dimension_bins_high', metavar='general_dimension_bins_high', type=int, default=100, help='binning of data max')
+parser.add_argument('--general_dimension_bins_low', metavar='general_dimension_bins_low', type=int, default=300, help='binning of data min')
+parser.add_argument('--general_dimension_bins_high', metavar='general_dimension_bins_high', type=int, default=300, help='binning of data max')
 parser.add_argument('--general_dimension_bins_step', metavar='general_dimension_bins_step', type=int, default=100, help='binning of data stepsize')
 
 
@@ -84,13 +84,12 @@ for bins in range(args.general_dimension_bins_low, args.general_dimension_bins_h
 
 joblist = []
 
-for dir in dirs:
-  for config_path in config_paths:
-    num_filelists = len(glob.glob(dir + '/filelist_*.txt'))
-   
-    input_path = os.path.split(dir)[0]
-    filelist_path = dir
-   
+for config_path in config_paths:   
+    filelist_path = os.path.split(config_path)[0]
+    input_path = os.path.split(filelist_path)[0]
+    
+    num_filelists = len(glob.glob(filelist_path + '/filelist_*.txt'))
+    
     resource_request = himster.JobResourceRequest(3 * 60)
     resource_request.number_of_nodes = 1
     resource_request.processors_per_node = 1
@@ -112,7 +111,7 @@ for dir in dirs:
    
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
-job_manager = himster.HimsterJobManager(1600)
+job_manager = himster.HimsterJobManager(400, 300)
 
 job_manager.submitJobsToHimster(joblist)
 job_manager.manageJobs()

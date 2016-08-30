@@ -47,7 +47,7 @@ void plotLumiFitResults(std::vector<std::string> paths,
   gStyle->SetPadRightMargin(0.165);
   gStyle->SetPadLeftMargin(0.125);
   gStyle->SetPadBottomMargin(0.127);
-  gStyle->SetPadTopMargin(0.1);
+  gStyle->SetPadTopMargin(0.03);
   gStyle->SetPadColor(10);
   gStyle->SetCanvasColor(10);
   gStyle->SetStatColor(10);
@@ -61,8 +61,9 @@ void plotLumiFitResults(std::vector<std::string> paths,
 
   bool make_1d_plots(false);
   bool make_2d_plots(true);
-  bool make_single_scenario_bookies(true);
+  bool make_single_scenario_bookies(false);
   bool make_offset_overview_plots(false);
+  bool make_ipspot_overview_plots(true);
   bool make_tilt_overview_plots(false);
   bool make_fit_range_dependency_plots(false);
 
@@ -173,6 +174,19 @@ void plotLumiFitResults(std::vector<std::string> paths,
     bundle.drawOnCurrentPad(plot_style);
     c.SaveAs(filename.str().c_str());
   }
+  if (make_ipspot_overview_plots && full_phi_reco_data_vec.size() > 1) {
+      std::stringstream filename;
+      filename << basepath.str() << "/";
+      filename << "plab_" << full_phi_reco_data_vec.begin()->getLabMomentum()
+          << "/lumifit_result_ip_spot_overview.root";
+
+      TGraph2DErrors* graph = lmd_plotter.makeIPSpotXYOverviewGraph(
+          full_phi_reco_data_vec);
+
+      TFile newfile(filename.str().c_str(), "RECREATE");
+      graph->Write("overview_graph");
+    }
+
 
   if (make_tilt_overview_plots && full_phi_reco_data_vec.size() > 1) {
     std::stringstream filename;
@@ -355,7 +369,7 @@ void plotLumiFitResults(std::vector<std::string> paths,
           NeatPlotting::PlotBundle reco_plot_bundle =
               lmd_plotter.makeGraphBundle(
                   full_phi_reco_data_vec[reco_data_obj_index],
-                  fit_result_iter->first, true, false, false);
+                  fit_result_iter->first, true, false, true);
           reco_plot_bundle.drawOnCurrentPad(single_plot_style);
           filepath.str("");
           filepath << filepath_base.str() << "/fit_result_reco_data_2d.pdf";
@@ -363,7 +377,7 @@ void plotLumiFitResults(std::vector<std::string> paths,
 
           reco_plot_bundle = lmd_plotter.makeGraphBundle(
               full_phi_reco_data_vec[reco_data_obj_index],
-              fit_result_iter->first, false, true, false);
+              fit_result_iter->first, false, true, true);
           reco_plot_bundle.drawOnCurrentPad(single_plot_style);
           filepath.str("");
           filepath << filepath_base.str() << "/fit_result_reco_model_2d.pdf";
@@ -371,7 +385,7 @@ void plotLumiFitResults(std::vector<std::string> paths,
 
           reco_plot_bundle = lmd_plotter.makeGraphBundle(
               full_phi_reco_data_vec[reco_data_obj_index],
-              fit_result_iter->first, true, true, false);
+              fit_result_iter->first, true, true, true);
           reco_plot_bundle.drawOnCurrentPad(diff_plot_style);
           filepath.str("");
           filepath << filepath_base.str() << "/fit_result_reco_diff_2d.pdf";

@@ -698,9 +698,11 @@ namespace LumiFit {
               + data.getSecondaryDimension().createUnitLabel();
 
       std::stringstream ss;
+      ss.precision(2);
+      ss << std::scientific;
       ss << "# of tracks / "
-          << hist->GetXaxis()->GetBinWidth(1)
-              * hist->GetYaxis()->GetBinWidth(1);
+          << hist->GetXaxis()->GetBinWidth(1) * hist->GetYaxis()->GetBinWidth(1)
+          << " mrad^{2}";
       ang_plot_bundle.plot_axis.z_axis_title = ss.str();
 
       TH2D* model(0);
@@ -717,12 +719,14 @@ namespace LumiFit {
       }
 
       if (draw_data && draw_model) {
-        TH2D* diff = neat_plot_helper.makeRelativeDifferenceHistogram(model,
-            hist);
+        TH2D* diff = neat_plot_helper.makeDifferenceHistogram(model, hist);
         ang_plot_bundle.addHistogram(diff, style);
-        ang_plot_bundle.plot_axis.z_axis_range.low = -0.2;
-        ang_plot_bundle.plot_axis.z_axis_range.high = 0.2;
-        ang_plot_bundle.plot_axis.z_axis_range.active = true;
+        //ang_plot_bundle.plot_axis.z_axis_range.low = -0.2;
+        //ang_plot_bundle.plot_axis.z_axis_range.high = 0.2;
+        //ang_plot_bundle.plot_axis.z_axis_range.active = true;
+        //style.draw_option = "E1";
+        //ang_plot_bundle.addHistogram(neat_plot_helper.makePullHistogram(hist, model), style);
+
       } else {
         if (draw_data)
           ang_plot_bundle.addHistogram(hist, style);
@@ -741,9 +745,9 @@ namespace LumiFit {
 
       NeatPlotting::TextStyle text_style;
       NeatPlotting::PlotLabel plot_label(strstream.str(), text_style);
-      ang_plot_bundle.plot_decoration.label_text_leftpos = 0.7;
-      ang_plot_bundle.plot_decoration.label_text_toppos = 1.0;
-      ang_plot_bundle.plot_decoration.label_text_spacing = 0.06;
+      ang_plot_bundle.plot_decoration.label_text_leftpos = 0.5;
+      ang_plot_bundle.plot_decoration.label_text_toppos = 0.94;
+      ang_plot_bundle.plot_decoration.label_text_spacing = 0.08;
       ang_plot_bundle.plot_decoration.use_line_layout = true;
       ang_plot_bundle.plot_decoration.labels.push_back(plot_label);
       strstream.str("");
@@ -764,20 +768,20 @@ namespace LumiFit {
           ang_plot_bundle.plot_decoration.labels.push_back(plot_label);
           strstream.str("");
 
-          if (draw_data) {
-            const std::set<ModelStructs::minimization_parameter> fit_params =
-                fit_res.getModelFitResult().getFitParameters();
-            std::set<ModelStructs::minimization_parameter>::const_iterator fit_param_it;
-            for (fit_param_it = fit_params.begin();
-                fit_param_it != fit_params.end(); fit_param_it++) {
-              strstream.str("");
-              strstream << std::setprecision(3) << fit_param_it->name.second
-                  << "= " << fit_param_it->value << " #pm "
-                  << fit_param_it->error;
-              plot_label.setTitle(strstream.str());
-              ang_plot_bundle.plot_decoration.labels.push_back(plot_label);
-            }
-          }
+          /*if (draw_data) {
+           const std::set<ModelStructs::minimization_parameter> fit_params =
+           fit_res.getModelFitResult().getFitParameters();
+           std::set<ModelStructs::minimization_parameter>::const_iterator fit_param_it;
+           for (fit_param_it = fit_params.begin();
+           fit_param_it != fit_params.end(); fit_param_it++) {
+           strstream.str("");
+           strstream << std::setprecision(3) << fit_param_it->name.second
+           << "= " << fit_param_it->value << " #pm "
+           << fit_param_it->error;
+           plot_label.setTitle(strstream.str());
+           ang_plot_bundle.plot_decoration.labels.push_back(plot_label);
+           }
+           }*/
         }
       }
     }
@@ -1090,6 +1094,49 @@ namespace LumiFit {
     plot_bundle.plot_axis.y_axis_title = "y_{IP} / mm";
 
     return plot_bundle;
+  }
+
+  TGraph2DErrors* PndLmdPlotter::makeIPSpotXYOverviewGraph(
+      const std::vector<PndLmdElasticDataBundle> &elastic_data_bundles) const {
+
+    std::pair<double, double> lumi;
+    std::vector<double> x;
+    std::vector<double> y;
+    std::vector<double> z;
+    std::vector<double> z_err;
+
+    std::vector<PndLmdElasticDataBundle>::const_iterator ip_setting_case;
+    for (ip_setting_case = elastic_data_bundles.begin();
+        ip_setting_case != elastic_data_bundles.end(); ip_setting_case++) {
+      if (ip_setting_case->getFitResults().size() > 0) {
+        PndLmdLumiFitResult fit_result;
+        fit_result.setModelFitResult(
+            ip_setting_case->getFitResults().begin()->second[0]);
+
+        lumi = calulateRelDiff(fit_result.getLuminosity(),
+            fit_result.getLuminosityError(),
+            ip_setting_case->getReferenceLuminosity());
+
+        boost::property_tree::ptree sim_params(
+            ip_setting_case->getSimulationParametersPropertyTree());
+
+        double ip_mean_x = sim_params.get<double>("ip_standard_deviation_x");
+        double ip_mean_y = sim_params.get<double>("ip_standard_deviation_y");
+
+        std::cout << "lumi for " << ip_mean_x << " " << ip_mean_y
+            << " beam spotsize case: " << lumi.first << " +- " << lumi.second
+            << std::endl;
+
+        x.push_back(10.0 * ip_mean_x);
+        y.push_back(10.0 * ip_mean_y);
+        z.push_back(lumi.first);
+        z_err.push_back(lumi.second);
+      }
+    }
+
+    TGraph2DErrors *graph = new TGraph2DErrors(x.size(), &x[0], &y[0], &z[0], 0, 0, &z_err[0]);
+
+    return graph;
   }
 
   NeatPlotting::PlotBundle PndLmdPlotter::makeXYOverviewHistogram(
@@ -2311,7 +2358,7 @@ namespace LumiFit {
       const std::vector<PndLmdElasticDataBundle> &prefiltered_data,
       const LmdDimensionOptions& dim_opt) const {
 
-    std::map<double, std::pair<NeatPlotting::GraphPoint, unsigned int> > points;
+    std::map<unsigned int, std::pair<NeatPlotting::GraphPoint, unsigned int> > points;
 
     for (auto const& prefiltered_data_obj : prefiltered_data) {
       double lumi_ref = prefiltered_data_obj.getReferenceLuminosity();

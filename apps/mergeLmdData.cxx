@@ -142,8 +142,8 @@ template<class T> void mergeData(vector<string> found_files,
     // get lmd data and objects from files
     vector<T> lmd_data_vec = lmd_data_facade.getDataFromFile<T>(fdata);
 
+    output_file->cd();
     for (entry = lmd_data_vec.begin(); entry != lmd_data_vec.end(); entry++) {
-
       iter = merged_files.find(*entry);
 
       PndLmdAbstractData *lmd_data = (PndLmdAbstractData*) &(*entry);

@@ -16,6 +16,7 @@
 #include <map>
 
 #include "TString.h"
+#include "TGraph2DErrors.h"
 
 class PndLmdAngularData;
 class PndLmdAcceptance;
@@ -159,6 +160,9 @@ public:
 
 	NeatPlotting::PlotBundle makeIPXYOverviewGraphBundle(
 			const std::vector<PndLmdHistogramData> &vertex_data) const;
+
+  TGraph2DErrors* makeIPSpotXYOverviewGraph(
+      const std::vector<PndLmdElasticDataBundle> &elastic_data_bundles) const;
 
 	NeatPlotting::PlotBundle makeXYOverviewHistogram(
 			const std::vector<PndLmdElasticDataBundle> &elastic_data_bundles) const;
