@@ -36,7 +36,7 @@
 
 #include "TGaxis.h"
 
-void plotLumiFitResults(std::vector<std::string> paths,
+void plotLumiFitResults(std::vector<std::string> paths, int type,
     const std::string &filter_string, const std::string &output_directory_path,
     TString filename_suffix) {
   std::cout << "Generating lumi plots for fit results....\n";
@@ -60,12 +60,21 @@ void plotLumiFitResults(std::vector<std::string> paths,
 //plotter.setThetaPlotRange(0.5, 16.0);
 
   bool make_1d_plots(false);
-  bool make_2d_plots(true);
+  bool make_2d_plots(false);
   bool make_single_scenario_bookies(false);
   bool make_offset_overview_plots(false);
-  bool make_ipspot_overview_plots(true);
+  bool make_ipspot_overview_plots(false);
   bool make_tilt_overview_plots(false);
   bool make_fit_range_dependency_plots(false);
+
+  if(type == 1)
+    make_2d_plots = true;
+  else if(type == 2)
+    make_ipspot_overview_plots = true;
+  else if(type == 3)
+    make_offset_overview_plots = true;
+  else if(type == 4)
+    make_tilt_overview_plots = true;
 
 // ================================= END CONFIG ================================= //
 
@@ -158,41 +167,46 @@ void plotLumiFitResults(std::vector<std::string> paths,
   full_phi_reco_data_vec = lmd_data_facade.filterData(full_phi_reco_data_vec,
       dim_filter);
 
+  /*LumiFit::LmdDimensionOptions lmd_dim_opt2;
+   lmd_dim_opt2.dimension_type = LumiFit::SECONDARY;
+   lmd_dim_opt2.track_param_type = LumiFit::IP;
+   lmd_dim_opt2.track_type = LumiFit::MC;
+
+   LumiFit::Comparisons::NegatedSelectionDimensionFilter dim_filter2(
+   lmd_dim_opt2);
+   full_phi_reco_data_vec = lmd_data_facade.filterData(full_phi_reco_data_vec,
+   dim_filter2);*/
+
   if (make_offset_overview_plots && full_phi_reco_data_vec.size() > 1) {
     std::stringstream filename;
     filename << basepath.str() << "/";
     filename << "plab_" << full_phi_reco_data_vec.begin()->getLabMomentum()
-        << "/lumifit_result_ip_overview.pdf";
+        << "/lumifit_result_ip_overview.root";
 
-    NeatPlotting::PlotBundle bundle = lmd_plotter.makeXYOverviewHistogram(
+    TGraph2DErrors* graph = lmd_plotter.makeXYOverviewGraph(
         full_phi_reco_data_vec);
 
-    TCanvas c;
-    NeatPlotting::PlotStyle plot_style;
-    plot_style.palette_color_style = 0;
-    plot_style.z_axis_style.log_scale = true;
-    bundle.drawOnCurrentPad(plot_style);
-    c.SaveAs(filename.str().c_str());
+    TFile newfile(filename.str().c_str(), "RECREATE");
+    graph->Write("overview_graph");
   }
   if (make_ipspot_overview_plots && full_phi_reco_data_vec.size() > 1) {
-      std::stringstream filename;
-      filename << basepath.str() << "/";
-      filename << "plab_" << full_phi_reco_data_vec.begin()->getLabMomentum()
-          << "/lumifit_result_ip_spot_overview.root";
+    std::stringstream filename;
+    filename << basepath.str() << "/";
+    filename << "plab_" << full_phi_reco_data_vec.begin()->getLabMomentum()
+        << "/lumifit_result_ip_spot_overview.root";
 
-      TGraph2DErrors* graph = lmd_plotter.makeIPSpotXYOverviewGraph(
-          full_phi_reco_data_vec);
+    TGraph2DErrors* graph = lmd_plotter.makeIPSpotXYOverviewGraph(
+        full_phi_reco_data_vec);
 
-      TFile newfile(filename.str().c_str(), "RECREATE");
-      graph->Write("overview_graph");
-    }
-
+    TFile newfile(filename.str().c_str(), "RECREATE");
+    graph->Write("overview_graph");
+  }
 
   if (make_tilt_overview_plots && full_phi_reco_data_vec.size() > 1) {
     std::stringstream filename;
     filename << basepath.str() << "/";
     filename << "plab_" << full_phi_reco_data_vec.begin()->getLabMomentum()
-        << "/lumifit_result_tilt_overview.pdf";
+        << "/lumifit_result_tilt_overview.root";
 
     std::cout << "build overview histogram with "
         << full_phi_reco_data_vec.size() << " values!" << std::endl;
@@ -213,19 +227,21 @@ void plotLumiFitResults(std::vector<std::string> paths,
       }
     }
 
-    NeatPlotting::PlotBundle bundle = lmd_plotter.makeTiltXYOverviewHistogram(
-        filtered_reco_data_objects, 2);
-    bundle.plot_axis.z_axis_range.active = true;
-    bundle.plot_axis.z_axis_range.low = 0.0;
-    bundle.plot_axis.z_axis_range.high = 0.1;
+    TGraph2DErrors* graph = lmd_plotter.makeTiltXYOverviewGraph(
+        filtered_reco_data_objects);
+    TFile newfile(filename.str().c_str(), "RECREATE");
+    graph->Write("overview_graph");
 
-    TCanvas c;
-    NeatPlotting::PlotStyle plot_style;
-    plot_style.palette_color_style = 0;
-    plot_style.z_axis_style.axis_title_text_offset = 1.4;
-    plot_style.z_axis_style.log_scale = false;
-    bundle.drawOnCurrentPad(plot_style);
-    c.SaveAs(filename.str().c_str());
+    std::pair<TGraphAsymmErrors*, TGraphAsymmErrors*> graphs =
+        lmd_plotter.makeTiltXYOverviewGraphs(filtered_reco_data_objects);
+
+    filename.str("");
+    filename << basepath.str() << "/";
+    filename << "plab_" << full_phi_reco_data_vec.begin()->getLabMomentum()
+        << "/fit_results_tiltxy_overview.root";
+    TFile newfile2(filename.str().c_str(), "RECREATE");
+    graphs.first->Write("tilt_xy_reco_fit");
+    graphs.second->Write("tilt_xy_truth");
   }
 
   // now the stuff that really need to generate the model
@@ -241,6 +257,9 @@ void plotLumiFitResults(std::vector<std::string> paths,
             full_phi_vec[fit_data_bundle_index].getElasticDataBundles()[0]);
 
     boost::filesystem::create_directories(filepath_base.str());
+
+    // ok before doing anything just print out some stats about the fit bundle
+    full_phi_vec[fit_data_bundle_index].printInfo();
 
     std::stringstream filepath;
     TCanvas c("", "", 1000, 700);
@@ -343,69 +362,57 @@ void plotLumiFitResults(std::vector<std::string> paths,
           c.SaveAs(filepath.str().c_str());
         }
 
-        // save additional root file for tdr...
-        /*TGraph* grmodel = reco_plot_bundle.getGraphs()[0].data_object;
-         TH1D* histdata =
-         (TH1D*) reco_plot_bundle.getHistograms()[0].data_object;
-         filepath.str("");
-         filepath << filepath_base.str() << "/fit_result_reco.root";
-         TDirectory *curdir = gDirectory;
-         TFile *ftemp = new TFile(filepath.str().c_str(), "RECREATE");
-         grmodel->Write("model");
-         histdata->Write("data");
-         TNamed label("reldiff_label",
-         reco_plot_bundle.plot_decoration.labels[reco_plot_bundle.plot_decoration.labels.size()
-         - 1].getTitle());
-         label.Write();
-         ftemp->Write();
-         ftemp->Close();
-         if (curdir)
-         curdir->cd();*/
-
         c.Clear();
         if (make_2d_plots
             && fit_result_iter->first.getModelOptionsPropertyTree().get<
                 unsigned int>("fit_dimension") == 2) {
-          NeatPlotting::PlotBundle reco_plot_bundle =
-              lmd_plotter.makeGraphBundle(
-                  full_phi_reco_data_vec[reco_data_obj_index],
-                  fit_result_iter->first, true, false, true);
-          reco_plot_bundle.drawOnCurrentPad(single_plot_style);
-          filepath.str("");
-          filepath << filepath_base.str() << "/fit_result_reco_data_2d.pdf";
-          c.SaveAs(filepath.str().c_str());
 
-          reco_plot_bundle = lmd_plotter.makeGraphBundle(
-              full_phi_reco_data_vec[reco_data_obj_index],
-              fit_result_iter->first, false, true, true);
-          reco_plot_bundle.drawOnCurrentPad(single_plot_style);
           filepath.str("");
-          filepath << filepath_base.str() << "/fit_result_reco_model_2d.pdf";
-          c.SaveAs(filepath.str().c_str());
+          filepath << filepath_base.str() << "/fit_result_reco_2d.root";
 
-          reco_plot_bundle = lmd_plotter.makeGraphBundle(
-              full_phi_reco_data_vec[reco_data_obj_index],
-              fit_result_iter->first, true, true, true);
-          reco_plot_bundle.drawOnCurrentPad(diff_plot_style);
-          filepath.str("");
-          filepath << filepath_base.str() << "/fit_result_reco_diff_2d.pdf";
-          c.SaveAs(filepath.str().c_str());
+          lmd_plotter.makeFitBundle(full_phi_reco_data_vec[reco_data_obj_index],
+              fit_result_iter->first, filepath.str());
 
-          unsigned int used_acc_index =
-              full_phi_reco_data_vec[reco_data_obj_index].getUsedAcceptanceIndices()[0];
+          /*NeatPlotting::PlotBundle reco_plot_bundle =
+           lmd_plotter.makeGraphBundle(
+           full_phi_reco_data_vec[reco_data_obj_index],
+           fit_result_iter->first, true, false, true);
+           reco_plot_bundle.drawOnCurrentPad(single_plot_style);
+           filepath.str("");
+           filepath << filepath_base.str() << "/fit_result_reco_data_2d.pdf";
+           c.SaveAs(filepath.str().c_str());
 
-          NeatPlotting::PlotBundle acc_bundle_2d =
-              lmd_plotter.makeAcceptanceBundle2D(
-                  full_phi_vec[fit_data_bundle_index].getUsedAcceptancesPool()[used_acc_index]);
-          //acc_bundle_2d.plot_axis.x_axis_range.active = true;
-          //acc_bundle_2d.plot_axis.x_axis_range.low = 0.002;
-          //acc_bundle_2d.plot_axis.x_axis_range.high = 0.01;
-          single_plot_style.z_axis_style.log_scale = false;
-          acc_bundle_2d.drawOnCurrentPad(single_plot_style);
-          single_plot_style.z_axis_style.log_scale = true;
-          filepath.str("");
-          filepath << filepath_base.str() << "/acceptance2d.png";
-          c.SaveAs(filepath.str().c_str());
+           reco_plot_bundle = lmd_plotter.makeGraphBundle(
+           full_phi_reco_data_vec[reco_data_obj_index],
+           fit_result_iter->first, false, true, true);
+           reco_plot_bundle.drawOnCurrentPad(single_plot_style);
+           filepath.str("");
+           filepath << filepath_base.str() << "/fit_result_reco_model_2d.pdf";
+           c.SaveAs(filepath.str().c_str());
+
+           reco_plot_bundle = lmd_plotter.makeGraphBundle(
+           full_phi_reco_data_vec[reco_data_obj_index],
+           fit_result_iter->first, true, true, true);
+           reco_plot_bundle.drawOnCurrentPad(diff_plot_style);
+           filepath.str("");
+           filepath << filepath_base.str() << "/fit_result_reco_diff_2d.pdf";
+           c.SaveAs(filepath.str().c_str());
+
+           unsigned int used_acc_index =
+           full_phi_reco_data_vec[reco_data_obj_index].getUsedAcceptanceIndices()[0];
+
+           NeatPlotting::PlotBundle acc_bundle_2d =
+           lmd_plotter.makeAcceptanceBundle2D(
+           full_phi_vec[fit_data_bundle_index].getUsedAcceptancesPool()[used_acc_index]);
+           //acc_bundle_2d.plot_axis.x_axis_range.active = true;
+           //acc_bundle_2d.plot_axis.x_axis_range.low = 0.002;
+           //acc_bundle_2d.plot_axis.x_axis_range.high = 0.01;
+           single_plot_style.z_axis_style.log_scale = false;
+           acc_bundle_2d.drawOnCurrentPad(single_plot_style);
+           single_plot_style.z_axis_style.log_scale = true;
+           filepath.str("");
+           filepath << filepath_base.str() << "/acceptance2d.png";
+           c.SaveAs(filepath.str().c_str());*/
         }
       }
     }
@@ -491,6 +498,10 @@ void displayInfo() {
   std::cout << "Required arguments are: " << std::endl;
   std::cout << "list of directories to be scanned for vertex data" << std::endl;
   std::cout << "Optional arguments are: " << std::endl;
+  std::cout << "-t [plot type: 1 = 2d fit result plots (default),\n"
+            << "               2 = ip spot overview plot,\n"
+            << "               3 = ip overview plot,\n"
+            << "               4 = beam tilt overview plot,\n";
   std::cout << "-f [output filename suffix]" << std::endl;
   std::cout << "-o [output directory]" << std::endl;
   std::cout
@@ -502,14 +513,14 @@ int main(int argc, char* argv[]) {
   bool is_filename_suffix_set = false;
   std::string filename_suffix("fitresults");
   std::string filter_string("");
-
+  int type(1);
   std::stringstream tempstream;
   tempstream << std::getenv("HOME") << "/plots";
   std::string output_directory_path(tempstream.str());
 
   int c;
 
-  while ((c = getopt(argc, argv, "hf:s:o:")) != -1) {
+  while ((c = getopt(argc, argv, "hf:s:o:t:")) != -1) {
     switch (c) {
     case 'f':
       filename_suffix = optarg;
@@ -521,8 +532,11 @@ int main(int argc, char* argv[]) {
     case 'o':
       output_directory_path = optarg;
       break;
+    case 't':
+      type = std::atoi(optarg);
+      break;
     case '?':
-      if (optopt == 'f' || optopt == 's' || optopt == 'o')
+      if (optopt == 'f' || optopt == 's' || optopt == 'o' || optopt == 't')
         std::cerr << "Option -" << optopt << " requires an argument."
             << std::endl;
       else if (isprint(optopt))
@@ -545,7 +559,7 @@ int main(int argc, char* argv[]) {
     for (unsigned int i = argoffset; i < argc; i++) {
       paths.push_back(std::string(argv[i]));
     }
-    plotLumiFitResults(paths, filter_string, output_directory_path,
+    plotLumiFitResults(paths, type, filter_string, output_directory_path,
         filename_suffix);
   }
 

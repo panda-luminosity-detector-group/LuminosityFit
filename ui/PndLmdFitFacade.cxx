@@ -422,6 +422,7 @@ PndLmdFitDataBundle PndLmdFitFacade::doLuminosityFits(
       data_bundle.addFittedElasticData(lmd_data);
     }
     data_bundle.addCurrentDataBundleToList();
+    data_bundle.printInfo();
   }
 
   return data_bundle;
@@ -565,17 +566,28 @@ void PndLmdFitFacade::doFit(PndLmdHistogramData &lmd_hist_data,
 void PndLmdFitFacade::fitVertexData(
     std::vector<PndLmdHistogramData> &lmd_data) {
   for (unsigned int i = 0; i < lmd_data.size(); i++) {
-    cout << "Fitting resolution " << lmd_data[i].getName() << endl;
+    cout << "Fitting vertex distribution " << lmd_data[i].getName() << endl;
 
     PndLmdFitOptions fit_options(createFitOptions(lmd_data[i]));
+
+    // skip 2d data
+    if (lmd_data[i].getSecondaryDimension().is_active) {
+      std::cout
+          << "WARNING: 2d vertex fits are not possible\n";
+      continue;
+    }
 
     // get histogram
     const TH1D* hist = lmd_data[i].get1DHistogram();
     if (hist->Integral() < 400) {
-      return;
+      std::cout
+          << "WARNING: not performing fit due to low statistics of the vertex distribution (below 400 events)\n";
+      continue;
     }
 
     ptree sim_params(lmd_data[i].getSimulationParametersPropertyTree());
+
+    double sigma_range(1.0);
 
     DataStructs::DimensionRange old_range = fit_options.est_opt.getFitRangeX();
     double ideal_sigma;
@@ -587,23 +599,23 @@ void PndLmdFitFacade::fitVertexData(
           == LumiFit::X) {
         ideal_sigma = sim_params.get<double>("ip_standard_deviation_x");
         fit_range.range_low = sim_params.get<double>("ip_mean_x")
-            - 2.0 * ideal_sigma;
+            - sigma_range * ideal_sigma;
         fit_range.range_high = sim_params.get<double>("ip_mean_x")
-            + 2.0 * ideal_sigma;
+            + sigma_range * ideal_sigma;
       } else if (lmd_data[i].getPrimaryDimension().dimension_options.dimension_type
           == LumiFit::Y) {
         ideal_sigma = sim_params.get<double>("ip_standard_deviation_y");
         fit_range.range_low = sim_params.get<double>("ip_mean_y")
-            - 2.0 * ideal_sigma;
+            - sigma_range * ideal_sigma;
         fit_range.range_high = sim_params.get<double>("ip_mean_y")
-            + 2.0 * ideal_sigma;
+            + sigma_range * ideal_sigma;
       } else if (lmd_data[i].getPrimaryDimension().dimension_options.dimension_type
           == LumiFit::Z) {
         ideal_sigma = sim_params.get<double>("ip_standard_deviation_z");
         fit_range.range_low = sim_params.get<double>("ip_mean_z")
-            - 2.0 * ideal_sigma;
+            - sigma_range * ideal_sigma;
         fit_range.range_high = sim_params.get<double>("ip_mean_z")
-            + 2.0 * ideal_sigma;
+            + sigma_range * ideal_sigma;
       }
 
       fit_range.is_active = true;
@@ -616,36 +628,28 @@ void PndLmdFitFacade::fitVertexData(
           == LumiFit::X) {
         ideal_sigma = hist->GetRMS(1);
         fit_range.range_low = sim_params.get<double>("ip_mean_x")
-            - 2.0 * ideal_sigma;
+            - sigma_range * ideal_sigma;
         fit_range.range_high = sim_params.get<double>("ip_mean_x")
-            + 2.0 * ideal_sigma;
+            + sigma_range * ideal_sigma;
       } else if (lmd_data[i].getPrimaryDimension().dimension_options.dimension_type
           == LumiFit::Y) {
         ideal_sigma = hist->GetRMS(1);
         fit_range.range_low = sim_params.get<double>("ip_mean_y")
-            - 2.0 * ideal_sigma;
+            - sigma_range * ideal_sigma;
         fit_range.range_high = sim_params.get<double>("ip_mean_y")
-            + 2.0 * ideal_sigma;
+            + sigma_range * ideal_sigma;
       } else if (lmd_data[i].getPrimaryDimension().dimension_options.dimension_type
           == LumiFit::Z) {
         ideal_sigma = hist->GetRMS(1);
         fit_range.range_low = sim_params.get<double>("ip_mean_z")
-            - 2.0 * ideal_sigma;
+            - sigma_range * ideal_sigma;
         fit_range.range_high = sim_params.get<double>("ip_mean_z")
-            + 2.0 * ideal_sigma;
+            + sigma_range * ideal_sigma;
       }
 
-      fit_range.is_active = true;
-      fit_options.est_opt.setFitRangeX(fit_range);
+      //fit_range.is_active = true;
+      //fit_options.est_opt.setFitRangeX(fit_range);
     }
-
-    // create chi2 estimator
-    shared_ptr<Chi2Estimator> chi2_est(new Chi2Estimator());
-    model_fit_facade.setEstimator(chi2_est);
-
-    /*shared_ptr<LogLikelihoodEstimator> loglikelihood_est(
-     new LogLikelihoodEstimator());
-     model_fit_facade.setEstimator(loglikelihood_est);*/
 
     model_fit_facade.setData(createData1D(lmd_data[i]));
 

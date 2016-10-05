@@ -75,6 +75,7 @@ unsigned int PndLmdFitDataBundle::addAcceptanceToPool(
   unsigned int position(used_acceptances_pool.size());
   if (search_result_iter == used_acceptances_pool.end()) {
     // if not add and return position is the last element
+    std::cout << "adding resolution to pool...\n";
     used_acceptances_pool.push_back(new_acceptance);
   } else {
     // if so just return the found position index
@@ -95,7 +96,7 @@ unsigned int PndLmdFitDataBundle::addResolutionToPool(
   if (search_result_iter == used_resolutions_pool.end()) {
     // if not add and return position is the last element
     used_resolutions_pool.push_back(new_resolution);
-    std::cout<<"adding resolution to pool...\n";
+    std::cout << "adding resolution to pool...\n";
     //used_resolutions_pool[used_resolutions_pool.size()-1].clearMap();
   } else {
     // if so just return the found position index
@@ -112,13 +113,15 @@ void PndLmdFitDataBundle::addFittedElasticData(
     const PndLmdAngularData &elastic_data) {
   current_elastic_data_bundle = PndLmdElasticDataBundle(elastic_data);
 }
-void PndLmdFitDataBundle::attachAcceptanceToCurrentData(const PndLmdAcceptance &acceptance) {
-  current_elastic_data_bundle.used_acceptance_indices.push_back(addAcceptanceToPool(
-      acceptance));
+void PndLmdFitDataBundle::attachAcceptanceToCurrentData(
+    const PndLmdAcceptance &acceptance) {
+  current_elastic_data_bundle.used_acceptance_indices.push_back(
+      addAcceptanceToPool(acceptance));
 }
-void PndLmdFitDataBundle::attachResolutionMapDataToCurrentData(const PndLmdMapData &resolution) {
-  current_elastic_data_bundle.used_resolution_map_indices.push_back(addResolutionToPool(
-      resolution));
+void PndLmdFitDataBundle::attachResolutionMapDataToCurrentData(
+    const PndLmdMapData &resolution) {
+  current_elastic_data_bundle.used_resolution_map_indices.push_back(
+      addResolutionToPool(resolution));
 }
 void PndLmdFitDataBundle::addCurrentDataBundleToList() {
   elastic_data_bundles.push_back(current_elastic_data_bundle);
@@ -135,4 +138,20 @@ void PndLmdFitDataBundle::saveDataBundleToRootFile(
   this->Write("lmd_elastic_data_bundle");
   f.Close();
   std::cout << std::endl << "Successfully saved data!" << std::endl;
+}
+
+void PndLmdFitDataBundle::printInfo() const {
+  std::cout << "available acceptances: " << getUsedAcceptancesPool().size()
+      << std::endl;
+  std::cout << "available resolutions: " << getUsedResolutionsPool().size()
+      << std::endl;
+  for (auto const& elastic_data : getElasticDataBundles()) {
+    std::cout << "elastic data bundle: "
+        << elastic_data.getPrimaryDimension().createDimensionLabel()
+        << std::endl;
+    std::cout << "used acceptances: "
+        << elastic_data.getUsedAcceptanceIndices().size() << std::endl;
+    std::cout << "used resolutions: "
+        << elastic_data.getUsedResolutionIndices().size() << std::endl;
+  }
 }

@@ -76,6 +76,8 @@ public:
 
 	void saveDataBundleToRootFile(const std::string &file_url) const;
 
+	void printInfo() const;
+
 ClassDef(PndLmdFitDataBundle, 2);
 };
 

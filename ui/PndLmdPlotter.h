@@ -142,7 +142,10 @@ public:
 	NeatPlotting::PlotBundle makeAcceptanceBundle2D(
 			const PndLmdAcceptance& acc) const;
 
-	NeatPlotting::PlotBundle makeGraphBundle(PndLmdAngularData& data,
+	void makeFitBundle(PndLmdElasticDataBundle& data,
+	      const PndLmdFitOptions &fit_options, const std::string& output_filename);
+
+	NeatPlotting::PlotBundle makeGraphBundle(PndLmdElasticDataBundle& data,
 			const PndLmdFitOptions &fit_options, bool draw_data = true,
 			bool draw_model = true, bool draw_label = true);
 
@@ -158,18 +161,23 @@ public:
 	NeatPlotting::PlotBundle makeVertexGraphBundle1D(
 			const PndLmdHistogramData& data) const;
 
-	NeatPlotting::PlotBundle makeIPXYOverviewGraphBundle(
-			const std::vector<PndLmdHistogramData> &vertex_data) const;
+  void makeVertexFitBundle(const PndLmdHistogramData & data,
+      const std::string& output_filename) const;
+
+	std::pair<TGraphAsymmErrors*, TGraphAsymmErrors*> makeIPXYOverviewGraphs(
+			const std::vector<PndLmdHistogramData> &vertex_data_vec) const;
 
   TGraph2DErrors* makeIPSpotXYOverviewGraph(
       const std::vector<PndLmdElasticDataBundle> &elastic_data_bundles) const;
 
-	NeatPlotting::PlotBundle makeXYOverviewHistogram(
+  TGraph2DErrors* makeXYOverviewGraph(
 			const std::vector<PndLmdElasticDataBundle> &elastic_data_bundles) const;
 
-	NeatPlotting::PlotBundle makeTiltXYOverviewHistogram(
-			const std::vector<PndLmdElasticDataBundle> &elastic_data_bundles,
-			int draw_labels = 2) const;
+  std::pair<TGraphAsymmErrors*, TGraphAsymmErrors*> makeTiltXYOverviewGraphs(
+          const std::vector<PndLmdElasticDataBundle> &vertex_data_vec) const;
+
+  TGraph2DErrors* makeTiltXYOverviewGraph(
+			const std::vector<PndLmdElasticDataBundle> &elastic_data_bundles) const;
 
 	// the plot bundles creation functions ===========================================
 
@@ -197,10 +205,6 @@ public:
 	std::map<PndLmdHistogramData, std::vector<PndLmdAngularData> > clusterIntoGroups(
 			const std::vector<PndLmdAngularData> &data_vec) const;
 
-	TGraphAsymmErrors* makeXYOverviewGraph(
-			const std::vector<PndLmdHistogramData> &data_vec,
-			double error_scaling_factor) const;
-
 	TGraphAsymmErrors* createLowerFitRangeDependencyGraph(
 			const std::vector<PndLmdAngularData> &prefiltered_data,
 			const LmdDimensionOptions& dim_opt) const;
@@ -217,7 +221,7 @@ public:
 
 #ifndef __CINT__
 	NeatPlotting::Booky makeLumiFitResultOverviewBooky(
-			std::vector<PndLmdAngularData> &data_vec);
+			std::vector<PndLmdElasticDataBundle> &data_vec);
 
   NeatPlotting::PlotBundle createAcceptanceErrorPlot(
       std::vector<PndLmdAcceptance> &accs) const;

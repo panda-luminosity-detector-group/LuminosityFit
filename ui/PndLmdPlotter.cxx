@@ -49,6 +49,8 @@
 #include "TColor.h"
 #include "TPaletteAxis.h"
 #include "TROOT.h"
+#include "TVectorD.h"
+#include "TFile.h"
 
 using boost::filesystem::path;
 using boost::filesystem::directory_iterator;
@@ -185,6 +187,10 @@ namespace LumiFit {
 
     // set the appropriate acceptance and resolutions in the factory
     // in principle there could be multiple acceptances used here but we assume there is just 1
+    std::cout << elastic_data_bundle.getUsedAcceptanceIndices().size()
+        << " used acceptances for this elastic data bundle\n";
+    std::cout << current_fit_bundle.getUsedAcceptancesPool().size()
+        << " acceptances are available\n";
     if (elastic_data_bundle.getUsedAcceptanceIndices().size() > 0) {
       unsigned int used_acceptance_index =
           elastic_data_bundle.getUsedAcceptanceIndices()[0];
@@ -209,6 +215,10 @@ namespace LumiFit {
      lmd_fit_facade.setModelFactoryResolutionMap(used_resolutions);
      }*/
 
+    std::cout << elastic_data_bundle.getUsedResolutionIndices().size()
+        << " used resolutions for this elastic data bundle\n";
+    std::cout << current_fit_bundle.getUsedResolutionsPool().size()
+        << " resolutions are available\n";
     if (elastic_data_bundle.getUsedResolutionIndices().size() > 0) {
       unsigned int used_resolution_index =
           elastic_data_bundle.getUsedResolutionIndices()[0];
@@ -448,92 +458,6 @@ namespace LumiFit {
     return model_graph;
   }
 
-// special plots which are a combination of several data objects
-  TGraphAsymmErrors* PndLmdPlotter::makeXYOverviewGraph(
-      const std::vector<PndLmdHistogramData> &data_vec,
-      double error_scaling_factor) const {
-    std::vector<NeatPlotting::GraphPoint> graph_data;
-
-    NeatPlotting::GraphPoint current_graph_point;
-
-    // first group all vertex data plots of some specific ip property setting together
-    std::map<std::pair<double, double>, std::vector<PndLmdHistogramData> > xy_ip_data_map;
-    for (unsigned int i = 0; i < data_vec.size(); i++) {
-
-      boost::property_tree::ptree sim_params(
-          data_vec[i].getSimulationParametersPropertyTree());
-      double ip_mean_x = sim_params.get<double>("ip_mean_x");
-      double ip_mean_y = sim_params.get<double>("ip_mean_y");
-
-      xy_ip_data_map[std::make_pair(ip_mean_x, ip_mean_y)].push_back(
-          data_vec[i]);
-    }
-
-    std::map<std::pair<double, double>, std::vector<PndLmdHistogramData> >::const_iterator ip_setting_case;
-    for (ip_setting_case = xy_ip_data_map.begin();
-        ip_setting_case != xy_ip_data_map.end(); ip_setting_case++) {
-
-      current_graph_point.x = ip_setting_case->first.first * 10; // *10 from cm to mm
-      current_graph_point.y = ip_setting_case->first.second * 10; // *10 from cm to mm
-      current_graph_point.x_err_low = 0.0;
-      current_graph_point.x_err_high = 0.0;
-      current_graph_point.y_err_low = 0.0;
-      current_graph_point.y_err_high = 0.0;
-
-      std::cout << "vertex data count for " << ip_setting_case->first.first
-          << ";" << ip_setting_case->first.second << ": "
-          << ip_setting_case->second.size() << std::endl;
-
-      for (unsigned int i = 0; i < ip_setting_case->second.size(); i++) {
-        if (ip_setting_case->second[i].getPrimaryDimension().dimension_options.dimension_type
-            == LumiFit::X) {
-          ModelFitResult fit_result =
-              ip_setting_case->second[i].getFitResults().begin()->second[0];
-
-          if (fit_result.getFitParameters().size() > 0) {
-            double diff = error_scaling_factor
-                * (fit_result.getFitParameter("gauss_mean").value * 10
-                    - current_graph_point.x);
-            double absdiff = fabs(diff);
-
-            std::cout << diff << " " << absdiff << std::endl;
-            //	if (absdiff > 0.1 * max_offset && absdiff < max_offset) {
-            if (diff < 0.0)
-              current_graph_point.x_err_low = absdiff;
-            else
-              current_graph_point.x_err_high = absdiff;
-            //	}
-          }
-        } else if (ip_setting_case->second[i].getPrimaryDimension().dimension_options.dimension_type
-            == LumiFit::Y) {
-          ModelFitResult fit_result =
-              ip_setting_case->second[i].getFitResults().begin()->second[0];
-
-          if (fit_result.getFitParameters().size() > 0) {
-            double diff = error_scaling_factor
-                * (fit_result.getFitParameter("gauss_mean").value * 10
-                    - current_graph_point.y);
-            double absdiff = fabs(diff);
-
-            std::cout << diff << " " << absdiff << std::endl;
-            //	if (absdiff > 0.1 * max_offset && absdiff < max_offset) {
-            if (diff < 0.0)
-              current_graph_point.y_err_low = absdiff;
-            else
-              current_graph_point.y_err_high = absdiff;
-            //	}
-          }
-        }
-      }
-
-      // add values to vector
-      graph_data.push_back(current_graph_point);
-    }
-
-    NeatPlotting::GraphAndHistogramHelper graph_helper;
-    return graph_helper.makeGraph(graph_data);
-  }
-
 // functions creating NeatPlotting::PlotBundles from lmd data objects
 
   void PndLmdPlotter::applyPlotRanges(
@@ -619,8 +543,79 @@ namespace LumiFit {
     return acc_bundle;
   }
 
+  void PndLmdPlotter::makeFitBundle(PndLmdElasticDataBundle& data,
+      const PndLmdFitOptions &fit_options, const std::string& output_filename) {
+    NeatPlotting::GraphAndHistogramHelper hist_helper;
+
+    TFile f(output_filename.c_str(), "RECREATE");
+
+    unsigned int fit_dimension = fit_options.getModelOptionsPropertyTree().get<
+        unsigned int>("fit_dimension");
+
+    TH2D* hist = data.get2DHistogram();
+    hist = hist_helper.rescaleAxis(hist, 1000.0, 1000.0);
+
+    std::string x_axis_label = data.getPrimaryDimension().createDimensionLabel()
+        + " /m" + data.getPrimaryDimension().createUnitLabel();
+    std::string y_axis_label =
+        data.getSecondaryDimension().createDimensionLabel() + " /m"
+            + data.getSecondaryDimension().createUnitLabel();
+
+    std::stringstream ss;
+    ss.precision(2);
+    ss << std::scientific;
+    ss << "# of tracks / "
+        << hist->GetXaxis()->GetBinWidth(1) * hist->GetYaxis()->GetBinWidth(1)
+        << " mrad^{2}";
+    std::string z_axis_label = ss.str();
+
+    hist->GetXaxis()->SetTitle(x_axis_label.c_str());
+    hist->GetYaxis()->SetTitle(y_axis_label.c_str());
+    hist->GetZaxis()->SetTitle(z_axis_label.c_str());
+
+    hist->Write("data");
+
+    ModelFitResult fit_res = data.getFitResults(fit_options)[0];
+
+    std::cout << fit_res.getFitStatus() << " "
+        << fit_res.getFitParameters().size() << std::endl;
+
+    if (0 == fit_res.getFitStatus()) {
+      TH2D* model = create2DHistogramFromFitResult(fit_options, data);
+      model = hist_helper.rescaleAxis(model, 1000.0, 1000.0);
+      model->GetXaxis()->SetTitle(x_axis_label.c_str());
+      model->GetYaxis()->SetTitle(y_axis_label.c_str());
+      model->GetZaxis()->SetTitle(z_axis_label.c_str());
+
+      model->Write("model");
+
+      TH2D* diff = neat_plot_helper.makeDifferenceHistogram(model, hist);
+      diff->GetXaxis()->SetTitle(x_axis_label.c_str());
+      diff->GetYaxis()->SetTitle(y_axis_label.c_str());
+      diff->GetZaxis()->SetTitle(z_axis_label.c_str());
+
+      diff->Write("diff");
+
+      double lumi_ref = data.getReferenceLuminosity();
+
+      PndLmdLumiFitResult fit_res;
+      fit_res.setModelFitResult(data.getFitResults(fit_options)[0]);
+
+      TVectorD v(5);
+      v[0] = lumi_ref;
+      v[1] = fit_res.getLuminosity();
+      v[2] = fit_res.getLuminosityError();
+      v[3] = calulateRelDiff(fit_res.getLuminosity(),
+          fit_res.getLuminosityError(), lumi_ref).first;
+      v[4] = calulateRelDiff(fit_res.getLuminosity(),
+          fit_res.getLuminosityError(), lumi_ref).second;
+
+      v.Write("lumi_values");
+    }
+  }
+
   NeatPlotting::PlotBundle PndLmdPlotter::makeGraphBundle(
-      PndLmdAngularData& data, const PndLmdFitOptions &fit_options,
+      PndLmdElasticDataBundle& data, const PndLmdFitOptions &fit_options,
       bool draw_data, bool draw_model, bool draw_labels) {
     std::cout << "Creating graph bundle!" << std::endl;
 
@@ -983,117 +978,122 @@ namespace LumiFit {
     return ver_plot_bundle;
   }
 
-  /*std::map<PndLmdFitOptions, NeatPlotting::PlotBundle> PndLmdPlotter::makeGraphBundles1D(
-   std::vector<PndLmdAngularData> &data_vec,
-   LumiFit::PndLmdFitModelOptions & fitop) {
+  void PndLmdPlotter::makeVertexFitBundle(const PndLmdHistogramData & data,
+      const std::string& suffix) const {
+    std::cout << "Creating vertex graph bundle!" << std::endl;
 
-   std::map<PndLmdLumiFitOptions, NeatPlotting::PlotBundle> return_map;
+    NeatPlotting::GraphAndHistogramHelper hist_helper;
 
-   for (std::vector<PndLmdAngularData>::iterator data = data_vec.begin();
-   data != data_vec.end(); data++) {
-   // we only want IP info, so throw out everything else
-   if (data->getPrimaryDimension().dimension_options.track_param_type
-   != LumiFit::IP) {
-   continue;
-   }
+    TH1D* hist = data.get1DHistogram();
+    hist = hist_helper.rescaleAxis(hist, 10.0);
 
-   // loop over fit results
-   map<PndLmdLumiFitOptions, PndLmdLumiFitResult*> fit_results =
-   data->getFitResults();
-   for (map<PndLmdLumiFitOptions, PndLmdLumiFitResult*>::iterator it =
-   fit_results.begin(); it != fit_results.end(); it++) {
+    std::string x_axis_label = data.getPrimaryDimension().createDimensionLabel()
+        + " /mm";
+    std::stringstream ss;
+    ss << "# of tracks / " << hist->GetXaxis()->GetBinWidth(1) << "mm";
+    std::string y_axis_label = ss.str();
 
-   if (it->first.getFitModelOptions().equalBinaryOptions(fitop)) {
-   return_map[it->first] = makeGraphBundle1D(*data, it->first);
-   }
-   }
-   }
-   return return_map;
-   }*/
+    hist->GetXaxis()->SetTitle(x_axis_label.c_str());
+    hist->GetYaxis()->SetTitle(y_axis_label.c_str());
 
-  NeatPlotting::PlotBundle PndLmdPlotter::makeIPXYOverviewGraphBundle(
-      const std::vector<PndLmdHistogramData> &vertex_data) const {
+    hist->Write((std::string("data_") + suffix).c_str());
 
-    NeatPlotting::PlotBundle plot_bundle;
+    const std::map<PndLmdFitOptions, std::vector<ModelFitResult> >& fit_results =
+        data.getFitResults();
 
-// this should be made a bit better...
-    unsigned int num_values = 1;
-    double scales[] = { 20.0 };
-    int colors[] = { kRed };
+    if (fit_results.size() > 0) {
+      if (fit_results.begin()->second[0].getFitStatus() == 0) {
+        TGraphAsymmErrors* model = createVertexGraphFromFitResult(
+            fit_results.begin()->first, data);
 
-    NeatPlotting::DataObjectStyle style;
-    style.draw_option = "PE";
+        model = hist_helper.rescaleAxis(model, 10.0);
+        model->GetXaxis()->SetTitle(x_axis_label.c_str());
+        model->GetYaxis()->SetTitle(y_axis_label.c_str());
 
-    for (unsigned int i = 0; i < num_values; i++) {
-      TGraphAsymmErrors *gae = makeXYOverviewGraph(vertex_data, scales[i]);
+        model->Write((std::string("model_") + suffix).c_str());
 
-      style.line_style.line_color = colors[i];
-      style.marker_style.marker_color = colors[i];
-      plot_bundle.addGraph(gae, style);
+        TGraphAsymmErrors* diff = neat_plot_helper.makeDifferenceGraph(hist,
+            model);
+        diff->GetXaxis()->SetTitle(x_axis_label.c_str());
+        diff->GetYaxis()->SetTitle(y_axis_label.c_str());
 
-      // draw precision labels on points
-      for (unsigned int point = 0; point < gae->GetN(); point++) {
-        double x, y;
-        gae->GetPoint(point, x, y);
+        diff->Write((std::string("diff_") + suffix).c_str());
 
-        bool negative_x(false), negative_y(false);
-
-        double errorx = gae->GetErrorXhigh(point);
-        if (errorx < gae->GetErrorXlow(point)) {
-          errorx = gae->GetErrorXlow(point);
-          negative_x = true;
-        }
-        double errory = gae->GetErrorYhigh(point);
-        if (errory < gae->GetErrorYlow(point)) {
-          errory = gae->GetErrorYlow(point);
-          negative_y = true;
-        }
-
-        std::stringstream ss;
-        NeatPlotting::TextStyle text_style;
-        text_style.text_size = 0.02;
-        ss << std::fixed << std::setprecision(0) << 1000.0 * errorx / scales[i];
-        NeatPlotting::PlotLabel xlabel(ss.str(), text_style);
-        xlabel.setAbsolutionPosition(x - errorx - 0.1, y + 0.2);
-        plot_bundle.plot_decoration.labels.push_back(xlabel);
-
-        ss.str("");
-        ss << std::fixed << std::setprecision(0) << 1000.0 * errory / scales[i];
-        NeatPlotting::PlotLabel ylabel(ss.str(), text_style);
-        double y_offset = 0.2 + errory;
-        if (negative_y)
-          y_offset = -0.4 - errory;
-        ylabel.setAbsolutionPosition(x - 0.1, y + y_offset);
-        plot_bundle.plot_decoration.labels.push_back(ylabel);
-
-        /*std::stringstream ss;
-         NeatPlotting::TextStyle text_style;
-         text_style.text_size = 0.02;
-         ss << std::fixed << std::setprecision(0) << "("
-         << 10000.0 * errorx / scales[i] << "," << 10000.0 * errory / scales[i]
-         << ")#mum";
-         NeatPlotting::PlotLabel xlabel(ss.str(), text_style);
-         xlabel.setAbsolutionPosition(x - 0.08, y + 0.02);
-         plot_bundle.plot_decoration.labels.push_back(xlabel);*/
-
+        TVectorD v(2);
+        v[0] =
+            fit_results.begin()->second[0].getFitParameter("gauss_mean").value;
+        v[1] =
+            fit_results.begin()->second[0].getFitParameter("gauss_mean").error;
+        v.Write((suffix + "_mean_values").c_str());
       }
-      std::stringstream ss;
-      ss << "diff scaled #times" << scales[i];
-      NeatPlotting::TextStyle text_style;
-      text_style.text_size = 0.04;
-      NeatPlotting::PlotLabel label(ss.str(), text_style);
-      label.setRelativePosition(0.60, 0.77);
-      plot_bundle.plot_decoration.labels.push_back(label);
-      label.setTitle("units #mum");
-      label.setRelativePosition(0.60, 0.70);
-      plot_bundle.plot_decoration.labels.push_back(label);
+    }
+  }
 
+  std::pair<TGraphAsymmErrors*, TGraphAsymmErrors*> PndLmdPlotter::makeIPXYOverviewGraphs(
+      const std::vector<PndLmdHistogramData> &vertex_data_vec) const {
+
+    std::map<std::pair<double, double>, NeatPlotting::GraphPoint> graph_points_true;
+    std::map<std::pair<double, double>, NeatPlotting::GraphPoint> graph_points;
+
+    NeatPlotting::GraphPoint current_graph_point;
+
+    for (auto const& vertex_data : vertex_data_vec) {
+
+      if (vertex_data.getPrimaryDimension().dimension_options.track_type
+          == LumiFit::RECO) {
+
+        boost::property_tree::ptree sim_params(
+            vertex_data.getSimulationParametersPropertyTree());
+        double ip_mean_x = sim_params.get<double>("ip_mean_x");
+        double ip_mean_y = sim_params.get<double>("ip_mean_y");
+
+        current_graph_point.x = ip_mean_x * 10; // *10 from cm to mm
+        current_graph_point.y = ip_mean_y * 10; // *10 from cm to mm
+        current_graph_point.x_err_low = 0.0;
+        current_graph_point.x_err_high = 0.0;
+        current_graph_point.y_err_low = 0.0;
+        current_graph_point.y_err_high = 0.0;
+
+        graph_points_true.insert(
+            std::make_pair(
+                std::make_pair(current_graph_point.x, current_graph_point.y),
+                current_graph_point));
+
+        ModelFitResult fit_result =
+            vertex_data.getFitResults().begin()->second[0];
+
+        if (fit_result.getFitParameters().size() > 0) {
+          if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
+              == LumiFit::X) {
+            NeatPlotting::GraphPoint &gp = graph_points[std::make_pair(
+                ip_mean_x, ip_mean_y)];
+            gp.x = fit_result.getFitParameter("gauss_mean").value * 10;
+            gp.x_err_low = fit_result.getFitParameter("gauss_mean").error * 10;
+            gp.x_err_high = fit_result.getFitParameter("gauss_mean").error * 10;
+          }
+          if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
+              == LumiFit::Y) {
+            NeatPlotting::GraphPoint &gp = graph_points[std::make_pair(
+                ip_mean_x, ip_mean_y)];
+            gp.y = fit_result.getFitParameter("gauss_mean").value * 10;
+            gp.y_err_low = fit_result.getFitParameter("gauss_mean").error * 10;
+            gp.y_err_high = fit_result.getFitParameter("gauss_mean").error * 10;
+          }
+        }
+      }
     }
 
-    plot_bundle.plot_axis.x_axis_title = "x_{IP} / mm";
-    plot_bundle.plot_axis.y_axis_title = "y_{IP} / mm";
+    std::vector<NeatPlotting::GraphPoint> temp_gps;
+    for (auto const& ele : graph_points) {
+      temp_gps.push_back(ele.second);
+    }
+    std::vector<NeatPlotting::GraphPoint> temp_true_gps;
+    for (auto const& ele : graph_points_true) {
+      temp_true_gps.push_back(ele.second);
+    }
 
-    return plot_bundle;
+    return std::make_pair(neat_plot_helper.makeGraph(temp_gps),
+        neat_plot_helper.makeGraph(temp_true_gps));
   }
 
   TGraph2DErrors* PndLmdPlotter::makeIPSpotXYOverviewGraph(
@@ -1134,47 +1134,104 @@ namespace LumiFit {
       }
     }
 
-    TGraph2DErrors *graph = new TGraph2DErrors(x.size(), &x[0], &y[0], &z[0], 0, 0, &z_err[0]);
+    TGraph2DErrors *graph = new TGraph2DErrors(x.size(), &x[0], &y[0], &z[0], 0,
+        0, &z_err[0]);
 
     return graph;
   }
 
-  NeatPlotting::PlotBundle PndLmdPlotter::makeXYOverviewHistogram(
+  TGraph2DErrors* PndLmdPlotter::makeXYOverviewGraph(
       const std::vector<PndLmdElasticDataBundle> &elastic_data_bundles) const {
 
-    NeatPlotting::PlotBundle plot_bundle;
+    /* NeatPlotting::PlotBundle plot_bundle;
 
-    NeatPlotting::DataObjectStyle style;
-    style.draw_option = "COL";
+     NeatPlotting::DataObjectStyle style;
+     style.draw_option = "COL";
 
-    NeatPlotting::TextStyle text_style;
-    text_style.text_size = 0.03;
+     NeatPlotting::TextStyle text_style;
+     text_style.text_size = 0.03;
 
-// determine boundaries
-    double x_max = 0.0, y_max = 0.0;
+     // determine boundaries
+     double x_max = 0.0, y_max = 0.0;
+
+     std::vector<PndLmdElasticDataBundle>::const_iterator ip_setting_case;
+     for (ip_setting_case = elastic_data_bundles.begin();
+     ip_setting_case != elastic_data_bundles.end(); ip_setting_case++) {
+
+     boost::property_tree::ptree sim_params(
+     ip_setting_case->getSimulationParametersPropertyTree());
+
+     if (fabs(sim_params.get<double>("ip_mean_x")) > x_max)
+     x_max = 10.0 * fabs(sim_params.get<double>("ip_mean_x")); // *10 for cm to mm
+
+     if (fabs(sim_params.get<double>("ip_mean_y")) > y_max)
+     y_max = 10.0 * fabs(sim_params.get<double>("ip_mean_y"));
+     }
+
+     TH2D *hist = new TH2D("ip_shift_xy_lumi_results", "", 51, -1.1 * x_max,
+     1.1 * x_max, 51, -1.1 * y_max, 1.1 * y_max);
+
+     std::pair<double, double> lumi;
+
+     for (ip_setting_case = elastic_data_bundles.begin();
+     ip_setting_case != elastic_data_bundles.end(); ip_setting_case++) {
+     if (ip_setting_case->getFitResults().size() > 0) {
+     PndLmdLumiFitResult fit_result;
+     fit_result.setModelFitResult(
+     ip_setting_case->getFitResults().begin()->second[0]);
+
+     lumi = calulateRelDiff(fit_result.getLuminosity(),
+     fit_result.getLuminosityError(),
+     ip_setting_case->getReferenceLuminosity());
+
+     boost::property_tree::ptree sim_params(
+     ip_setting_case->getSimulationParametersPropertyTree());
+
+     double ip_mean_x = sim_params.get<double>("ip_mean_x");
+     double ip_mean_y = sim_params.get<double>("ip_mean_y");
+
+     hist->Fill(10.0 * ip_mean_x, 10.0 * ip_mean_y, fabs(lumi.first));
+
+     std::stringstream ss;
+     ss << std::fixed << std::setprecision(2) << lumi.first << " %"; // << "#pm" << lumi.second << " %";
+     NeatPlotting::PlotLabel label(ss.str(), text_style);
+     label.setAbsolutionPosition(10.0 * (ip_mean_x - 0.035),
+     10.0 * (ip_mean_y + 0.02));
+     plot_bundle.plot_decoration.labels.push_back(label);
+
+     }
+     }
+
+     //style.line_style.line_color = kRed;
+     //style.marker_style.marker_color = kRed;
+     //style.marker_style.marker_style = 20;
+
+     plot_bundle.addHistogram(hist, style);
+
+     std::stringstream ss;
+     ss << "stat. err.: " << std::fixed << std::setprecision(2) << lumi.second
+     << " %";
+     NeatPlotting::PlotLabel label(ss.str(), text_style);
+     label.setRelativePosition(0.6, 0.8);
+     plot_bundle.plot_decoration.labels.push_back(label);
+
+     plot_bundle.plot_axis.x_axis_title = "x_{IP} / mm";
+     plot_bundle.plot_axis.y_axis_title = "y_{IP} / mm";
+     plot_bundle.plot_axis.z_axis_title = "#frac{|L-L_{ref}|}{L_{ref}} / %";
+
+     return plot_bundle;*/
+
+    std::pair<double, double> lumi;
+    std::vector<double> x;
+    std::vector<double> y;
+    std::vector<double> z;
+    std::vector<double> z_err;
 
     std::vector<PndLmdElasticDataBundle>::const_iterator ip_setting_case;
     for (ip_setting_case = elastic_data_bundles.begin();
         ip_setting_case != elastic_data_bundles.end(); ip_setting_case++) {
-
-      boost::property_tree::ptree sim_params(
-          ip_setting_case->getSimulationParametersPropertyTree());
-
-      if (fabs(sim_params.get<double>("ip_mean_x")) > x_max)
-        x_max = 10.0 * fabs(sim_params.get<double>("ip_mean_x")); // *10 for cm to mm
-
-      if (fabs(sim_params.get<double>("ip_mean_y")) > y_max)
-        y_max = 10.0 * fabs(sim_params.get<double>("ip_mean_y"));
-    }
-
-    TH2D *hist = new TH2D("ip_shift_xy_lumi_results", "", 51, -1.1 * x_max,
-        1.1 * x_max, 51, -1.1 * y_max, 1.1 * y_max);
-
-    std::pair<double, double> lumi;
-
-    for (ip_setting_case = elastic_data_bundles.begin();
-        ip_setting_case != elastic_data_bundles.end(); ip_setting_case++) {
-      if (ip_setting_case->getFitResults().size() > 0) {
+      if (ip_setting_case->getFitResults().size() > 0
+          && ip_setting_case->getSelectorSet().size() == 0) {
         PndLmdLumiFitResult fit_result;
         fit_result.setModelFitResult(
             ip_setting_case->getFitResults().begin()->second[0]);
@@ -1189,80 +1246,104 @@ namespace LumiFit {
         double ip_mean_x = sim_params.get<double>("ip_mean_x");
         double ip_mean_y = sim_params.get<double>("ip_mean_y");
 
-        hist->Fill(10.0 * ip_mean_x, 10.0 * ip_mean_y, fabs(lumi.first));
+        std::cout << "lumi for " << ip_mean_x << " " << ip_mean_y
+            << " beam offset case: " << lumi.first << " +- " << lumi.second
+            << std::endl;
 
-        std::stringstream ss;
-        ss << std::fixed << std::setprecision(2) << lumi.first << " %"; // << "#pm" << lumi.second << " %";
-        NeatPlotting::PlotLabel label(ss.str(), text_style);
-        label.setAbsolutionPosition(10.0 * (ip_mean_x - 0.035),
-            10.0 * (ip_mean_y + 0.02));
-        plot_bundle.plot_decoration.labels.push_back(label);
-
+        x.push_back(10.0 * ip_mean_x);
+        y.push_back(10.0 * ip_mean_y);
+        z.push_back(lumi.first);
+        z_err.push_back(lumi.second);
       }
     }
 
-//style.line_style.line_color = kRed;
-//style.marker_style.marker_color = kRed;
-//style.marker_style.marker_style = 20;
+    TGraph2DErrors *graph = new TGraph2DErrors(x.size(), &x[0], &y[0], &z[0], 0,
+        0, &z_err[0]);
 
-    plot_bundle.addHistogram(hist, style);
-
-    std::stringstream ss;
-    ss << "stat. err.: " << std::fixed << std::setprecision(2) << lumi.second
-        << " %";
-    NeatPlotting::PlotLabel label(ss.str(), text_style);
-    label.setRelativePosition(0.6, 0.8);
-    plot_bundle.plot_decoration.labels.push_back(label);
-
-    plot_bundle.plot_axis.x_axis_title = "x_{IP} / mm";
-    plot_bundle.plot_axis.y_axis_title = "y_{IP} / mm";
-    plot_bundle.plot_axis.z_axis_title = "#frac{|L-L_{ref}|}{L_{ref}} / %";
-
-    return plot_bundle;
+    return graph;
   }
 
-  NeatPlotting::PlotBundle PndLmdPlotter::makeTiltXYOverviewHistogram(
-      const std::vector<PndLmdElasticDataBundle> &elastic_data_bundles,
-      int draw_labels) const {
-    gStyle->SetPadRightMargin(0.21);
 
-    NeatPlotting::PlotBundle plot_bundle;
+  std::pair<TGraphAsymmErrors*, TGraphAsymmErrors*> PndLmdPlotter::makeTiltXYOverviewGraphs(
+        const std::vector<PndLmdElasticDataBundle> &vertex_data_vec) const {
 
-    NeatPlotting::DataObjectStyle style;
-    style.draw_option = "COL";
+      std::map<std::pair<double, double>, NeatPlotting::GraphPoint> graph_points_true;
+      std::map<std::pair<double, double>, NeatPlotting::GraphPoint> graph_points;
 
-    NeatPlotting::TextStyle text_style;
-    text_style.text_size = 0.03;
+      NeatPlotting::GraphPoint current_graph_point;
 
-// determine boundaries
-    double x_max = 0.0, y_max = 0.0;
+      for (auto const& vertex_data : vertex_data_vec) {
 
-    double unit_factor(1000.0);
+        if (vertex_data.getPrimaryDimension().dimension_options.track_type
+            == LumiFit::RECO) {
+
+          boost::property_tree::ptree sim_params(
+              vertex_data.getSimulationParametersPropertyTree());
+          double ip_mean_x = sim_params.get<double>("beam_tilt_x");
+          double ip_mean_y = sim_params.get<double>("beam_tilt_y");
+
+          current_graph_point.x = ip_mean_x * 10; // *10 from cm to mm
+          current_graph_point.y = ip_mean_y * 10; // *10 from cm to mm
+          current_graph_point.x_err_low = 0.0;
+          current_graph_point.x_err_high = 0.0;
+          current_graph_point.y_err_low = 0.0;
+          current_graph_point.y_err_high = 0.0;
+
+          graph_points_true.insert(
+              std::make_pair(
+                  std::make_pair(current_graph_point.x, current_graph_point.y),
+                  current_graph_point));
+
+          ModelFitResult fit_result =
+              vertex_data.getFitResults().begin()->second[0];
+
+          if (fit_result.getFitParameters().size() > 0) {
+            if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
+                == LumiFit::X) {
+              NeatPlotting::GraphPoint &gp = graph_points[std::make_pair(
+                  ip_mean_x, ip_mean_y)];
+              gp.x = fit_result.getFitParameter("tilt_x").value * 10;
+              gp.x_err_low = fit_result.getFitParameter("tilt_x").error * 10;
+              gp.x_err_high = fit_result.getFitParameter("tilt_x").error * 10;
+            }
+            if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
+                == LumiFit::Y) {
+              NeatPlotting::GraphPoint &gp = graph_points[std::make_pair(
+                  ip_mean_x, ip_mean_y)];
+              gp.y = fit_result.getFitParameter("tilt_y").value * 10;
+              gp.y_err_low = fit_result.getFitParameter("tilt_y").error * 10;
+              gp.y_err_high = fit_result.getFitParameter("tilt_y").error * 10;
+            }
+          }
+        }
+      }
+
+      std::vector<NeatPlotting::GraphPoint> temp_gps;
+      for (auto const& ele : graph_points) {
+        temp_gps.push_back(ele.second);
+      }
+      std::vector<NeatPlotting::GraphPoint> temp_true_gps;
+      for (auto const& ele : graph_points_true) {
+        temp_true_gps.push_back(ele.second);
+      }
+
+      return std::make_pair(neat_plot_helper.makeGraph(temp_gps),
+          neat_plot_helper.makeGraph(temp_true_gps));
+    }
+
+  TGraph2DErrors* PndLmdPlotter::makeTiltXYOverviewGraph(
+      const std::vector<PndLmdElasticDataBundle> &elastic_data_bundles) const {
+    std::pair<double, double> lumi;
+    std::vector<double> x;
+    std::vector<double> y;
+    std::vector<double> z;
+    std::vector<double> z_err;
 
     std::vector<PndLmdElasticDataBundle>::const_iterator ip_setting_case;
     for (ip_setting_case = elastic_data_bundles.begin();
         ip_setting_case != elastic_data_bundles.end(); ip_setting_case++) {
-
-      boost::property_tree::ptree sim_params(
-          ip_setting_case->getSimulationParametersPropertyTree());
-
-      if (unit_factor * fabs(sim_params.get<double>("beam_tilt_x")) > x_max)
-        x_max = unit_factor * fabs(sim_params.get<double>("beam_tilt_x")); // *1000 for rad to mrad
-
-      if (unit_factor * fabs(sim_params.get<double>("beam_tilt_y")) > y_max)
-        y_max = unit_factor * fabs(sim_params.get<double>("beam_tilt_y"));
-    }
-
-    TH2D *hist = new TH2D("beam_tilt_xy_lumi_results", "", 51, -1.1 * x_max,
-        1.1 * x_max, 51, -1.1 * y_max, 1.1 * y_max);
-
-    std::pair<double, double> lumi;
-
-    text_style.text_size = 0.026;
-
-    for (ip_setting_case = elastic_data_bundles.begin();
-        ip_setting_case != elastic_data_bundles.end(); ip_setting_case++) {
-      if (ip_setting_case->getFitResults().size() > 0) {
+      if (ip_setting_case->getFitResults().size() > 0
+          && ip_setting_case->getSelectorSet().size() == 0) {
         PndLmdLumiFitResult fit_result;
         fit_result.setModelFitResult(
             ip_setting_case->getFitResults().begin()->second[0]);
@@ -1274,93 +1355,24 @@ namespace LumiFit {
         boost::property_tree::ptree sim_params(
             ip_setting_case->getSimulationParametersPropertyTree());
 
-        double beam_tilt_x = sim_params.get<double>("beam_tilt_x");
-        double beam_tilt_y = sim_params.get<double>("beam_tilt_y");
+        double tilt_x = sim_params.get<double>("beam_tilt_x");
+        double tilt_y = sim_params.get<double>("beam_tilt_y");
 
-        hist->Fill(unit_factor * beam_tilt_x, unit_factor * beam_tilt_y,
-            fabs(lumi.first));
+        std::cout << "lumi for " << tilt_x << " " << tilt_y
+            << " beam offset case: " << lumi.first << " +- " << lumi.second
+            << std::endl;
 
-        if (draw_labels > 0) {
-          std::stringstream ss;
-          ss << std::fixed << std::setprecision(2) << lumi.first; // << "#pm" << lumi.second << " %";
-          NeatPlotting::PlotLabel label(ss.str(), text_style);
-          label.setAbsolutionPosition(unit_factor * beam_tilt_x - x_max * 0.05,
-              unit_factor * beam_tilt_y + y_max * 0.03);
-          plot_bundle.plot_decoration.labels.push_back(label);
-
-          if (draw_labels > 1) {
-            try {
-              double value = fit_result.getModelFitResult().getFitParameter(
-                  "tilt_x").value;
-              double error = fit_result.getModelFitResult().getFitParameter(
-                  "tilt_x").error;
-              ss.str("");
-
-              std::pair<double, double> reldiff = calulateRelDiff(
-                  unit_factor * value, unit_factor * error,
-                  unit_factor * beam_tilt_x);
-
-              ss << std::fixed << std::setprecision(2) << "tilt_{x}="
-                  << 1e3 * unit_factor * value << " #pm "
-                  << 1e3 * unit_factor * error << " #murad";
-
-              NeatPlotting::PlotLabel label(ss.str(), text_style);
-              label.setAbsolutionPosition(
-                  unit_factor * beam_tilt_x - x_max * 0.1,
-                  unit_factor * beam_tilt_y + y_max * 0.2);
-              plot_bundle.plot_decoration.labels.push_back(label);
-
-            } catch (int n) {
-              std::cout
-                  << "tilt x parameter does not exist as a fit parameter in the fit result!"
-                  << std::endl;
-            }
-            try {
-              double value = fit_result.getModelFitResult().getFitParameter(
-                  "tilt_y").value;
-              double error = fit_result.getModelFitResult().getFitParameter(
-                  "tilt_y").error;
-              ss.str("");
-
-              std::pair<double, double> reldiff = calulateRelDiff(
-                  unit_factor * value, unit_factor * error,
-                  unit_factor * beam_tilt_y);
-
-              ss << std::fixed << std::setprecision(2) << "tilt_{y}="
-                  << 1e3 * unit_factor * value << " #pm "
-                  << 1e3 * unit_factor * error << " #murad";
-
-              NeatPlotting::PlotLabel label(ss.str(), text_style);
-              label.setAbsolutionPosition(
-                  unit_factor * beam_tilt_x - x_max * 0.1,
-                  unit_factor * beam_tilt_y + y_max * 0.13);
-              plot_bundle.plot_decoration.labels.push_back(label);
-            } catch (int n) {
-              std::cout
-                  << "tilt y parameter does not exist as a fit parameter in the fit result!"
-                  << std::endl;
-            }
-          }
-        }
+        x.push_back(1000.0 * tilt_x);
+        y.push_back(1000.0 * tilt_y);
+        z.push_back(lumi.first);
+        z_err.push_back(lumi.second);
       }
     }
 
-    plot_bundle.addHistogram(hist, style);
+    TGraph2DErrors *graph = new TGraph2DErrors(x.size(), &x[0], &y[0], &z[0], 0,
+        0, &z_err[0]);
 
-    if (draw_labels > 0) {
-      std::stringstream ss;
-      ss << "stat. err.: " << std::fixed << std::setprecision(2) << lumi.second
-          << " %";
-      NeatPlotting::PlotLabel label(ss.str(), text_style);
-      label.setRelativePosition(0.6, 1.05);
-      plot_bundle.plot_decoration.labels.push_back(label);
-    }
-
-    plot_bundle.plot_axis.x_axis_title = "tilt_{x} / mrad";
-    plot_bundle.plot_axis.y_axis_title = "tilt_{y} / mrad";
-    plot_bundle.plot_axis.z_axis_title = "#frac{|L-L_{ref}|}{L_{ref}} / %";
-
-    return plot_bundle;
+    return graph;
   }
 
 // booky creation
@@ -1401,7 +1413,7 @@ namespace LumiFit {
   }
 
   NeatPlotting::Booky PndLmdPlotter::makeLumiFitResultOverviewBooky(
-      std::vector<PndLmdAngularData> &data_vec) {
+      std::vector<PndLmdElasticDataBundle> &data_vec) {
 
     std::map<PndLmdFitOptions,
         std::map<NeatPlotting::SubpadCoordinates, NeatPlotting::PlotBundle>,
@@ -1426,8 +1438,8 @@ namespace LumiFit {
     fitop_normal.track_type = LumiFit::RECO;
 
 // go through data map
-    for (std::vector<PndLmdAngularData>::iterator top_it = data_vec.begin();
-        top_it != data_vec.end(); top_it++) {
+    for (std::vector<PndLmdElasticDataBundle>::iterator top_it =
+        data_vec.begin(); top_it != data_vec.end(); top_it++) {
 
       // we only want IP info, so throw out everything else
       if (top_it->getPrimaryDimension().dimension_options.track_param_type
@@ -2166,7 +2178,7 @@ namespace LumiFit {
       // ---------- 2d stuff ----------
       TVirtualPad *current_pad = gPad;
 
-      TEfficiency *eff = acc.getAcceptance2D(); // false = angular acceptance
+      TEfficiency *eff = acc.getAcceptance2D();  // false = angular acceptance
       TCanvas c;
       eff->Draw("colz");
       c.Update();

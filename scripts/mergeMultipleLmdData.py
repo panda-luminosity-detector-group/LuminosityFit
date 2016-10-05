@@ -43,9 +43,11 @@ if args.type[0].find('v') >= 0:
   data_type_list.append(DataTypeInfo('v', ' -f lmd_vertex_data_\\d*.root', 'lmd_vertex_data_*.root'))  
 
 
+patterns=[]
+patterns.append(args.dir_pattern)
 # to avoid merge_data directories to be used recursively 
 # we forbid the occurence merge_data in path name
-dir_searcher = general.DirectorySearcher(args.dir_pattern, 'merge_data')
+dir_searcher = general.DirectorySearcher(patterns, 'merge_data')
 
 for data_type_info in data_type_list:
   dir_searcher.searchListOfDirectories(args.dirname[0], data_type_info.glob_pattern)

@@ -30,32 +30,33 @@ struct RecoBinSmearingContributions {
 };
 
 class PndLmdSmearingModel2D {
-	std::vector<ContributorCoordinateWeight> empty_contribution_list;
-	double search_distance_x;
-	double search_distance_y;
+  std::vector<ContributorCoordinateWeight> empty_contribution_list;
+  double search_distance_x;
+  double search_distance_y;
 
-	unsigned int max_number_of_hints;
-	std::vector<unsigned int> last_found_neighbour_indices;
-	boost::mutex neighbour_index_list_lock;
+  unsigned int max_number_of_hints;
+  std::vector<unsigned int> last_found_neighbour_indices;
+  boost::mutex neighbour_index_list_lock;
 
-	std::vector<RecoBinSmearingContributions> smearing_parameterization;
+  std::vector<RecoBinSmearingContributions> smearing_parameterization;
 
-	const std::vector<ContributorCoordinateWeight>& findNearestNeighbour(
-			const double *x);
+  const std::vector<ContributorCoordinateWeight>& findNearestNeighbour(
+      const double *x);
 
-	void determineSearchDistance();
+  void determineSearchDistance();
 
 public:
-	PndLmdSmearingModel2D();
-	virtual ~PndLmdSmearingModel2D();
+  PndLmdSmearingModel2D();
+  virtual ~PndLmdSmearingModel2D();
 
-	void setSmearingParameterization(const std::vector<RecoBinSmearingContributions>& smearing_parameterization_);
-	void setSearchDistances(double search_distance_x_, double search_distance_y_);
+  void setSmearingParameterization(
+      const std::vector<RecoBinSmearingContributions>& smearing_parameterization_);
+  void setSearchDistances(double search_distance_x_, double search_distance_y_);
 
-	virtual const std::vector<ContributorCoordinateWeight>& getListOfContributors(
-			const double *x);
+  virtual const std::vector<ContributorCoordinateWeight>& getListOfContributors(
+      const double *x);
 
-	virtual void updateSmearingModel();
+  virtual void updateSmearingModel();
 };
 
 #endif /* PNDLMDSMEARINGMODEL2D_H_ */

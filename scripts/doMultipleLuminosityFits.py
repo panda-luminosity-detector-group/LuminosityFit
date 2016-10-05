@@ -130,7 +130,9 @@ if args.forced_box_gen_data == '':
   box_dir_searcher = general.DirectorySearcher(patterns)
   box_dir_searcher.searchListOfDirectories(top_level_box_directory, box_acc_glob_pattern)
   box_dirs = box_dir_searcher.getListOfDirectories()
-  
+
+print dirs
+print box_dirs  
 
 matches = findMatchingDirs(args.forced_box_gen_data)
 

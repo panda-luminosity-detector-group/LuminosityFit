@@ -28,6 +28,11 @@ class XYZLists:
       if z is not None:
         self.list_z.append(z)
 
+  def __repr__(self):
+    return 'x values: ' + str(self.list_x) + '\ny values: ' + str(self.list_y) + '\nz values: ' + str(self.list_z) + '\n'
+  def __str__(self):
+    return self.__repr__()
+
 class IPParams:
   ip_offset_x = Decimal('0.0')  # in cm
   ip_offset_y = Decimal('0.0')  # in cm
@@ -113,7 +118,10 @@ def createScenarioLists(mode, value_list, value_z_list=None):
             lists.appendValues(value, Decimal('0.0'), z_value)
             
             lists.appendValues(Decimal('0.0'), value, z_value)
-            
+          elif mode == 'g':
+            for value2 in values:
+              if value2 > Decimal('0.0'):
+                lists.appendValues(value, value2, z_value)
           elif mode == 'c':
             lists.appendValues(value, value, z_value)
             
@@ -193,7 +201,11 @@ def createIPParameterScenarios():
 
   if beam_tilt_abs_list:
     createScenarios(ip_param_list, setBeamTiltXY, beam_tilt_mode, beam_tilt_abs_list)
-    
+
+  only_positive_values = True
+  if beam_div_abs_list:
+    createScenarios(ip_param_list, setBeamDivergenceXY, beam_div_mode, beam_div_abs_list)
+  
   return ip_param_list
 
 
@@ -201,7 +213,7 @@ parser = argparse.ArgumentParser(description='Script for full simulation of PAND
 
 parser.add_argument('num_events', metavar='num_events', type=int, nargs=1, help='number of events to simulate')
 parser.add_argument('lab_momentum', metavar='lab_momentum', type=float, nargs=1, help='lab momentum of incoming beam antiprotons\n(required to set correct magnetic field maps etc)')
-parser.add_argument('sim_type', metavar='simulation_type', type=str, nargs=1, choices=['box', 'dpm_elastic', 'dpm_elastic_inelastic', 'noise'], help='lab momentum of incoming beam antiprotons\n(required to set correct magnetic field maps etc)')
+parser.add_argument('sim_type', metavar='simulation_type', type=str, nargs=1, choices=['box', 'dpm_elastic', 'dpm_elastic_inelastic', 'noise'], help='four kinds: box, dpm_elastic, dpm_elastic_inelastic and noise')
 
 parser.add_argument('--low_index', metavar='low_index', type=int, default=-1,
                    help='Lowest index of generator file which is supposed to be used in the simulation. Default setting is -1 which will take the lowest found index.')
@@ -238,7 +250,7 @@ parser.add_argument('--beam_tilt_abs', metavar='beam_tilt_abs', type=float, narg
                    help="beam_tilt_abs: tilts with respect to the beam axis, which are used as a template value for the scans (in mrad)")
 
 
-parser.add_argument('--beam_div_mode', metavar='beam_div_mode', choices=['a', 'c', 'f', 's'], default='s', help='a = axis, c=corners, f=full round, s=single')
+parser.add_argument('--beam_div_mode', metavar='beam_div_mode', choices=['g', 's'], default='s', help='g = grid scan, s=single')
 
 parser.add_argument('--beam_div_abs', metavar='beam_div_abs', type=float, nargs='*', default=[0.0],
                    help="beam_div_abs: divergence with respect to the tilt mean, which are used as a template value for the scans (in mrad)")
@@ -275,7 +287,7 @@ for ip_params in ip_params_list:
   bashcommand = 'python runSimulations.py --low_index ' + str(args.low_index) + ' --high_index ' + str(args.high_index) \
                 + ' --use_ip_offset ' + str(ip_params.ip_offset_x) + ' ' + str(ip_params.ip_offset_y) + ' ' + str(ip_params.ip_offset_z) + ' ' \
                 + str(ip_params.ip_spread_x) + ' ' + str(ip_params.ip_spread_y) + ' ' + str(ip_params.ip_spread_z) \
-                + ' --use_beam_gradient ' + str(ip_params.beam_tilt_x) + ' ' + str(ip_params.beam_tilt_y) + ' ' + str(ip_params.beam_divergence_x) + ' ' + str(ip_params.beam_divergence_x) \
+                + ' --use_beam_gradient ' + str(ip_params.beam_tilt_x) + ' ' + str(ip_params.beam_tilt_y) + ' ' + str(ip_params.beam_divergence_x) + ' ' + str(ip_params.beam_divergence_y) \
                 + additional_flags + rec_ip_info + ' --track_search_algo ' + args.track_search_algo + ' ' + str(args.num_events[0]) + ' ' + str(args.lab_momentum[0]) + ' ' + args.sim_type[0]
   #print bashcommand
   returnvalue = subprocess.call(bashcommand.split())
