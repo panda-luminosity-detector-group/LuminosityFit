@@ -29,9 +29,9 @@ CachedModel2D::CachedModel2D(const std::string& name, shared_ptr<Model2D> model_
 
 CachedModel2D::~CachedModel2D() {
   for (unsigned int i = 0; i < data_dim_x.bins; i++) {
-    delete (model_grid[i]);
+    delete[] (model_grid[i]);
   }
-  delete (model_grid);
+  delete[] (model_grid);
 }
 
 void CachedModel2D::initializeModelGrid() {

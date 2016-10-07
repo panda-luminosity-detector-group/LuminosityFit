@@ -81,9 +81,9 @@ PndLmdDifferentialSmearingConvolutionModel2D::PndLmdDifferentialSmearingConvolut
 
 PndLmdDifferentialSmearingConvolutionModel2D::~PndLmdDifferentialSmearingConvolutionModel2D() {
 	for (unsigned int i = 0; i < data_dim_x.bins; i++) {
-		delete (model_grid[i]);
+		delete[] (model_grid[i]);
 	}
-	delete (model_grid);
+	delete[] (model_grid);
 }
 
 void PndLmdDifferentialSmearingConvolutionModel2D::initModelParameters() {

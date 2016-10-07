@@ -65,6 +65,7 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
   bool make_offset_overview_plots(false);
   bool make_ipspot_overview_plots(false);
   bool make_tilt_overview_plots(false);
+  bool make_div_overview_plots(false);
   bool make_fit_range_dependency_plots(false);
 
   if(type == 1)
@@ -75,6 +76,8 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
     make_offset_overview_plots = true;
   else if(type == 4)
     make_tilt_overview_plots = true;
+  else if(type == 5)
+    make_div_overview_plots = true;
 
 // ================================= END CONFIG ================================= //
 
@@ -242,6 +245,48 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
     TFile newfile2(filename.str().c_str(), "RECREATE");
     graphs.first->Write("tilt_xy_reco_fit");
     graphs.second->Write("tilt_xy_truth");
+  }
+
+  if (make_div_overview_plots && full_phi_reco_data_vec.size() > 1) {
+    std::stringstream filename;
+    filename << basepath.str() << "/";
+    filename << "plab_" << full_phi_reco_data_vec.begin()->getLabMomentum()
+        << "/lumifit_result_div_overview.root";
+
+    std::cout << "build overview histogram with "
+        << full_phi_reco_data_vec.size() << " values!" << std::endl;
+
+    std::vector<PndLmdElasticDataBundle> filtered_reco_data_objects;
+
+    // filter reco_data_ip_map for tilts below some threshold
+    double threshold = 0.0007;
+    std::vector<PndLmdElasticDataBundle>::iterator reco_data_object_iter;
+    for (reco_data_object_iter = full_phi_reco_data_vec.begin();
+        reco_data_object_iter != full_phi_reco_data_vec.end();
+        reco_data_object_iter++) {
+      if (reco_data_object_iter->getSimulationParametersPropertyTree().get<
+          double>("beam_divergence_x") < threshold
+          && reco_data_object_iter->getSimulationParametersPropertyTree().get<
+              double>("beam_divergence_y") < threshold) {
+        filtered_reco_data_objects.push_back(*reco_data_object_iter);
+      }
+    }
+
+    TGraph2DErrors* graph = lmd_plotter.makeDivXYOverviewGraph(
+        filtered_reco_data_objects);
+    TFile newfile(filename.str().c_str(), "RECREATE");
+    graph->Write("overview_graph");
+
+    std::pair<TGraphAsymmErrors*, TGraphAsymmErrors*> graphs =
+        lmd_plotter.makeDivXYOverviewGraphs(filtered_reco_data_objects);
+
+    filename.str("");
+    filename << basepath.str() << "/";
+    filename << "plab_" << full_phi_reco_data_vec.begin()->getLabMomentum()
+        << "/fit_results_divxy_overview.root";
+    TFile newfile2(filename.str().c_str(), "RECREATE");
+    graphs.first->Write("div_xy_reco_fit");
+    graphs.second->Write("div_xy_truth");
   }
 
   // now the stuff that really need to generate the model

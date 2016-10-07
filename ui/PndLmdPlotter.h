@@ -179,6 +179,12 @@ public:
   TGraph2DErrors* makeTiltXYOverviewGraph(
 			const std::vector<PndLmdElasticDataBundle> &elastic_data_bundles) const;
 
+  std::pair<TGraphAsymmErrors*, TGraphAsymmErrors*> makeDivXYOverviewGraphs(
+          const std::vector<PndLmdElasticDataBundle> &vertex_data_vec) const;
+
+  TGraph2DErrors* makeDivXYOverviewGraph(
+      const std::vector<PndLmdElasticDataBundle> &elastic_data_bundles) const;
+
 	// the plot bundles creation functions ===========================================
 
 	/*

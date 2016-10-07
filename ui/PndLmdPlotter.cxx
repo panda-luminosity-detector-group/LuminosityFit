@@ -1272,6 +1272,8 @@ namespace LumiFit {
 
       NeatPlotting::GraphPoint current_graph_point;
 
+      double scale_factor(1000); // *1000 from rad to mrad
+
       for (auto const& vertex_data : vertex_data_vec) {
 
         if (vertex_data.getPrimaryDimension().dimension_options.track_type
@@ -1282,8 +1284,8 @@ namespace LumiFit {
           double ip_mean_x = sim_params.get<double>("beam_tilt_x");
           double ip_mean_y = sim_params.get<double>("beam_tilt_y");
 
-          current_graph_point.x = ip_mean_x * 10; // *10 from cm to mm
-          current_graph_point.y = ip_mean_y * 10; // *10 from cm to mm
+          current_graph_point.x = ip_mean_x * scale_factor;
+          current_graph_point.y = ip_mean_y * scale_factor;
           current_graph_point.x_err_low = 0.0;
           current_graph_point.x_err_high = 0.0;
           current_graph_point.y_err_low = 0.0;
@@ -1302,17 +1304,17 @@ namespace LumiFit {
                 == LumiFit::X) {
               NeatPlotting::GraphPoint &gp = graph_points[std::make_pair(
                   ip_mean_x, ip_mean_y)];
-              gp.x = fit_result.getFitParameter("tilt_x").value * 10;
-              gp.x_err_low = fit_result.getFitParameter("tilt_x").error * 10;
-              gp.x_err_high = fit_result.getFitParameter("tilt_x").error * 10;
+              gp.x = fit_result.getFitParameter("tilt_x").value * scale_factor;
+              gp.x_err_low = fit_result.getFitParameter("tilt_x").error * scale_factor;
+              gp.x_err_high = fit_result.getFitParameter("tilt_x").error * scale_factor;
             }
             if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
                 == LumiFit::Y) {
               NeatPlotting::GraphPoint &gp = graph_points[std::make_pair(
                   ip_mean_x, ip_mean_y)];
-              gp.y = fit_result.getFitParameter("tilt_y").value * 10;
-              gp.y_err_low = fit_result.getFitParameter("tilt_y").error * 10;
-              gp.y_err_high = fit_result.getFitParameter("tilt_y").error * 10;
+              gp.y = fit_result.getFitParameter("tilt_y").value * scale_factor;
+              gp.y_err_low = fit_result.getFitParameter("tilt_y").error * scale_factor;
+              gp.y_err_high = fit_result.getFitParameter("tilt_y").error * scale_factor;
             }
           }
         }
@@ -1339,6 +1341,8 @@ namespace LumiFit {
     std::vector<double> z;
     std::vector<double> z_err;
 
+    double scale_factor(1000); // *1000 from rad to mrad
+
     std::vector<PndLmdElasticDataBundle>::const_iterator ip_setting_case;
     for (ip_setting_case = elastic_data_bundles.begin();
         ip_setting_case != elastic_data_bundles.end(); ip_setting_case++) {
@@ -1362,8 +1366,8 @@ namespace LumiFit {
             << " beam offset case: " << lumi.first << " +- " << lumi.second
             << std::endl;
 
-        x.push_back(1000.0 * tilt_x);
-        y.push_back(1000.0 * tilt_y);
+        x.push_back(scale_factor * tilt_x);
+        y.push_back(scale_factor * tilt_y);
         z.push_back(lumi.first);
         z_err.push_back(lumi.second);
       }
@@ -1374,6 +1378,124 @@ namespace LumiFit {
 
     return graph;
   }
+
+
+  std::pair<TGraphAsymmErrors*, TGraphAsymmErrors*> PndLmdPlotter::makeDivXYOverviewGraphs(
+        const std::vector<PndLmdElasticDataBundle> &vertex_data_vec) const {
+
+      std::map<std::pair<double, double>, NeatPlotting::GraphPoint> graph_points_true;
+      std::map<std::pair<double, double>, NeatPlotting::GraphPoint> graph_points;
+
+      NeatPlotting::GraphPoint current_graph_point;
+
+      double scale_factor(1000); // *1000 from rad to mrad
+
+      for (auto const& vertex_data : vertex_data_vec) {
+
+        if (vertex_data.getPrimaryDimension().dimension_options.track_type
+            == LumiFit::RECO) {
+
+          boost::property_tree::ptree sim_params(
+              vertex_data.getSimulationParametersPropertyTree());
+          double ip_mean_x = sim_params.get<double>("beam_divergence_x");
+          double ip_mean_y = sim_params.get<double>("beam_divergence_y");
+
+          current_graph_point.x = ip_mean_x * scale_factor;
+          current_graph_point.y = ip_mean_y * scale_factor;
+          current_graph_point.x_err_low = 0.0;
+          current_graph_point.x_err_high = 0.0;
+          current_graph_point.y_err_low = 0.0;
+          current_graph_point.y_err_high = 0.0;
+
+          graph_points_true.insert(
+              std::make_pair(
+                  std::make_pair(current_graph_point.x, current_graph_point.y),
+                  current_graph_point));
+
+          ModelFitResult fit_result =
+              vertex_data.getFitResults().begin()->second[0];
+
+          if (fit_result.getFitParameters().size() > 3) {
+            if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
+                == LumiFit::X) {
+              NeatPlotting::GraphPoint &gp = graph_points[std::make_pair(
+                  ip_mean_x, ip_mean_y)];
+              gp.x = fit_result.getFitParameter("gauss_sigma_var1").value * scale_factor;
+              gp.x_err_low = fit_result.getFitParameter("gauss_sigma_var1").error * scale_factor;
+              gp.x_err_high = fit_result.getFitParameter("gauss_sigma_var1").error * scale_factor;
+            }
+            if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
+                == LumiFit::Y) {
+              NeatPlotting::GraphPoint &gp = graph_points[std::make_pair(
+                  ip_mean_x, ip_mean_y)];
+              gp.y = fit_result.getFitParameter("gauss_sigma_var2").value * scale_factor;
+              gp.y_err_low = fit_result.getFitParameter("gauss_sigma_var2").error * scale_factor;
+              gp.y_err_high = fit_result.getFitParameter("gauss_sigma_var2").error * scale_factor;
+            }
+          }
+        }
+      }
+
+      std::vector<NeatPlotting::GraphPoint> temp_gps;
+      for (auto const& ele : graph_points) {
+        temp_gps.push_back(ele.second);
+      }
+      std::vector<NeatPlotting::GraphPoint> temp_true_gps;
+      for (auto const& ele : graph_points_true) {
+        temp_true_gps.push_back(ele.second);
+      }
+
+      return std::make_pair(neat_plot_helper.makeGraph(temp_gps),
+          neat_plot_helper.makeGraph(temp_true_gps));
+    }
+
+  TGraph2DErrors* PndLmdPlotter::makeDivXYOverviewGraph(
+      const std::vector<PndLmdElasticDataBundle> &elastic_data_bundles) const {
+    std::pair<double, double> lumi;
+    std::vector<double> x;
+    std::vector<double> y;
+    std::vector<double> z;
+    std::vector<double> z_err;
+
+    double scale_factor(1000); // *1000 from rad to mrad
+
+    std::vector<PndLmdElasticDataBundle>::const_iterator ip_setting_case;
+    for (ip_setting_case = elastic_data_bundles.begin();
+        ip_setting_case != elastic_data_bundles.end(); ip_setting_case++) {
+      if (ip_setting_case->getFitResults().size() > 0
+          && ip_setting_case->getSelectorSet().size() == 0) {
+        PndLmdLumiFitResult fit_result;
+        fit_result.setModelFitResult(
+            ip_setting_case->getFitResults().begin()->second[0]);
+
+        lumi = calulateRelDiff(fit_result.getLuminosity(),
+            fit_result.getLuminosityError(),
+            ip_setting_case->getReferenceLuminosity());
+
+        boost::property_tree::ptree sim_params(
+            ip_setting_case->getSimulationParametersPropertyTree());
+
+        double div_x = sim_params.get<double>("beam_divergence_x");
+        double div_y = sim_params.get<double>("beam_divergence_y");
+
+        std::cout << "lumi for " << div_x << " " << div_y
+            << " beam div case: " << lumi.first << " +- " << lumi.second
+            << std::endl;
+
+        x.push_back(scale_factor * div_x);
+        y.push_back(scale_factor * div_y);
+        z.push_back(lumi.first);
+        z_err.push_back(lumi.second);
+      }
+    }
+
+    TGraph2DErrors *graph = new TGraph2DErrors(x.size(), &x[0], &y[0], &z[0], 0,
+        0, &z_err[0]);
+
+    return graph;
+  }
+
+
 
 // booky creation
 
