@@ -150,8 +150,8 @@ for match in matches:
   resource_request = himster.JobResourceRequest(12 * 60)
   resource_request.number_of_nodes = 1
   resource_request.processors_per_node = number_of_threads
-  resource_request.memory_in_mb = 30000
-  resource_request.virtual_memory_in_mb = 30000
+  resource_request.memory_in_mb = 15000
+  resource_request.virtual_memory_in_mb = 15000
   job = himster.Job(resource_request, './runLmdFit.sh', 'runLmdFit', elastic_data_path + '/runLmdFit_pbs.log')
   job.setJobArraySize(1, 1) 
 

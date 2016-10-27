@@ -27,6 +27,10 @@ void runLmdFit(string input_file_dir, string config_file_url,
       PndLmdRuntimeConfiguration::Instance();
   lmd_runtime_config.setNumberOfThreads(nthreads);
   lmd_runtime_config.readFitConfigFile(config_file_url);
+  // the next line is not really needed later but we have it in there for debuging reasons right now
+  // the fit facade uses the divergence values from the sim params file in for start values in case they
+  // are not set
+  lmd_runtime_config.readSimulationParameters(input_file_dir + "/../../../../sim_params.config");
 
   lmd_runtime_config.setElasticDataInputDirectory(input_file_dir);
   lmd_runtime_config.setAcceptanceResolutionInputDirectory(acceptance_file_dir);

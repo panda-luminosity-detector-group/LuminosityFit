@@ -264,10 +264,42 @@ void PndLmdFitFacade::initBeamParametersForModel(
       model_opt_ptree.get<double>("ip_offset_y"));
 
   if (model_opt_ptree.get<bool>("divergence_smearing_active")) {
-    current_model->getModelParameterSet().getModelParameter("gauss_sigma_var1")->setValue(
-        model_opt_ptree.get<double>("beam_div_x"));
-    current_model->getModelParameterSet().getModelParameter("gauss_sigma_var2")->setValue(
-        model_opt_ptree.get<double>("beam_div_y"));
+    double start_div_x(0.0001);
+    double start_div_y(0.0001);
+    // bool optional
+    boost::optional<double> v1 = model_opt_ptree.get_optional<double>(
+        "beam_div_x");
+    boost::optional<double> v2 = model_opt_ptree.get_optional<double>(
+        "beam_div_y");
+
+    if (v1) {
+      start_div_x = v1.get();
+    } else {
+      // if parameters are not set we use the simulated ones
+      if (!PndLmdRuntimeConfiguration::Instance().getSimulationParameters().empty())
+        start_div_x =
+            PndLmdRuntimeConfiguration::Instance().getSimulationParameters().get<
+                double>("beam_divergence_x");
+    }
+
+    if (v2) {
+      start_div_y = v2.get();
+    } else {
+      // if parameters are not set we use the simulated ones
+      if (!PndLmdRuntimeConfiguration::Instance().getSimulationParameters().empty())
+        start_div_y =
+            PndLmdRuntimeConfiguration::Instance().getSimulationParameters().get<
+                double>("beam_divergence_y");
+    }
+
+    current_model->getModelParameterSet().getModelParameter(
+              "gauss_sigma_var1")->setValue(start_div_x);
+    current_model->getModelParameterSet().getModelParameter(
+              "gauss_sigma_var2")->setValue(start_div_y);
+
+    std::cout<<"using start divergence parameters: \n";
+    std::cout<<"div_x: "<<start_div_x<<std::endl;
+    std::cout<<"div_y: "<<start_div_y<<std::endl;
     /*current_model->getModelParameterSet().getModelParameter("gauss_mean_var1")->setValue(
      0.0);
      current_model->getModelParameterSet().getModelParameter("gauss_mean_var2")->setValue(
@@ -353,7 +385,7 @@ PndLmdFitOptions PndLmdFitFacade::createFitOptions(
   }
 
   ptree::iterator iter;
-  // convert the ptree to simple format...
+// convert the ptree to simple format...
   for (iter = model_option_ptree.begin(); iter != model_option_ptree.end();
       iter++) {
     fit_opts.model_opt_map[iter->first] = iter->second.data();
@@ -429,13 +461,13 @@ PndLmdFitDataBundle PndLmdFitFacade::doLuminosityFits(
 }
 
 void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
-  // generate model
+// generate model
 
   PndLmdFitOptions fit_options(createFitOptions(lmd_data));
 
   shared_ptr<Model> model = generateModel(lmd_data, fit_options);
 
-  // init beam parameters in model
+// init beam parameters in model
   initBeamParametersForModel(model, fit_options.getModelOptionsPropertyTree());
 
   if (model->init()) {
@@ -445,16 +477,16 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     model->getModelParameterSet().printInfo();
   }
 
-  // free parameters
+// free parameters
   freeParametersForModel(model, fit_options);
 
-  // set model
+// set model
   model_fit_facade.setModel(model);
 
   unsigned int fit_dimension = fit_options.getModelOptionsPropertyTree().get<
       unsigned int>("fit_dimension");
 
-  // create and set data
+// create and set data
   if (fit_dimension == 2) {
     std::cout << "creating 2D data..." << std::endl;
     model_fit_facade.setData(createData2D(lmd_data));
@@ -463,7 +495,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     model_fit_facade.setData(createData1D(lmd_data));
   }
 
-  // now set better starting amplitude value
+// now set better starting amplitude value
   std::vector<DataStructs::DimensionRange> range = calcRange(lmd_data,
       fit_options.getEstimatorOptions());
   double integral_data = 0.0;
@@ -483,7 +515,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
   model->getModelParameterSet().setModelParameterValue("luminosity",
       lumi_start);
 
-  // create minimizer instance with control parameter
+// create minimizer instance with control parameter
   shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer());
 
   model_fit_facade.setMinimizer(minuit_minimizer);
@@ -503,7 +535,7 @@ shared_ptr<Model> PndLmdFitFacade::generateModel(
   shared_ptr<Model> model = model_factory.generateModel(
       fit_options.getModelOptionsPropertyTree(), lmd_data);
 
-  // init beam parameters in model
+// init beam parameters in model
   initBeamParametersForModel(model, fit_options.getModelOptionsPropertyTree());
 
   if (model->init()) {
@@ -513,7 +545,7 @@ shared_ptr<Model> PndLmdFitFacade::generateModel(
     model->getModelParameterSet().printInfo();
   }
 
-  // free parameters
+// free parameters
   freeParametersForModel(model, fit_options);
 
   return model;
@@ -533,7 +565,7 @@ void PndLmdFitFacade::doFit(PndLmdHistogramData &lmd_hist_data,
    return;
    }*/
 
-  // create estimator
+// create estimator
   shared_ptr<ModelEstimator> estimator;
   if (fit_options.estimator_type == LumiFit::CHI2)
     estimator.reset(new Chi2Estimator());
@@ -572,8 +604,7 @@ void PndLmdFitFacade::fitVertexData(
 
     // skip 2d data
     if (lmd_data[i].getSecondaryDimension().is_active) {
-      std::cout
-          << "WARNING: 2d vertex fits are not possible\n";
+      std::cout << "WARNING: 2d vertex fits are not possible\n";
       continue;
     }
 
