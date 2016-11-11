@@ -1273,13 +1273,13 @@ namespace LumiFit {
 
     double scale_factor(1000); // *1000 from rad to mrad
 
-    for (auto const& vertex_data : elastic_data_vec) {
+    for (auto const& elastic_data : elastic_data_vec) {
 
-      if (vertex_data.getPrimaryDimension().dimension_options.track_type
+      if (elastic_data.getPrimaryDimension().dimension_options.track_type
           == LumiFit::RECO) {
 
         boost::property_tree::ptree sim_params(
-            vertex_data.getSimulationParametersPropertyTree());
+            elastic_data.getSimulationParametersPropertyTree());
         double ip_mean_x = sim_params.get<double>("beam_tilt_x");
         double ip_mean_y = sim_params.get<double>("beam_tilt_y");
 
@@ -1296,10 +1296,10 @@ namespace LumiFit {
                 current_graph_point));
 
         ModelFitResult fit_result =
-            vertex_data.getFitResults().begin()->second[0];
+            elastic_data.getFitResults().begin()->second[0];
 
-        if (fit_result.getFitParameters().size() > 0) {
-          if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
+        if (fit_result.getFitParameters().size() > 2) {
+          if (elastic_data.getPrimaryDimension().dimension_options.dimension_type
               == LumiFit::THETA_X) {
             NeatPlotting::GraphPoint &gp = graph_points[std::make_pair(
                 ip_mean_x, ip_mean_y)];

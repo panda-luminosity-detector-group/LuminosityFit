@@ -60,7 +60,7 @@ def findMatchingDirs(box_data_path):
   if box_data_path == '':
     for dpm_dir in dirs:
       print dpm_dir
-      match = re.search('^(.*/)dpm_.*?(/.*/)\d*/\d*-\d*_(.*cut)/.*/(binning_\d*)/merge_data$', dpm_dir)
+      match = re.search('^(.*/)dpm_.*?/(.*/)\d*/\d*-\d*_(.*cut)/.*/(binning_\d*)/merge_data$', dpm_dir)
       pattern = '^' + match.group(1) + 'box_.*?' + match.group(2) + '.*' + match.group(3) + '/.*' + match.group(4) + '/merge_data$'
       #print pattern
       for box_dir in box_dirs:

@@ -28,7 +28,7 @@ struct Point2D {
 
 struct Point2DCloud {
   std::map<Point2D, unsigned int> points;
-  unsigned int total_count;
+  unsigned long total_count;
 };
 
 class PndLmdMapData: public PndLmdAbstractData  {

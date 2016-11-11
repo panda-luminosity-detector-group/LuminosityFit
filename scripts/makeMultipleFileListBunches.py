@@ -52,10 +52,11 @@ def makeFileListBunches(directory):
         else:
             bad_files.append(file)
     
-    if len(good_files) < len(bad_files):
-        print 'WARNING: found more bad than good files... ' + str(len(good_files)) + ' good files vs ' + str(len(bad_files)) + ' bad files! Something went wrong here...'
+    if 0.2 < 1.0*len(bad_files)/(len(good_files) + len(bad_files)):
+        print 'WARNING: more than 20% are bad files... Something went wrong here...'
+        print directory
     
-    print 'detected ' + str(len(bad_files)) + ' bad files'
+    print 'detected ' + str(len(bad_files)) + '/' + str(len(good_files) + len(bad_files)) + ' bad files'
     print 'creating file lists...'
     
     max_bundles = len(good_files) / args.files_per_bunch
