@@ -23,7 +23,7 @@ PndLmdBackgroundModel1D::~PndLmdBackgroundModel1D() {
 void PndLmdBackgroundModel1D::initModelParameters() {
 }
 
-double PndLmdBackgroundModel1D::eval(const double *x) const {
+mydouble PndLmdBackgroundModel1D::eval(const double *x) const {
 	return polynomial_model->eval(x);
 }
 

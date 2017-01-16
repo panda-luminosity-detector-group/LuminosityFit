@@ -39,6 +39,9 @@ void createLmdFitData(const std::string &input_dir_path,
   lmd_runtime_config.setRawDataFilelistPath(filelist_path);
   lmd_runtime_config.setDataOutputDirectory(output_dir_path);
 
+  // set general config path
+  lmd_runtime_config.setGeneralConfigDirectory(config_file_url);
+
   // read simulation parameter config
   boost::filesystem::path sim_config_path(
       lmd_runtime_config.getRawDataDirectory().parent_path().string()
@@ -51,7 +54,8 @@ void createLmdFitData(const std::string &input_dir_path,
                 + "/sim_params.config");
   lmd_runtime_config.readSimulationParameters(sim_config_path.string());
   // read data parameter config
-  lmd_runtime_config.readDataConfigFile(config_file_url);
+  boost::filesystem::path data_config_path(config_file_url);
+  lmd_runtime_config.readDataConfig(data_config_path.filename().string());
 
   PndLmdDataFacade data_facade;
   data_facade.createAndFillDataBundles(data_types);

@@ -222,8 +222,10 @@ namespace LumiFit {
     if (elastic_data_bundle.getUsedResolutionIndices().size() > 0) {
       unsigned int used_resolution_index =
           elastic_data_bundle.getUsedResolutionIndices()[0];
-      lmd_fit_facade.setModelFactoryResolutionMap(
+      PndLmdMapData temp_data(
           current_fit_bundle.getUsedResolutionsPool()[used_resolution_index]);
+      temp_data.readFromRootTrees();
+      lmd_fit_facade.setModelFactoryResolutionMap(temp_data);
     }
 
     shared_ptr<Model> model = lmd_fit_facade.generateModel(elastic_data_bundle,
@@ -237,10 +239,6 @@ namespace LumiFit {
     model->getModelParameterHandler().initModelParametersFromFitResult(
         elastic_data_bundle.getFitResults(fit_opt)[0]);
 
-    if (model->init()) {
-      std::cout << "Error: not all parameters have been set!" << std::endl;
-      model->getModelParameterSet().printInfo();
-    }
     // trigger model calculations
     model->updateModel();
 

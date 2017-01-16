@@ -14,7 +14,7 @@
 
 struct DifferentialCoordinateContribution {
   std::pair<int, int> coordinate_delta;
-  double contribution_factor;
+  mydouble contribution_factor;
 
   DifferentialCoordinateContribution() :
       coordinate_delta(0, 0), contribution_factor(0.0) {
@@ -32,6 +32,8 @@ struct DifferentialCoordinateContribution {
 class PndLmdDivergenceSmearingModel2D {
   shared_ptr<Model2D> divergence_model;
 
+  double integral_precision;
+
   LumiFit::LmdDimension data_dim_x;
   LumiFit::LmdDimension data_dim_y;
 
@@ -42,9 +44,9 @@ class PndLmdDivergenceSmearingModel2D {
   void optimizeNumericalIntegration(
       const std::vector<std::vector<std::pair<int, int> > >& xy_pairs_lists);
 
-  void generate2DDivergenceMap(
+  void generate2DDivergenceMapPart(
       const std::vector<std::pair<int, int> >& xy_pairs,
-      std::vector<DifferentialCoordinateContribution>& list_of_contributors_for_thread);
+      std::vector<DifferentialCoordinateContribution>& list_of_contributors_for_thread) const;
 
 public:
   struct IntPairLess {

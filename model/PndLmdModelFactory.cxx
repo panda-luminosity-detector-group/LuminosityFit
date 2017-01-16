@@ -22,6 +22,7 @@
 #include "AsymmetricGaussianModel1D.h"
 #include "PndLmdDivergenceSmearingModel2D.h"
 #include "CachedModel2D.h"
+#include "ui/PndLmdRuntimeConfiguration.h"
 
 #include "PndLmdSignalBackgroundModel1D.h"
 #include "PndLmdBackgroundModel1D.h"
@@ -60,7 +61,7 @@ shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel() 
       << "converting detector smearing contributions to vector for fast access..."
       << std::endl;
 
-  TH2D histx("ax", "", 200, -0.013, 0.013, 200, -0.013, 0.013);
+  //TH2D histx("ax", "", 200, -0.013, 0.013, 200, -0.013, 0.013);
   //TH2D histy("ay", "", 200, -0.013, 0.013, 200, -0.013, 0.013);
 
   /*TTree *tree = (TTree*)resolution_map_data.getDataTree()->Clone("asdf");
@@ -129,8 +130,8 @@ shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel() 
       rbsc.contributor_coordinate_weight_list.push_back(cw);
 
       overall_smear += cw.smear_weight;
-      histx.Fill(rbsc.reco_bin_x - cw.bin_center_x,
-          rbsc.reco_bin_y - cw.bin_center_y);
+      //histx.Fill(rbsc.reco_bin_x - cw.bin_center_x,
+      //    rbsc.reco_bin_y - cw.bin_center_y);
       //   histy.Fill(rbsc.reco_bin_y, cw.bin_center_y);
       //std::cout << rbsc.reco_bin_x << " : " << rbsc.reco_bin_y << " -> "
       // << cw.bin_center_x << " : " << cw.bin_center_y << " = "
@@ -143,16 +144,16 @@ shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel() 
       << 1.0 * average_contributors / temp_map.size() << std::endl;
   std::cout << "done!" << std::endl;
 
-  TVirtualPad *current_pad = gPad;
-  TCanvas can;
-  histx.Draw("colz");
-  can.Update();
-  can.SaveAs("corrx.pdf");
+  //TVirtualPad *current_pad = gPad;
+  //TCanvas can;
+  //histx.Draw("colz");
+  //can.Update();
+  //can.SaveAs("corrx.pdf");
   //histy.Draw("colz");
   // can.Update();
   // can.SaveAs("corry.pdf");
 
-  gPad = current_pad; // reset pad to the one before*/
+  //gPad = current_pad; // reset pad to the one before*/
 
   shared_ptr<PndLmdSmearingModel2D> detector_smearing_model(
       new PndLmdSmearingModel2D());
@@ -552,6 +553,11 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
 
     LumiFit::LmdDimension temp_prim_dim(data.getPrimaryDimension());
     LumiFit::LmdDimension temp_sec_dim(data.getSecondaryDimension());
+    unsigned int combine = 1;
+    temp_prim_dim.bins *=combine;
+    temp_sec_dim.bins *=combine;
+    temp_prim_dim.calculateBinSize();
+    temp_sec_dim.calculateBinSize();
 
     shared_ptr<PndLmdFastDPMAngModel2D> dpm_model_2d(
         new PndLmdFastDPMAngModel2D(model_name.str(), dpm_angular_1d));
@@ -570,7 +576,7 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
       // thats why the data object is required here
 
       shared_ptr<GaussianModel2D> divergence_model(
-          new GaussianModel2D("divergence_model", 4.0));
+          new GaussianModel2D("divergence_model", 5.0));
 
       divergence_model->init();
 
@@ -584,7 +590,7 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
           new PndLmdDifferentialSmearingConvolutionModel2D(model_name.str(),
               current_model, divergence_smearing_model, data_primary_dimension,
               data_secondary_dimension,
-              PndLmdRuntimeConfiguration::Instance().getNumberOfThreads()));
+              combine));
       div_smeared_model->injectModelParameter(
           divergence_model->getModelParameterSet().getModelParameter(
               "gauss_sigma_var1"));
@@ -623,7 +629,33 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
       c.Update();
       TH2 *hist = acceptance.getAcceptance2D()->GetPaintedHistogram();
 
+
+      // get offset values as measured by the offset determination (user should have specified that)
+      std::pair<double, double> ip_offsets = data.getIPOffsets();
+      // then read transformation json file
+      auto pt = PndLmdRuntimeConfiguration::Instance().getAcceptanceOffsetsTranformationParameters();
+
+      double trans_params[6];
+      trans_params[0] = pt.get_child("matrix").get<double>("m11");
+      trans_params[1] = pt.get_child("matrix").get<double>("m12");
+      trans_params[2] = pt.get_child("matrix").get<double>("m21");
+      trans_params[3] = pt.get_child("matrix").get<double>("m22");
+      trans_params[4] = pt.get_child("before_translation").get<double>("t1");
+      trans_params[5] = pt.get_child("before_translation").get<double>("t2");
+
+      // and do the transformation from offset coordinates to the angular shift coordinates
+      double angular_offsets[2];
+
+      ip_offsets.first += trans_params[4];
+      ip_offsets.second += trans_params[5];
+      angular_offsets[0] = trans_params[0]*ip_offsets.first+trans_params[1]*ip_offsets.second;
+      angular_offsets[1] = trans_params[2]*ip_offsets.first+trans_params[3]*ip_offsets.second;
+      angular_offsets[0] /= 1000.0; // convert to mrad
+      angular_offsets[1] /= 1000.0;
+
+      // then use these coordinates to create a corrected acceptance
       std::pair<double, double> pos;
+      std::pair<double, double> eval_pos;
       std::map<std::pair<double, double>, double> datamap;
       for (unsigned int ix = 0; ix < data_primary_dimension.bins; ix++) {
         for (unsigned int iy = 0; iy < data_secondary_dimension.bins; iy++) {
@@ -631,6 +663,9 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
               + (0.5 + ix) * data_primary_dimension.bin_size;
           pos.second = data_secondary_dimension.dimension_range.getRangeLow()
               + (0.5 + iy) * data_secondary_dimension.bin_size;
+
+          eval_pos.first = pos.first - angular_offsets[0];
+          eval_pos.second = pos.second - angular_offsets[1];
 
           /*int bin = eff2->FindFixBin(pos.first, pos.second);
           double eff_value = eff2->GetEfficiency(bin)
@@ -640,15 +675,15 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
                   / std::sqrt(2 * M_PI);
 
           datamap[pos] = eff_value;*/
-          int bin = hist->FindFixBin(pos.first, pos.second);
-          datamap[pos] = hist->GetBinContent(bin);
+          //int bin = hist->FindFixBin(pos.first, pos.second);
+          //datamap[pos] = hist->GetBinContent(bin);
 
-          //datamap[pos] = hist->Interpolate(pos.first, pos.second);
+          datamap[pos] = hist->Interpolate(eval_pos.first, eval_pos.second);
           /*std::cout << data_primary_dimension.dimension_range.getRangeLow()
            << " " << ix << " " << data_primary_dimension.bin_size
-           << std::endl;
-           std::cout << pos.first << ", " << pos.second << ": "
-           << hist->Interpolate(pos.first, pos.second) << std::endl;*/
+           << std::endl;*/
+           std::cout << eval_pos.first << ", " << eval_pos.second << ": "
+           << hist->Interpolate(pos.first, pos.second) << std::endl;
         }
       }
 
@@ -718,9 +753,6 @@ void PndLmdModelFactory::setAcceptance(const PndLmdAcceptance& acceptance_) {
 
 void PndLmdModelFactory::setResolutionMapData(const PndLmdMapData& res_map_) {
   resolution_map_data = res_map_;
-  // in case map is empty, try to fill it from root tree
-  if (resolution_map_data.getHitMap().size() == 0)
-    resolution_map_data.convertFromRootTree();
 }
 
 void PndLmdModelFactory::setResolutions(

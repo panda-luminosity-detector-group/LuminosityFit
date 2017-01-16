@@ -3,6 +3,7 @@
 
 #include <core/Model2D.h>
 #include "LumiFitStructs.h"
+#include "operators2d/integration/IntegralStrategyGSL2D.h"
 
 class CachedModel2D: public Model2D {
   struct IntRange2D {
@@ -13,14 +14,15 @@ class CachedModel2D: public Model2D {
   };
 
   unsigned int nthreads;
+  double integral_precision;
 
   shared_ptr<Model2D> model;
 
   LumiFit::LmdDimension data_dim_x;
   LumiFit::LmdDimension data_dim_y;
-  double inverse_bin_area;
+  mydouble inverse_bin_area;
 
-  double **model_grid;
+  mydouble **model_grid;
 
   std::vector<std::vector<IntRange2D> > int_ranges_lists;
 
@@ -38,7 +40,7 @@ public:
 
   void initModelParameters();
 
-  double eval(const double *x) const;
+  mydouble eval(const double *x) const;
 
   virtual void updateDomain();
 };

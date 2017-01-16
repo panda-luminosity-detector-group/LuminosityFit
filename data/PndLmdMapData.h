@@ -35,8 +35,9 @@ class PndLmdMapData: public PndLmdAbstractData  {
 #ifndef __CINT__
   std::map<Point2D, Point2DCloud> hit_map_2d;
 #endif
-
-  TTree *data_tree;
+  unsigned int entries_per_file;
+  std::vector<std::string> data_tree_names;
+  std::string data_tree_file_url;
 
 	void init1DData();
 	void init2DData();
@@ -57,14 +58,12 @@ public:
 
 	PndLmdMapData& operator=(const PndLmdMapData &lmd_hist_data);
 
-	void clearMap();
-
 	void saveToRootFile();
 
-	void convertToRootTree();
-	void convertFromRootTree();
+	void saveToRootTrees();
+	void readFromRootTrees();
 
-	ClassDef(PndLmdMapData, 1);
+	ClassDef(PndLmdMapData, 2);
 };
 
 #endif /* PNDLMDMAPDATA_H_ */

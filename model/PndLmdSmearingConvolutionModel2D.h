@@ -18,7 +18,7 @@ public:
 
 	void injectModelParameter(shared_ptr<ModelPar> model_param);
 
-	double eval(const double *x) const;
+	mydouble eval(const double *x) const;
 
 	void updateDomain();
 };

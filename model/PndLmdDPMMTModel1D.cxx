@@ -147,7 +147,7 @@ double PndLmdDPMMTModel1D::getRawRhoBSigtotFullElastic(const double *x) const {
       + getRawRhoBSigtotHadronicPart(x));
 }
 
-double PndLmdDPMMTModel1D::eval(const double *x) const {
+mydouble PndLmdDPMMTModel1D::eval(const double *x) const {
   return luminosity->getValue() * (this->*model_func)(x);
 }
 

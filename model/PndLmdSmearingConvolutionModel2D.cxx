@@ -1,6 +1,7 @@
 #include "PndLmdSmearingConvolutionModel2D.h"
 
 #include <cmath>
+#include <iomanip>
 
 PndLmdSmearingConvolutionModel2D::PndLmdSmearingConvolutionModel2D(
     std::string name_, shared_ptr<Model2D> unsmeared_model_,
@@ -24,11 +25,14 @@ void PndLmdSmearingConvolutionModel2D::injectModelParameter(
   getModelParameterSet().addModelParameter(model_param);
 }
 
-double PndLmdSmearingConvolutionModel2D::eval(const double *x) const {
-  double value = 0.0;
+mydouble PndLmdSmearingConvolutionModel2D::eval(const double *x) const {
+  //mydouble value(0.0);
 
   const std::vector<ContributorCoordinateWeight>& mc_element_contributors(
       smearing_model->getListOfContributors(x));
+
+  std::vector<mydouble> numbers;
+  numbers.reserve(mc_element_contributors.size());
 
   //std::cout<<"num contributors: "<<mc_element_contributors.size()<<std::endl;
   double xx[2];
@@ -38,19 +42,49 @@ double PndLmdSmearingConvolutionModel2D::eval(const double *x) const {
         mc_element_contributors[contributor_index]);
     xx[0] = mc_element_coordinate_and_weight.bin_center_x;
     xx[1] = mc_element_coordinate_and_weight.bin_center_y;
-    double integral_unsmeared_model = unsmeared_model->evaluate(xx);
+    mydouble integral_unsmeared_model = unsmeared_model->evaluate(xx);
     /*integral_unsmeared_model = integral_unsmeared_model
      * mc_element_coordinate_and_weight.area;*/
-    value = value
-        + integral_unsmeared_model
-            * mc_element_coordinate_and_weight.smear_weight;
+    //value = value
+    //    + integral_unsmeared_model
+    //        * mc_element_coordinate_and_weight.smear_weight;
+    numbers.push_back(
+        integral_unsmeared_model
+            * mc_element_coordinate_and_weight.smear_weight);
     //std::cout<<integral_unsmeared_model<< " * " << mc_element_coordinate_and_weight.smear_weight<<std::endl;
   }
+  while (numbers.size() > 2) {
+    std::vector<mydouble> temp_sum;
+    temp_sum.reserve(numbers.size() / 2 + 1);
+    if (numbers.size() % 2 == 0) {
+      for (unsigned int i = 0; i < numbers.size(); i = i + 2) {
+        temp_sum.push_back(numbers[i] + numbers[i + 1]);
+      }
+    } else {
+      for (unsigned int i = 0; i < numbers.size() - 1; i = i + 2) {
+        temp_sum.push_back(numbers[i] + numbers[i + 1]);
+      }
+      temp_sum.push_back(numbers.back());
+    }
+    numbers = temp_sum;
+  }
+
+  mydouble sum_value(0.0);
+  if(numbers.size() == 1)
+    sum_value=numbers[0];
+  if(numbers.size() == 2)
+    sum_value = numbers[0] + numbers[1];
+
+  /*if(value != 0) {
+    if(std::fabs((value-sum_value)/sum_value) > 0.001)
+      std::cout << std::setprecision(9) << "compare standard summation: " << value
+      << " with pairwise summation: " << sum_value << std::endl;
+  }*/
 
   //if(-0.0042 > x[0] && x[0] > -0.0044 && -0.0081 > x[1] && x[1] > -0.0083)
   //  std::cout<<x[0]<<":"<<x[1]<<"  value: "<<value<<std::endl;
 
-  return value;
+  return sum_value;
 }
 
 void PndLmdSmearingConvolutionModel2D::updateDomain() {

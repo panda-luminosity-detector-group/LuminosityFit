@@ -27,6 +27,9 @@ private:
 	 */
 	double reference_luminosity_per_event;
 
+	double ip_offset_x;
+	double ip_offset_y;
+
 public:
 	PndLmdAngularData();
 	PndLmdAngularData(const PndLmdAngularData &lmd_ang_data_);
@@ -37,12 +40,15 @@ public:
 	double getReferenceLuminosityPerEvent() const;
 	void setReferenceLuminosityPerEvent(double reference_luminosity_per_event_);
 
+	std::pair<double, double> getIPOffsets() const;
+	void setIPOffsets(const std::pair<double, double> &ip_offsets);
+
 	bool operator<(const PndLmdAngularData &lmd_data) const;
 	bool operator>(const PndLmdAngularData &lmd_data) const;
 	bool operator==(const PndLmdAngularData &lmd_data) const;
 	bool operator!=(const PndLmdAngularData &lmd_data) const;
 
-ClassDef(PndLmdAngularData,2)
+ClassDef(PndLmdAngularData,3)
 };
 
 #endif /* PNDLMDANGULARDATA_H_ */

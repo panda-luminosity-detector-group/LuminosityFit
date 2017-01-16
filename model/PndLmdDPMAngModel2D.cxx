@@ -86,7 +86,7 @@ void PndLmdDPMAngModel2D::initModelParameters() {
 	tilt_y = getModelParameterSet().addModelParameter("tilt_y");
 }
 
-double PndLmdDPMAngModel2D::eval(const double *x) const {
+mydouble PndLmdDPMAngModel2D::eval(const double *x) const {
 	/*double theta_tilted(calculateThetaFromTiltedSystem(x[0], x[1]).first);
 	double jaco(calculateJacobianDeterminant(x[0], x[1]));*/
 /*	std::cout << "measured theta,phi: " << x[0] << "," << x[1]

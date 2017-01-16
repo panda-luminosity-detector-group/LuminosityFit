@@ -60,7 +60,7 @@ def findMatchingDirs(box_data_path):
   if box_data_path == '':
     for dpm_dir in dirs:
       print dpm_dir
-      match = re.search('^(.*/)dpm_.*?/(.*/)\d*/\d*-\d*_(.*cut)/.*/(binning_\d*)/merge_data$', dpm_dir)
+      match = re.search('^(.*/)dpm_.*?/(ip_offset_XYZDXDYDZ_.*)/.*/\d*/\d*-\d*_(.*cut)/.*/(binning_\d*)/merge_data$', dpm_dir)
       pattern = '^' + match.group(1) + 'box_.*?' + match.group(2) + '.*' + match.group(3) + '/.*' + match.group(4) + '/merge_data$'
       #print pattern
       for box_dir in box_dirs:
@@ -131,8 +131,8 @@ if args.forced_box_gen_data == '':
   box_dir_searcher.searchListOfDirectories(top_level_box_directory, box_acc_glob_pattern)
   box_dirs = box_dir_searcher.getListOfDirectories()
 
-print dirs
-print box_dirs  
+#print dirs
+#print box_dirs  
 
 matches = findMatchingDirs(args.forced_box_gen_data)
 
@@ -150,8 +150,8 @@ for match in matches:
   resource_request = himster.JobResourceRequest(12 * 60)
   resource_request.number_of_nodes = 1
   resource_request.processors_per_node = number_of_threads
-  resource_request.memory_in_mb = 15000
-  resource_request.virtual_memory_in_mb = 15000
+  resource_request.memory_in_mb = 40000
+  resource_request.virtual_memory_in_mb = 40000
   job = himster.Job(resource_request, './runLmdFit.sh', 'runLmdFit', elastic_data_path + '/runLmdFit_pbs.log')
   job.setJobArraySize(1, 1) 
 
@@ -166,7 +166,7 @@ for match in matches:
   
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
-job_manager = himster.HimsterJobManager(1000)
+job_manager = himster.HimsterJobManager(2000)
 
 job_manager.submitJobsToHimster(joblist)
 job_manager.manageJobs()

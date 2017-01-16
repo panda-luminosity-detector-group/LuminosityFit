@@ -3,6 +3,9 @@ set(INCLUDE_DIRECTORIES
   $ENV{ROOT_INCLUDE_DIR}
   $ENV{BOOST_ROOT}/include
   $ENV{VALGRIND_ROOT}/include/valgrind
+  /home/pflueger/ceres-bin/include
+  /home/pflueger/ceres-bin/include/ceres/internal/miniglog
+  /home/pflueger/eigen-build/include/eigen3
 )
 include_directories(${INCLUDE_DIRECTORIES})
 

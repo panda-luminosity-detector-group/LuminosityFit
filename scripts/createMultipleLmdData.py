@@ -111,7 +111,7 @@ for config_path in config_paths:
    
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
-job_manager = himster.HimsterJobManager(400, 300)
+job_manager = himster.HimsterJobManager(1200, 300)
 
 job_manager.submitJobsToHimster(joblist)
 job_manager.manageJobs()

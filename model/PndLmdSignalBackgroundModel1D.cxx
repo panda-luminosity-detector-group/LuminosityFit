@@ -28,7 +28,7 @@ void PndLmdSignalBackgroundModel1D::initModelParameters() {
 	background_fraction->setValue(0.0);
 }
 
-double PndLmdSignalBackgroundModel1D::eval(const double *x) const {
+mydouble PndLmdSignalBackgroundModel1D::eval(const double *x) const {
 	return signal_fraction->getValue() * signal->eval(x)
 			+ background_fraction->getValue() * background->eval(x);
 }

@@ -36,7 +36,7 @@ void AsymmetricGaussianModel1D::initModelParameters() {
 	asymm_gauss_amplitude->setParameterFixed(true);
 }
 
-double AsymmetricGaussianModel1D::eval(const double *x) const {
+mydouble AsymmetricGaussianModel1D::eval(const double *x) const {
 	double value = 0.0;
 	// left side
 	if (x[0] < asymm_gauss_mean->getValue()) {

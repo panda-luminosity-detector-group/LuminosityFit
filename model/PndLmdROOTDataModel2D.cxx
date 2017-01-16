@@ -190,7 +190,7 @@ double PndLmdROOTDataModel2D::evaluateSpline(const double *x) const {
 	return graph->Interpolate(x[0], x[1]);
 }
 
-double PndLmdROOTDataModel2D::eval(const double *x) const {
+mydouble PndLmdROOTDataModel2D::eval(const double *x) const {
 	if (acc_x_range_low > x[0] || acc_x_range_high < x[0]
 			|| acc_y_range_low > x[1] || acc_y_range_high < x[1])
 		return 0.0;

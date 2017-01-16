@@ -25,7 +25,11 @@ void determineBeamOffset(string input_file_dir, string config_file_url,
 	PndLmdRuntimeConfiguration& lmd_runtime_config =
 			PndLmdRuntimeConfiguration::Instance();
 	lmd_runtime_config.setNumberOfThreads(nthreads);
-	lmd_runtime_config.readFitConfigFile(config_file_url);
+
+  // set general config path
+  lmd_runtime_config.setGeneralConfigDirectory(config_file_url);
+  boost::filesystem::path fit_config_path(config_file_url);
+	lmd_runtime_config.readFitConfig(fit_config_path.filename().string());
 
   lmd_runtime_config.setElasticDataInputDirectory(input_file_dir);
   lmd_runtime_config.setVertexDataName("lmd_vertex_data_.*of1.root");

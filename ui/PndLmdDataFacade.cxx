@@ -1073,7 +1073,7 @@ template<> std::vector<PndLmdMapData> PndLmdDataFacade::getDataFromFile(
     f.GetObject(key->GetName(), data);
     if (data) {
       counter++;
-      data->convertFromRootTree();
+      data->readFromRootTrees();
       lmd_data_vec.push_back(*data);
       delete data; // this delete is crucial! otherwise we have a memory leak!
     }

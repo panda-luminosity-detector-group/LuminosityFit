@@ -16,7 +16,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-void runLmdFit(string input_file_dir, string config_file_url,
+void runLmdFit(string input_file_dir, string config_directory,
     string acceptance_file_dir, string reference_acceptance_file_dir,
     unsigned int nthreads) {
 
@@ -26,11 +26,16 @@ void runLmdFit(string input_file_dir, string config_file_url,
   PndLmdRuntimeConfiguration& lmd_runtime_config =
       PndLmdRuntimeConfiguration::Instance();
   lmd_runtime_config.setNumberOfThreads(nthreads);
-  lmd_runtime_config.readFitConfigFile(config_file_url);
+  lmd_runtime_config.setGeneralConfigDirectory(config_directory);
+
+  lmd_runtime_config.readAcceptanceOffsetTransformationParameters(
+      "offset_trafo_matrix.json");
+
   // the next line is not really needed later but we have it in there for debuging reasons right now
   // the fit facade uses the divergence values from the sim params file in for start values in case they
   // are not set
-  lmd_runtime_config.readSimulationParameters(input_file_dir + "/../../../../sim_params.config");
+  lmd_runtime_config.readSimulationParameters(
+      input_file_dir + "/../../../../sim_params.config");
 
   lmd_runtime_config.setElasticDataInputDirectory(input_file_dir);
   lmd_runtime_config.setAcceptanceResolutionInputDirectory(acceptance_file_dir);
@@ -40,13 +45,49 @@ void runLmdFit(string input_file_dir, string config_file_url,
   lmd_runtime_config.setElasticDataName("lmd_data_.*of1.root");
   lmd_runtime_config.setAccDataName("lmd_acc_data_.*of1.root");
   lmd_runtime_config.setResDataName("lmd_res_data_.*of1.root");
+  lmd_runtime_config.setVertexDataName("lmd_vertex_data_.*of1.root");
 
   // ============================== read data ============================== //
 
   // get lmd data and objects from files
   PndLmdDataFacade lmd_data_facade;
 
+  PndLmdFitFacade lmd_fit_facade;
+
+  // get vertex data and determine and run ip determination for these
+  vector<PndLmdHistogramData> my_vertex_vec = lmd_data_facade.getVertexData();
+  // do fits
+  lmd_runtime_config.readFitConfig("vertex_fitconfig.json");
+  lmd_fit_facade.fitVertexData(my_vertex_vec);
+  std::pair<double, double> ip_offsets(0.0, 0.0);
+  for (auto const &vertex_data : my_vertex_vec) {
+    if (vertex_data.getPrimaryDimension().dimension_options.track_type
+        == LumiFit::RECO) {
+      if (!vertex_data.getSecondaryDimension().is_active) {
+        auto fit_results = vertex_data.getFitResults();
+        if (fit_results.size() > 0) {
+          if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
+              == LumiFit::X) {
+            ip_offsets.first = fit_results.begin()->second[0].getFitParameter(
+                "gauss_mean").value;
+          }
+          if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
+              == LumiFit::Y) {
+            ip_offsets.second = fit_results.begin()->second[0].getFitParameter(
+                "gauss_mean").value;
+          }
+        }
+      }
+    }
+  }
+  // ok now we have to set the correct ip offsets to the elastic data sets
+  // so compare the data on an abstract level
   vector<PndLmdAngularData> my_lmd_data_vec = lmd_data_facade.getElasticData();
+  for (auto &data : my_lmd_data_vec) {
+    data.setIPOffsets(ip_offsets);
+  }
+
+  lmd_runtime_config.readFitConfig("fitconfig.json");
 
   // filter out specific data
   LumiFit::LmdDimensionOptions lmd_dim_opt;
@@ -55,9 +96,11 @@ void runLmdFit(string input_file_dir, string config_file_url,
 
   const boost::property_tree::ptree& fit_config_ptree =
       lmd_runtime_config.getFitConfigTree();
-  if (fit_config_ptree.get<bool>("fit.fit_model_options.acceptance_correction_active") == true) {
+  if (fit_config_ptree.get<bool>(
+      "fit.fit_model_options.acceptance_correction_active") == true) {
     lmd_dim_opt.track_type = LumiFit::MC_ACC;
-    if (fit_config_ptree.get<bool>("fit.fit_model_options.resolution_smearing_active") == true)
+    if (fit_config_ptree.get<bool>(
+        "fit.fit_model_options.resolution_smearing_active") == true)
       lmd_dim_opt.track_type = LumiFit::RECO;
   }
 
@@ -71,7 +114,6 @@ void runLmdFit(string input_file_dir, string config_file_url,
   // ------------------------------------------------------------------------
 
   // start fitting
-  PndLmdFitFacade lmd_fit_facade;
   // add acceptance data to pools
   // the corresponding acceptances to the data will automatically be taken
   // if not found then this fit is skipped
@@ -106,7 +148,7 @@ void displayInfo() {
   // display info
   cout << "Required arguments are: " << endl;
   cout << "-d [path to data]" << endl;
-  cout << "-c [path to config file] " << endl;
+  cout << "-c [path to config file]" << endl;
   cout << "Optional arguments are: " << endl;
   cout << "-m [number of threads]" << endl;
   cout << "-a [path to box gen data] (acceptance)" << endl;
@@ -124,7 +166,7 @@ int main(int argc, char* argv[]) {
 
   int c;
 
-  while ((c = getopt(argc, argv, "hc:a:m:r:d:")) != -1) {
+  while ((c = getopt(argc, argv, "hc:a:m:r:d:X:Y:")) != -1) {
     switch (c) {
     case 'a':
       acc_path = optarg;

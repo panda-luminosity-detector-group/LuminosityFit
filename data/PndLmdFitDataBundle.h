@@ -58,7 +58,7 @@ class PndLmdFitDataBundle: public TObject {
 	//std::vector<std::pair<unsigned int, unsigned int> > addResolutionsToPool(
 	//		const std::vector<PndLmdMapData>& new_resolutions);
 	unsigned int addResolutionToPool(
-	      const PndLmdMapData& new_resolution);
+	    const PndLmdMapData &new_resolution);
 
 public:
 	PndLmdFitDataBundle();

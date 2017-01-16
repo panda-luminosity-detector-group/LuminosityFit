@@ -3,6 +3,7 @@ set(INCLUDE_DIRECTORIES
   $ENV{ROOT_INCLUDE_DIR}
   $ENV{BOOST_ROOT}/include
   $ENV{VALGRIND_ROOT}/include/valgrind
+  /home/pflueger/eigen/include
 )
 include_directories(${INCLUDE_DIRECTORIES})
 
@@ -42,7 +43,10 @@ add_executable(compareAcceptances compareAcceptances.cxx)
 target_link_libraries(compareAcceptances LmdUI)
 
 add_executable(analyzeAcceptances analyzeAcceptances.cxx)
-target_link_libraries(analyzeAcceptances LmdUI)
+target_link_libraries(analyzeAcceptances LmdUI Minuit2)
+
+add_executable(analyzeResolutionMapData analyzeResolutionMapData.cxx)
+target_link_libraries(analyzeResolutionMapData LmdUI)
 
 ########################### create lumiFitData app ##################################
 

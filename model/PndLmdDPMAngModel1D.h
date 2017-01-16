@@ -33,7 +33,7 @@ public:
      * par[1-3] are the parameters of the DPM model and par[4-5] are theta and phi bin sizes of the data
      * @returns cross section value for given theta and phi value, which are stored in x[0] and x[1] and the parameters:
      * par */
-    double eval(const double *x) const;
+    mydouble eval(const double *x) const;
 
     virtual void updateDomain();
 };

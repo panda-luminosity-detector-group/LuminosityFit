@@ -3,6 +3,7 @@
 #include "fit/estimatorImpl/Chi2Estimator.h"
 #include "fit/estimatorImpl/LogLikelihoodEstimator.h"
 #include "fit/minimizerImpl/ROOT/ROOTMinimizer.h"
+//#include "fit/minimizerImpl/Ceres/CeresMinimizer.h"
 #include "fit/data/Data.h"
 #include "PndLmdDataFacade.h"
 #include "PndLmdComparisonStructs.h"
@@ -18,6 +19,7 @@
 
 #include "TFile.h"
 #include "TH1D.h"
+#include "TVectorD.h"
 
 #include "callgrind.h"
 
@@ -258,10 +260,10 @@ void PndLmdFitFacade::initBeamParametersForModel(
   current_model->getModelParameterSet().getModelParameter("tilt_y")->setValue(
       model_opt_ptree.get<double>("beam_tilt_y"));
 
-  current_model->getModelParameterSet().getModelParameter("offset_x")->setValue(
+  /*current_model->getModelParameterSet().getModelParameter("offset_x")->setValue(
       model_opt_ptree.get<double>("ip_offset_x"));
   current_model->getModelParameterSet().getModelParameter("offset_y")->setValue(
-      model_opt_ptree.get<double>("ip_offset_y"));
+      model_opt_ptree.get<double>("ip_offset_y"));*/
 
   if (model_opt_ptree.get<bool>("divergence_smearing_active")) {
     double start_div_x(0.0001);
@@ -375,8 +377,9 @@ PndLmdFitOptions PndLmdFitFacade::createFitOptions(
     model_option_ptree.put("acceptance_correction_active", false);
     model_option_ptree.put("resolution_smearing_active", false);
     if (LumiFit::MC_ACC
-        == lmd_data.getPrimaryDimension().dimension_options.track_type)
+        == lmd_data.getPrimaryDimension().dimension_options.track_type) {
       model_option_ptree.put("acceptance_correction_active", true);
+    }
     if (LumiFit::RECO
         == lmd_data.getPrimaryDimension().dimension_options.track_type) {
       model_option_ptree.put("acceptance_correction_active", true);
@@ -446,7 +449,7 @@ PndLmdFitDataBundle PndLmdFitFacade::doLuminosityFits(
         if (fit_options.getModelOptionsPropertyTree().get<bool>(
             "resolution_smearing_active"))
           data_bundle.attachResolutionMapDataToCurrentData(
-              model_factory.getResolutionMapData());
+              *resolution_map_pool.begin());
       }
     } else {
       fitElasticPPbar(lmd_data);
@@ -517,8 +520,11 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
 
 // create minimizer instance with control parameter
   shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer());
+  //shared_ptr<CeresMinimizer> ceres_minimizer(new CeresMinimizer());
 
   model_fit_facade.setMinimizer(minuit_minimizer);
+  //std::vector<std::string> scan_var_names = {"gauss_sigma_var1", "gauss_sigma_var2"};
+  //scanEstimatorSpace(lmd_data, fit_options, scan_var_names);
 
   doFit(lmd_data, fit_options);
 }
@@ -550,6 +556,49 @@ shared_ptr<Model> PndLmdFitFacade::generateModel(
 
   return model;
 }
+
+void PndLmdFitFacade::scanEstimatorSpace(PndLmdHistogramData &lmd_hist_data,
+    const PndLmdFitOptions &fit_options, const std::vector<std::string> &variable_names) {
+
+  cout << "Scanning estimator space with following fit options:" << endl;
+  cout << fit_options << endl;
+
+// create estimator
+  shared_ptr<ModelEstimator> estimator;
+  if (fit_options.estimator_type == LumiFit::CHI2)
+    estimator.reset(new Chi2Estimator());
+  else
+    estimator.reset(new LogLikelihoodEstimator());
+
+  PndLmdRuntimeConfiguration& lmd_runtime_config =
+      PndLmdRuntimeConfiguration::Instance();
+
+  estimator->setNumberOfThreads(lmd_runtime_config.getNumberOfThreads());
+
+  model_fit_facade.setEstimator(estimator);
+
+  model_fit_facade.setEstimatorOptions(fit_options.getEstimatorOptions());
+
+  Data scanned_data = model_fit_facade.scanEstimatorSpace(variable_names);
+
+  // lets make a 2d plot here
+  TFile f("div_likelihood_scan.root", "RECREATE");
+  //TH2D hist2d("name", "div likelihood scan", 60, 0.0000997, 0.000103, 60, 0.000194, 0.000206);
+  unsigned int bins(scanned_data.getData().size());
+  TVectorD datax(bins);
+  TVectorD datay(bins);
+  TVectorD dataz(bins);
+  auto& datapoints = scanned_data.getData();
+  for(unsigned int i = 0; i < scanned_data.getData().size(); ++i) {
+    datax[i] = datapoints[i].getBinnedDataPoint()->bin_center_value[0];
+    datay[i] = datapoints[i].getBinnedDataPoint()->bin_center_value[1];
+    dataz[i] = datapoints[i].getBinnedDataPoint()->z;
+  }
+  datax.Write("xdata");
+  datay.Write("ydata");
+  dataz.Write("zdata");
+}
+
 
 void PndLmdFitFacade::doFit(PndLmdHistogramData &lmd_hist_data,
     const PndLmdFitOptions &fit_options) {

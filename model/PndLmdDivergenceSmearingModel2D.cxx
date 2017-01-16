@@ -9,6 +9,7 @@
 #include "model/PndLmdDivergenceSmearingModel2D.h"
 #include "ui/PndLmdRuntimeConfiguration.h"
 #include "operators2d/integration/IntegralStrategyGSL2D.h"
+#include "operators2d/integration/SimpleIntegralStrategy2D.h"
 
 #include "boost/thread.hpp"
 
@@ -23,7 +24,8 @@ PndLmdDivergenceSmearingModel2D::PndLmdDivergenceSmearingModel2D(
     const LumiFit::LmdDimension& data_dim_x_,
     const LumiFit::LmdDimension& data_dim_y_) :
     divergence_model(divergence_model_), data_dim_x(data_dim_x_), data_dim_y(
-        data_dim_y_) {
+        data_dim_y_), integral_precision(1e-5) {
+
 }
 
 PndLmdDivergenceSmearingModel2D::~PndLmdDivergenceSmearingModel2D() {
@@ -52,7 +54,13 @@ void PndLmdDivergenceSmearingModel2D::generate2DDivergenceMap() {
   int div_bining_y = divergence_model->getVar2DomainRange() / div_bin_size_y
       / 2.0;
 
-  //std::cout<<divergence_model->getVar1DomainRange()<<" asdf "<<div_bin_size_x<<std::endl;
+  std::cout << "x domain range: " << divergence_model->getVar1DomainRange()
+      << " || " << div_bin_size_x << std::endl;
+  std::cout << "y domain range: " << divergence_model->getVar2DomainRange()
+      << " || " << div_bin_size_y << std::endl;
+
+  std::cout << "using " << (2 * div_bining_x + 1) << " x "
+  << (2 * div_bining_y + 1) << " binning!" << std::endl;
 
   unsigned int list_counter(0);
   unsigned int pair_counter(0);
@@ -74,12 +82,10 @@ void PndLmdDivergenceSmearingModel2D::generate2DDivergenceMap() {
     }
   }
 
-  /*std::cout << "pair and list counter: " << pair_counter << " " << list_counter
+  std::cout << "pair and list counter: " << pair_counter << " " << list_counter
    << std::endl;
-   std::cout << "using " << (2 * div_bining_x + 1) << " x "
-   << (2 * div_bining_y + 1) << " binning!" << std::endl;
-   std::cout << "with " << nthreads << " threads with " << pairs_per_thread
-   << " pairs per thread" << std::endl;*/
+  std::cout << "with " << nthreads << " threads with " << pairs_per_thread
+  << " pairs per thread" << std::endl;
 
   /* std::cout << "size: " << list_of_contributors.size() << std::endl;
    for (unsigned int i = 0; i < list_of_contributors.size(); ++i) {
@@ -97,14 +103,30 @@ void PndLmdDivergenceSmearingModel2D::generate2DDivergenceMap() {
 
   optimizeNumericalIntegration(xy_pairs_lists);
 
-  boost::thread_group threads;
+  //boost::thread_group threads;
+  std::vector<std::thread> thread_list;
   for (unsigned int i = 0; i < nthreads; i++) {
-    threads.create_thread(
-        boost::bind(&PndLmdDivergenceSmearingModel2D::generate2DDivergenceMap,
-            this, boost::cref(xy_pairs_lists[i]),
-            boost::ref(list_of_contributors_per_thread[i])));
+    //threads.create_thread(
+    //    boost::bind(&PndLmdDivergenceSmearingModel2D::generate2DDivergenceMap,
+    //        this, boost::cref(xy_pairs_lists[i]),
+    //        boost::ref(list_of_contributors_per_thread[i])));
+    /*std::packaged_task<void()> task(
+     std::bind(&PndLmdDivergenceSmearingModel2D::generate2DDivergenceMap,
+     this, std::cref(xy_pairs_lists[i]),
+     std::ref(list_of_contributors_per_thread[i])));*/
+    std::thread task(
+        &PndLmdDivergenceSmearingModel2D::generate2DDivergenceMapPart, this,
+        std::cref(xy_pairs_lists[i]),
+        std::ref(list_of_contributors_per_thread[i]));
+    thread_list.push_back(std::thread(std::move(task)));
   }
-  threads.join_all();
+  //threads.join_all();
+
+  // join all threads
+  for (auto& thread : thread_list) {
+    if (thread.joinable())
+      thread.join();
+  }
 
   for (unsigned int i = 0; i < list_of_contributors_per_thread.size(); ++i) {
     list_of_contributors.insert(list_of_contributors.end(),
@@ -112,8 +134,9 @@ void PndLmdDivergenceSmearingModel2D::generate2DDivergenceMap() {
         list_of_contributors_per_thread[i].end());
   }
 
-  /*std::cout << "size: " << list_of_contributors.size() << std::endl;
-   for (unsigned int i = 0; i < list_of_contributors.size(); ++i) {
+  std::cout << " number of divergence smearing contribution bins: "
+      << list_of_contributors.size() << std::endl;
+  /*for (unsigned int i = 0; i < list_of_contributors.size(); ++i) {
    std::cout << list_of_contributors[i].contribution_factor << std::endl;
    }*/
 }
@@ -122,6 +145,14 @@ void PndLmdDivergenceSmearingModel2D::optimizeNumericalIntegration(
     const std::vector<std::vector<std::pair<int, int> > >& xy_pairs_lists) {
   unsigned int nthreads =
       PndLmdRuntimeConfiguration::Instance().getNumberOfThreads();
+
+  /*shared_ptr<SimpleIntegralStrategy2D> integral_strategy(
+      new SimpleIntegralStrategy2D());
+  divergence_model->setIntegralStrategy(integral_strategy);
+
+  unsigned int calls(7);
+
+  integral_strategy->setUsedEvaluationGridConstant(calls);*/
 
   double div_bin_size_x = data_dim_x.bin_size;
   double div_bin_size_y = data_dim_y.bin_size;
@@ -153,12 +184,12 @@ void PndLmdDivergenceSmearingModel2D::optimizeNumericalIntegration(
       int_range[1].range_high = (xy_pairs_lists[i][index].second + 0.5)
           * div_bin_size_y;
 
-      int_ranges[i]=int_range;
+      int_ranges[i] = int_range;
 
       std::packaged_task<unsigned int()> task(
           std::bind(&IntegralStrategyGSL2D::determineOptimalCallNumber,
               integral_strategy.get(), divergence_model.get(),
-              std::cref(int_ranges[i]), 1e-4));
+              std::cref(int_ranges[i]), integral_precision));
       future_list.push_back(task.get_future());
       thread_list.push_back(std::thread(std::move(task)));
     }
@@ -181,9 +212,9 @@ void PndLmdDivergenceSmearingModel2D::optimizeNumericalIntegration(
   integral_strategy->setStartNumberOfFunctionEvaluations(calls);
 }
 
-void PndLmdDivergenceSmearingModel2D::generate2DDivergenceMap(
+void PndLmdDivergenceSmearingModel2D::generate2DDivergenceMapPart(
     const std::vector<std::pair<int, int> >& xy_pairs,
-    std::vector<DifferentialCoordinateContribution>& list_of_contributors_for_thread) {
+    std::vector<DifferentialCoordinateContribution>& list_of_contributors_for_thread) const {
 
   std::vector<DataStructs::DimensionRange> int_range(2);
 
@@ -208,7 +239,8 @@ void PndLmdDivergenceSmearingModel2D::generate2DDivergenceMap(
     int_range[1].range_high = (xy_pairs[i].second + 0.5) * div_bin_size_y;
 
     // calculate integral over the divergence bin
-    double smearing_probability = divergence_model->Integral(int_range, 1e-4);
+    mydouble smearing_probability = divergence_model->Integral(int_range,
+        integral_precision);
 
     /*std::cout << "int range: " << int_range[0].range_low << " - "
      << int_range[0].range_high << " :: " << int_range[1].range_low << " - "

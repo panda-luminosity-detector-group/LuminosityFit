@@ -57,7 +57,7 @@ public:
 
 	virtual std::pair<double, double> getUncertaincy(const double *x) const;
 
-	double eval(const double *x) const;
+	mydouble eval(const double *x) const;
 
 	std::pair<std::pair<double, double>, std::pair<double, double> > getAcceptanceBounds() const;
 

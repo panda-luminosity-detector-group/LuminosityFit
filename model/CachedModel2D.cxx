@@ -15,7 +15,7 @@ CachedModel2D::CachedModel2D(const std::string& name, shared_ptr<Model2D> model_
     const LumiFit::LmdDimension& data_dim_x_,
     const LumiFit::LmdDimension& data_dim_y_) :
     Model2D(name), model(model_), data_dim_x(
-        data_dim_x_), data_dim_y(data_dim_y_) {
+        data_dim_x_), data_dim_y(data_dim_y_), integral_precision(1e-6) {
   nthreads = PndLmdRuntimeConfiguration::Instance().getNumberOfThreads();
 
   addModelToList(model);
@@ -35,14 +35,15 @@ CachedModel2D::~CachedModel2D() {
 }
 
 void CachedModel2D::initializeModelGrid() {
-  model_grid = new double*[data_dim_x.bins];
+  model_grid = new mydouble*[data_dim_x.bins];
   for (unsigned int i = 0; i < data_dim_x.bins; i++) {
-    model_grid[i] = new double[data_dim_y.bins];
+    model_grid[i] = new mydouble[data_dim_y.bins];
   }
 
-  double div_bin_size_x = data_dim_x.bin_size;
-  double div_bin_size_y = data_dim_y.bin_size;
-  inverse_bin_area = 1.0 / div_bin_size_x / div_bin_size_y;
+  mydouble div_bin_size_x = data_dim_x.bin_size;
+  mydouble div_bin_size_y = data_dim_y.bin_size;
+  inverse_bin_area = 1.0;
+  inverse_bin_area = inverse_bin_area / div_bin_size_x / div_bin_size_y;
 
   int bins_x = data_dim_x.bins;
   int bins_y = data_dim_y.bins;
@@ -106,13 +107,13 @@ void CachedModel2D::optimizeNumericalIntegration() {
   double div_bin_size_x = data_dim_x.bin_size;
   double div_bin_size_y = data_dim_y.bin_size;
 
-  //shared_ptr<IntegralStrategyGSL2D> integral_strategy(
+  //integral_strategy.reset(
   //    new IntegralStrategyGSL2D());
   shared_ptr<SimpleIntegralStrategy2D> integral_strategy(
       new SimpleIntegralStrategy2D());
   model->setIntegralStrategy(integral_strategy);
 
-  unsigned int calls(3);
+  unsigned int calls(5);
   /*std::vector<std::future<unsigned int> > future_list;
   std::vector<std::thread> thread_list;
 
@@ -124,22 +125,22 @@ void CachedModel2D::optimizeNumericalIntegration() {
       unsigned int index = random_index(gen);
 
       std::packaged_task<unsigned int()> task(
-          std::bind(&SimpleIntegralStrategy2D::determineOptimalCallNumber,
+          std::bind(&IntegralStrategyGSL2D::determineOptimalCallNumber,
               integral_strategy.get(), model.get(),
-              std::cref(int_ranges_lists[i][index].int_range), 1e-4));
+              std::cref(int_ranges_lists[i][index].int_range), integral_precision));
       future_list.push_back(task.get_future());
       thread_list.push_back(std::thread(std::move(task)));
     }
   }
-// wait for futures and compute maximum number of calls
 
+  // wait for futures and compute maximum number of calls
   for (auto& future : future_list) {
     unsigned int temp_calls = future.get();
     if (temp_calls > calls)
       calls = temp_calls;
   }
 
-// join all threads
+  // join all threads
   for (auto& thread : thread_list) {
     if (thread.joinable())
       thread.join();
@@ -147,11 +148,16 @@ void CachedModel2D::optimizeNumericalIntegration() {
 
   std::cout << "using start call: " << calls << std::endl;
   integral_strategy->setUsedEvaluationGridConstant(calls);
+  //integral_strategy->setStartNumberOfFunctionEvaluations(calls);
 }
 
 void CachedModel2D::generateModelGrid2D(
     const std::vector<IntRange2D>& int_ranges) {
   double x[2];
+
+  shared_ptr<SimpleIntegralStrategy2D> test_integral_strategy(
+      new SimpleIntegralStrategy2D());
+  test_integral_strategy->setUsedEvaluationGridConstant(5);
 
   //std::cout << "num pairs: " << xy_pairs.size() << std::endl;
   for (unsigned int i = 0; i < int_ranges.size(); ++i) {
@@ -161,14 +167,15 @@ void CachedModel2D::generateModelGrid2D(
 
     // calculate integral over the model bin
     model_grid[int_ranges[i].index_x][int_ranges[i].index_y] = inverse_bin_area
-        * model->Integral(int_ranges[i].int_range, 1e-4);
+        * model->Integral(int_ranges[i].int_range, integral_precision);
+
     //std::cout << int_ranges[i].index_x << ":" << int_ranges[i].index_y << " = "
     //    << model_grid[int_ranges[i].index_x][int_ranges[i].index_y]
     //    << std::endl;
   }
 }
 
-double CachedModel2D::eval(const double *x) const {
+mydouble CachedModel2D::eval(const double *x) const {
   int ix = (x[0] - data_dim_x.dimension_range.getRangeLow())
       / data_dim_x.bin_size;
   int iy = (x[1] - data_dim_y.dimension_range.getRangeLow())

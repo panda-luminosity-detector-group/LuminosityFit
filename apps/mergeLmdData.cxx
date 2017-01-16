@@ -146,14 +146,12 @@ template<class T> void mergeData(vector<string> found_files,
     for (entry = lmd_data_vec.begin(); entry != lmd_data_vec.end(); entry++) {
       iter = merged_files.find(*entry);
 
-      PndLmdAbstractData *lmd_data = (PndLmdAbstractData*) &(*entry);
-
       if (iter == merged_files.end()) {
         ret = merged_files.insert(*entry);
         //((PndLmdAbstractData*) &(*ret.first))->cloneData(*lmd_data);
       } else {
         PndLmdAbstractData *lmd_data_merge = (PndLmdAbstractData*) &(*iter);
-        lmd_data_merge->add(*lmd_data);
+        lmd_data_merge->add(*((PndLmdAbstractData*) &(*entry)));
       }
     }
   }

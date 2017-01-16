@@ -94,6 +94,8 @@ public:
   shared_ptr<Model> generateModel(const PndLmdAngularData &lmd_data,
       const PndLmdFitOptions &fit_options);
 
+  void scanEstimatorSpace(PndLmdHistogramData &lmd_hist_data,
+      const PndLmdFitOptions &fit_options, const std::vector<std::string> &variable_names);
   void doFit(PndLmdHistogramData &lmd_hist_data,
       const PndLmdFitOptions &fit_options);
 

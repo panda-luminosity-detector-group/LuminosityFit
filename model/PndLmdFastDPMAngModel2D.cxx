@@ -76,7 +76,7 @@ double PndLmdFastDPMAngModel2D::calculateJacobianDeterminant(
   return 1.0 / (std::sqrt(xypowsum) * (1 + xypowsum));
 }
 
-double PndLmdFastDPMAngModel2D::eval(const double *x) const {
+mydouble PndLmdFastDPMAngModel2D::eval(const double *x) const {
   double jaco = calculateJacobianDeterminant(x[0], x[1]);
   double theta_tilted = calculateThetaFromTiltedSystem(x[0], x[1]);
 

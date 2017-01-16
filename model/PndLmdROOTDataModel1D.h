@@ -50,7 +50,7 @@ public:
 
 	virtual std::pair<double, double> getUncertaincy(const double *x) const;
 
-	double eval(const double *x) const;
+	mydouble eval(const double *x) const;
 
 	std::pair<double, double> getAcceptanceBounds() const;
 	void setAcceptanceBounds(double low, double high);

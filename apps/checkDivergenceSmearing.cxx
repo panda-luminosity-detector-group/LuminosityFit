@@ -51,8 +51,7 @@ ROOTPlotter root_plotter;
   model_hist->Write(name.c_str());
 }
 
-void plotSmeared2DModel(string input_file_dir, string config_file_url,
-    string acceptance_file_dir, unsigned int nthreads) {
+void plotSmeared2DModel(unsigned int nthreads) {
   PndLmdRuntimeConfiguration& lmd_runtime_config =
       PndLmdRuntimeConfiguration::Instance();
   lmd_runtime_config.setNumberOfThreads(nthreads);
@@ -70,14 +69,14 @@ void plotSmeared2DModel(string input_file_dir, string config_file_url,
 
   // make the binning twice as fine
   LumiFit::LmdDimension temp_prim_dim;
-  temp_prim_dim.bins = 14;
-  temp_prim_dim.dimension_range.setRangeLow(-4.0);
-  temp_prim_dim.dimension_range.setRangeHigh(4.0);
+  temp_prim_dim.bins = 300;
+  temp_prim_dim.dimension_range.setRangeLow(-6.0);
+  temp_prim_dim.dimension_range.setRangeHigh(6.0);
   temp_prim_dim.calculateBinSize();
   LumiFit::LmdDimension temp_sec_dim;
-  temp_sec_dim.bins = 14;
-  temp_sec_dim.dimension_range.setRangeLow(-4.0);
-  temp_sec_dim.dimension_range.setRangeHigh(4.0);
+  temp_sec_dim.bins = 300;
+  temp_sec_dim.dimension_range.setRangeLow(-6.0);
+  temp_sec_dim.dimension_range.setRangeHigh(6.0);
   temp_sec_dim.calculateBinSize();
 
   shared_ptr<GaussianModel2D> divergence_model(
@@ -291,37 +290,17 @@ void plotSmeared2DModel(string input_file_dir, string config_file_url,
 void displayInfo() {
   // display info
   cout << "Required arguments are: " << endl;
-  cout << "-d [path to data]" << endl;
-  cout << "-c [path to config file] " << endl;
-  cout << "Optional arguments are: " << endl;
   cout << "-m [number of threads]" << endl;
-  cout << "-a [path to box gen data] (acceptance)" << endl;
 }
 
 int main(int argc, char* argv[]) {
-  string data_path;
-  string acc_path("");
-  string config_path("");
   unsigned int nthreads(1);
-  bool is_data_set(false), is_config_set(false), is_acc_set(false),
-      is_nthreads_set(false);
+  bool is_nthreads_set(false);
 
   int c;
 
-  while ((c = getopt(argc, argv, "hc:a:m:d:")) != -1) {
+  while ((c = getopt(argc, argv, "hm:")) != -1) {
     switch (c) {
-    case 'a':
-      acc_path = optarg;
-      is_acc_set = true;
-      break;
-    case 'c':
-      config_path = optarg;
-      is_config_set = true;
-      break;
-    case 'd':
-      data_path = optarg;
-      is_data_set = true;
-      break;
     case 'm':
       nthreads = atoi(optarg);
       is_nthreads_set = true;
@@ -342,8 +321,8 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  if (is_data_set && is_config_set)
-    plotSmeared2DModel(data_path, config_path, acc_path, nthreads);
+  if (is_nthreads_set)
+    plotSmeared2DModel(nthreads);
   else
     displayInfo();
   return 0;

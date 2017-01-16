@@ -106,7 +106,7 @@ class PndLmdDPMMTModel1D: public Model1D {
 
 		double getRawRhoBSigtotFullElastic(const double *x) const;
 
-		virtual double eval(const double *x) const;
+		virtual mydouble eval(const double *x) const;
 
 		virtual void updateDomain();
 };

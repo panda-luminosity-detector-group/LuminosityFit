@@ -76,7 +76,7 @@ double PndLmdDPMAngModel1D::getThetaMomentumTransferJacobian(
 					- (this->*trafo_func)(theta - h)) / (2 * h));
 }
 
-double PndLmdDPMAngModel1D::eval(const double *x) const {
+mydouble PndLmdDPMAngModel1D::eval(const double *x) const {
 	//return luminosity->getValue();
 
 	double t = (this->*trafo_func)(x[0]);
