@@ -12,7 +12,7 @@
 
 class PndLmdDPMAngModel1D: public PndLmdDPMMTModel1D {
 // function pointer used to switch between different algorithms for interpolation
-  typedef double (PndLmdDPMAngModel1D::*trans_function)(const double theta) const;
+  typedef mydouble (PndLmdDPMAngModel1D::*trans_function)(const mydouble theta) const;
 
   trans_function trafo_func;
 
@@ -20,12 +20,12 @@ public:
     PndLmdDPMAngModel1D(std::string name_, LumiFit::DPMElasticParts elastic_type_, LumiFit::TransformationOption trafo_type);
     virtual ~PndLmdDPMAngModel1D();
 
-    double getMomentumTransferFromThetaCorrect(const double theta) const;
-    double getMomentumTransferFromThetaApprox(const double theta) const;
+    mydouble getMomentumTransferFromThetaCorrect(const mydouble theta) const;
+    mydouble getMomentumTransferFromThetaApprox(const mydouble theta) const;
 
-    double getMomentumTransferFromTheta(const double theta) const;
+    mydouble getMomentumTransferFromTheta(const mydouble theta) const;
     
-    double getThetaMomentumTransferJacobian(const double theta) const;
+    mydouble getThetaMomentumTransferJacobian(const mydouble theta) const;
 
     /**
      * @param x theta and phi value, which are stored in x[0] and x[1]
@@ -33,7 +33,7 @@ public:
      * par[1-3] are the parameters of the DPM model and par[4-5] are theta and phi bin sizes of the data
      * @returns cross section value for given theta and phi value, which are stored in x[0] and x[1] and the parameters:
      * par */
-    mydouble eval(const double *x) const;
+    mydouble eval(const mydouble *x) const;
 
     virtual void updateDomain();
 };

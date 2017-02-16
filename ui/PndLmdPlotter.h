@@ -152,8 +152,8 @@ public:
 	NeatPlotting::PlotBundle makeResidualPlotBundle1D(PndLmdAngularData& data,
 			const PndLmdFitOptions &fit_options);
 
-	NeatPlotting::PlotBundle makeResolutionGraphBundle(
-			const PndLmdHistogramData& res) const;
+	TH2D* makeResolutionHistogram(
+			const PndLmdMapData& res) const;
 
 	/*NeatPlotting::PlotBundle2D makeResolutionGraphBundle2D(
 	 PndLmdHistogramData& res);*/
@@ -240,10 +240,6 @@ public:
 
 	void makeVertexDifferencesBooky(std::vector<PndLmdHistogramData> &res_vec,
 			std::vector<PndLmdHistogramData> &res_vec_ref);
-
-	NeatPlotting::Booky makeResolutionFitResultBooky(
-			const std::vector<PndLmdHistogramData> &data_vec, int x = 5,
-			int y = 4) const;
 
 #endif /* __CINT __ */
 

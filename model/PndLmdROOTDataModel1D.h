@@ -20,17 +20,17 @@ private:
 	LumiFit::LmdDimensionRange data_dimension;
 	TGraphAsymmErrors *graph;
 	TSpline3 *spline;
-	double acc_range_low, acc_range_high;
+	mydouble acc_range_low, acc_range_high;
 	bool using_acceptance_bounds;
 
 	ModelStructs::InterpolationType intpol_type;
 
-	void updateDomainFromPars(double *par);
+	void updateDomainFromPars(mydouble *par);
 
 	void determineAcceptanceBounds();
 
 	// function pointer used to switch between different algorithms for interpolation
-	typedef double (PndLmdROOTDataModel1D::*function)(const double *x) const;
+	typedef mydouble (PndLmdROOTDataModel1D::*function)(const mydouble *x) const;
 
 	function model_func;
 
@@ -48,16 +48,16 @@ public:
 
 	void initModelParameters();
 
-	virtual std::pair<double, double> getUncertaincy(const double *x) const;
+	virtual std::pair<mydouble, mydouble> getUncertaincy(const mydouble *x) const;
 
-	mydouble eval(const double *x) const;
+	mydouble eval(const mydouble *x) const;
 
-	std::pair<double, double> getAcceptanceBounds() const;
-	void setAcceptanceBounds(double low, double high);
+	std::pair<mydouble, mydouble> getAcceptanceBounds() const;
+	void setAcceptanceBounds(mydouble low, mydouble high);
 
-	double evaluateConstant(const double *x) const;
-	double evaluateLinear(const double *x) const;
-	double evaluateSpline(const double *x) const;
+	mydouble evaluateConstant(const mydouble *x) const;
+	mydouble evaluateLinear(const mydouble *x) const;
+	mydouble evaluateSpline(const mydouble *x) const;
 
 	void updateDomain();
 };

@@ -4,6 +4,7 @@ import os, sys, re, errno, glob, time, copy
 import subprocess
 import multiprocessing
 from decimal import *
+from general import IPParams
 
 cpu_cores = multiprocessing.cpu_count()
 
@@ -33,26 +34,7 @@ class XYZLists:
   def __str__(self):
     return self.__repr__()
 
-class IPParams:
-  ip_offset_x = Decimal('0.0')  # in cm
-  ip_offset_y = Decimal('0.0')  # in cm
-  ip_offset_z = Decimal('0.0')  # in cm
-  ip_spread_x = Decimal('0.08')  # in cm
-  ip_spread_y = Decimal('0.08')  # in cm
-  ip_spread_z = Decimal('0.35')  # in cm
-  
-  beam_tilt_x = Decimal('0.0')  # in mrad
-  beam_tilt_y = Decimal('0.0')  # in mrad
-  beam_divergence_x = Decimal('0.0')  # in mrad
-  beam_divergence_y = Decimal('0.0')  # in mrad
 
-  def __repr__(self):
-    return 'IP center: [' + str(self.ip_offset_x) + ',' + str(self.ip_offset_y) + ',' + str(self.ip_offset_z) \
-           + '] IP spread: [' + str(self.ip_spread_x) + ',' + str(self.ip_spread_y) + ',' + str(self.ip_spread_z) \
-           + '] Tilt: [' + str(self.beam_tilt_x) + ',' + str(self.beam_tilt_y) \
-           + '] Divergence: [' + str(self.beam_divergence_x) + ',' + str(self.beam_divergence_y) + ']\n'
-  def __str__(self):
-    return self.__repr__()
 
 temp_ip_params = IPParams()
 
@@ -215,6 +197,11 @@ parser.add_argument('num_events', metavar='num_events', type=int, nargs=1, help=
 parser.add_argument('lab_momentum', metavar='lab_momentum', type=float, nargs=1, help='lab momentum of incoming beam antiprotons\n(required to set correct magnetic field maps etc)')
 parser.add_argument('sim_type', metavar='simulation_type', type=str, nargs=1, choices=['box', 'dpm_elastic', 'dpm_elastic_inelastic', 'noise'], help='four kinds: box, dpm_elastic, dpm_elastic_inelastic and noise')
 
+parser.add_argument('--force_level', metavar='force_level', type=int, default=0,
+                    help='force level 0: if directories exist with data files no new simulation is started\n'
+                    'force level 1: will do full reconstruction even if this data already exists, but not geant simulation\n'
+                    'force level 2: resimulation of everything!')
+
 parser.add_argument('--low_index', metavar='low_index', type=int, default=-1,
                    help='Lowest index of generator file which is supposed to be used in the simulation. Default setting is -1 which will take the lowest found index.')
 parser.add_argument('--high_index', metavar='high_index', type=int, default=-1,
@@ -284,7 +271,7 @@ for ip_params in ip_params_list:
     if args.reco_ip_offset[2] >= 0.0 and args.reco_ip_offset[3] >= 0.0:
       rec_ip_info = ' --reco_ip_offset ' + str(args.reco_ip_offset[0]) + ' ' + str(args.reco_ip_offset[1]) + ' ' + str(args.reco_ip_offset[2]) + ' ' + str(args.reco_ip_offset[3])
     
-  bashcommand = 'python runSimulations.py --low_index ' + str(args.low_index) + ' --high_index ' + str(args.high_index) \
+  bashcommand = 'python runSimulations.py --force_level ' + str(args.force_level) + ' --low_index ' + str(args.low_index) + ' --high_index ' + str(args.high_index) \
                 + ' --use_ip_offset ' + str(ip_params.ip_offset_x) + ' ' + str(ip_params.ip_offset_y) + ' ' + str(ip_params.ip_offset_z) + ' ' \
                 + str(ip_params.ip_spread_x) + ' ' + str(ip_params.ip_spread_y) + ' ' + str(ip_params.ip_spread_z) \
                 + ' --use_beam_gradient ' + str(ip_params.beam_tilt_x) + ' ' + str(ip_params.beam_tilt_y) + ' ' + str(ip_params.beam_divergence_x) + ' ' + str(ip_params.beam_divergence_y) \

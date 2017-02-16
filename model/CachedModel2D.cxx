@@ -11,11 +11,11 @@
 #include <functional>
 #include <random>
 
-CachedModel2D::CachedModel2D(const std::string& name, shared_ptr<Model2D> model_,
-    const LumiFit::LmdDimension& data_dim_x_,
+CachedModel2D::CachedModel2D(const std::string& name,
+    shared_ptr<Model2D> model_, const LumiFit::LmdDimension& data_dim_x_,
     const LumiFit::LmdDimension& data_dim_y_) :
-    Model2D(name), model(model_), data_dim_x(
-        data_dim_x_), data_dim_y(data_dim_y_), integral_precision(1e-6) {
+    Model2D(name), model(model_), data_dim_x(data_dim_x_), data_dim_y(
+        data_dim_y_), integral_precision(1e-6) {
   nthreads = PndLmdRuntimeConfiguration::Instance().getNumberOfThreads();
 
   addModelToList(model);
@@ -115,36 +115,36 @@ void CachedModel2D::optimizeNumericalIntegration() {
 
   unsigned int calls(5);
   /*std::vector<std::future<unsigned int> > future_list;
-  std::vector<std::thread> thread_list;
+   std::vector<std::thread> thread_list;
 
-  std::mt19937 gen;
-  for (unsigned int i = 0; i < nthreads; i++) {
-    if (int_ranges_lists[i].size() > 0) {
-      std::uniform_int_distribution<unsigned int> random_index(0,
-          int_ranges_lists[i].size() - 1);
-      unsigned int index = random_index(gen);
+   std::mt19937 gen;
+   for (unsigned int i = 0; i < nthreads; i++) {
+   if (int_ranges_lists[i].size() > 0) {
+   std::uniform_int_distribution<unsigned int> random_index(0,
+   int_ranges_lists[i].size() - 1);
+   unsigned int index = random_index(gen);
 
-      std::packaged_task<unsigned int()> task(
-          std::bind(&IntegralStrategyGSL2D::determineOptimalCallNumber,
-              integral_strategy.get(), model.get(),
-              std::cref(int_ranges_lists[i][index].int_range), integral_precision));
-      future_list.push_back(task.get_future());
-      thread_list.push_back(std::thread(std::move(task)));
-    }
-  }
+   std::packaged_task<unsigned int()> task(
+   std::bind(&IntegralStrategyGSL2D::determineOptimalCallNumber,
+   integral_strategy.get(), model.get(),
+   std::cref(int_ranges_lists[i][index].int_range), integral_precision));
+   future_list.push_back(task.get_future());
+   thread_list.push_back(std::thread(std::move(task)));
+   }
+   }
 
-  // wait for futures and compute maximum number of calls
-  for (auto& future : future_list) {
-    unsigned int temp_calls = future.get();
-    if (temp_calls > calls)
-      calls = temp_calls;
-  }
+   // wait for futures and compute maximum number of calls
+   for (auto& future : future_list) {
+   unsigned int temp_calls = future.get();
+   if (temp_calls > calls)
+   calls = temp_calls;
+   }
 
-  // join all threads
-  for (auto& thread : thread_list) {
-    if (thread.joinable())
-      thread.join();
-  }*/
+   // join all threads
+   for (auto& thread : thread_list) {
+   if (thread.joinable())
+   thread.join();
+   }*/
 
   std::cout << "using start call: " << calls << std::endl;
   integral_strategy->setUsedEvaluationGridConstant(calls);
@@ -153,7 +153,7 @@ void CachedModel2D::optimizeNumericalIntegration() {
 
 void CachedModel2D::generateModelGrid2D(
     const std::vector<IntRange2D>& int_ranges) {
-  double x[2];
+  mydouble x[2];
 
   shared_ptr<SimpleIntegralStrategy2D> test_integral_strategy(
       new SimpleIntegralStrategy2D());
@@ -175,16 +175,16 @@ void CachedModel2D::generateModelGrid2D(
   }
 }
 
-mydouble CachedModel2D::eval(const double *x) const {
+mydouble CachedModel2D::eval(const mydouble *x) const {
   int ix = (x[0] - data_dim_x.dimension_range.getRangeLow())
       / data_dim_x.bin_size;
   int iy = (x[1] - data_dim_y.dimension_range.getRangeLow())
       / data_dim_y.bin_size;
 
   if (ix >= data_dim_x.bins || iy >= data_dim_y.bins || ix < 0 || iy < 0) {
-   /* std::cout << ix << "?=(" << x[0] << "-"
-        << data_dim_x.dimension_range.getRangeLow() << ")/"
-        << data_dim_x.bin_size << std::endl;*/
+    /* std::cout << ix << "?=(" << x[0] << "-"
+     << data_dim_x.dimension_range.getRangeLow() << ")/"
+     << data_dim_x.bin_size << std::endl;*/
     return 0.0;
   }
 
@@ -192,5 +192,17 @@ mydouble CachedModel2D::eval(const double *x) const {
 }
 
 void CachedModel2D::updateDomain() {
-  generateModelGrid2D();
+  // ok lets do a check if parameters have changed
+  bool recalculate(false);
+  for (auto model_par : model->getModelParameterSet().getModelParameterMap()) {
+    //std::cout<<"checking if model parameter has changed "<<model_par.first.second<<std::endl;
+    if (model_par.second->isModified()) {
+      recalculate = true;
+      break;
+    }
+  }
+
+  if (recalculate) {
+    generateModelGrid2D();
+  }
 }

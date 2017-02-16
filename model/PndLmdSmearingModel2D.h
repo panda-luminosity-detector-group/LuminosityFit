@@ -12,49 +12,46 @@
 
 #include <map>
 
-#include "boost/thread/mutex.hpp"
-
 struct ContributorCoordinateWeight {
-  double bin_center_x;
-  double bin_center_y;
+  mydouble bin_center_x;
+  mydouble bin_center_y;
 
-  double area;
-  double smear_weight;
+  mydouble smear_weight;
 };
 
 struct RecoBinSmearingContributions {
-  double reco_bin_x;
-  double reco_bin_y;
+  mydouble reco_bin_x;
+  mydouble reco_bin_y;
 
   std::vector<ContributorCoordinateWeight> contributor_coordinate_weight_list;
 };
 
 class PndLmdSmearingModel2D {
-  std::vector<ContributorCoordinateWeight> empty_contribution_list;
-  double search_distance_x;
-  double search_distance_y;
+  struct binrange {
+    unsigned int x_bin_low;
+    unsigned int x_bin_high;
+    unsigned int y_bin_low;
+    unsigned int y_bin_high;
+  };
 
-  unsigned int max_number_of_hints;
-  std::vector<unsigned int> last_found_neighbour_indices;
-  boost::mutex neighbour_index_list_lock;
+  std::vector<std::vector<RecoBinSmearingContributions> > smearing_parameterization_lists;
 
-  std::vector<RecoBinSmearingContributions> smearing_parameterization;
+  const LumiFit::LmdDimension dim_x;
+  const LumiFit::LmdDimension dim_y;
 
-  const std::vector<ContributorCoordinateWeight>& findNearestNeighbour(
-      const double *x);
-
-  void determineSearchDistance();
+  std::vector<RecoBinSmearingContributions> createSmearingParameterizationPart(
+      const std::vector<RecoBinSmearingContributions>& smearing_parameterization_,
+      const binrange &br) const;
 
 public:
-  PndLmdSmearingModel2D();
+  PndLmdSmearingModel2D(const LumiFit::LmdDimension &dimx_,
+      const LumiFit::LmdDimension &dimy_);
   virtual ~PndLmdSmearingModel2D();
 
   void setSmearingParameterization(
       const std::vector<RecoBinSmearingContributions>& smearing_parameterization_);
-  void setSearchDistances(double search_distance_x_, double search_distance_y_);
 
-  virtual const std::vector<ContributorCoordinateWeight>& getListOfContributors(
-      const double *x);
+  virtual const std::vector<RecoBinSmearingContributions>& getListOfContributors(unsigned int index) const;
 
   virtual void updateSmearingModel();
 };

@@ -75,7 +75,7 @@ def findMatchingDirs(box_data_path):
       print 'checking for matching directory for ' + dpm_dir
       match = re.search('^.*(binning_\d*)/.*$', dpm_dir)
       if match:
-        dir_searcher = general.DirectorySearcher(match.group(1))
+        dir_searcher = general.DirectorySearcher([match.group(1)])
         dir_searcher.searchListOfDirectories(box_data_path, box_acc_glob_pattern)
         correct_dirs = dir_searcher.getListOfDirectories()
       
@@ -137,6 +137,7 @@ if args.forced_box_gen_data == '':
 matches = findMatchingDirs(args.forced_box_gen_data)
 
 print matches
+print len(matches)
 
 command_suffix = '" -V';
 
@@ -150,8 +151,8 @@ for match in matches:
   resource_request = himster.JobResourceRequest(12 * 60)
   resource_request.number_of_nodes = 1
   resource_request.processors_per_node = number_of_threads
-  resource_request.memory_in_mb = 40000
-  resource_request.virtual_memory_in_mb = 40000
+  resource_request.memory_in_mb = 18000
+  resource_request.virtual_memory_in_mb = 18000
   job = himster.Job(resource_request, './runLmdFit.sh', 'runLmdFit', elastic_data_path + '/runLmdFit_pbs.log')
   job.setJobArraySize(1, 1) 
 

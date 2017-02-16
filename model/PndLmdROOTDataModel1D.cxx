@@ -21,12 +21,12 @@ PndLmdROOTDataModel1D::~PndLmdROOTDataModel1D() {
 	// TODO Auto-generated destructor stub
 }
 
-void PndLmdROOTDataModel1D::updateDomainFromPars(double *par) {
+void PndLmdROOTDataModel1D::updateDomainFromPars(mydouble *par) {
 
 }
 
 void PndLmdROOTDataModel1D::determineAcceptanceBounds() {
-	double y = 0.0;
+	mydouble y = 0.0;
 
 	acc_range_low = data_dimension.getRangeLow();
 	acc_range_high = data_dimension.getRangeHigh();
@@ -104,18 +104,18 @@ void PndLmdROOTDataModel1D::initModelParameters() {
 
 }
 
-std::pair<double, double> PndLmdROOTDataModel1D::getAcceptanceBounds() const {
+std::pair<mydouble, mydouble> PndLmdROOTDataModel1D::getAcceptanceBounds() const {
 	return std::make_pair(acc_range_low, acc_range_high);
 }
 
-void PndLmdROOTDataModel1D::setAcceptanceBounds(double low, double high) {
+void PndLmdROOTDataModel1D::setAcceptanceBounds(mydouble low, mydouble high) {
 	acc_range_low = low;
 	acc_range_high = high;
 }
 
-double PndLmdROOTDataModel1D::evaluateConstant(const double *x) const {
+mydouble PndLmdROOTDataModel1D::evaluateConstant(const mydouble *x) const {
 	Int_t closest = -1;
-	double diff = -1.0;
+	mydouble diff = -1.0;
 
 	for (Int_t i = 0; i < graph->GetN(); ++i) {
 		if (diff < 0.0 || fabs(graph->GetX()[i] - x[0]) < diff) {
@@ -126,29 +126,29 @@ double PndLmdROOTDataModel1D::evaluateConstant(const double *x) const {
 	return graph->GetY()[closest];
 }
 
-double PndLmdROOTDataModel1D::evaluateLinear(const double *x) const {
+mydouble PndLmdROOTDataModel1D::evaluateLinear(const mydouble *x) const {
 	return graph->Eval(x[0]);
 }
 
-double PndLmdROOTDataModel1D::evaluateSpline(const double *x) const {
+mydouble PndLmdROOTDataModel1D::evaluateSpline(const mydouble *x) const {
 	// spline interpolation creating a new spline
 	return spline->Eval(x[0]);
 }
 
-mydouble PndLmdROOTDataModel1D::eval(const double *x) const {
+mydouble PndLmdROOTDataModel1D::eval(const mydouble *x) const {
 	if (acc_range_low > x[0] || acc_range_high < x[0])
 		return 0.0;
 	return (this->*model_func)(x);
 }
 
-std::pair<double, double> PndLmdROOTDataModel1D::getUncertaincy(
-		const double *x) const {
+std::pair<mydouble, mydouble> PndLmdROOTDataModel1D::getUncertaincy(
+		const mydouble *x) const {
 	// check if we are outside of acceptance...
 	if (eval(x) == 0.0)
 		return std::make_pair(0.0, 0.0);
 	// two nearest neighbors
 	int closest_bin = -1;
-	double diff = -1.0;
+	mydouble diff = -1.0;
 
 	for (Int_t i = 0; i < graph->GetN(); ++i) {
 		if (diff < 0.0 || fabs(graph->GetX()[i] - x[0]) < diff) {

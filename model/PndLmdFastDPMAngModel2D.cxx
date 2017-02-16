@@ -8,7 +8,7 @@
 PndLmdFastDPMAngModel2D::PndLmdFastDPMAngModel2D(std::string name_,
     shared_ptr<PndLmdDPMAngModel1D> dpm_model_1d_) :
     Model2D(name_), dpm_model_1d(dpm_model_1d_) {
-  one_over_two_pi = 1.0 / (2.0 * TMath::Pi());
+  one_over_two_pi = 0.5 / TMath::Pi();
   initModelParameters();
   this->addModelToList(dpm_model_1d);
 
@@ -26,8 +26,8 @@ void PndLmdFastDPMAngModel2D::initModelParameters() {
   tilt_y->setValue(0.0);
 }
 
-double PndLmdFastDPMAngModel2D::calculateThetaFromTiltedSystem(
-    const double thetax, const double thetay) const {
+mydouble PndLmdFastDPMAngModel2D::calculateThetaFromTiltedSystem(
+    const mydouble thetax, const mydouble thetay) const {
 
   /*double x = tan(tilt_x->getValue());
    double y = tan(tilt_y->getValue());
@@ -40,15 +40,15 @@ double PndLmdFastDPMAngModel2D::calculateThetaFromTiltedSystem(
    measured_direction.Rotate(tilt.Theta(), rotate_axis);
    return std::make_pair(measured_direction.Theta(), measured_direction.Phi());*/
 
-  double tilted_thetax = thetax - tilt_x->getValue();
-  double tilted_thetay = thetay - tilt_y->getValue();
-  return std::sqrt(std::pow(tilted_thetax, 2) + std::pow(tilted_thetay, 2));
+  mydouble tilted_thetax = thetax - tilt_x->getValue();
+  mydouble tilted_thetay = thetay - tilt_y->getValue();
+  return std::sqrt(tilted_thetax*tilted_thetax + tilted_thetay*tilted_thetay);
   /*return std::make_pair(sqrt(pow(tilted_thetax, 2.0) + pow(tilted_thetay, 2.0)),
    atan2(tilted_thetay, tilted_thetax));*/
 }
 
-double PndLmdFastDPMAngModel2D::calculateJacobianDeterminant(
-    const double thetax, const double thetay) const {
+mydouble PndLmdFastDPMAngModel2D::calculateJacobianDeterminant(
+    const mydouble thetax, const mydouble thetay) const {
   /*double e_m = 1.0 * 1e-16; // machine precision
    double htx = pow(e_m, 0.33) * thetax;
    double hty = pow(e_m, 0.33) * thetay;
@@ -70,15 +70,17 @@ double PndLmdFastDPMAngModel2D::calculateJacobianDeterminant(
    return j11 * j22 - j21 * j12;*/
 
   // analytic formula
-  double xypowsum = std::pow(thetax - tilt_x->getValue(), 2)
-      + std::pow(thetay - tilt_y->getValue(), 2);
+  mydouble diff_theta_x(thetax - tilt_x->getValue());
+  mydouble diff_theta_y(thetay - tilt_y->getValue());
+  mydouble xypowsum = diff_theta_x*diff_theta_x
+      + diff_theta_y*diff_theta_y;
 
-  return 1.0 / (std::sqrt(xypowsum) * (1 + xypowsum));
+  return 1.0L / (std::sqrt(xypowsum) * (1 + xypowsum));
 }
 
-mydouble PndLmdFastDPMAngModel2D::eval(const double *x) const {
-  double jaco = calculateJacobianDeterminant(x[0], x[1]);
-  double theta_tilted = calculateThetaFromTiltedSystem(x[0], x[1]);
+mydouble PndLmdFastDPMAngModel2D::eval(const mydouble *x) const {
+  mydouble jaco = calculateJacobianDeterminant(x[0], x[1]);
+  mydouble theta_tilted = calculateThetaFromTiltedSystem(x[0], x[1]);
 
   /*std::cout << "measured thetax, thetay: " << x[0] << "," << x[1]
    << " -> transforms to evaluated theta of: " << theta_tilted

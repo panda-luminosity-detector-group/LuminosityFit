@@ -24,12 +24,12 @@
 class PndLmdDPMMTModel1D: public Model1D {
 	protected:
 		// constants
-		double pi;
-		double hbarc2;
-		double alpha;
-		double M;
-		double alpha_squared_4pi;
-		double one_over_16pi_hbarc2;
+		mydouble pi;
+		mydouble hbarc2;
+		mydouble alpha;
+		mydouble M;
+		mydouble alpha_squared_4pi;
+		mydouble one_over_16pi_hbarc2;
 
 		/**
 		 * References to the values of the parameters used in the DPM description
@@ -56,7 +56,7 @@ class PndLmdDPMMTModel1D: public Model1D {
 		shared_ptr<ModelPar> T2;
 
 		// function pointer used to switch between different algorithms for interpolation
-		typedef double (PndLmdDPMMTModel1D::*function)(const double *x) const;
+		typedef mydouble (PndLmdDPMMTModel1D::*function)(const mydouble *x) const;
 
 		function model_func;
 
@@ -66,7 +66,7 @@ class PndLmdDPMMTModel1D: public Model1D {
 		 */
 		void init();
 
-		void updateDomainFromPars(double *par);
+		void updateDomainFromPars(mydouble *par);
 
 	public:
 		LumiFit::DPMElasticParts elastic_type;
@@ -83,30 +83,23 @@ class PndLmdDPMMTModel1D: public Model1D {
 
 		virtual void initModelParameters();
 
-		/** @returns parameter b of DPM model cross section */
-		double getB() const;
-		/** @returns parameter rho of DPM model cross section */
-		double getRho() const;
-		/** @returns parameter sigma total of DPM model cross section */
-		double getSigmaTotal() const;
+		mydouble getDelta(const mydouble t) const;
 
-		double getDelta(const double t) const;
+		mydouble getProtonDipoleFormFactor(const mydouble t) const;
 
-		double getProtonDipoleFormFactor(const double t) const;
+		mydouble getRawCoulombPart(const mydouble *x) const;
 
-		double getRawCoulombPart(const double *x) const;
+		mydouble getRawInterferencePart(const mydouble *x) const;
 
-		double getRawInterferencePart(const double *x) const;
+		mydouble getRawHadronicPart(const mydouble *x) const;
 
-		double getRawHadronicPart(const double *x) const;
+		mydouble getRawRhoBSigtotHadronicPart(const mydouble *x) const;
 
-		double getRawRhoBSigtotHadronicPart(const double *x) const;
+		mydouble getRawFullElastic(const mydouble *x) const;
 
-		double getRawFullElastic(const double *x) const;
+		mydouble getRawRhoBSigtotFullElastic(const mydouble *x) const;
 
-		double getRawRhoBSigtotFullElastic(const double *x) const;
-
-		virtual mydouble eval(const double *x) const;
+		virtual mydouble eval(const mydouble *x) const;
 
 		virtual void updateDomain();
 };

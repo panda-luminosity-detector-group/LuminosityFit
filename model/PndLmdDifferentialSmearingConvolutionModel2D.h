@@ -30,7 +30,7 @@ class PndLmdDifferentialSmearingConvolutionModel2D: public Model2D {
   std::vector<binrange> list_of_bin_ranges;
   unsigned int combine_factor;
 
-  std::pair<double, double> binsizes;
+  std::pair<mydouble, mydouble> binsizes;
   double area_xy;
 
   void generateModelGrid2D();
@@ -50,7 +50,7 @@ public:
 
   void injectModelParameter(shared_ptr<ModelPar> model_param);
 
-  mydouble eval(const double *x) const;
+  mydouble eval(const mydouble *x) const;
 
   void updateDomain();
 };

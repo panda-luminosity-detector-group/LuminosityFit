@@ -31,12 +31,12 @@ PndLmdDivergenceSmearingModel2D::PndLmdDivergenceSmearingModel2D(
 PndLmdDivergenceSmearingModel2D::~PndLmdDivergenceSmearingModel2D() {
 }
 
-std::pair<double, double> PndLmdDivergenceSmearingModel2D::getBinsizes() const {
+std::pair<mydouble, mydouble> PndLmdDivergenceSmearingModel2D::getBinsizes() const {
   return std::make_pair(data_dim_x.bin_size, data_dim_y.bin_size);
 }
 
 const std::vector<DifferentialCoordinateContribution>& PndLmdDivergenceSmearingModel2D::getListOfContributors(
-    const double *x) const {
+    const mydouble *x) const {
   return list_of_contributors;
 }
 
@@ -46,8 +46,8 @@ void PndLmdDivergenceSmearingModel2D::generate2DDivergenceMap() {
   unsigned int nthreads =
       PndLmdRuntimeConfiguration::Instance().getNumberOfThreads();
 
-  double div_bin_size_x = data_dim_x.bin_size;
-  double div_bin_size_y = data_dim_y.bin_size;
+  mydouble div_bin_size_x = data_dim_x.bin_size;
+  mydouble div_bin_size_y = data_dim_y.bin_size;
 
   int div_bining_x = divergence_model->getVar1DomainRange() / div_bin_size_x
       / 2.0;
@@ -154,8 +154,8 @@ void PndLmdDivergenceSmearingModel2D::optimizeNumericalIntegration(
 
   integral_strategy->setUsedEvaluationGridConstant(calls);*/
 
-  double div_bin_size_x = data_dim_x.bin_size;
-  double div_bin_size_y = data_dim_y.bin_size;
+  mydouble div_bin_size_x = data_dim_x.bin_size;
+  mydouble div_bin_size_y = data_dim_y.bin_size;
 
   shared_ptr<IntegralStrategyGSL2D> integral_strategy(
       new IntegralStrategyGSL2D());
@@ -221,8 +221,8 @@ void PndLmdDivergenceSmearingModel2D::generate2DDivergenceMapPart(
   std::set<DifferentialCoordinateContribution,
       PndLmdDivergenceSmearingModel2D::IntPairLess> temp_contribution_list;
 
-  double div_bin_size_x = data_dim_x.bin_size;
-  double div_bin_size_y = data_dim_y.bin_size;
+  mydouble div_bin_size_x = data_dim_x.bin_size;
+  mydouble div_bin_size_y = data_dim_y.bin_size;
 
   int div_bining_x = divergence_model->getVar1DomainRange() / div_bin_size_x
       / 2.0;

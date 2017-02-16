@@ -1,108 +1,11 @@
 #!/usr/bin/python
 
 import himster
-import os, sys, re, errno
-
+import simulation
+import os, errno, sys, glob, re
 lib_path = os.path.abspath('argparse-1.2.1/build/lib')
 sys.path.append(lib_path)
-
 import argparse
-
-low_index_used = -1
-high_index_used = -1
-
-def getGeneratedDataDirectory():  
-  found_dir_dict = dict()
-  
-  for gen_dir_name in os.listdir(gen_data_dir_path):
-    match_data_type_and_momentum = re.search(args.sim_type[0] + '_plab_' + str(args.lab_momentum[0]) + 'GeV', gen_dir_name)
-    if not match_data_type_and_momentum:
-      continue
-    
-    match_num_events = re.search('^(\d*)_', gen_dir_name)
-    if match_num_events:
-      if args.num_events[0] <= int(match_num_events.group(1)):
-        found_dir_dict[gen_dir_name] = int(match_num_events.group(1))
-   
-  # filter for possible index ranges
-  found_dir_dict_temp = found_dir_dict.copy()
-  found_dir_dict.clear()
-  for (dirname, num_events) in found_dir_dict_temp.items():
-    found_index_range = checkIndexRangeForGeneratedDataDirectory(gen_data_dir_path + '/' + dirname)
-    used_start_index = args.low_index
-    used_end_index = args.high_index
-    if(args.low_index == -1):
-      used_start_index = found_index_range[0]
-    if(args.high_index == -1):
-      used_end_index = found_index_range[1]
-    if found_index_range[0] <= used_start_index and used_end_index <= found_index_range[1]:
-      found_dir_dict[dirname] = [num_events, used_start_index, used_end_index]
-  
-  return_result = ''
-  
-  if len(found_dir_dict) == 0:
-    print 'Found no suitable generated data directory in ' + gen_data_dir_path + ' .'\
-          + 'Please specify another path or generate the needed data first!'
-    sys.exit(1)
-  if len(found_dir_dict) > 1:
-    print 'Found more than one suitable generated data directory in ' + gen_data_dir_path + ' .'\
-          + 'List of possibilities is shown below:'
-    print found_dir_dict
-    return_result = ''
-    while return_result not in found_dir_dict.keys():
-      return_result = raw_input('Please enter the dirname of one of the found generator directory names (sorted by most possible user request): ')
-  else:
-    return_result = found_dir_dict.keys()[0]
-
-  global low_index_used
-  global high_index_used
-  low_index_used = found_dir_dict[return_result][1]
-  high_index_used = found_dir_dict[return_result][2]
-
-  return return_result
-  
-def checkIndexRangeForGeneratedDataDirectory(dir_path):
-  # check for the index range in the specified generator folder
-  first = 1
-  lowest_index = -1
-  highest_index = -1
-
-  dircontent = os.listdir(dir_path)
-
-  for file in dircontent:
-    result = re.search('_(\d*).root$', file)
-    if result:
-      if first:
-        lowest_index = int(result.group(1))
-        highest_index = int(result.group(1))
-        first = 0
-      else:
-        if int(result.group(1)) < lowest_index:
-          lowest_index = int(result.group(1))
-        elif int(result.group(1)) > highest_index:
-          highest_index = int(result.group(1))
-
-  return [lowest_index, highest_index]
-    
-def generateSimulationParameterPropertyFile(output_dirname):
-  config_fileurl = output_dirname + '/sim_params.config'
-  if not os.path.isfile(config_fileurl):
-    f = open(config_fileurl, 'w')
-    f.write('ip_mean_x=' + str(args.use_ip_offset[0]) + '\n')
-    f.write('ip_mean_y=' + str(args.use_ip_offset[1]) + '\n')
-    f.write('ip_mean_z=' + str(args.use_ip_offset[2]) + '\n')
-  
-    f.write('ip_standard_deviation_x=' + str(args.use_ip_offset[3]) + '\n')
-    f.write('ip_standard_deviation_y=' + str(args.use_ip_offset[4]) + '\n')
-    f.write('ip_standard_deviation_z=' + str(args.use_ip_offset[5]) + '\n')
-  
-    f.write('beam_tilt_x=' + str(args.use_beam_gradient[0]) + '\n')
-    f.write('beam_tilt_y=' + str(args.use_beam_gradient[1]) + '\n')
-    f.write('beam_divergence_x=' + str(args.use_beam_gradient[2]) + '\n')
-    f.write('beam_divergence_y=' + str(args.use_beam_gradient[3]) + '\n')
-
-    f.close()
-
 
 parser = argparse.ArgumentParser(description='Script for full simulation of PANDA Luminosity Detector via externally generated MC data.', formatter_class=argparse.RawTextHelpFormatter)
 
@@ -111,6 +14,11 @@ parser.add_argument('lab_momentum', metavar='lab_momentum', type=float, nargs=1,
 parser.add_argument('sim_type', metavar='simulation_type', type=str, nargs=1, choices=['box', 'dpm_elastic', 'dpm_elastic_inelastic', 'noise'],
                     help='Simulation type which can be one of the following: box, dpm_elastic, dpm_elastic_inelastic, noise.\n'
                         'This information is used to automatically obtain the generator data and output naming scheme.')
+
+parser.add_argument('--force_level', metavar='force_level', type=int, default=0,
+                    help='force level 0: if directories exist with data files no new simulation is started\n'
+                    'force level 1: will do full reconstruction even if this data already exists, but not geant simulation\n'
+                    'force level 2: resimulation of everything!')
 
 parser.add_argument('--gen_data_dirname', metavar='gen_data_dirname', type=str, default='',
                     help='Name of directory containing the generator data that is used as input.\n'
@@ -152,77 +60,56 @@ parser.add_argument('--use_m_cut', action='store_true', help='Use the tmva based
 
 parser.add_argument('--track_search_algo', metavar='track_search_algorithm', type=str, choices=['CA', 'Follow'], default='CA', help='Track Search algorithm to be used.')
 
-
-parser.add_argument('--reco_ip_offset', metavar=("rec_ip_offset_x", "rec_ip_offset_y", "rec_ip_spread_x", "rec_ip_spread_y"), type=float, nargs=4, default=[0.0, 0.0, -1.0, -1.0],
+parser.add_argument('--reco_ip_offset', metavar=("rec_ip_offset_x", "rec_ip_offset_y", "rec_ip_offset_z"), type=float, nargs=3, default=[0.0, 0.0, 0.0],
                    help="rec_ip_offset_x: interaction vertex mean X position (in cm)\n"
             "rec_ip_offset_y: interaction vertex mean Y position (in cm)\n"
-            "rec_ip_spread_x: interaction vertex X position distribution width (in cm)\n"
-            "rec_ip_spread_y: interaction vertex Y position distribution width (in cm)\n")
+            "rec_ip_offset_z: interaction vertex mean Z position (in cm)\n")
 
 args = parser.parse_args()
+ 
+sim_params=simulation.SimulationParameters()
 
-gen_data_dir_path = args.gen_data_dir
-while not os.path.isdir(gen_data_dir_path):
-    gen_data_dir_path = raw_input('Please enter valid generator base path: ')
-  
-# generator file prefix
-if args.gen_data_dirname != '':
-  generator_filename_base = args.gen_data_dirname[0]
-else:
-  if args.sim_type[0] != 'noise':
-    generator_filename_base = getGeneratedDataDirectory()
-  else:
-    if args.low_index == -1 or args.high_index == -1:
-      print 'Please specify job array boundaries for noise simulations via --low_index and --high_index since the data will be generated here directly!'
-      sys.exit(1)
-    else:
-      low_index_used = args.low_index
-      high_index_used = args.high_index
-    generator_filename_base = str(args.num_events[0]) + '_noise_plab_' + str(args.lab_momentum[0]) + 'GeV'
+sim_params.ip_params.ip_offset_x=args.use_ip_offset[0]
+sim_params.ip_params.ip_offset_y=args.use_ip_offset[1]
+sim_params.ip_params.ip_offset_z=args.use_ip_offset[2]
+sim_params.ip_params.ip_spread_x=args.use_ip_offset[3]
+sim_params.ip_params.ip_spread_y=args.use_ip_offset[4]
+sim_params.ip_params.ip_spread_z=args.use_ip_offset[5]
+
+sim_params.ip_params.beam_tilt_x=args.use_beam_gradient[0]
+sim_params.ip_params.beam_tilt_y=args.use_beam_gradient[1]
+sim_params.ip_params.beam_divergence_x=args.use_beam_gradient[2]
+sim_params.ip_params.beam_divergence_y=args.use_beam_gradient[3]
+
+sim_params.num_events = args.num_events[0]
+sim_params.lab_momentum = args.lab_momentum[0]
+sim_params.sim_type = args.sim_type[0]
+sim_params.force_level = args.force_level
+sim_params.gen_data_dirname = args.gen_data_dirname
+sim_params.low_index=args.low_index
+sim_params.high_index=args.high_index
+sim_params.gen_data_dir=args.gen_data_dir
+sim_params.output_dir=args.output_dir
+sim_params.use_xy_cut=args.use_xy_cut
+sim_params.use_m_cut=args.use_m_cut
+sim_params.track_search_algo=args.track_search_algo
+sim_params.reco_ip_offset=args.reco_ip_offset
+
+
+generator_filename_base = simulation.generateGeneratorBaseFilename(sim_params)
+dirname = simulation.generateDirectory(sim_params, generator_filename_base)
+dirname_filter_suffix = simulation.generateFilterSuffix(sim_params)
+
+low_index_used = sim_params.low_index
+high_index_used = sim_params.high_index
 
 filename_base = re.sub('\.', 'o', generator_filename_base)
-
-print 'using generator dir: ' + generator_filename_base
-print 'preparing simulations in index range ' + str(low_index_used) + ' - ' + str(high_index_used)
-
-if args.output_dir == '':
-  # generate output directory name
-  # lets generate a folder structure based on the input
-  dirname = 'plab_' + str(args.lab_momentum[0]) + 'GeV'
-  
-  gen_part = re.sub('_plab_.*GeV', '', generator_filename_base) 
-  gen_part = re.sub('^\d*_', '', gen_part)
-  
-  dirname += '/' + gen_part
-  
-  dirname += '/ip_offset_XYZDXDYDZ'
-  for val in args.use_ip_offset:
-    dirname = dirname + '_' + str(val)
-  dirname += '/beam_grad_XYDXDY'
-  for val in args.use_beam_gradient:
-    dirname = dirname + '_' + str(val)
-  dirname += '/' + str(args.num_events[0]) 
-  
-  dirname_filter_suffix = str(args.low_index) + '-' + str(args.high_index) + '_'
-  if args.use_xy_cut:
-    dirname_filter_suffix += 'xy_'
-  if args.use_m_cut:
-    dirname_filter_suffix += 'm_'
-  if not args.use_xy_cut and not args.use_m_cut:
-    dirname_filter_suffix += 'un'
-  dirname_filter_suffix += 'cut'
-  if args.use_xy_cut:
-    if args.reco_ip_offset[2] >= 0.0 and args.reco_ip_offset[3] >= 0.0:
-      dirname_filter_suffix += '_real'
-else:
-  dirname = args.output_dir
-
 pathname_base = os.getenv('DATA_DIR') + '/' + dirname
 path_mc_data = pathname_base + '/mc_data'
 dirname_full = dirname + '/' + dirname_filter_suffix
 pathname_full = os.getenv('DATA_DIR') + '/' + dirname_full
 
-print 'using output folder structure: ' + dirname_full
+print 'using output folder structure: ' + pathname_full
 
 try:
     os.makedirs(pathname_full)
@@ -231,8 +118,15 @@ except OSError as exception:
     if exception.errno != errno.EEXIST:
         print 'error: thought dir does not exists but it does...'
 
+if args.force_level == 0:
+    # check if the directory already has the reco data in it 
+    reco_files = glob.glob(pathname_full + '/Lumi_TrksQA_*.root')
+    if len(reco_files) >= int(0.8*(high_index_used-low_index_used)):
+        print 'directory with at least 80% (compared to requested number of simulated files) of fully reconstructed track files already exists! Skipping...'
+        sys.exit()
+            
 # generate simulation config parameter file
-generateSimulationParameterPropertyFile(pathname_base)
+simulation.generateSimulationParameterPropertyFile(pathname_base, sim_params)
 
 joblist = []
 
@@ -268,22 +162,15 @@ job.addExportedUserVariable('CleanSig', str(args.use_m_cut).lower())
 job.addExportedUserVariable('track_search_algorithm', args.track_search_algo)
 if args.sim_type[0] == 'noise':
   job.addExportedUserVariable('simulate_noise', '1')
-job.addExportedUserVariable('rec_targetZ0', '0.0')
-  
-if args.use_xy_cut or args.use_m_cut:
-  if args.reco_ip_offset[2] >= 0.0 and args.reco_ip_offset[3] >= 0.0:
-    job.addExportedUserVariable('rec_beamX0', str(args.reco_ip_offset[0]))
-    job.addExportedUserVariable('rec_beamY0', str(args.reco_ip_offset[1]))
-  else:
-    job.addExportedUserVariable('rec_beamX0', str(args.use_ip_offset[0]))
-    job.addExportedUserVariable('rec_beamY0', str(args.use_ip_offset[1]))
+job.addExportedUserVariable('rec_ipx', str(args.reco_ip_offset[0]))
+job.addExportedUserVariable('rec_ipy', str(args.reco_ip_offset[1]))
+job.addExportedUserVariable('rec_ipz', str(args.reco_ip_offset[2]))
 
 joblist.append(job)
 
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
-job_manager = himster.HimsterJobManager(1000)
-job_manager.job_resubmit_sleep_time_in_seconds = 3600
+job_manager = himster.HimsterJobManager(2000, 3600)
 
 job_manager.submitJobsToHimster(joblist)
 job_manager.manageJobs()

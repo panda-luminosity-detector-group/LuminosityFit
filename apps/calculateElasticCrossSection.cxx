@@ -62,11 +62,11 @@ using namespace std::chrono;
   TGraph* diff = new TGraph(steps);
   TGraph* g1 = new TGraph(steps);
   for(unsigned int i = 0; i < steps; i++) {
-	  double x = 0.01*i/steps;
+	  mydouble x = 0.01*i/steps;
   high_resolution_clock::time_point t1 = high_resolution_clock::now();
-	  double approx_value = approx_model->eval(&x); 
+	  mydouble approx_value = approx_model->eval(&x);
   high_resolution_clock::time_point t2 = high_resolution_clock::now();
-	  double true_value = correct_model->eval(&x);
+	  mydouble true_value = correct_model->eval(&x);
   high_resolution_clock::time_point t3 = high_resolution_clock::now();
 //std::cout<<x<<" "<<approx_value<<" "<<true_value<<std::endl;
 	  if(std::isnan(true_value)) {

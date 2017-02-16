@@ -3,7 +3,6 @@
 
 #include "PndLmdAbstractData.h"
 #include "fit/PndLmdFitStorage.h"
-
 #include "TTree.h"
 
 struct Point2D {

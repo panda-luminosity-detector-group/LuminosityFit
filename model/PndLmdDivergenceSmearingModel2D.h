@@ -61,10 +61,10 @@ public:
       const LumiFit::LmdDimension& data_dim_y_);
   virtual ~PndLmdDivergenceSmearingModel2D();
 
-  std::pair<double, double> getBinsizes() const;
+  std::pair<mydouble, mydouble> getBinsizes() const;
 
   const std::vector<DifferentialCoordinateContribution>& getListOfContributors(
-      const double *x) const;
+      const mydouble *x) const;
 
   void updateSmearingModel();
 };

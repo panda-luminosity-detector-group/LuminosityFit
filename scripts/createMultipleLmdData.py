@@ -22,7 +22,7 @@ parser.add_argument('dirname', metavar='dirname_to_scan', type=str, nargs=1,
 parser.add_argument('config_url', metavar='config_url', type=str, nargs=1,
                     help='Path to data config file in json format.')
 
-parser.add_argument('--dir_pattern', metavar='path name pattern', type=str, default='.*', help='')
+parser.add_argument('--dir_pattern', metavar='path name pattern', type=str, default='bunches*', help='')
 parser.add_argument('--force', action='store_true', help='number of events to use')
 parser.add_argument('--num_events', metavar='num_events', type=int, default=0, help='number of events to use')
 parser.add_argument('--elastic_cross_section', metavar='elastic_cross_section', type=float, default=1.0, help='Total elastic cross section. Relevant for luminosity extraction performance tests!')
@@ -35,7 +35,7 @@ args = parser.parse_args()
 
 failed_submit_commands = []
 
-dir_searcher = general.DirectorySearcher(args.dir_pattern)
+dir_searcher = general.DirectorySearcher([args.dir_pattern])
 
 dir_searcher.searchListOfDirectories(args.dirname[0], '/filelist_*.txt')
 dirs = dir_searcher.getListOfDirectories()
@@ -93,8 +93,8 @@ for config_path in config_paths:
     resource_request = himster.JobResourceRequest(3 * 60)
     resource_request.number_of_nodes = 1
     resource_request.processors_per_node = 1
-    resource_request.memory_in_mb = 4000
-    resource_request.virtual_memory_in_mb = 4000
+    resource_request.memory_in_mb = 2500
+    resource_request.virtual_memory_in_mb = 2500
     job = himster.Job(resource_request, './createLumiFitData.sh', 'createLumiFitData', config_path + '/createLumiFitData_pbs.log')
     job.setJobArraySize(1, num_filelists)
     
@@ -111,7 +111,7 @@ for config_path in config_paths:
    
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
-job_manager = himster.HimsterJobManager(1200, 300)
+job_manager = himster.HimsterJobManager(2000, 300)
 
 job_manager.submitJobsToHimster(joblist)
 job_manager.manageJobs()

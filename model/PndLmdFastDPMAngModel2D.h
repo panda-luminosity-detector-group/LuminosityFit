@@ -5,18 +5,18 @@
 #include "PndLmdDPMAngModel1D.h"
 
 class PndLmdFastDPMAngModel2D: public Model2D {
-  double one_over_two_pi;
+  mydouble one_over_two_pi;
 
   shared_ptr<Model> dpm_model_1d;
 
 	shared_ptr<ModelPar> tilt_x;
 	shared_ptr<ModelPar> tilt_y;
 
-	double calculateThetaFromTiltedSystem(const double theta,
-			const double phi) const;
+	mydouble calculateThetaFromTiltedSystem(const mydouble theta,
+			const mydouble phi) const;
 
-	double calculateJacobianDeterminant(const double theta,
-			const double phi) const;
+	mydouble calculateJacobianDeterminant(const mydouble theta,
+			const mydouble phi) const;
 
 public:
 	PndLmdFastDPMAngModel2D(std::string name_,
@@ -25,7 +25,7 @@ public:
 
 	virtual void initModelParameters();
 
-	mydouble eval(const double *x) const;
+	mydouble eval(const mydouble *x) const;
 
 	virtual void updateDomain();
 };

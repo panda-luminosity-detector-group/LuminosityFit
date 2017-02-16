@@ -19,7 +19,6 @@ Model
 
 set(ROOT_DICT_HEADERS
 fit/ModelFitResult.h
-fit/EstimatorOptions.h
 fit/PndLmdFitOptions.h
 fit/PndLmdFitStorage.h
 LumiFitStructs.h

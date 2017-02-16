@@ -14,7 +14,7 @@ class CachedModel2D: public Model2D {
   };
 
   unsigned int nthreads;
-  double integral_precision;
+  mydouble integral_precision;
 
   shared_ptr<Model2D> model;
 
@@ -40,7 +40,7 @@ public:
 
   void initModelParameters();
 
-  mydouble eval(const double *x) const;
+  mydouble eval(const mydouble *x) const;
 
   virtual void updateDomain();
 };

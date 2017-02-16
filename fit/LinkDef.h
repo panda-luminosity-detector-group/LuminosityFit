@@ -9,8 +9,6 @@
 #pragma link C++ class ModelFitResult+;
 #pragma link C++ struct ModelStructs::minimization_parameter+;
 
-#pragma link C++ class EstimatorOptions+;
-#pragma link C++ struct DataStructs::DimensionRange+;
 #pragma link C++ class LumiFit::LmdDimensionRange+;
 
 #pragma link C++ class PndLmdLumiFitResult+;

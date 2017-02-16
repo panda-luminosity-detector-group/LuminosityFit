@@ -188,7 +188,7 @@ void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D() {
 
 void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D(
     const binrange &br) {
-  double x[2];
+  mydouble x[2];
   //std::cout<<br.x_bin_low<<" "<<br.x_bin_high<<std::endl;
   //std::cout<<br.y_bin_low<<" "<<br.y_bin_high<<std::endl;
 
@@ -207,13 +207,17 @@ void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D(
       std::vector<mydouble> numbers;
       numbers.reserve(mc_element_contributors.size());
 
+
       //std::cout<<"contributors: "<<mc_element_contributors.size()<<std::endl;
       std::vector<DifferentialCoordinateContribution>::const_iterator mc_element_it;
       for (mc_element_it = mc_element_contributors.begin();
           mc_element_it != mc_element_contributors.end(); ++mc_element_it) {
-        double xx[2];
-        xx[0] = x[0] + binsizes.first * mc_element_it->coordinate_delta.first;
-        xx[1] = x[1] + binsizes.second * mc_element_it->coordinate_delta.second;
+        mydouble xx[2];
+        xx[0] = x[0] - binsizes.first * mc_element_it->coordinate_delta.first;
+        xx[1] = x[1] - binsizes.second * mc_element_it->coordinate_delta.second;
+        //The negative sign in the above equations is crucial!!!
+        //So we calculate the final value of one single bin x[] from all its neighbouring bins!
+        //We turn around the definition so that we can use multi-threading!
         mydouble integral_unsmeared_model = unsmeared_model->evaluate(xx);
 
         //integral_unsmeared_model = integral_unsmeared_model * area_xy;
@@ -268,7 +272,7 @@ void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D(
 }
 
 mydouble PndLmdDifferentialSmearingConvolutionModel2D::eval(
-    const double *x) const {
+    const mydouble *x) const {
   int ix = (x[0] - data_dim_x.dimension_range.getRangeLow())
       / data_dim_x.bin_size;
   int iy = (x[1] - data_dim_y.dimension_range.getRangeLow())

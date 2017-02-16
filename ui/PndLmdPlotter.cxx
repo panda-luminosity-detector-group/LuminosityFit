@@ -257,6 +257,8 @@ namespace LumiFit {
         create2DVisualizationProperties(fit_opt.getEstimatorOptions(),
             elastic_data_bundle);
 
+    std::cout << vis_props.first.getEvaluations() << std::endl;
+
     TH2D* hist = root_plotter.createHistogramFromModel2D(model, vis_props);
 
     return hist;
@@ -852,89 +854,48 @@ namespace LumiFit {
     return residual_plot_bundle;
   }
 
-  NeatPlotting::PlotBundle PndLmdPlotter::makeResolutionGraphBundle(
-      const PndLmdHistogramData & res) const {
+  TH2D* PndLmdPlotter::makeResolutionHistogram(
+      const PndLmdMapData & res) const {
     cout << "Creating resolution graph bundle!" << endl;
 
     NeatPlotting::GraphAndHistogramHelper hist_helper;
 
-    NeatPlotting::PlotBundle res_plot_bundle;
-
-    NeatPlotting::DataObjectStyle style;
-
-    TH2D* hist2d;
+    TH2D* hist2d(0);
     double scaling_factor_to_mrad(1000.0);
+
     if (res.getSecondaryDimension().is_active) {
-      hist2d = res.get2DHistogram();
-      style.draw_option = "COL";
-      res_plot_bundle.addHistogram(
-          hist_helper.rescaleAxis(hist2d, scaling_factor_to_mrad,
-              scaling_factor_to_mrad), style);
-      res_plot_bundle.plot_axis.x_axis_title =
-          res.getPrimaryDimension().createDimensionLabel() + " /m"
-              + res.getPrimaryDimension().createUnitLabel();
-      res_plot_bundle.plot_axis.y_axis_title =
-          res.getSecondaryDimension().createDimensionLabel() + " /m"
-              + res.getSecondaryDimension().createUnitLabel();
-      std::stringstream zaxis_label;
-      zaxis_label.precision(2);
-      zaxis_label << "# rec tracks / " << std::fixed
-          << 1000.0 * hist2d->GetXaxis()->GetBinWidth(1) * 1000.0
-              * hist2d->GetYaxis()->GetBinWidth(1) << " mrad^{2}";
-      res_plot_bundle.plot_axis.z_axis_title = zaxis_label.str();
+      unsigned int bins(300);
+      hist2d = new TH2D("", "", bins,
+          -res.getPrimaryDimension().bin_size*bins/2,
+          res.getPrimaryDimension().bin_size*bins/2,
+          bins,
+          -res.getSecondaryDimension().bin_size*bins/2,
+          res.getSecondaryDimension().bin_size*bins/2);
 
-    } else {
-      TH1D* hist1d = res.get1DHistogram();
-      style.draw_option = "E1";
-      res_plot_bundle.addHistogram(hist1d, style);
-      res_plot_bundle.plot_axis.x_axis_title =
-          res.getPrimaryDimension().createAxisLabel();
-      std::stringstream yaxis_label;
-      yaxis_label.precision(2);
-      yaxis_label << "# rec tracks / " << std::fixed
-          << 1000.0 * hist1d->GetXaxis()->GetBinWidth(1) << " mrad";
-      res_plot_bundle.plot_axis.y_axis_title = yaxis_label.str();
-    }
+      auto hit_map = res.getHitMap();
+      std::cout<<"hit map size: "<<hit_map.size()<<std::endl;
 
-    stringstream strstream;
-    strstream.precision(3);
-
-    strstream << "p_{lab} = " << res.getLabMomentum() << " GeV";
-    NeatPlotting::TextStyle text_style;
-    NeatPlotting::PlotLabel plot_label(strstream.str(), text_style);
-    res_plot_bundle.plot_decoration.label_text_leftpos = 0.7;
-    res_plot_bundle.plot_decoration.label_text_toppos = 0.95;
-    res_plot_bundle.plot_decoration.label_text_spacing = 0.06;
-    res_plot_bundle.plot_decoration.use_line_layout = true;
-    res_plot_bundle.plot_decoration.labels.push_back(plot_label);
-    strstream.str("");
-
-    if (res.getSelectorSet().size() > 0) {
-      bool found_phi_selection(false);
-      const std::set<LumiFit::LmdDimension> &selection_set =
-          res.getSelectorSet();
-      std::set<LumiFit::LmdDimension>::const_iterator selection_set_it;
-      for (selection_set_it = selection_set.begin();
-          selection_set_it != selection_set.end(); selection_set_it++) {
-        if (selection_set_it->dimension_options.dimension_type
-            == LumiFit::THETA) {
-          found_phi_selection = true;
-          break;
+      for (auto const& mc_entry : hit_map) {
+        for (auto const& reco_entry : mc_entry.second.points) {
+          double xdiff = reco_entry.first.x - mc_entry.first.x;
+          double ydiff = reco_entry.first.y - mc_entry.first.y;
+          hist2d->Fill(xdiff, ydiff,
+              (1.0 * reco_entry.second));
         }
       }
-      if (found_phi_selection) {
-        strstream << "#theta_{MC} = "
-            << 1000 * selection_set_it->dimension_range.getRangeLow() << "-"
-            << 1000 * selection_set_it->dimension_range.getRangeHigh()
-            << " mrad";
-        plot_label.setTitle(strstream.str());
-        res_plot_bundle.plot_decoration.labels.push_back(plot_label);
-      }
     }
 
-    applyPlotRanges(res_plot_bundle);
+    //hist2d = hist_helper.rescaleAxis(hist2d, scaling_factor_to_mrad,
+    //    scaling_factor_to_mrad);
 
-    return res_plot_bundle;
+    hist2d->GetXaxis()->SetTitle(
+        (res.getPrimaryDimension().createDimensionLabel() + " /m"
+            + res.getPrimaryDimension().createUnitLabel()).c_str());
+    hist2d->GetYaxis()->SetTitle(
+        (res.getSecondaryDimension().createDimensionLabel() + " /m"
+            + res.getSecondaryDimension().createUnitLabel()).c_str());
+
+    return hist2d;
   }
 
   NeatPlotting::PlotBundle PndLmdPlotter::makeVertexGraphBundle1D(
@@ -1377,7 +1338,7 @@ namespace LumiFit {
   }
 
   std::pair<TGraphAsymmErrors*, TGraphAsymmErrors*> PndLmdPlotter::makeDivXYOverviewGraphs(
-      const std::vector<PndLmdElasticDataBundle> &vertex_data_vec) const {
+      const std::vector<PndLmdElasticDataBundle> &data_vec) const {
 
     std::map<std::pair<double, double>, NeatPlotting::GraphPoint> graph_points_true;
     std::map<std::pair<double, double>, NeatPlotting::GraphPoint> graph_points;
@@ -1386,13 +1347,13 @@ namespace LumiFit {
 
     double scale_factor(1000); // *1000 from rad to mrad
 
-    for (auto const& vertex_data : vertex_data_vec) {
+    for (auto const& ang_data : data_vec) {
 
-      if (vertex_data.getPrimaryDimension().dimension_options.track_type
+      if (ang_data.getPrimaryDimension().dimension_options.track_type
           == LumiFit::RECO) {
 
         boost::property_tree::ptree sim_params(
-            vertex_data.getSimulationParametersPropertyTree());
+            ang_data.getSimulationParametersPropertyTree());
         double ip_mean_x = sim_params.get<double>("beam_divergence_x");
         double ip_mean_y = sim_params.get<double>("beam_divergence_y");
 
@@ -1408,11 +1369,14 @@ namespace LumiFit {
                 std::make_pair(current_graph_point.x, current_graph_point.y),
                 current_graph_point));
 
-        ModelFitResult fit_result =
-            vertex_data.getFitResults().begin()->second[0];
+        auto fit_results = ang_data.getFitResults();
+        if (fit_results.size() == 0)
+          continue;
+
+        ModelFitResult fit_result = ang_data.getFitResults().begin()->second[0];
 
         if (fit_result.getFitParameters().size() > 3) {
-          if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
+          if (ang_data.getPrimaryDimension().dimension_options.dimension_type
               == LumiFit::THETA_X) {
             NeatPlotting::GraphPoint &gp = graph_points[std::make_pair(
                 ip_mean_x, ip_mean_y)];
@@ -1470,9 +1434,16 @@ namespace LumiFit {
         double div_y = sim_params.get<double>("beam_divergence_y");
         cout << "divergence case: " << div_x << " " << div_y << std::endl;
 
+        auto fit_results = ip_setting_case->getFitResults();
+        if (fit_results.size() == 0)
+          continue;
+
         PndLmdLumiFitResult fit_result;
         fit_result.setModelFitResult(
             ip_setting_case->getFitResults().begin()->second[0]);
+
+        if(fit_result.getModelFitResult().getFitStatus() != 0)
+          continue;
 
         lumi = calulateRelDiff(fit_result.getLuminosity(),
             fit_result.getLuminosityError(),
@@ -2343,31 +2314,6 @@ namespace LumiFit {
       //plot_bundle.plot_axis.z_axis_range.high = 0.02;
     }
     return plot_bundle;
-  }
-
-// resolution booky stuff
-  NeatPlotting::Booky PndLmdPlotter::makeResolutionFitResultBooky(
-      const std::vector<PndLmdHistogramData> &data_vec, int x, int y) const {
-
-    NeatPlotting::Booky booky;
-
-    NeatPlotting::PlotStyle plot_style;
-    plot_style.palette_color_style = 1;
-
-    for (unsigned int i = 0; i < data_vec.size(); i++) {
-      NeatPlotting::SubpadCoordinates pad_coord(i % x + 1,
-          (i % (x * y)) / x + 1);
-
-      NeatPlotting::PlotBundle plot_bundle = makeResolutionGraphBundle(
-          data_vec[i]);
-
-      booky.addPlotToCurrentBookyPage(plot_bundle, plot_style, pad_coord);
-
-      // if i is multiple of x*y append page
-      if ((i + 1) % (x * y) == 0 || i + 1 == data_vec.size())
-        booky.addCurrentPageToBooky();
-    }
-    return booky;
   }
 
   NeatPlotting::PlotBundle PndLmdPlotter::createLowerFitRangeDependencyPlotBundle(

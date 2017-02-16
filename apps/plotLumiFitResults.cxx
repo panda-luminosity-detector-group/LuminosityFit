@@ -68,15 +68,15 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
   bool make_div_overview_plots(false);
   bool make_fit_range_dependency_plots(false);
 
-  if(type == 1)
+  if (type == 1)
     make_2d_plots = true;
-  else if(type == 2)
+  else if (type == 2)
     make_ipspot_overview_plots = true;
-  else if(type == 3)
+  else if (type == 3)
     make_offset_overview_plots = true;
-  else if(type == 4)
+  else if (type == 4)
     make_tilt_overview_plots = true;
-  else if(type == 5)
+  else if (type == 5)
     make_div_overview_plots = true;
 
 // ================================= END CONFIG ================================= //
@@ -94,6 +94,11 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
 
   PndLmdRuntimeConfiguration& lmd_runtime_config =
       PndLmdRuntimeConfiguration::Instance();
+
+  lmd_runtime_config.setGeneralConfigDirectory("/home/pflueger/LuminosityFit/");
+
+  lmd_runtime_config.readAcceptanceOffsetTransformationParameters(
+      "offset_trafo_matrix.json");
 
   for (unsigned int i = 0; i < paths.size(); i++) {
     // ------ get files -------------------------------------------------------
@@ -503,34 +508,41 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
       const std::map<PndLmdFitOptions, std::vector<ModelFitResult> >& fit_results =
           full_phi_mc_acc_data_vec[0].getFitResults();
 
-      if (fit_results.size() > 0) {
-
-        if (make_2d_plots) {
-          c.Clear();
-          NeatPlotting::PlotBundle mc_acc_plot_bundle =
-              lmd_plotter.makeGraphBundle(full_phi_mc_acc_data_vec[0],
-                  fit_results.begin()->first, true, false, false);
-          mc_acc_plot_bundle.drawOnCurrentPad(single_plot_style);
+      if (make_2d_plots) {
+        std::cout<<"we have "<<fit_results.size()<<" fit results!\n";
+        for (auto const& fit_result : fit_results) {
           filepath.str("");
-          filepath << filepath_base.str() << "/fit_result_mc_acc_data_2d.pdf";
-          c.SaveAs(filepath.str().c_str());
+          filepath << filepath_base.str() << "/fit_result_mc_acc_2d.root";
+          std::cout<<filepath.str()<<std::endl;
 
-          mc_acc_plot_bundle = lmd_plotter.makeGraphBundle(
-              full_phi_mc_acc_data_vec[0], fit_results.begin()->first, false,
-              true, false);
-          mc_acc_plot_bundle.drawOnCurrentPad(single_plot_style);
-          filepath.str("");
-          filepath << filepath_base.str() << "/fit_result_mc_acc_model_2d.pdf";
-          c.SaveAs(filepath.str().c_str());
-
-          mc_acc_plot_bundle = lmd_plotter.makeGraphBundle(
-              full_phi_mc_acc_data_vec[0], fit_results.begin()->first, true,
-              true, false);
-          mc_acc_plot_bundle.drawOnCurrentPad(diff_plot_style);
-          filepath.str("");
-          filepath << filepath_base.str() << "/fit_result_mc_acc_diff_2d.pdf";
-          c.SaveAs(filepath.str().c_str());
+          lmd_plotter.makeFitBundle(full_phi_mc_acc_data_vec[0], fit_result.first,
+              filepath.str());
         }
+
+        /*c.Clear();
+         NeatPlotting::PlotBundle mc_acc_plot_bundle =
+         lmd_plotter.makeGraphBundle(full_phi_mc_acc_data_vec[0],
+         fit_results.begin()->first, true, false, false);
+         mc_acc_plot_bundle.drawOnCurrentPad(single_plot_style);
+         filepath.str("");
+         filepath << filepath_base.str() << "/fit_result_mc_acc_data_2d.pdf";
+         c.SaveAs(filepath.str().c_str());
+
+         mc_acc_plot_bundle = lmd_plotter.makeGraphBundle(
+         full_phi_mc_acc_data_vec[0], fit_results.begin()->first, false,
+         true, false);
+         mc_acc_plot_bundle.drawOnCurrentPad(single_plot_style);
+         filepath.str("");
+         filepath << filepath_base.str() << "/fit_result_mc_acc_model_2d.pdf";
+         c.SaveAs(filepath.str().c_str());
+
+         mc_acc_plot_bundle = lmd_plotter.makeGraphBundle(
+         full_phi_mc_acc_data_vec[0], fit_results.begin()->first, true,
+         true, false);
+         mc_acc_plot_bundle.drawOnCurrentPad(diff_plot_style);
+         filepath.str("");
+         filepath << filepath_base.str() << "/fit_result_mc_acc_diff_2d.pdf";
+         c.SaveAs(filepath.str().c_str());*/
       }
     }
 
@@ -544,9 +556,9 @@ void displayInfo() {
   std::cout << "list of directories to be scanned for vertex data" << std::endl;
   std::cout << "Optional arguments are: " << std::endl;
   std::cout << "-t [plot type: 1 = 2d fit result plots (default),\n"
-            << "               2 = ip spot overview plot,\n"
-            << "               3 = ip overview plot,\n"
-            << "               4 = beam tilt overview plot,\n";
+      << "               2 = ip spot overview plot,\n"
+      << "               3 = ip overview plot,\n"
+      << "               4 = beam tilt overview plot,\n";
   std::cout << "-f [output filename suffix]" << std::endl;
   std::cout << "-o [output directory]" << std::endl;
   std::cout

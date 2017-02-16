@@ -24,10 +24,13 @@ private:
   std::vector<PndLmdHistogramData> resolutions;
   PndLmdMapData resolution_map_data;
 
-  shared_ptr<PndLmdSmearingModel2D> generate2DSmearingModel() const;
+  shared_ptr<PndLmdSmearingModel2D> generate2DSmearingModel(
+      const LumiFit::LmdDimension &dimx,
+      const LumiFit::LmdDimension &dimy) const;
 
   shared_ptr<PndLmdSmearingModel2D> generate2DSmearingModel(
-      const PndLmdHistogramData &data) const;
+      const PndLmdHistogramData &data, const LumiFit::LmdDimension &dimx,
+      const LumiFit::LmdDimension &dimy) const;
 
   /**
    * 1D Model generator method

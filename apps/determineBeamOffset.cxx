@@ -8,6 +8,7 @@
 
 #define BOOST_CHRONO_HEADER_ONLY
 #include <boost/chrono/thread_clock.hpp>
+#include "boost/property_tree/json_parser.hpp"
 
 #include "TFile.h"
 
@@ -15,21 +16,22 @@ using std::string;
 using std::cerr;
 using std::endl;
 using std::cout;
+using boost::property_tree::ptree;
 
 void determineBeamOffset(string input_file_dir, string config_file_url,
-		unsigned int nthreads) {
+    unsigned int nthreads) {
 
-	boost::chrono::thread_clock::time_point start =
-			boost::chrono::thread_clock::now();
+  boost::chrono::thread_clock::time_point start =
+      boost::chrono::thread_clock::now();
 
-	PndLmdRuntimeConfiguration& lmd_runtime_config =
-			PndLmdRuntimeConfiguration::Instance();
-	lmd_runtime_config.setNumberOfThreads(nthreads);
+  PndLmdRuntimeConfiguration& lmd_runtime_config =
+      PndLmdRuntimeConfiguration::Instance();
+  lmd_runtime_config.setNumberOfThreads(nthreads);
 
   // set general config path
   lmd_runtime_config.setGeneralConfigDirectory(config_file_url);
   boost::filesystem::path fit_config_path(config_file_url);
-	lmd_runtime_config.readFitConfig(fit_config_path.filename().string());
+  lmd_runtime_config.readFitConfig(fit_config_path.filename().string());
 
   lmd_runtime_config.setElasticDataInputDirectory(input_file_dir);
   lmd_runtime_config.setVertexDataName("lmd_vertex_data_.*of1.root");
@@ -42,98 +44,121 @@ void determineBeamOffset(string input_file_dir, string config_file_url,
   vector<PndLmdHistogramData> my_vertex_vec = lmd_data_facade.getVertexData();
 
   /*// filter out specific data
-  LumiFit::LmdDimensionOptions lmd_dim_opt;
-  lmd_dim_opt.dimension_type = LumiFit::THETA_X;
-  lmd_dim_opt.track_type = LumiFit::RECO;
+   LumiFit::LmdDimensionOptions lmd_dim_opt;
+   lmd_dim_opt.dimension_type = LumiFit::THETA_X;
+   lmd_dim_opt.track_type = LumiFit::RECO;
 
-  const boost::property_tree::ptree& fit_config_ptree =
-      lmd_runtime_config.getFitConfigTree();
-  if (fit_config_ptree.get<bool>("fit.fit_model_options.acceptance_correction_active") == true) {
-    lmd_dim_opt.track_type = LumiFit::MC_ACC;
-    if (fit_config_ptree.get<bool>("fit.fit_model_options.resolution_smearing_active") == true)
-      lmd_dim_opt.track_type = LumiFit::RECO;
-  }
+   const boost::property_tree::ptree& fit_config_ptree =
+   lmd_runtime_config.getFitConfigTree();
+   if (fit_config_ptree.get<bool>("fit.fit_model_options.acceptance_correction_active") == true) {
+   lmd_dim_opt.track_type = LumiFit::MC_ACC;
+   if (fit_config_ptree.get<bool>("fit.fit_model_options.resolution_smearing_active") == true)
+   lmd_dim_opt.track_type = LumiFit::RECO;
+   }
 
-  LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter filter(lmd_dim_opt);
-  my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
-      my_lmd_data_vec, filter);*/
+   LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter filter(lmd_dim_opt);
+   my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
+   my_lmd_data_vec, filter);*/
 
   // ----------------------------------------------------------------------
+  PndLmdFitFacade lmd_fit_facade;
 
+  // do fits
+  lmd_fit_facade.fitVertexData(my_vertex_vec);
 
-	PndLmdFitFacade lmd_fit_facade;
+  // save data
+  std::cout << "Saving data...." << std::endl;
+  // output file
+  std::stringstream hs;
+  hs << input_file_dir << "reco_ip.json";
 
-	// do fits
-	lmd_fit_facade.fitVertexData(my_vertex_vec);
+  ptree fit_result_ptree;
+  for (auto const& vertex_data : my_vertex_vec) {
+    if (vertex_data.getPrimaryDimension().dimension_options.track_param_type
+        == LumiFit::RECO) {
+      string label("ip_z");
+      if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
+          == LumiFit::X)
+        label = "ip_x";
+      else if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
+          == LumiFit::Y)
+        label = "ip_y";
 
-	// save data
-	std::cout << "Saving data...." << std::endl;
-	// output file
-	std::stringstream hs;
-	hs << input_file_dir << "/lmd_fitted_vertex_data.root";
-	TFile *ffitteddata = new TFile(hs.str().c_str(), "RECREATE");
+      if (vertex_data.getFitResults().size() > 0) {
+        auto const& fit_res = vertex_data.getFitResults().begin()->second[0];
+        fit_result_ptree.add(label, fit_res.getFitParameter("gauss_mean").value);
+      }
+    }
+  }
 
-	for (std::vector<PndLmdHistogramData>::iterator lmd_data_iter =
-	    my_vertex_vec.begin(); lmd_data_iter != my_vertex_vec.end();
-			lmd_data_iter++) {
-		std::cout<<lmd_data_iter->getName()<<": "<<lmd_data_iter->getFitResults().size()<<std::endl;
-		if (lmd_data_iter->getFitResults().size() > 0)
+  write_json(file_url, fit_config_tree);
+
+  hs.str("");
+  hs << input_file_dir << "/lmd_fitted_vertex_data.root";
+  TFile *ffitteddata = new TFile(hs.str().c_str(), "RECREATE");
+
+  for (std::vector<PndLmdHistogramData>::iterator lmd_data_iter =
+      my_vertex_vec.begin(); lmd_data_iter != my_vertex_vec.end();
+      lmd_data_iter++) {
+    std::cout << lmd_data_iter->getName() << ": "
+        << lmd_data_iter->getFitResults().size() << std::endl;
+    if (lmd_data_iter->getFitResults().size() > 0)
       lmd_data_iter->saveToRootFile();
-	}
+  }
 
-	ffitteddata->Close();
+  ffitteddata->Close();
 }
 
 void displayInfo() {
-	// display info
-	cout << "Required arguments are: " << endl;
-	cout << "-p [path to data]" << endl;
-	cout << "-c [path to config file] " << endl;
-	cout << "Optional arguments are: " << endl;
-	cout << "-m [number of threads]" << endl;
+  // display info
+  cout << "Required arguments are: " << endl;
+  cout << "-p [path to data]" << endl;
+  cout << "-c [path to config file] " << endl;
+  cout << "Optional arguments are: " << endl;
+  cout << "-m [number of threads]" << endl;
 }
 
 int main(int argc, char* argv[]) {
-	string data_path;
-	string config_path("");
-	unsigned int nthreads(1);
-	bool is_data_set(false), is_config_set(false), is_nthreads_set(false);
+  string data_path;
+  string config_path("");
+  unsigned int nthreads(1);
+  bool is_data_set(false), is_config_set(false), is_nthreads_set(false);
 
-	int c;
+  int c;
 
-	while ((c = getopt(argc, argv, "hc:m:p:")) != -1) {
-		switch (c) {
-			case 'c':
-				config_path = optarg;
-				is_config_set = true;
-				break;
-			case 'p':
-				data_path = optarg;
-				is_data_set = true;
-				break;
-			case 'm':
-				nthreads = atoi(optarg);
-				is_nthreads_set = true;
-				break;
-			case '?':
-				if (optopt == 'm' || optopt == 'p' || optopt == 'c')
-					cerr << "Option -" << optopt << " requires an argument." << endl;
-				else if (isprint(optopt))
-					cerr << "Unknown option -" << optopt << "." << endl;
-				else
-					cerr << "Unknown option character" << optopt << "." << endl;
-				return 1;
-			case 'h':
-				displayInfo();
-				return 1;
-			default:
-				return 1;
-		}
-	}
+  while ((c = getopt(argc, argv, "hc:m:p:")) != -1) {
+    switch (c) {
+    case 'c':
+      config_path = optarg;
+      is_config_set = true;
+      break;
+    case 'p':
+      data_path = optarg;
+      is_data_set = true;
+      break;
+    case 'm':
+      nthreads = atoi(optarg);
+      is_nthreads_set = true;
+      break;
+    case '?':
+      if (optopt == 'm' || optopt == 'p' || optopt == 'c')
+        cerr << "Option -" << optopt << " requires an argument." << endl;
+      else if (isprint(optopt))
+        cerr << "Unknown option -" << optopt << "." << endl;
+      else
+        cerr << "Unknown option character" << optopt << "." << endl;
+      return 1;
+    case 'h':
+      displayInfo();
+      return 1;
+    default:
+      return 1;
+    }
+  }
 
-	if (is_data_set && is_config_set)
-		determineBeamOffset(data_path, config_path, nthreads);
-	else
-		displayInfo();
-	return 0;
+  if (is_data_set && is_config_set)
+    determineBeamOffset(data_path, config_path, nthreads);
+  else
+    displayInfo();
+  return 0;
 }

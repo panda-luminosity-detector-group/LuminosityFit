@@ -41,15 +41,15 @@ PndLmdDPMMTModel1D::PndLmdDPMMTModel1D(std::string name_,
 PndLmdDPMMTModel1D::~PndLmdDPMMTModel1D() {
 }
 
-void PndLmdDPMMTModel1D::updateDomainFromPars(double *par) {
+void PndLmdDPMMTModel1D::updateDomainFromPars(mydouble *par) {
 }
 
 void PndLmdDPMMTModel1D::init() {
   TDatabasePDG *pdg = TDatabasePDG::Instance();
   M = pdg->GetParticle(-2212)->Mass();
   pi = TMath::Pi();
-  hbarc2 = 0.389379;
-  alpha = 1. / 137.036;
+  hbarc2 = 0.389379L;
+  alpha = 1. / 137.036L;
 
   alpha_squared_4pi = 4.0 * pi * alpha * alpha;
   one_over_16pi_hbarc2 = 1.0 / (16.0 * pi * hbarc2);
@@ -78,34 +78,34 @@ void PndLmdDPMMTModel1D::initModelParameters() {
   T2 = getModelParameterSet().addModelParameter("T2");
 }
 
-double PndLmdDPMMTModel1D::getDelta(const double t) const {
-  return 1.408450704 * TMath::Abs(t); //TMath::Abs(t) / 0.71; division costs more
+mydouble PndLmdDPMMTModel1D::getDelta(const mydouble t) const {
+  return 1.408450704L * TMath::Abs(t); //TMath::Abs(t) / 0.71; division costs more
 }
 
-double PndLmdDPMMTModel1D::getProtonDipoleFormFactor(const double t) const {
+mydouble PndLmdDPMMTModel1D::getProtonDipoleFormFactor(const mydouble t) const {
   return std::pow((1.0 + getDelta(t)), -2);
 }
 
-double PndLmdDPMMTModel1D::getRawCoulombPart(const double *x) const {
-  double p1 = alpha_squared_4pi * std::pow(getProtonDipoleFormFactor(x[0]), 4)
+mydouble PndLmdDPMMTModel1D::getRawCoulombPart(const mydouble *x) const {
+  mydouble p1 = alpha_squared_4pi * std::pow(getProtonDipoleFormFactor(x[0]), 4)
       * hbarc2 / std::pow(beta->getValue() * x[0], 2); //Coulomb part
   return p1;
 }
 
-double PndLmdDPMMTModel1D::getRawInterferencePart(const double *x) const {
+mydouble PndLmdDPMMTModel1D::getRawInterferencePart(const mydouble *x) const {
   // we need the next line because if user wants to fit t spectrum it is plotted for positive t
   // so x[0] will contain positive t number
   // however in case of theta fitting the t is automatically calculated to be negative
   // to make them both work this step is necessary
   // (ok maybe for later its better to always give positive t here...)
-  double t = -std::fabs(x[0]);
-  double del = getDelta(t);
+  mydouble t = -std::fabs(x[0]);
+  mydouble del = getDelta(t);
 
-  double dd2 = 4.0 * del, dd1 = 0.5 * b->getValue() * std::fabs(t) + dd2;
-  double logdd1 = std::log(dd1), logdd2 = std::log(dd2);
-  double delta = alpha * (0.577 + logdd1 + dd2 * logdd2 + 2.0 * del);
+  mydouble dd2 = 4.0 * del, dd1 = 0.5 * b->getValue() * std::fabs(t) + dd2;
+  mydouble logdd1 = std::log(dd1), logdd2 = std::log(dd2);
+  mydouble delta = alpha * (0.577 + logdd1 + dd2 * logdd2 + 2.0 * del);
 
-  double int_part = alpha * sigma_tot->getValue()
+  mydouble int_part = alpha * sigma_tot->getValue()
       * std::pow(getProtonDipoleFormFactor(t), 2)
       * std::exp(0.5 * b->getValue() * t)
       * (rho->getValue() * cos(delta) + sin(delta))
@@ -114,11 +114,11 @@ double PndLmdDPMMTModel1D::getRawInterferencePart(const double *x) const {
   return int_part;
 }
 
-double PndLmdDPMMTModel1D::getRawHadronicPart(const double *x) const {
-  double t = -std::fabs(x[0]);
+mydouble PndLmdDPMMTModel1D::getRawHadronicPart(const mydouble *x) const {
+  mydouble t = -std::fabs(x[0]);
 
-  double t_over_T2(t / T2->getValue());
-  double had_part = A1->getValue()
+  mydouble t_over_T2(t / T2->getValue());
+  mydouble had_part = A1->getValue()
       * std::pow(
           std::exp(t / (2.0 * T1->getValue()))
               - A2->getValue() * std::exp(0.5 * t_over_T2), 2)
@@ -127,42 +127,30 @@ double PndLmdDPMMTModel1D::getRawHadronicPart(const double *x) const {
   return had_part;
 }
 
-double PndLmdDPMMTModel1D::getRawRhoBSigtotHadronicPart(const double *x) const {
-  double t = -std::fabs(x[0]);
+mydouble PndLmdDPMMTModel1D::getRawRhoBSigtotHadronicPart(const mydouble *x) const {
+  mydouble t = -std::fabs(x[0]);
 
-  double had_part = std::pow(sigma_tot->getValue(), 2)
+  mydouble had_part = std::pow(sigma_tot->getValue(), 2)
       * (1.0 + std::pow(rho->getValue(), 2)) * std::exp(b->getValue() * t)
       * one_over_16pi_hbarc2;
 
   return had_part;
 }
 
-double PndLmdDPMMTModel1D::getRawFullElastic(const double *x) const {
+mydouble PndLmdDPMMTModel1D::getRawFullElastic(const mydouble *x) const {
   return (getRawCoulombPart(x) + getRawInterferencePart(x)
       + getRawHadronicPart(x));
 }
 
-double PndLmdDPMMTModel1D::getRawRhoBSigtotFullElastic(const double *x) const {
+mydouble PndLmdDPMMTModel1D::getRawRhoBSigtotFullElastic(const mydouble *x) const {
   return (getRawCoulombPart(x) + getRawInterferencePart(x)
       + getRawRhoBSigtotHadronicPart(x));
 }
 
-mydouble PndLmdDPMMTModel1D::eval(const double *x) const {
+mydouble PndLmdDPMMTModel1D::eval(const mydouble *x) const {
   return luminosity->getValue() * (this->*model_func)(x);
 }
 
 void PndLmdDPMMTModel1D::updateDomain() {
-  setDomain(0, std::numeric_limits<double>::max());
-}
-
-double PndLmdDPMMTModel1D::getRho() const {
-  return rho->getValue();
-}
-
-double PndLmdDPMMTModel1D::getB() const {
-  return b->getValue();
-}
-
-double PndLmdDPMMTModel1D::getSigmaTotal() const {
-  return sigma_tot->getValue();
+  setDomain(0, std::numeric_limits<mydouble>::max());
 }

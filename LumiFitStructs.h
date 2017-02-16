@@ -8,9 +8,11 @@
 #ifndef LUMIFITSTRUCTS_H_
 #define LUMIFITSTRUCTS_H_
 
+#ifndef __CINT__
 #include "fit/data/DataStructs.h"
 #include "core/ModelStructs.h"
 #include "fit/EstimatorOptions.h"
+#endif
 
 #include <iostream>
 #include <string>
@@ -270,6 +272,7 @@ ClassDef(LmdDimensionRange, 1)
 	;
 };
 
+#ifndef __CINT__
 struct BinDimension {
 	DataStructs::DimensionRange x_range;
 	DataStructs::DimensionRange y_range;
@@ -348,6 +351,7 @@ inline double calculateBinOverlap(LumiFit::BinDimension &reco_bin,
 	return (overlap.x_range.range_high - overlap.x_range.range_low)
 			* (overlap.y_range.range_high - overlap.y_range.range_low) / reso_bin_area;
 }
+#endif
 
 /**
  * Struct which defines a dimension of data.
