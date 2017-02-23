@@ -1,29 +1,6 @@
 #!/bin/bash      
 
-#cd ${PBS_O_WORKDIR}
-
-XThetaCut=false
-YPhiCut=false
-CleanSig=false
-num_evts=1000
-start_evt=1
-mom=1.5
-gen_input_filename=/data/work/himspecf/pflueger/MCsamples/200000_dpm_elastic_plab_1.5GeV_thmin_0.06deg/200000_dpm_elastic_plab_1o5GeV_thmin_0o06deg_368.root
-workpathname=/data/work/himspecf/pflueger/realistic_scenarios
-beamX0=0.0
-beamY0=0.0
-targetZ0=0.0
-beam_widthX=0.0
-beam_widthY=0.0
-target_widthZ=0.0
-beam_gradX=0.0
-beam_gradY=0.0
-beam_grad_sigmaX=0.0
-beam_grad_sigmaY=0.0
-verbositylvl=0
-rec_ipx=0.0
-rec_ipy=0.0
-rec_ipz=0.0
+cd ${PBS_O_WORKDIR}
 
 #include some helper functions
 . bashFunctions.sh
@@ -67,6 +44,11 @@ echo "xthetacut: $XThetaCut"
 echo "yphicut: $YPhiCut"
 echo "mcut: $CleanSig"
 
+prefilter="false"
+if [ "$XThetaCut" == "true" ] || [ "$YPhiCut" == "true" ]; then
+prefilter="true"
+fi
+
 ## Write all MC info in TrkQA array
 WrAllMC=true
 
@@ -76,7 +58,7 @@ numTrks=1
 #ok we want to simulate only on the node so also the output files of the simulation so change the pathname to /local/scratch/dirname
 dirname=`echo $dirname | sed -e 's/\//_/g'`
 
-#workpathname=/data/work/himspecf/pflueger/test123/new
+
 workpathname="/local/scratch/${dirname}"
 if [ ! -d $workpathname ]; then
   mkdir -p $workpathname
@@ -135,15 +117,18 @@ if [ 0 -eq "$?" ]; then
 		root -l -b -q 'runLumiPixel4Fitter.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',"Minuit",'${mergedHits}')' > /dev/null 2>&1
   		#this script output a Lumi_Track_... file. Rename that to the NotFiltered..
 
-		if [ "$XThetaCut" == "true" ] || [ "$YPhiCut" == "true" ]; then
+		if [ "$prefilter" == "true" ]; then
 			mv ${workpathname}/Lumi_Track_${start_evt}.root ${workpathname}/Lumi_TrackNotFiltered_${start_evt}.root
 		fi
 	fi
 fi
 
 #track filter (on number of hits and chi2)
+
+if [ "$prefilter" == "true" ]; then
+check_stage_success "$workpathname/Lumi_Track_${start_evt}.root"
 if [ 0 -eq "$?" ]; then
-  check_stage_success "$workpathname/Lumi_Track_${start_evt}.root"
+  check_stage_success "$workpathname/Lumi_TrackFiltered_${start_evt}.root"
   if [ 0 -eq "$?" ]; then
     #this macro needs Lumi_Track_... file as input so we need to link the unfiltered file
     ln -sf ${workpathname}/Lumi_TrackNotFiltered_${start_evt}.root ${workpathname}/Lumi_Track_${start_evt}.root
@@ -154,13 +139,14 @@ if [ 0 -eq "$?" ]; then
     ln -sf ${workpathname}/Lumi_TrackFiltered_${start_evt}.root ${workpathname}/Lumi_Track_${start_evt}.root
   fi
 fi
+fi
 
 
 # back-propgation GEANE
 ### Possible options: "Geane", "RK"
 check_stage_success "$workpathname/Lumi_Geane_${start_evt}.root"
 if [ 0 -eq "$?" ]; then
-  root -l -b -q 'runLumiPixel5BackProp.C('${num_evts}', '${start_evt}', "'${workpathname}'", '$verbositylvl', "Geane", '${mergedHits}', '${mom}', '${rec_ipx}', '${rec_ipy}', '${rec_ipz}')'
+root -l -b -q 'runLumiPixel5BackProp.C('${num_evts}', '${start_evt}', "'${workpathname}'", '$verbositylvl', "Geane", '${mergedHits}', '${mom}', '${rec_ipx}', '${rec_ipy}', '${rec_ipz}', '$prefilter')'
 fi
 
 
@@ -176,7 +162,6 @@ fi
 # this is required for the acceptance calculation
 check_stage_success "$workpathname/Lumi_TrksQA_${start_evt}.root"
 if [ 0 -eq "$?" ]; then
-	ls -lha $workpathname/*${start_evt}.root
 	root -l -b -q 'runLumiPixel7TrksQA.C('${num_evts}','${start_evt}',"'${workpathname}'",'0','${mom}', '$WrAllMC', '${CleanSig}')'
 	cp $workpathname/Lumi_TrksQA_${start_evt}.root $pathname/Lumi_TrksQA_${start_evt}.root
 fi

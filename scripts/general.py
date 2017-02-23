@@ -82,8 +82,8 @@ class DirectorySearcher:
         return self.dirs
     
     def searchListOfDirectories(self, path, glob_pattern):
-        if os.path.isdir(path):
-          print 'currently looking at directory ' + path
+        #if os.path.isdir(path):
+          #print 'currently looking at directory ' + path
     
         sim_params = glob.glob(path + '/sim_beam_prop.config')
         if sim_params:
@@ -123,7 +123,7 @@ class DirectorySearcher:
         files = glob.glob(path + '/' + glob_pattern)
         if files:
           is_good = True
-          print path
+          #print path
           for pattern in self.patterns:
             m = re.search(pattern, path)
             if not m:
@@ -132,7 +132,7 @@ class DirectorySearcher:
           if is_good:
             self.dirs.append(path)            
           
-        # if we did not get any exit criterium then change into subdirectories            
+        # if we did not get any exit criterium then change into subdirectories     
         for dir in next(os.walk(path))[1]:
           dirpath = path + '/' + dir
           if os.path.isdir(dirpath):

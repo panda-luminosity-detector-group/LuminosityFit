@@ -234,10 +234,10 @@ void PndLmdDataFacade::createAngularData() {
   data_template.setName("reco");
   addMultipleInstancesBasedOnSelections(data_template);
 
-  if (selection_combinations.size() > 0) {
+  /*if (selection_combinations.size() > 0) {
     selection_combinations.clear();
     addMultipleInstancesBasedOnSelections(data_template);
-  }
+  }*/
 }
 
 void PndLmdDataFacade::createEfficiencies() {

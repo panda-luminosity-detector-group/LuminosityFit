@@ -27,20 +27,7 @@
    },
    
    "selections":
-   [
-      {
-        "name": "prim",
-        "is_active": false,
-        
-        "dimension_type": "SECONDARY",
-        "track_param_type": "IP",
-        "track_type": "MC",
-        
-        "bins": 1,
-        "range_low": -10000.0,
-        "range_high": -0.1
-      }
-   ],
+   [],
    
    "efficiency":
    {

@@ -33,8 +33,11 @@
 
 #include "boost/filesystem.hpp"
 #include "boost/regex.hpp"
+#include "boost/property_tree/json_parser.hpp"
+#include <boost/algorithm/string.hpp>
 
 #include "TGaxis.h"
+#include "TVectorD.h"
 
 void plotLumiFitResults(std::vector<std::string> paths, int type,
     const std::string &filter_string, const std::string &output_directory_path,
@@ -67,6 +70,7 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
   bool make_tilt_overview_plots(false);
   bool make_div_overview_plots(false);
   bool make_fit_range_dependency_plots(false);
+  bool make_total_overview_result_file(false);
 
   if (type == 1)
     make_2d_plots = true;
@@ -78,6 +82,8 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
     make_tilt_overview_plots = true;
   else if (type == 5)
     make_div_overview_plots = true;
+  else if (type == 6)
+    make_total_overview_result_file = true;
 
 // ================================= END CONFIG ================================= //
 
@@ -100,12 +106,20 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
   lmd_runtime_config.readAcceptanceOffsetTransformationParameters(
       "offset_trafo_matrix.json");
 
+  std::vector<std::string> ip_files;
+
   for (unsigned int i = 0; i < paths.size(); i++) {
     // ------ get files -------------------------------------------------------
     std::vector<std::string> file_paths = lmd_data_facade.findFilesByName(
         paths[i], filter_string, "lmd_fitted_data.root");
 
     for (unsigned int j = 0; j < file_paths.size(); j++) {
+      // next lines are dirty... very unsafe
+      std::string ip_path(file_paths[j]);
+      boost::replace_all(ip_path, "xy_m_cut_real", "uncut");
+      boost::replace_all(ip_path, "lmd_fitted_data.root", "reco_ip.json");
+      ip_files.push_back(ip_path);
+
       std::string fullpath = file_paths[j];
       TFile fdata(fullpath.c_str(), "READ");
 
@@ -184,6 +198,66 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
    lmd_dim_opt2);
    full_phi_reco_data_vec = lmd_data_facade.filterData(full_phi_reco_data_vec,
    dim_filter2);*/
+
+  if (make_total_overview_result_file) {
+
+    boost::property_tree::ptree all_scenario_tree;
+
+    unsigned int counter(0);
+    for (auto const &scenario : full_phi_reco_data_vec) {
+      if (scenario.getFitResults().size() > 0
+          && scenario.getSelectorSet().size() == 0) {
+        PndLmdLumiFitResult fit_result;
+        fit_result.setModelFitResult(
+            scenario.getFitResults().begin()->second[0]);
+
+        // try to open ip measurement file... this is quite dirty but no time to do it nice...
+        boost::property_tree::ptree measured_values;
+        read_json(ip_files[counter], measured_values);
+
+        measured_values.put("lumi", fit_result.getLuminosity());
+        measured_values.put("lumi_err", fit_result.getLuminosityError());
+        for (auto const fit_param : scenario.getFitResults().begin()->second[0].getFitParameters()) {
+          if (fit_param.name.second.find("tilt_x") != std::string::npos) {
+            measured_values.put("beam_tilt_x", fit_param.value);
+            measured_values.put("beam_tilt_x_err", fit_param.error);
+          } else if (fit_param.name.second.find("tilt_y")
+              != std::string::npos) {
+            measured_values.put("beam_tilt_y", fit_param.value);
+            measured_values.put("beam_tilt_y_err", fit_param.error);
+          } else if (fit_param.name.first.find("div") != std::string::npos) {
+            if (fit_param.name.second.find("gauss_sigma_var1")
+                != std::string::npos)
+              measured_values.put("beam_divergence_x", fit_param.value);
+            measured_values.put("beam_divergence_x_err", fit_param.error);
+          } else if (fit_param.name.second.find("gauss_sigma_var2")
+              != std::string::npos)
+            measured_values.put("beam_divergence_y", fit_param.value);
+          measured_values.put("beam_divergence_y_err", fit_param.error);
+        }
+
+        std::stringstream label;
+        label << "scenario_" << counter << ".measured";
+        all_scenario_tree.add_child(label.str(), measured_values);
+
+        label.str("");
+        label << "scenario_" << counter << ".generated";
+        boost::property_tree::ptree gen_values(scenario.getSimulationParametersPropertyTree());
+        gen_values.put("lumi", scenario.getReferenceLuminosity());
+        all_scenario_tree.add_child(label.str(), gen_values);
+
+        std::pair<double, double> lumi = lmd_plotter.calulateRelDiff(
+            fit_result.getLuminosity(), fit_result.getLuminosityError(),
+            scenario.getReferenceLuminosity());
+        std::cout << "lumi: " << lumi.first << " +- " << lumi.second
+            << std::endl;
+        ++counter;
+      }
+    }
+    std::stringstream filename;
+    filename << basepath.str() << "/lumi_scenarios_overview.json";
+    write_json(filename.str(), all_scenario_tree);
+  }
 
   if (make_offset_overview_plots && full_phi_reco_data_vec.size() > 1) {
     std::stringstream filename;
@@ -294,7 +368,7 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
     graphs.second->Write("div_xy_truth");
   }
 
-  // now the stuff that really need to generate the model
+// now the stuff that really need to generate the model
   for (unsigned int fit_data_bundle_index = 0;
       fit_data_bundle_index < full_phi_vec.size(); ++fit_data_bundle_index) {
     std::stringstream filepath_base;
@@ -509,14 +583,14 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
           full_phi_mc_acc_data_vec[0].getFitResults();
 
       if (make_2d_plots) {
-        std::cout<<"we have "<<fit_results.size()<<" fit results!\n";
+        std::cout << "we have " << fit_results.size() << " fit results!\n";
         for (auto const& fit_result : fit_results) {
           filepath.str("");
           filepath << filepath_base.str() << "/fit_result_mc_acc_2d.root";
-          std::cout<<filepath.str()<<std::endl;
+          std::cout << filepath.str() << std::endl;
 
-          lmd_plotter.makeFitBundle(full_phi_mc_acc_data_vec[0], fit_result.first,
-              filepath.str());
+          lmd_plotter.makeFitBundle(full_phi_mc_acc_data_vec[0],
+              fit_result.first, filepath.str());
         }
 
         /*c.Clear();

@@ -22,7 +22,7 @@
          "dpm_elastic_parts": "ALL",
          "theta_t_trafo_option": "APPROX",
 	     
-	     "divergence_smearing_active": true,
+	     "divergence_smearing_active": false,
 	     "fix_beam_divs": false,
 	     "beam_div_x": 0.0001,
 	     "beam_div_y": 0.0001,

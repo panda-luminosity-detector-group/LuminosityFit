@@ -108,6 +108,10 @@ void runLmdFit(string input_file_dir, string config_directory,
   my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
       my_lmd_data_vec, filter);
 
+  LumiFit::Comparisons::NoSecondaryTrackFilter no_cut_on_secondary_filter;
+  my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
+      my_lmd_data_vec, no_cut_on_secondary_filter);
+
   vector<PndLmdAcceptance> my_lmd_acc_vec = lmd_data_facade.getAcceptanceData();
   vector<PndLmdHistogramData> all_lmd_res = lmd_data_facade.getResolutionData();
   vector<PndLmdMapData> all_lmd_res_map = lmd_data_facade.getMapData();

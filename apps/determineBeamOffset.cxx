@@ -70,13 +70,13 @@ void determineBeamOffset(string input_file_dir, string config_file_url,
   std::cout << "Saving data...." << std::endl;
   // output file
   std::stringstream hs;
-  hs << input_file_dir << "reco_ip.json";
+  hs << input_file_dir << "/reco_ip.json";
 
   ptree fit_result_ptree;
   for (auto const& vertex_data : my_vertex_vec) {
-    if (vertex_data.getPrimaryDimension().dimension_options.track_param_type
+    if (vertex_data.getPrimaryDimension().dimension_options.track_type
         == LumiFit::RECO) {
-      string label("ip_z");
+      string label("");
       if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
           == LumiFit::X)
         label = "ip_x";
@@ -84,14 +84,20 @@ void determineBeamOffset(string input_file_dir, string config_file_url,
           == LumiFit::Y)
         label = "ip_y";
 
-      if (vertex_data.getFitResults().size() > 0) {
-        auto const& fit_res = vertex_data.getFitResults().begin()->second[0];
-        fit_result_ptree.add(label, fit_res.getFitParameter("gauss_mean").value);
+      if (label != "") {
+        if (vertex_data.getFitResults().size() > 0) {
+          std::cout<<label<<std::endl;
+          auto const& fit_res = vertex_data.getFitResults().begin()->second[0];
+          double value = fit_res.getFitParameter("gauss_mean").value;
+          fit_result_ptree.add(label, value);
+        }
       }
     }
   }
-
-  write_json(file_url, fit_config_tree);
+  // add rec ip_z as 0.0
+  fit_result_ptree.add("ip_z", 0.0);
+  std::cout << "writing result to " << hs.str() << std::endl;
+  write_json(hs.str(), fit_result_ptree);
 
   hs.str("");
   hs << input_file_dir << "/lmd_fitted_vertex_data.root";

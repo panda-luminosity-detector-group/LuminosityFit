@@ -51,10 +51,21 @@ def makeFileListBunches(directory):
             good_files.append(file)
         else:
             bad_files.append(file)
+            
+    m = re.search('\/(\d+?)-(\d+?)_.+?cut', directory)
+    num_sim_files=int(m.group(2))-int(m.group(1)) + 1
+    
+    #print str(1.0*len(found_files)) + ' < ' + str(0.8*num_sim_files)
+    
+    if 1.0*len(found_files) < 0.8*num_sim_files:
+        print 'WARNING: more than 20% of sim files missing... Something went wrong here...'
+        print directory
+        return
     
     if 0.2 < 1.0*len(bad_files)/(len(good_files) + len(bad_files)):
         print 'WARNING: more than 20% are bad files... Something went wrong here...'
         print directory
+        return
     
     print 'detected ' + str(len(bad_files)) + '/' + str(len(good_files) + len(bad_files)) + ' bad files'
     print 'creating file lists...'

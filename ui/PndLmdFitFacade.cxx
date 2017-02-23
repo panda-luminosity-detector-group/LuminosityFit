@@ -768,7 +768,7 @@ void PndLmdFitFacade::fitVertexData(
     model_fit_facade.setModel(vertex_model);
 
     // create minimizer instance with control parameter
-    shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer());
+    shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer(1));
 
     model_fit_facade.setMinimizer(minuit_minimizer);
 
