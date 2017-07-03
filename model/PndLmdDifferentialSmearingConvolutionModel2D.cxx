@@ -124,7 +124,7 @@ void PndLmdDifferentialSmearingConvolutionModel2D::injectModelParameter(
 }
 
 void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D() {
-  std::cout << "generating divergence smeared grid..." << std::endl;
+  //std::cout << "generating divergence smeared grid..." << std::endl;
   // create threads and let them evaluate a part of the data
   boost::thread_group threads;
 
@@ -136,7 +136,7 @@ void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D() {
   }
 
   threads.join_all();
-  std::cout << "done!" << std::endl;
+  //std::cout << "done!" << std::endl;
 
   if (combine_factor > 1) {
     // now merge fine model grid to coarser grid

@@ -261,9 +261,9 @@ void PndLmdFitFacade::initBeamParametersForModel(
       model_opt_ptree.get<double>("beam_tilt_y"));
 
   /*current_model->getModelParameterSet().getModelParameter("offset_x")->setValue(
-      model_opt_ptree.get<double>("ip_offset_x"));
-  current_model->getModelParameterSet().getModelParameter("offset_y")->setValue(
-      model_opt_ptree.get<double>("ip_offset_y"));*/
+   model_opt_ptree.get<double>("ip_offset_x"));
+   current_model->getModelParameterSet().getModelParameter("offset_y")->setValue(
+   model_opt_ptree.get<double>("ip_offset_y"));*/
 
   if (model_opt_ptree.get<bool>("divergence_smearing_active")) {
     double start_div_x(0.0001);
@@ -294,14 +294,14 @@ void PndLmdFitFacade::initBeamParametersForModel(
                 double>("beam_divergence_y");
     }
 
-    current_model->getModelParameterSet().getModelParameter(
-              "gauss_sigma_var1")->setValue(start_div_x);
-    current_model->getModelParameterSet().getModelParameter(
-              "gauss_sigma_var2")->setValue(start_div_y);
+    current_model->getModelParameterSet().getModelParameter("gauss_sigma_var1")->setValue(
+        start_div_x);
+    current_model->getModelParameterSet().getModelParameter("gauss_sigma_var2")->setValue(
+        start_div_y);
 
-    std::cout<<"using start divergence parameters: \n";
-    std::cout<<"div_x: "<<start_div_x<<std::endl;
-    std::cout<<"div_y: "<<start_div_y<<std::endl;
+    std::cout << "using start divergence parameters: \n";
+    std::cout << "div_x: " << start_div_x << std::endl;
+    std::cout << "div_y: " << start_div_y << std::endl;
     /*current_model->getModelParameterSet().getModelParameter("gauss_mean_var1")->setValue(
      0.0);
      current_model->getModelParameterSet().getModelParameter("gauss_mean_var2")->setValue(
@@ -468,65 +468,232 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
 
   PndLmdFitOptions fit_options(createFitOptions(lmd_data));
 
-  shared_ptr<Model> model = generateModel(lmd_data, fit_options);
+  if (fit_options.model_opt_map["divergence_smearing_active"] == "true") {
+    PndLmdFitOptions fit_options_no_div(fit_options);
+
+    fit_options_no_div.model_opt_map["divergence_smearing_active"] = "false";
+    fit_options_no_div.free_parameter_names.erase("gauss_sigma_var1");
+    fit_options_no_div.free_parameter_names.erase("gauss_sigma_var2");
+
+    shared_ptr<Model> model = generateModel(lmd_data, fit_options_no_div);
+
+    // init beam parameters in model
+    initBeamParametersForModel(model,
+        fit_options_no_div.getModelOptionsPropertyTree());
+
+    if (model->init()) {
+      std::cout
+          << "ERROR: Not all parameters of the model were successfully initialized!"
+          << std::endl;
+      model->getModelParameterSet().printInfo();
+    }
+
+    // free parameters
+    freeParametersForModel(model, fit_options_no_div);
+
+    // set model
+    model_fit_facade.setModel(model);
+
+    unsigned int fit_dimension = fit_options.getModelOptionsPropertyTree().get<
+        unsigned int>("fit_dimension");
+
+    // create and set data
+    if (fit_dimension == 2) {
+      std::cout << "creating 2D data..." << std::endl;
+      model_fit_facade.setData(createData2D(lmd_data));
+    } else {
+      std::cout << "creating 1D data..." << std::endl;
+      model_fit_facade.setData(createData1D(lmd_data));
+    }
+
+    // now set better starting amplitude value
+    std::vector<DataStructs::DimensionRange> range = calcRange(lmd_data,
+        fit_options.getEstimatorOptions());
+    double integral_data = 0.0;
+    std::cout << "calculating data integral..." << std::endl;
+    if (fit_dimension == 2)
+      integral_data = calcHistIntegral(lmd_data.get2DHistogram(), range);
+    else
+      integral_data = calcHistIntegral(lmd_data.get1DHistogram(), range);
+    std::cout << "calculating model integral..." << std::endl;
+    double integral_func = model->Integral(range, 1e-1);
+    double binning_factor = lmd_data.getBinningFactor(fit_dimension);
+    double lumi_start = integral_data / integral_func / binning_factor;
+    cout << "binning factor: " << binning_factor << endl;
+    cout << "integral (model): " << integral_func << endl;
+    cout << integral_data << " / " << integral_func * binning_factor << endl;
+    cout << "Using start luminosity: " << lumi_start << endl;
+    model->getModelParameterSet().setModelParameterValue("luminosity",
+        lumi_start);
+
+    // create minimizer instance with control parameter
+    shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer());
+    //shared_ptr<CeresMinimizer> ceres_minimizer(new CeresMinimizer());
+
+    model_fit_facade.setMinimizer(minuit_minimizer);
+    // create estimator
+    shared_ptr<ModelEstimator> estimator;
+    if (fit_options.estimator_type == LumiFit::CHI2)
+      estimator.reset(new Chi2Estimator());
+    else
+      estimator.reset(new LogLikelihoodEstimator());
+
+    PndLmdRuntimeConfiguration& lmd_runtime_config =
+        PndLmdRuntimeConfiguration::Instance();
+
+    estimator->setNumberOfThreads(lmd_runtime_config.getNumberOfThreads());
+
+    model_fit_facade.setEstimator(estimator);
+    model_fit_facade.setEstimatorOptions(fit_options.getEstimatorOptions());
+
+    doFit(lmd_data, fit_options_no_div);
+
+    model = generateModel(lmd_data, fit_options);
+
+    // init beam parameters in model
+    initBeamParametersForModel(model,
+        fit_options.getModelOptionsPropertyTree());
+
+    if (model->init()) {
+      std::cout
+          << "ERROR: Not all parameters of the model were successfully initialized!"
+          << std::endl;
+      model->getModelParameterSet().printInfo();
+    }
+
+    // free parameters
+    freeParametersForModel(model, fit_options);
+
+    std::vector<std::string> var_names = {"tilt_x", "tilt_y"};
+
+    auto const& no_div_fit_res_params = lmd_data.getFitResults(
+        fit_options_no_div).back().getFitParameters();
+    // overwrite the start values
+    for (auto const& var : var_names) {
+      for(auto const param : no_div_fit_res_params) {
+        if(param.name.second == var) {
+          model->getModelParameterSet().getModelParameter(var)->setValue(param.value);
+          std::cout<<"setting "<<var<<" to "<<param.value<<std::endl;
+          break;
+        }
+      }
+    }
+
+    // now set better starting amplitude value
+    std::cout << "calculating model integral..." << std::endl;
+    integral_func = model->Integral(range, 1e-1);
+    lumi_start = integral_data / integral_func / binning_factor;
+    cout << "binning factor: " << binning_factor << endl;
+    cout << "integral (model): " << integral_func << endl;
+    cout << integral_data << " / " << integral_func * binning_factor << endl;
+    cout << "Using start luminosity: " << lumi_start << endl;
+    model->getModelParameterSet().setModelParameterValue("luminosity",
+        lumi_start);
+
+    // set model
+    model_fit_facade.setModel(model);
+
+    std::vector<std::string> scan_var_names = { "gauss_sigma_var1",
+        "gauss_sigma_var2" };
+    std::vector<shared_ptr<ModelPar> > pars;
+    bool has_divergence_parameters(true);
+    for (unsigned int i = 0; i < scan_var_names.size(); ++i) {
+      shared_ptr<ModelPar> temp_par =
+          model->getModelParameterSet().getModelParameter(scan_var_names[i]);
+      if (temp_par->isParameterFixed() == false) {
+        pars.push_back(temp_par);
+      } else {
+        has_divergence_parameters = false;
+        break;
+      }
+    }
+    if (has_divergence_parameters) {
+      std::vector<mydouble> start_values =
+          model_fit_facade.findGoodStartParameters(scan_var_names,
+              { 1.5, 2.0 });
+
+      for (unsigned int i = 0; i < pars.size(); ++i) {
+        pars[i]->setValue(start_values[i]);
+      }
+    }
+
+    doFit(lmd_data, fit_options);
+  }
+
+  else {
+    shared_ptr<Model> model = generateModel(lmd_data, fit_options);
 
 // init beam parameters in model
-  initBeamParametersForModel(model, fit_options.getModelOptionsPropertyTree());
+    initBeamParametersForModel(model,
+        fit_options.getModelOptionsPropertyTree());
 
-  if (model->init()) {
-    std::cout
-        << "ERROR: Not all parameters of the model were successfully initialized!"
-        << std::endl;
-    model->getModelParameterSet().printInfo();
-  }
+    if (model->init()) {
+      std::cout
+          << "ERROR: Not all parameters of the model were successfully initialized!"
+          << std::endl;
+      model->getModelParameterSet().printInfo();
+    }
 
 // free parameters
-  freeParametersForModel(model, fit_options);
+    freeParametersForModel(model, fit_options);
 
 // set model
-  model_fit_facade.setModel(model);
+    model_fit_facade.setModel(model);
 
-  unsigned int fit_dimension = fit_options.getModelOptionsPropertyTree().get<
-      unsigned int>("fit_dimension");
+    unsigned int fit_dimension = fit_options.getModelOptionsPropertyTree().get<
+        unsigned int>("fit_dimension");
 
 // create and set data
-  if (fit_dimension == 2) {
-    std::cout << "creating 2D data..." << std::endl;
-    model_fit_facade.setData(createData2D(lmd_data));
-  } else {
-    std::cout << "creating 1D data..." << std::endl;
-    model_fit_facade.setData(createData1D(lmd_data));
-  }
+    if (fit_dimension == 2) {
+      std::cout << "creating 2D data..." << std::endl;
+      model_fit_facade.setData(createData2D(lmd_data));
+    } else {
+      std::cout << "creating 1D data..." << std::endl;
+      model_fit_facade.setData(createData1D(lmd_data));
+    }
 
 // now set better starting amplitude value
-  std::vector<DataStructs::DimensionRange> range = calcRange(lmd_data,
-      fit_options.getEstimatorOptions());
-  double integral_data = 0.0;
-  std::cout << "calculating data integral..." << std::endl;
-  if (fit_dimension == 2)
-    integral_data = calcHistIntegral(lmd_data.get2DHistogram(), range);
-  else
-    integral_data = calcHistIntegral(lmd_data.get1DHistogram(), range);
-  std::cout << "calculating model integral..." << std::endl;
-  double integral_func = model->Integral(range, 1e-1);
-  double binning_factor = lmd_data.getBinningFactor(fit_dimension);
-  double lumi_start = integral_data / integral_func / binning_factor;
-  cout << "binning factor: " << binning_factor << endl;
-  cout << "integral (model): " << integral_func << endl;
-  cout << integral_data << " / " << integral_func * binning_factor << endl;
-  cout << "Using start luminosity: " << lumi_start << endl;
-  model->getModelParameterSet().setModelParameterValue("luminosity",
-      lumi_start);
+    std::vector<DataStructs::DimensionRange> range = calcRange(lmd_data,
+        fit_options.getEstimatorOptions());
+    double integral_data = 0.0;
+    std::cout << "calculating data integral..." << std::endl;
+    if (fit_dimension == 2)
+      integral_data = calcHistIntegral(lmd_data.get2DHistogram(), range);
+    else
+      integral_data = calcHistIntegral(lmd_data.get1DHistogram(), range);
+    std::cout << "calculating model integral..." << std::endl;
+    double integral_func = model->Integral(range, 1e-1);
+    double binning_factor = lmd_data.getBinningFactor(fit_dimension);
+    double lumi_start = integral_data / integral_func / binning_factor;
+    cout << "binning factor: " << binning_factor << endl;
+    cout << "integral (model): " << integral_func << endl;
+    cout << integral_data << " / " << integral_func * binning_factor << endl;
+    cout << "Using start luminosity: " << lumi_start << endl;
+    model->getModelParameterSet().setModelParameterValue("luminosity",
+        lumi_start);
 
 // create minimizer instance with control parameter
-  shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer());
-  //shared_ptr<CeresMinimizer> ceres_minimizer(new CeresMinimizer());
+    shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer());
+    //shared_ptr<CeresMinimizer> ceres_minimizer(new CeresMinimizer());
 
-  model_fit_facade.setMinimizer(minuit_minimizer);
-  //std::vector<std::string> scan_var_names = {"gauss_sigma_var1", "gauss_sigma_var2"};
-  //scanEstimatorSpace(lmd_data, fit_options, scan_var_names);
+    model_fit_facade.setMinimizer(minuit_minimizer);
+    // create estimator
+    shared_ptr<ModelEstimator> estimator;
+    if (fit_options.estimator_type == LumiFit::CHI2)
+      estimator.reset(new Chi2Estimator());
+    else
+      estimator.reset(new LogLikelihoodEstimator());
 
-  doFit(lmd_data, fit_options);
+    PndLmdRuntimeConfiguration& lmd_runtime_config =
+        PndLmdRuntimeConfiguration::Instance();
+
+    estimator->setNumberOfThreads(lmd_runtime_config.getNumberOfThreads());
+
+    model_fit_facade.setEstimator(estimator);
+    model_fit_facade.setEstimatorOptions(fit_options.getEstimatorOptions());
+
+    doFit(lmd_data, fit_options);
+  }
 }
 
 shared_ptr<Model> PndLmdFitFacade::generateModel(
@@ -558,7 +725,8 @@ shared_ptr<Model> PndLmdFitFacade::generateModel(
 }
 
 void PndLmdFitFacade::scanEstimatorSpace(PndLmdHistogramData &lmd_hist_data,
-    const PndLmdFitOptions &fit_options, const std::vector<std::string> &variable_names) {
+    const PndLmdFitOptions &fit_options,
+    const std::vector<std::string> &variable_names) {
 
   cout << "Scanning estimator space with following fit options:" << endl;
   cout << fit_options << endl;
@@ -589,7 +757,7 @@ void PndLmdFitFacade::scanEstimatorSpace(PndLmdHistogramData &lmd_hist_data,
   TVectorD datay(bins);
   TVectorD dataz(bins);
   auto& datapoints = scanned_data.getData();
-  for(unsigned int i = 0; i < scanned_data.getData().size(); ++i) {
+  for (unsigned int i = 0; i < scanned_data.getData().size(); ++i) {
     datax[i] = datapoints[i].getBinnedDataPoint()->bin_center_value[0];
     datay[i] = datapoints[i].getBinnedDataPoint()->bin_center_value[1];
     dataz[i] = datapoints[i].getBinnedDataPoint()->z;
@@ -598,7 +766,6 @@ void PndLmdFitFacade::scanEstimatorSpace(PndLmdHistogramData &lmd_hist_data,
   datay.Write("ydata");
   dataz.Write("zdata");
 }
-
 
 void PndLmdFitFacade::doFit(PndLmdHistogramData &lmd_hist_data,
     const PndLmdFitOptions &fit_options) {

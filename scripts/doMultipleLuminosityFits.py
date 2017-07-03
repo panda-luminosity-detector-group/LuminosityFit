@@ -148,7 +148,7 @@ for match in matches:
   elastic_data_path = match[0]
   acc_res_data_path = match[1]
 
-  resource_request = himster.JobResourceRequest(12 * 60)
+  resource_request = himster.JobResourceRequest(24 * 60)
   resource_request.number_of_nodes = 1
   resource_request.processors_per_node = number_of_threads
   resource_request.memory_in_mb = 18000
@@ -167,7 +167,7 @@ for match in matches:
   
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
-job_manager = himster.HimsterJobManager(2000)
+job_manager = himster.HimsterJobManager(2500)
 
 job_manager.submitJobsToHimster(joblist)
 job_manager.manageJobs()

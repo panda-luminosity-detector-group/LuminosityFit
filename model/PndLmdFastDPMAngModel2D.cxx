@@ -75,7 +75,8 @@ mydouble PndLmdFastDPMAngModel2D::calculateJacobianDeterminant(
   mydouble xypowsum = diff_theta_x*diff_theta_x
       + diff_theta_y*diff_theta_y;
 
-  return 1.0L / (std::sqrt(xypowsum) * (1 + xypowsum));
+  //return 1.0L / (std::sqrt(xypowsum) * (1 + xypowsum));
+  return 1.0L / std::sqrt(xypowsum);
 }
 
 mydouble PndLmdFastDPMAngModel2D::eval(const mydouble *x) const {

@@ -13,42 +13,80 @@
 #include <vector>
 #include <sstream>
 
+#include "boost/property_tree/json_parser.hpp"
+
 using std::cout;
 using std::endl;
 using std::cerr;
 using std::map;
 using std::vector;
 
-void saveGraphBundlesToFile(
-    NeatPlotting::SystematicsAnalyser::SystematicDependencyGraphBundle &gb_mc,
-    NeatPlotting::SystematicsAnalyser::SystematicDependencyGraphBundle &gb_mc_acc,
-    NeatPlotting::SystematicsAnalyser::SystematicDependencyGraphBundle &gb_reco,
-    std::string dependency_suffix) {
+void createSystematics(
+    const std::vector<PndLmdElasticDataBundle> &prefiltered_data) {
 
-  TLatex suffix(0.0, 0.0, dependency_suffix.c_str());
-  suffix.Write("suffix");
+  std::map<std::string, std::vector<std::pair<double, double> > > measured_values;
 
-  gDirectory->mkdir("mc");
-  gDirectory->cd("mc");
-  std::cout << gb_mc.mean << std::endl;
-  gDirectory->pwd();
-  gb_mc.mean->Write("mean");
-  gb_mc.sigma->Write("sigma");
-  gb_mc.mean_individual_error->Write("lumifit_error");
-  std::cout << "saved stuff" << std::endl;
-  gDirectory->cd("..");
-  gDirectory->mkdir("mc_acc");
-  gDirectory->cd("mc_acc");
-  gb_mc_acc.mean->Write("mean");
-  gb_mc_acc.sigma->Write("sigma");
-  gb_mc_acc.mean_individual_error->Write("lumifit_error");
-  gDirectory->cd("..");
-  gDirectory->mkdir("reco");
-  gDirectory->cd("reco");
-  gb_reco.mean->Write("mean");
-  gb_reco.sigma->Write("sigma");
-  gb_reco.mean_individual_error->Write("lumifit_error");
-  std::cout << "saved stuff" << std::endl;
+  PndLmdElasticDataBundle example_data_obj;
+
+  for (auto const& prefiltered_data_obj : prefiltered_data) {
+    example_data_obj = prefiltered_data_obj;
+    std::cout << "generated lumi: "
+        << prefiltered_data_obj.getReferenceLuminosity() << std::endl;
+
+    const std::map<PndLmdFitOptions, std::vector<ModelFitResult> > &fit_results =
+        prefiltered_data_obj.getFitResults();
+
+    for (auto const& fit_result_pair : fit_results) {
+      if (fit_result_pair.first.getModelOptionsPropertyTree().get<bool>(
+          "divergence_smearing_active") == true) {
+        if (fit_result_pair.second.size() > 0) {
+          ModelFitResult fit_result = fit_result_pair.second[0];
+          if (fit_result.getFitStatus() != 0)
+            continue;
+
+          auto fit_params = fit_result.getFitParameters();
+          for (auto fit_param : fit_params) {
+            measured_values[fit_param.name.second].push_back(
+                std::make_pair(fit_param.value, fit_param.error));
+          }
+        }
+      }
+    }
+  }
+
+  boost::property_tree::ptree all_scenario_tree;
+
+  for (auto const& fit_param_values : measured_values) {
+    boost::property_tree::ptree measured_values_tree;
+
+    boost::property_tree::ptree value_tree;
+    for (auto const& value : fit_param_values.second) {
+      boost::property_tree::ptree tempptree;
+      tempptree.put("", value.first);
+      value_tree.push_back(std::make_pair("", tempptree));
+    }
+
+    measured_values_tree.add_child("values", value_tree);
+
+    boost::property_tree::ptree error_tree;
+    for (auto const& value : fit_param_values.second) {
+      boost::property_tree::ptree tempptree;
+      tempptree.put("", value.second);
+      error_tree.push_back(std::make_pair("", tempptree));
+    }
+    measured_values_tree.add_child("errors", error_tree);
+
+    all_scenario_tree.add_child(fit_param_values.first, measured_values_tree);
+  }
+
+  boost::property_tree::ptree gen_values(
+      example_data_obj.getSimulationParametersPropertyTree());
+  gen_values.put("lumi", example_data_obj.getReferenceLuminosity());
+  all_scenario_tree.add_child("generated", gen_values);
+
+  std::stringstream filename;
+  filename << "/home/pflueger/plots/lumi_systematics.json";
+  write_json(filename.str(), all_scenario_tree);
 }
 
 void determineLumiFitSystematics(std::vector<std::string> paths,
@@ -93,7 +131,7 @@ void determineLumiFitSystematics(std::vector<std::string> paths,
       PndLmdRuntimeConfiguration::Instance();
 
   for (unsigned int i = 0; i < paths.size(); i++) {
-    // ------ get files -------------------------------------------------------
+// ------ get files -------------------------------------------------------
     std::vector<std::string> file_paths = lmd_data_facade.findFilesByName(
         paths[i], filter_string, "lmd_fitted_data.root");
 
@@ -155,7 +193,6 @@ void determineLumiFitSystematics(std::vector<std::string> paths,
 
   // if we just need the luminosity values and do not have to build the models again
 
-
   NeatPlotting::PlotBundle bundle;
   //plot_style.palette_color_style = 1;
   bundle.plot_axis.x_axis_title = "#theta_{x} & #theta_{y} binning";
@@ -166,7 +203,6 @@ void determineLumiFitSystematics(std::vector<std::string> paths,
 
   NeatPlotting::PlotStyle plot_style;
   plot_style.y_axis_style.axis_title_text_offset = 1.22;
-
 
   LumiFit::LmdDimensionOptions lmd_dim_opt;
   lmd_dim_opt.track_type = LumiFit::MC_ACC;
@@ -204,6 +240,8 @@ void determineLumiFitSystematics(std::vector<std::string> paths,
       dim_filter);
 
   if (full_phi_reco_data_vec.size() > 0) {
+    //createSystematics(full_phi_reco_data_vec);
+
     TGraphAsymmErrors *graph = lmd_plotter.createBinningDependencyGraphBundle(
         full_phi_reco_data_vec, lmd_dim_opt);
 
@@ -218,10 +256,6 @@ void determineLumiFitSystematics(std::vector<std::string> paths,
 
   output_rootfile.Write();
   output_rootfile.Close();
-
-  TCanvas c;
-  bundle.drawOnCurrentPad(plot_style);
-  c.SaveAs("acc_only_binning.pdf");
   // ================================ END PLOTTING ================================ //
 }
 

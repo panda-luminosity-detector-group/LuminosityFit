@@ -866,21 +866,19 @@ namespace LumiFit {
     if (res.getSecondaryDimension().is_active) {
       unsigned int bins(300);
       hist2d = new TH2D("", "", bins,
-          -res.getPrimaryDimension().bin_size*bins/2,
-          res.getPrimaryDimension().bin_size*bins/2,
-          bins,
-          -res.getSecondaryDimension().bin_size*bins/2,
-          res.getSecondaryDimension().bin_size*bins/2);
+          -res.getPrimaryDimension().bin_size * bins / 2,
+          res.getPrimaryDimension().bin_size * bins / 2, bins,
+          -res.getSecondaryDimension().bin_size * bins / 2,
+          res.getSecondaryDimension().bin_size * bins / 2);
 
       auto hit_map = res.getHitMap();
-      std::cout<<"hit map size: "<<hit_map.size()<<std::endl;
+      std::cout << "hit map size: " << hit_map.size() << std::endl;
 
       for (auto const& mc_entry : hit_map) {
         for (auto const& reco_entry : mc_entry.second.points) {
           double xdiff = reco_entry.first.x - mc_entry.first.x;
           double ydiff = reco_entry.first.y - mc_entry.first.y;
-          hist2d->Fill(xdiff, ydiff,
-              (1.0 * reco_entry.second));
+          hist2d->Fill(xdiff, ydiff, (1.0 * reco_entry.second));
         }
       }
     }
@@ -1351,48 +1349,58 @@ namespace LumiFit {
 
       if (ang_data.getPrimaryDimension().dimension_options.track_type
           == LumiFit::RECO) {
+        if (ang_data.getPrimaryDimension().dimension_options.dimension_type
+            == LumiFit::THETA_X) {
+          boost::property_tree::ptree sim_params(
+              ang_data.getSimulationParametersPropertyTree());
+          double ip_mean_x = sim_params.get<double>("beam_divergence_x");
+          double ip_mean_y = sim_params.get<double>("beam_divergence_y");
 
-        boost::property_tree::ptree sim_params(
-            ang_data.getSimulationParametersPropertyTree());
-        double ip_mean_x = sim_params.get<double>("beam_divergence_x");
-        double ip_mean_y = sim_params.get<double>("beam_divergence_y");
+          current_graph_point.x = ip_mean_x * scale_factor;
+          current_graph_point.y = ip_mean_y * scale_factor;
+          current_graph_point.x_err_low = 0.0;
+          current_graph_point.x_err_high = 0.0;
+          current_graph_point.y_err_low = 0.0;
+          current_graph_point.y_err_high = 0.0;
 
-        current_graph_point.x = ip_mean_x * scale_factor;
-        current_graph_point.y = ip_mean_y * scale_factor;
-        current_graph_point.x_err_low = 0.0;
-        current_graph_point.x_err_high = 0.0;
-        current_graph_point.y_err_low = 0.0;
-        current_graph_point.y_err_high = 0.0;
+          graph_points_true.insert(
+              std::make_pair(
+                  std::make_pair(current_graph_point.x, current_graph_point.y),
+                  current_graph_point));
 
-        graph_points_true.insert(
-            std::make_pair(
-                std::make_pair(current_graph_point.x, current_graph_point.y),
-                current_graph_point));
+          auto fit_results = ang_data.getFitResults();
+          if (fit_results.size() == 0)
+            continue;
 
-        auto fit_results = ang_data.getFitResults();
-        if (fit_results.size() == 0)
-          continue;
+          for (auto const& fit_res_pair : fit_results) {
+            bool div_smeared =
+                fit_res_pair.first.getModelOptionsPropertyTree().get<bool>(
+                    "divergence_smearing_active");
+            if (div_smeared) {
+              if (fit_res_pair.second.size() > 0) {
+                ModelFitResult fit_result(fit_res_pair.second[0]);
+                std::cout << fit_result.getFitParameters().size() << std::endl;
+                NeatPlotting::GraphPoint &gp = graph_points[std::make_pair(
+                    ip_mean_x, ip_mean_y)];
+                gp.x = fit_result.getFitParameter("gauss_sigma_var1").value
+                    * scale_factor;
+                gp.x_err_low =
+                    fit_result.getFitParameter("gauss_sigma_var1").error
+                        * scale_factor;
+                gp.x_err_high =
+                    fit_result.getFitParameter("gauss_sigma_var1").error
+                        * scale_factor;
 
-        ModelFitResult fit_result = ang_data.getFitResults().begin()->second[0];
-
-        if (fit_result.getFitParameters().size() > 3) {
-          if (ang_data.getPrimaryDimension().dimension_options.dimension_type
-              == LumiFit::THETA_X) {
-            NeatPlotting::GraphPoint &gp = graph_points[std::make_pair(
-                ip_mean_x, ip_mean_y)];
-            gp.x = fit_result.getFitParameter("gauss_sigma_var1").value
-                * scale_factor;
-            gp.x_err_low = fit_result.getFitParameter("gauss_sigma_var1").error
-                * scale_factor;
-            gp.x_err_high = fit_result.getFitParameter("gauss_sigma_var1").error
-                * scale_factor;
-
-            gp.y = fit_result.getFitParameter("gauss_sigma_var2").value
-                * scale_factor;
-            gp.y_err_low = fit_result.getFitParameter("gauss_sigma_var2").error
-                * scale_factor;
-            gp.y_err_high = fit_result.getFitParameter("gauss_sigma_var2").error
-                * scale_factor;
+                gp.y = fit_result.getFitParameter("gauss_sigma_var2").value
+                    * scale_factor;
+                gp.y_err_low =
+                    fit_result.getFitParameter("gauss_sigma_var2").error
+                        * scale_factor;
+                gp.y_err_high =
+                    fit_result.getFitParameter("gauss_sigma_var2").error
+                        * scale_factor;
+              }
+            }
           }
         }
       }
@@ -1438,24 +1446,32 @@ namespace LumiFit {
         if (fit_results.size() == 0)
           continue;
 
-        PndLmdLumiFitResult fit_result;
-        fit_result.setModelFitResult(
-            ip_setting_case->getFitResults().begin()->second[0]);
+        for (auto const& fit_res_pair : fit_results) {
+          bool div_smeared =
+              fit_res_pair.first.getModelOptionsPropertyTree().get<bool>(
+                  "divergence_smearing_active");
+          if (div_smeared) {
+            if (fit_res_pair.second.size() > 0) {
+              PndLmdLumiFitResult fit_result;
+              fit_result.setModelFitResult(fit_res_pair.second[0]);
 
-        if(fit_result.getModelFitResult().getFitStatus() != 0)
-          continue;
+              if (fit_result.getModelFitResult().getFitStatus() != 0)
+                continue;
 
-        lumi = calulateRelDiff(fit_result.getLuminosity(),
-            fit_result.getLuminosityError(),
-            ip_setting_case->getReferenceLuminosity());
+              lumi = calulateRelDiff(fit_result.getLuminosity(),
+                  fit_result.getLuminosityError(),
+                  ip_setting_case->getReferenceLuminosity());
 
-        std::cout << "lumi: " << lumi.first << " +- " << lumi.second
-            << std::endl;
+              std::cout << "lumi: " << lumi.first << " +- " << lumi.second
+                  << std::endl;
 
-        x.push_back(scale_factor * div_x);
-        y.push_back(scale_factor * div_y);
-        z.push_back(lumi.first);
-        z_err.push_back(lumi.second);
+              x.push_back(scale_factor * div_x);
+              y.push_back(scale_factor * div_y);
+              z.push_back(lumi.first);
+              z_err.push_back(lumi.second);
+            }
+          }
+        }
       }
     }
 
@@ -2435,7 +2451,7 @@ namespace LumiFit {
       const std::vector<PndLmdElasticDataBundle> &prefiltered_data,
       const LmdDimensionOptions& dim_opt) const {
 
-    std::map<unsigned int, std::pair<NeatPlotting::GraphPoint, unsigned int> > points;
+    std::map<unsigned int, std::vector<double> > points;
 
     for (auto const& prefiltered_data_obj : prefiltered_data) {
       double lumi_ref = prefiltered_data_obj.getReferenceLuminosity();
@@ -2445,17 +2461,17 @@ namespace LumiFit {
       const std::map<PndLmdFitOptions, std::vector<ModelFitResult> > &fit_results =
           prefiltered_data_obj.getFitResults();
 
-      if (fit_results.size() == 1) {
-        std::map<PndLmdFitOptions, std::vector<ModelFitResult> >::const_iterator iter =
-            fit_results.begin();
+      for (auto const& fit_result_pair : fit_results) {
+        if (compareLumiModelOptions(
+            fit_result_pair.first.getModelOptionsPropertyTree(), dim_opt)) {
+          if (fit_result_pair.second.size() > 0) {
+            ModelFitResult fit_result = fit_result_pair.second[0];
+            if (fit_result.getFitStatus() != 0)
+              continue;
 
-        unsigned int counter(0);
-        for (auto const& fit_result : iter->second) {
-          if (fit_result.getFitStatus() != 0)
-            continue;
-          if (compareLumiModelOptions(iter->first.getModelOptionsPropertyTree(),
-              dim_opt)) {
             auto fit_params = fit_result.getFitParameters();
+            if (fit_params.size() > 1)
+              continue;
             for (auto fit_param : fit_params) {
               std::cout << "fit parameter: " << fit_param.name.second << " "
                   << fit_param.value << std::endl;
@@ -2463,30 +2479,41 @@ namespace LumiFit {
             std::pair<double, double> lumival = calulateRelDiff(
                 getLuminosity(fit_result), getLuminosityError(fit_result),
                 lumi_ref);
-            points[prefiltered_data_obj.getPrimaryDimension().bins].first.y +=
-                lumival.first;
-            points[prefiltered_data_obj.getPrimaryDimension().bins].first.y_err_low +=
-                std::pow(lumival.first, 2);
-            ++points[prefiltered_data_obj.getPrimaryDimension().bins].second;
+            points[prefiltered_data_obj.getPrimaryDimension().bins].push_back(
+                lumival.first);
           }
         }
-      } else {
-        std::cout
-            << "Error: only one type of fit options allowed per bundle!\n";
       }
     }
 
     std::vector<NeatPlotting::GraphPoint> points_vec;
 
     for (auto const& map_element : points) {
-      NeatPlotting::GraphPoint gp(map_element.second.first);
-      gp.x = map_element.first;
-      gp.y = gp.y / map_element.second.second;
-      gp.y_err_low = std::sqrt(
-          gp.y_err_low / map_element.second.second - std::pow(gp.y, 2));
-      gp.y_err_high = gp.y_err_low;
-      std::cout << gp.y << " " << gp.y_err_low << std::endl;
-      points_vec.push_back(gp);
+      /*double mean(0.0);
+       std::cout << map_element.second.size() << " samples at binning "
+       << map_element.first << std::endl;
+       for (double lumival : map_element.second)
+       mean += lumival;
+       mean /= map_element.second.size();
+
+       NeatPlotting::GraphPoint gp;
+       gp.x = map_element.first;
+       gp.y = mean;
+       for (double lumival : map_element.second) {
+       gp.y_err_low += std::pow(lumival - mean, 2);
+       }
+       gp.y_err_low /= map_element.second.size();
+       gp.y_err_low = std::sqrt(gp.y_err_low);
+
+       gp.y_err_high = gp.y_err_low;
+       points_vec.push_back(gp);*/
+
+      for (double lumival : map_element.second) {
+        NeatPlotting::GraphPoint gp;
+        gp.x = map_element.first;
+        gp.y = lumival;
+        points_vec.push_back(gp);
+      }
     }
 
     return neat_plot_helper.makeGraph(points_vec);

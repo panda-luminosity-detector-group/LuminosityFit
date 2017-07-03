@@ -139,6 +139,17 @@ namespace LumiFit {
       std::set<LumiFit::LmdDimension> selection_dimensions;
     };
 
+    struct SecondaryTrackFilter: public AbstractLmdDataFilter {
+      bool check(const PndLmdAbstractData &lmd_abs_data) {
+        for (auto const& sel_dim : lmd_abs_data.getSelectorSet()) {
+          if (sel_dim.dimension_options.dimension_type == LumiFit::SECONDARY) {
+            return true;
+          }
+        }
+        return false;
+      }
+    };
+
     struct NoSecondaryTrackFilter: public AbstractLmdDataFilter {
       bool check(const PndLmdAbstractData &lmd_abs_data) {
         for (auto const& sel_dim : lmd_abs_data.getSelectorSet()) {

@@ -82,8 +82,8 @@ void runLmdFit(string input_file_dir, string config_directory,
   }
   // ok now we have to set the correct ip offsets to the elastic data sets
   // so compare the data on an abstract level
-  vector<PndLmdAngularData> my_lmd_data_vec = lmd_data_facade.getElasticData();
-  for (auto &data : my_lmd_data_vec) {
+  vector<PndLmdAngularData> all_lmd_data_vec = lmd_data_facade.getElasticData();
+  for (auto &data : all_lmd_data_vec) {
     data.setIPOffsets(ip_offsets);
   }
 
@@ -105,12 +105,30 @@ void runLmdFit(string input_file_dir, string config_directory,
   }
 
   LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter filter(lmd_dim_opt);
+  vector<PndLmdAngularData> my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
+      all_lmd_data_vec, filter);
+
+  // add mc acc data
+  // filter out specific data
+  /*lmd_dim_opt.track_type = LumiFit::MC_ACC;
+  LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter filter_mc_acc(lmd_dim_opt);
+  vector<PndLmdAngularData>  my_lmd_data_vec2 = lmd_data_facade.filterData<PndLmdAngularData>(
+        all_lmd_data_vec, filter_mc_acc);
+  std::cout<<"adding "<<my_lmd_data_vec2.size()<<" mc acc data\n";
+  my_lmd_data_vec.insert(my_lmd_data_vec.end(), my_lmd_data_vec2.begin(), my_lmd_data_vec2.end());
+  my_lmd_data_vec2.clear();
+  all_lmd_data_vec.clear();
+
+  std::cout<<"number of data in list: "<<my_lmd_data_vec.size()<<std::endl;
+  LumiFit::Comparisons::SecondaryTrackFilter with_cut_on_secondaries;
   my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
-      my_lmd_data_vec, filter);
+        my_lmd_data_vec, with_cut_on_secondaries);
+  std::cout<<"number of data in list: "<<my_lmd_data_vec.size()<<std::endl;*/
 
   LumiFit::Comparisons::NoSecondaryTrackFilter no_cut_on_secondary_filter;
   my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
       my_lmd_data_vec, no_cut_on_secondary_filter);
+
 
   vector<PndLmdAcceptance> my_lmd_acc_vec = lmd_data_facade.getAcceptanceData();
   vector<PndLmdHistogramData> all_lmd_res = lmd_data_facade.getResolutionData();

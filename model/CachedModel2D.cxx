@@ -81,14 +81,16 @@ void CachedModel2D::initializeModelGrid() {
         list_counter++;
     }
   }
+
+  optimizeNumericalIntegration();
 }
 
 void CachedModel2D::initModelParameters() {
 }
 
 void CachedModel2D::generateModelGrid2D() {
-  std::cout << "generating model grid...\n";
-  optimizeNumericalIntegration();
+ // std::cout << "generating model grid...\n";
+ // optimizeNumericalIntegration();
 
   // create threads and let them evaluate a part of the data
   boost::thread_group threads;
@@ -100,7 +102,7 @@ void CachedModel2D::generateModelGrid2D() {
   }
 
   threads.join_all();
-  std::cout << "done!\n";
+//  std::cout << "done!\n";
 }
 
 void CachedModel2D::optimizeNumericalIntegration() {
@@ -146,7 +148,7 @@ void CachedModel2D::optimizeNumericalIntegration() {
    thread.join();
    }*/
 
-  std::cout << "using start call: " << calls << std::endl;
+  //std::cout << "using start call: " << calls << std::endl;
   integral_strategy->setUsedEvaluationGridConstant(calls);
   //integral_strategy->setStartNumberOfFunctionEvaluations(calls);
 }

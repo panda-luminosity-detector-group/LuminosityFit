@@ -83,7 +83,7 @@ class DirectorySearcher:
     
     def searchListOfDirectories(self, path, glob_pattern):
         #if os.path.isdir(path):
-          #print 'currently looking at directory ' + path
+        #  print 'currently looking at directory ' + path
     
         sim_params = glob.glob(path + '/sim_beam_prop.config')
         if sim_params:

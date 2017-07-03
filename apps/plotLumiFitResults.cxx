@@ -208,16 +208,28 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
       if (scenario.getFitResults().size() > 0
           && scenario.getSelectorSet().size() == 0) {
         PndLmdLumiFitResult fit_result;
-        fit_result.setModelFitResult(
-            scenario.getFitResults().begin()->second[0]);
-
+        for (auto const& fit_res_pair : scenario.getFitResults()) {
+          if (fit_res_pair.second.size() > 0) {
+            bool div_smeared =
+                fit_res_pair.first.getModelOptionsPropertyTree().get<bool>(
+                    "divergence_smearing_active");
+            if (div_smeared) {
+              if (fit_res_pair.second[0].getFitStatus() == 0) {
+                fit_result.setModelFitResult(fit_res_pair.second[0]);
+                break;
+              }
+            } else {
+              fit_result.setModelFitResult(fit_res_pair.second[0]);
+            }
+          }
+        }
         // try to open ip measurement file... this is quite dirty but no time to do it nice...
         boost::property_tree::ptree measured_values;
         read_json(ip_files[counter], measured_values);
 
         measured_values.put("lumi", fit_result.getLuminosity());
         measured_values.put("lumi_err", fit_result.getLuminosityError());
-        for (auto const fit_param : scenario.getFitResults().begin()->second[0].getFitParameters()) {
+        for (auto const fit_param : fit_result.getModelFitResult().getFitParameters()) {
           if (fit_param.name.second.find("tilt_x") != std::string::npos) {
             measured_values.put("beam_tilt_x", fit_param.value);
             measured_values.put("beam_tilt_x_err", fit_param.error);
@@ -227,24 +239,30 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
             measured_values.put("beam_tilt_y_err", fit_param.error);
           } else if (fit_param.name.first.find("div") != std::string::npos) {
             if (fit_param.name.second.find("gauss_sigma_var1")
-                != std::string::npos)
+                != std::string::npos) {
               measured_values.put("beam_divergence_x", fit_param.value);
-            measured_values.put("beam_divergence_x_err", fit_param.error);
-          } else if (fit_param.name.second.find("gauss_sigma_var2")
-              != std::string::npos)
-            measured_values.put("beam_divergence_y", fit_param.value);
-          measured_values.put("beam_divergence_y_err", fit_param.error);
+              measured_values.put("beam_divergence_x_err", fit_param.error);
+            } else if (fit_param.name.second.find("gauss_sigma_var2")
+                != std::string::npos) {
+              measured_values.put("beam_divergence_y", fit_param.value);
+              measured_values.put("beam_divergence_y_err", fit_param.error);
+            }
+          }
         }
-
         std::stringstream label;
         label << "scenario_" << counter << ".measured";
         all_scenario_tree.add_child(label.str(), measured_values);
 
         label.str("");
         label << "scenario_" << counter << ".generated";
-        boost::property_tree::ptree gen_values(scenario.getSimulationParametersPropertyTree());
+        boost::property_tree::ptree gen_values(
+            scenario.getSimulationParametersPropertyTree());
         gen_values.put("lumi", scenario.getReferenceLuminosity());
         all_scenario_tree.add_child(label.str(), gen_values);
+
+        label.str("");
+        label << "scenario_" << counter << ".momentum";
+        all_scenario_tree.put(label.str(), scenario.getLabMomentum());
 
         std::pair<double, double> lumi = lmd_plotter.calulateRelDiff(
             fit_result.getLuminosity(), fit_result.getLuminosityError(),
@@ -338,7 +356,7 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
     std::vector<PndLmdElasticDataBundle> filtered_reco_data_objects;
 
     // filter reco_data_ip_map for tilts below some threshold
-    double threshold = 0.0007;
+    double threshold = 0.0004;
     std::vector<PndLmdElasticDataBundle>::iterator reco_data_object_iter;
     for (reco_data_object_iter = full_phi_reco_data_vec.begin();
         reco_data_object_iter != full_phi_reco_data_vec.end();
