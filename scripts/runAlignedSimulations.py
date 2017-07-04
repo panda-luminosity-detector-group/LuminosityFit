@@ -2,7 +2,7 @@
 
 import subprocess
 import argparse
-
+import os
 
 parser = argparse.ArgumentParser(description='Script for full simulation of PANDA Luminosity Detector via externally generated MC data.', formatter_class=argparse.RawTextHelpFormatter)
 
