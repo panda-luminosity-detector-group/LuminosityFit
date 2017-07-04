@@ -8,17 +8,17 @@ parser = argparse.ArgumentParser(description='Script for full simulation of PAND
 
 parser.add_argument('num_events', metavar='num_events', type=int, nargs=1, help='number of events to simulate')
 parser.add_argument('lab_momentum', metavar='lab_momentum', type=float, nargs=1, help='lab momentum of incoming beam antiprotons\n(required to set correct magnetic field maps etc)')
-parser.add_argument('sim_type', metavar='simulation_type', type=str, choices=['box', 'dpm_elastic', 'dpm_elastic_inelastic', 'noise'], default='dpm_elastic', help='four kinds: box, dpm_elastic, dpm_elastic_inelastic and noise')
+parser.add_argument('--sim_type', metavar='simulation_type', type=str, choices=['box', 'dpm_elastic', 'dpm_elastic_inelastic', 'noise'], default='dpm_elastic', help='four kinds: box, dpm_elastic, dpm_elastic_inelastic and noise')
 
 parser.add_argument('--force_level', metavar='force_level', type=int, default=0,
                     help='force level 0: if directories exist with data files no new simulation is started\n'
                     'force level 1: will do full reconstruction even if this data already exists, but not geant simulation\n'
                     'force level 2: resimulation of everything!')
 
-parser.add_argument('--low_index', metavar='low_index', type=int, default=-1,
-                   help='Lowest index of generator file which is supposed to be used in the simulation. Default setting is -1 which will take the lowest found index.')
-parser.add_argument('--high_index', metavar='high_index', type=int, default=-1,
-                   help='Highest index of generator file which is supposed to be used in the simulation. Default setting is -1 which will take the highest found index.')
+parser.add_argument('--low_index', metavar='low_index', type=int, default=1,
+                   help='Lowest index of generator file which is supposed to be used in the simulation. Default setting is 1')
+parser.add_argument('--high_index', metavar='high_index', type=int, default=100000,
+                   help='Highest index of generator file which is supposed to be used in the simulation. Default setting is 10000')
 
 parser.add_argument('--gen_data_dir', metavar='gen_data_dir', type=str, default=os.getenv('GEN_DATA'),
                    help='Base directory to input files created by external generator. By default the environment variable $GEN_DATA will be used!')
