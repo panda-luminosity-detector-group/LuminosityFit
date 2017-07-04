@@ -21,8 +21,6 @@
 #include "TH1D.h"
 #include "TVectorD.h"
 
-#include "callgrind.h"
-
 using std::cout;
 using std::endl;
 using std::vector;
@@ -40,9 +38,6 @@ PndLmdFitFacade::~PndLmdFitFacade() {
 
 void PndLmdFitFacade::signalHandler(int signum) {
   cout << "Interrupt signal (" << signum << ") received.\n";
-
-  CALLGRIND_STOP_INSTRUMENTATION;
-  CALLGRIND_DUMP_STATS;
 
   // cleanup and close up stuff here
   // terminate program
@@ -797,10 +792,7 @@ void PndLmdFitFacade::doFit(PndLmdHistogramData &lmd_hist_data,
 
   model_fit_facade.setEstimatorOptions(fit_options.getEstimatorOptions());
 
-  CALLGRIND_START_INSTRUMENTATION;
   fit_result = model_fit_facade.Fit();
-  CALLGRIND_STOP_INSTRUMENTATION;
-  CALLGRIND_DUMP_STATS;
 
 // store fit results
   cout << "Adding fit result to storage..." << endl;
