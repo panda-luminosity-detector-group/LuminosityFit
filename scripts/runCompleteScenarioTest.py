@@ -12,18 +12,10 @@ import json
 
 import general, simulation
 
-base_out_dir = "/data/work/himspecf/pflueger/realistic_scenarios"
-os.environ["DATA_DIR"] = base_out_dir
-low_index = 1
-high_index = 100
-num_events = 100000
-
-lmd_fit_path='/home/pflueger/LuminosityFit'
-lmd_fit_script_path = '/home/pflueger/LuminosityFit/scripts'
-lmd_fit_bin_path = '/home/pflueger/LuminosityFit/build/bin'
-
 #this is kind of bad... but I had to quick fix it... im sorry
 gen_lumi_per_event={1.5:171.91969551926493, 4.06:36.382231019899820, 8.9:16.294680278930652, 15.0:10.578901730437558}
+
+
 
 class Scenario:   
     def __init__(self, dir_path_):
@@ -147,6 +139,8 @@ def simulateDataOnHimster(sim_info_list, lab_momentum, ip_rec_file=''):
                 temp_dir_searcher.searchListOfDirectories(base_out_dir+'/'+dirname, 'Lumi_TrksQA_*.root')
                 found_dirs = temp_dir_searcher.getListOfDirectories()
             
+                # this command runs the full sim software with box gen data to generate the acceptance and resolution information for this sample
+                # note: beam tilt and divergence are not necessary here, because that is handled completely by the model
                 if not found_dirs:
                     bashcommand = 'python runSimulations.py --low_index ' + str(low_index) + ' --high_index ' + str(high_index) \
                         + ' --use_ip_offset ' + str(sim_params.ip_params.ip_offset_x) + ' ' + str(sim_params.ip_params.ip_offset_y) + ' ' + str(sim_params.ip_params.ip_offset_z) \
@@ -169,7 +163,7 @@ def simulateDataOnHimster(sim_info_list, lab_momentum, ip_rec_file=''):
             elif status_code > 0:
                 print 'still waiting for himster simulation jobs for ' + type + ' data to complete...'
             else:
-                #ok something went wrong there, exit this scenario and push on bad scen stack
+                #ok something went wrong there, exit this scenario and push on bad scenario stack
                 last_counter=-1
                 
         elif 'a' in type:
@@ -189,7 +183,8 @@ def simulateDataOnHimster(sim_info_list, lab_momentum, ip_rec_file=''):
                 ip_params.ip_offset_y = float('{0:.3f}'.format(round(float(ip_rec_data["ip_y"]), 3)))
                 ip_params.ip_offset_z = float('{0:.3f}'.format(round(float(ip_rec_data["ip_z"]), 3)))
                     
-            
+                # this command runs the track reco software on the elastic scattering data with the estimated ip position
+                # note: beam tilt and divergence are not used here because only the last reco steps are rerun of the track reco software
                 bashcommand = 'python runSimulations.py --low_index ' + str(low_index) + ' --high_index ' + str(high_index) \
                     + ' --reco_ip_offset ' + str(ip_params.ip_offset_x) + ' ' + str(ip_params.ip_offset_y) + ' ' + str(ip_params.ip_offset_z) \
                     + ' --output_dir ' + dir_path.replace(base_out_dir + '/', '') \
@@ -205,7 +200,7 @@ def simulateDataOnHimster(sim_info_list, lab_momentum, ip_rec_file=''):
             elif status_code > 0:
                 print 'still waiting for himster simulation jobs for ' + type + ' data to complete...'
             else:
-                #ok something went wrong there, exit this scenario and push on bad scen stack
+                #ok something went wrong there, exit this scenario and push on bad scenario stack
                 last_counter=-1
         else:
             # just skip simulation for vertex data... we always have that...
@@ -353,7 +348,34 @@ def lumiDetermination(scen):
         scen.last_counter = last_counter
         waiting_scenario_stack.append(scen)
         
-        
+
+
+parser = argparse.ArgumentParser(description='Script for realistic full PANDA Luminosity Detector simulations.', formatter_class=argparse.RawTextHelpFormatter)
+
+parser.add_argument('--output_data_dir', metavar='output_data_dir', type=str, nargs=1,
+                   help='Base directory for output files created by this script.')
+parser.add_argument('--luminosity_fit_dir', metavar='luminosity_fit_dir', type=str, nargs=1,
+                   help='Base directory of the luminosity fit software.')
+
+
+parser.add_argument('num_events', metavar='num_events', type=int, default=100000, help='number of events to simulate')
+parser.add_argument('--low_index', metavar='low_index', type=int, default=1,
+                   help='Lowest index of generator file which is supposed to be used in the simulation. Default setting is -1 which will take the lowest found index.')
+parser.add_argument('--high_index', metavar='high_index', type=int, default=100,
+                   help='Highest index of generator file which is supposed to be used in the simulation. Default setting is -1 which will take the highest found index.')
+
+
+base_out_dir = args.output_data_dir[0]
+os.environ["DATA_DIR"] = base_out_dir
+
+lmd_fit_path=args.luminosity_fit_dir[0]
+lmd_fit_script_path = lmd_fit_path+'/scripts'
+lmd_fit_bin_path = lmd_fit_path+'/build/bin'
+
+low_index = Integer(args.low_index)
+high_index = Integer(args.high_index)
+num_events = Integer(args.num_events)
+
         
 # first lets try to find all directories and their status/step
 dir_searcher = general.DirectorySearcher(['dpm_elastic', 'uncut'])

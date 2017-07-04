@@ -38,6 +38,7 @@ class SimulationParameters:
     use_m_cut=False
     track_search_algo='CA'
     reco_ip_offset=[]
+    lmd_geometry_filename='Luminosity-Detector.root'
 
 def generateSimulationParameterPropertyFile(output_dirname, sim_params):
   config_fileurl = output_dirname + '/sim_params.config'
@@ -96,6 +97,8 @@ def generateDirectory(sim_params, generator_filename_base):
 
     dirname += '/beam_grad_XYDXDY_'+str(sim_params.ip_params.beam_tilt_x)+'_'+str(sim_params.ip_params.beam_tilt_y)+'_'\
         +str(sim_params.ip_params.beam_divergence_x)+'_'+str(sim_params.ip_params.beam_divergence_y)
+
+    dirname += '/' + str(os.path.splitext(sim_params.lmd_geometry_filename)[0])
 
     dirname += '/' + str(sim_params.num_events)
   else:

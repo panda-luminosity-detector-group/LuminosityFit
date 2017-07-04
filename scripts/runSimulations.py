@@ -65,6 +65,9 @@ parser.add_argument('--reco_ip_offset', metavar=("rec_ip_offset_x", "rec_ip_offs
             "rec_ip_offset_y: interaction vertex mean Y position (in cm)\n"
             "rec_ip_offset_z: interaction vertex mean Z position (in cm)\n")
 
+parser.add_argument('--lmd_detector_geometry_filename', metavar='lmd_detector_geometry_filename', type=str, default='Luminosity-Detector.root', help='Filename of the Geant Luminosity Detector geometry file in the pandaroot geometry subfolder')
+
+
 args = parser.parse_args()
  
 sim_params=simulation.SimulationParameters()
@@ -94,7 +97,7 @@ sim_params.use_xy_cut=args.use_xy_cut
 sim_params.use_m_cut=args.use_m_cut
 sim_params.track_search_algo=args.track_search_algo
 sim_params.reco_ip_offset=args.reco_ip_offset
-
+sim_params.lmd_geometry_filename=args.lmd_detector_geometry_filename
 
 generator_filename_base = simulation.generateGeneratorBaseFilename(sim_params)
 dirname = simulation.generateDirectory(sim_params, generator_filename_base)
@@ -160,6 +163,7 @@ job.addExportedUserVariable('XThetaCut', str(args.use_xy_cut).lower())
 job.addExportedUserVariable('YPhiCut', str(args.use_xy_cut).lower())
 job.addExportedUserVariable('CleanSig', str(args.use_m_cut).lower())
 job.addExportedUserVariable('track_search_algorithm', args.track_search_algo)
+job.addExportedUserVariable('lmd_geometry_filename', args.lmd_detector_geometry_filename)
 if args.sim_type[0] == 'noise':
   job.addExportedUserVariable('simulate_noise', '1')
 job.addExportedUserVariable('rec_ipx', str(args.reco_ip_offset[0]))

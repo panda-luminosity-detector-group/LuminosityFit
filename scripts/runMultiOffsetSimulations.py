@@ -5,13 +5,10 @@ import subprocess
 import multiprocessing
 from decimal import *
 from general import IPParams
+import argparse
 
 cpu_cores = multiprocessing.cpu_count()
 
-lib_path = os.path.abspath('argparse-1.2.1/build/lib')
-sys.path.append(lib_path)
-
-import argparse
 
 class XYZLists:
   list_x = []
