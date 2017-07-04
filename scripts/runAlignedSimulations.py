@@ -17,8 +17,8 @@ parser.add_argument('--force_level', metavar='force_level', type=int, default=0,
 
 parser.add_argument('--low_index', metavar='low_index', type=int, default=1,
                    help='Lowest index of generator file which is supposed to be used in the simulation. Default setting is 1')
-parser.add_argument('--high_index', metavar='high_index', type=int, default=100000,
-                   help='Highest index of generator file which is supposed to be used in the simulation. Default setting is 10000')
+parser.add_argument('--high_index', metavar='high_index', type=int, default=100,
+                   help='Highest index of generator file which is supposed to be used in the simulation. Default setting is 100')
 
 parser.add_argument('--gen_data_dir', metavar='gen_data_dir', type=str, default=os.getenv('GEN_DATA'),
                    help='Base directory to input files created by external generator. By default the environment variable $GEN_DATA will be used!')
