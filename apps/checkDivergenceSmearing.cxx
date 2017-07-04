@@ -19,8 +19,6 @@
 #define BOOST_CHRONO_HEADER_ONLY
 #include <boost/chrono/thread_clock.hpp>
 
-#include "callgrind.h"
-
 using std::string;
 using std::cout;
 using std::cerr;
@@ -182,10 +180,7 @@ void plotSmeared2DModel(unsigned int nthreads, unsigned int scale_, unsigned int
   divergence_model->getModelParameterSet().setModelParameterValue(
         "gauss_rho", 0.0);
 
-  //CALLGRIND_START_INSTRUMENTATION;
   div_smeared_model->init();
-  //CALLGRIND_STOP_INSTRUMENTATION;
-  //CALLGRIND_DUMP_STATS;
 
   ModelFitFacade model_fit_facade;
 
@@ -228,10 +223,7 @@ void plotSmeared2DModel(unsigned int nthreads, unsigned int scale_, unsigned int
   std::shared_ptr<ROOTMinimizer> root_minimizer(new ROOTMinimizer);
   model_fit_facade.setMinimizer(root_minimizer);
 
-  // CALLGRIND_START_INSTRUMENTATION;
   ModelFitResult fit_result = model_fit_facade.Fit();
-  // CALLGRIND_STOP_INSTRUMENTATION;
-  //  CALLGRIND_DUMP_STATS;
 
   // store fit results
   cout << "Adding fit result to storage..." << endl;

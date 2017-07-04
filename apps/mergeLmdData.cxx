@@ -15,8 +15,6 @@
 #include "boost/filesystem.hpp"   // includes all needed Boost.Filesystem declarations
 #include "boost/regex.hpp"
 
-#include "callgrind.h"
-
 using std::set;
 using std::vector;
 using std::string;
@@ -161,12 +159,9 @@ template<class T> void mergeData(vector<string> found_files,
   std::cout << "Merged " << merged_files.size() << " objects from "
       << found_files.size() << " files!" << std::endl;
 
-  CALLGRIND_START_INSTRUMENTATION;
   for (iter = merged_files.begin(); iter != merged_files.end(); iter++) {
     ((PndLmdAbstractData*) &(*iter))->saveToRootFile();
   }
-  CALLGRIND_STOP_INSTRUMENTATION;
-  CALLGRIND_DUMP_STATS;
 }
 
 void displayInfo() {
