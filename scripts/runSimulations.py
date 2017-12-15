@@ -1,10 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import himster
 import simulation
 import os, errno, sys, glob, re
-lib_path = os.path.abspath('argparse-1.2.1/build/lib')
-sys.path.append(lib_path)
 import argparse
 
 parser = argparse.ArgumentParser(description='Script for full simulation of PANDA Luminosity Detector via externally generated MC data.', formatter_class=argparse.RawTextHelpFormatter)
@@ -112,21 +110,27 @@ path_mc_data = pathname_base + '/mc_data'
 dirname_full = dirname + '/' + dirname_filter_suffix
 pathname_full = os.getenv('DATA_DIR') + '/' + dirname_full
 
-print 'using output folder structure: ' + pathname_full
+print('using output folder structure: ' + pathname_full)
 
 try:
     os.makedirs(pathname_full)
     os.makedirs(path_mc_data)
 except OSError as exception:
     if exception.errno != errno.EEXIST:
-        print 'error: thought dir does not exists but it does...'
+        print('error: thought dir does not exists but it does...')
 
 if args.force_level == 0:
     # check if the directory already has the reco data in it 
     reco_files = glob.glob(pathname_full + '/Lumi_TrksQA_*.root')
-    if len(reco_files) >= int(0.8*(high_index_used-low_index_used)):
-        print 'directory with at least 80% (compared to requested number of simulated files) of fully reconstructed track files already exists! Skipping...'
-        sys.exit()
+    total_requested_jobs=(high_index_used-low_index_used+1)
+    if total_requested_jobs == 1:
+        if len(reco_files) == total_requested_jobs:
+            print('directory of with fully reconstructed track file already exists! Skipping...')
+            sys.exit()
+    else:
+        if len(reco_files) >= int(0.8*total_requested_jobs):
+            print('directory with at least 80% (compared to requested number of simulated files) of fully reconstructed track files already exists! Skipping...')
+            sys.exit()
             
 # generate simulation config parameter file
 simulation.generateSimulationParameterPropertyFile(pathname_base, sim_params)

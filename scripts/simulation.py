@@ -68,18 +68,18 @@ def generateGeneratorBaseFilename(sim_params):
       generator_filename_base = getGeneratedDataDirectory(sim_params)
     else:
       if sim_params.low_index == -1 or sim_params.high_index == -1:
-        print 'Please specify job array boundaries for noise simulations via --low_index and --high_index since the data will be generated here directly!'
+        print('Please specify job array boundaries for noise simulations via --low_index and --high_index since the data will be generated here directly!')
         sys.exit(1)
       else:
         low_index_used = sim_params.low_index
         high_index_used = sim_params.high_index
       generator_filename_base = str(sim_params.num_events) + '_noise_plab_' + str(sim_params.lab_momentum) + 'GeV'
 
-  print 'using generator dir: ' + generator_filename_base
+  print('using generator dir: ' + generator_filename_base)
   return generator_filename_base
 
 def generateDirectory(sim_params, generator_filename_base):
-  print 'preparing simulations in index range ' + str(sim_params.low_index) + ' - ' + str(sim_params.high_index)
+  print('preparing simulations in index range ' + str(sim_params.low_index) + ' - ' + str(sim_params.high_index))
 
   if sim_params.output_dir == '':
     # generate output directory name
@@ -157,18 +157,18 @@ def getGeneratedDataDirectory(sim_params):
   return_result = ''
   
   if len(found_dir_dict) == 0:
-    print 'Found no suitable generated data directory in ' + gen_data_dir_path + ' .'\
-          + 'Please specify another path or generate the needed data first!'
+    print('Found no suitable generated data directory in ' + gen_data_dir_path + ' .'\
+          + 'Please specify another path or generate the needed data first!')
     sys.exit(1)
   if len(found_dir_dict) > 1:
-    print 'Found more than one suitable generated data directory in ' + gen_data_dir_path + ' .'\
-          + 'List of possibilities is shown below:'
-    print found_dir_dict
+    print('Found more than one suitable generated data directory in ' + gen_data_dir_path + ' .'\
+          + 'List of possibilities is shown below:')
+    print(found_dir_dict)
     return_result = ''
     while return_result not in found_dir_dict.keys():
       return_result = raw_input('Please enter the dirname of one of the found generator directory names (sorted by most possible user request): ')
   else:
-    return_result = found_dir_dict.keys()[0]
+    return_result = list(found_dir_dict)[0]
 
   sim_params.low_index = found_dir_dict[return_result][1]
   sim_params.high_index = found_dir_dict[return_result][2]

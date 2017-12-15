@@ -47,7 +47,7 @@ def refactor2SimulationParameters(directory):
     newtext = fixLine(newtext, 'beam_divergence_y')
     
     if newtext != text:
-      print 'fixing sim params file'
+      print('fixing sim params file')
       os.remove(directory + '/sim_params.config')
       f = open(directory + '/sim_params.config', 'w')
       f.write(newtext)
@@ -102,19 +102,19 @@ class DirectorySearcher:
         # if that is the case, their parent folder has to be named mc_data
         if mc_files or param_files:
           if not os.path.split(path)[1] == 'mc_data':
-            print 'Found mc files in ' + path + '. Since they are not inside a folder mc_data, proposing to create mc_data dir and moving files there.'
+            print('Found mc files in ' + path + '. Since they are not inside a folder mc_data, proposing to create mc_data dir and moving files there.')
             try:
               os.mkdir(path + '/mc_data')
             except OSError as exception:
               if exception.errno != errno.EEXIST:
-                print 'dont need to create mc_data dir...'
+                print('dont need to create mc_data dir...')
             for mc_file in mc_files:
               mc_filename = os.path.split(mc_file)[1]
               shutil.move(path + '/' + mc_filename, path + '/mc_data/' + mc_filename)
             for param_file in param_files:
               param_filename = os.path.split(param_file)[1]
               shutil.move(path + '/' + param_filename, path + '/mc_data/' + param_filename)
-            print 'successfully moved all mc files there!'
+            print('successfully moved all mc files there!')
         
         if self.not_contain_pattern is not '':
           m = re.search(self.not_contain_pattern, path)

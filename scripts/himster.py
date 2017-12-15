@@ -25,7 +25,7 @@ def isClusterEnvironment():
 
 class JobResourceRequest:    
     def __init__(self, walltime_in_minutes):
-        self.walltime_string = self.formatWalltime(int(walltime_in_minutes))
+        self.walltime_string = self.formatWalltime(walltime_in_minutes)
         self.number_of_nodes = 1
         self.processors_per_node = 1
         self.memory_in_mb = 1000
@@ -33,7 +33,7 @@ class JobResourceRequest:
         self.node_scratch_filesize_in_mb = 0
     
     def formatWalltime(self, walltime_in_minutes):
-        walltime_string = str(int(walltime_in_minutes) / 60) + ':'
+        walltime_string = str(int(int(walltime_in_minutes) / 60)) + ':'
         walltime_string = walltime_string + str(int(walltime_in_minutes) % 60)
         if int(walltime_in_minutes) % 60 < 10:
              walltime_string = walltime_string + '0'
@@ -75,7 +75,7 @@ class Job:
             if len(self.exported_user_variables) > 0:
                 bashcommand = bashcommand + ' -v '
                 counter = 0
-                for name, value in self.exported_user_variables.iteritems():
+                for name, value in self.exported_user_variables.items():
                     counter = counter + 1
                     bashcommand = bashcommand + name + '="' + value + '"'
                     if counter < len(self.exported_user_variables):
@@ -102,13 +102,13 @@ class HimsterJobManager:
 
     def manageJobs(self):
         while self.job_command_list:
-            print "checking if total job threshold is reached..."
+            print("checking if total job threshold is reached...")
             bashcommand = self.job_command_list.pop(0)
             if getNumJobsOnHimster() < self.himster_total_job_threshold:
-                print "Nope, trying to submit job..."
+                print("Nope, trying to submit job...")
                 returnvalue = subprocess.call(bashcommand.split())
                 if returnvalue > 0:
-                    print "Submit failed! Appending job to resubmit list for later submission..."
+                    print("Submit failed! Appending job to resubmit list for later submission...")
                     # put the command back into the list 
                     self.job_command_list.insert(0, bashcommand)
                 else:
@@ -116,18 +116,18 @@ class HimsterJobManager:
             else:
                 # put the command back into the list 
                 self.job_command_list.insert(0, bashcommand)    
-                print 'Yep, we have currently have ' + str(len(self.job_command_list)) + ' jobs waiting in queue!'
+                print('Yep, we have currently have ' + str(len(self.job_command_list)) + ' jobs waiting in queue!')
                 # and sleep for some time
-                print 'Waiting for ' + str(self.job_resubmit_sleep_time_in_seconds / 60) + ' min and then trying a resubmit...'
+                print('Waiting for ' + str(self.job_resubmit_sleep_time_in_seconds / 60) + ' min and then trying a resubmit...')
                 time.sleep(self.job_resubmit_sleep_time_in_seconds)    
                 
     def submitJobsToHimster(self, job_list):
         if isClusterEnvironment():
             submit_commands = []    
-            print 'This is a cluster environment... adding jobs to queue list!'    
+            print('This is a cluster environment... adding jobs to queue list!')    
             for job in job_list:
                 for bashcommand in job.createBashCommands(self.max_jobarray_size):
                     self.job_command_list.append(bashcommand)
                     
         else:
-            print 'This is not a cluster environment! Please make sure this script is executed on a cluster environment!' 
+            print('This is not a cluster environment! Please make sure this script is executed on a cluster environment!')

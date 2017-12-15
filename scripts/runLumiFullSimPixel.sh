@@ -58,7 +58,7 @@ numTrks=1
 #ok we want to simulate only on the node so also the output files of the simulation so change the pathname to /local/scratch/dirname
 dirname=`echo $dirname | sed -e 's/\//_/g'`
 
-
+#workpathname=$pathname
 workpathname="/local/scratch/${dirname}"
 if [ ! -d $workpathname ]; then
   mkdir -p $workpathname
@@ -114,7 +114,7 @@ check_stage_success "$workpathname/Lumi_TrackNotFiltered_${start_evt}.root"
 if [ 0 -eq "$?" ]; then
 	check_stage_success "$workpathname/Lumi_Track_${start_evt}.root"
 	if [ 0 -eq "$?" ]; then
-		root -l -b -q 'runLumiPixel4Fitter.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',"Minuit",'${mergedHits}')' > /dev/null 2>&1
+		root -l -b -q 'runLumiPixel4Fitter.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',"Minuit",'${mergedHits}')'
   		#this script output a Lumi_Track_... file. Rename that to the NotFiltered..
 
 		if [ "$prefilter" == "true" ]; then

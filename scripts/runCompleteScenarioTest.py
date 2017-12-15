@@ -1,9 +1,9 @@
-# ok this whole procedure is extremely tedious and costly... 
+#! /usr/bin/python3
+
+# ok this whole procedure is extremely tedious and costly. unfortunately there is no other way... 
 # so dont be scared when you see all this...
 
 import random, os, sys, re, time, glob, errno
-lib_path = os.path.abspath('argparse-1.2.1/build/lib')
-sys.path.append(lib_path)
 import argparse
 import himster
 from decimal import *
@@ -50,8 +50,8 @@ def wasSimulationSuccessful(directory, glob_pattern):
     num_sim_files=int(m.group(2))-int(m.group(1)) + 1
     
     if 1.0*len(good_files) < required_files_percentage*num_sim_files:
-        print 'WARNING: more than 20% of sim files missing... Something went wrong here...'
-        print directory
+        print('WARNING: more than 20% of sim files missing... Something went wrong here...')
+        print(directory)
         # (time.time()-os.path.getmtime('path'))/60/60/24        
         if himster.getNumJobsOnHimster() > 0:
             return_value=1
@@ -74,7 +74,7 @@ def simulateDataOnHimster(sim_info_list, lab_momentum, ip_rec_file=''):
     counter = sim_info_list[2]
     last_counter = sim_info_list[3]
 
-    print 'running simulation of type ' + str(type) + ' and path (' + dir_path + ') at counter=' + str(counter) + '/' + str(last_counter)
+    print('running simulation of type ' + str(type) + ' and path (' + dir_path + ') at counter=' + str(counter) + '/' + str(last_counter))
 
     data_keywords = []
     data_pattern = ''
@@ -133,7 +133,7 @@ def simulateDataOnHimster(sim_info_list, lab_momentum, ip_rec_file=''):
                     os.makedirs(base_out_dir+'/'+dirname)
                 except OSError as exception:
                     if exception.errno != errno.EEXIST:
-                        print 'warning: thats strange that directory already exists...'
+                        print('warning: thats strange that directory already exists...')
             
                 temp_dir_searcher = general.DirectorySearcher(['box', 'xy_m_cut'])
                 temp_dir_searcher.searchListOfDirectories(base_out_dir+'/'+dirname, 'Lumi_TrksQA_*.root')
@@ -150,18 +150,18 @@ def simulateDataOnHimster(sim_info_list, lab_momentum, ip_rec_file=''):
                     returnvalue = subprocess.call(bashcommand.split())
                     last_counter = last_counter + 1
                 else:
-                    print 'found directory with simulated files, skipping...'
+                    print('found directory with simulated files, skipping...')
                     dir_path = found_dirs[0]
                     scen.dir_path = found_dirs[0]
                     counter = 2
                     last_counter = 1
             
             if status_code == 0:
-                print 'found simulation files, skipping...'
+                print('found simulation files, skipping...')
                 counter = 2
                 last_counter = 1
             elif status_code > 0:
-                print 'still waiting for himster simulation jobs for ' + type + ' data to complete...'
+                print('still waiting for himster simulation jobs for ' + type + ' data to complete...')
             else:
                 #ok something went wrong there, exit this scenario and push on bad scenario stack
                 last_counter=-1
@@ -194,17 +194,17 @@ def simulateDataOnHimster(sim_info_list, lab_momentum, ip_rec_file=''):
             
 
             if status_code == 0:
-                print 'found simulation files, skipping...'
+                print('found simulation files, skipping...')
                 counter = 2
                 last_counter = 1
             elif status_code > 0:
-                print 'still waiting for himster simulation jobs for ' + type + ' data to complete...'
+                print('still waiting for himster simulation jobs for ' + type + ' data to complete...')
             else:
                 #ok something went wrong there, exit this scenario and push on bad scenario stack
                 last_counter=-1
         else:
             # just skip simulation for vertex data... we always have that...
-            print 'skipping simulation step...'
+            print('skipping simulation step...')
             counter = 2
             last_counter = 1 
     # 2. create data (that means bunch data, create data objects)
@@ -214,7 +214,7 @@ def simulateDataOnHimster(sim_info_list, lab_momentum, ip_rec_file=''):
         temp_dir_searcher.searchListOfDirectories(dir_path, data_pattern)
         found_dirs = temp_dir_searcher.getListOfDirectories()
         if found_dirs:
-            print 'skipping bunching and data object creation...'
+            print('skipping bunching and data object creation...')
             counter = 3
             last_counter = 2
         elif last_counter < counter:
@@ -224,14 +224,14 @@ def simulateDataOnHimster(sim_info_list, lab_momentum, ip_rec_file=''):
             returnvalue = subprocess.call(bashcommand.split())
             # 1b create data
             if 'a' in type:
-                ref_mom, gen_lumi = min(gen_lumi_per_event.items(), key=lambda(k,v):abs(k-lab_momentum))
-		bashcommand = 'python createMultipleLmdData.py --elastic_cross_section ' + str(gen_lumi) + ' --dir_pattern ' + data_keywords[0] + ' ' + str(lab_momentum) + ' ' + type + ' ' + dir_path + ' ../dataconfig_xy.json'
+                ref_mom, gen_lumi = min(gen_lumi_per_event.items(), key=lambda k,v:abs(k-lab_momentum))
+                bashcommand = 'python createMultipleLmdData.py --elastic_cross_section ' + str(gen_lumi) + ' --dir_pattern ' + data_keywords[0] + ' ' + str(lab_momentum) + ' ' + type + ' ' + dir_path + ' ../dataconfig_xy.json'
             else:    
-		bashcommand = 'python createMultipleLmdData.py --dir_pattern ' + data_keywords[0] + ' ' + str(lab_momentum) + ' ' + type + ' ' + dir_path + ' ../dataconfig_xy.json'
+                bashcommand = 'python createMultipleLmdData.py --dir_pattern ' + data_keywords[0] + ' ' + str(lab_momentum) + ' ' + type + ' ' + dir_path + ' ../dataconfig_xy.json'
             returnvalue = subprocess.call(bashcommand.split())
             last_counter = last_counter + 1
         else:
-            print 'still waiting for himster data creation jobs for ' + type + ' data to complete...'
+            print('still waiting for himster data creation jobs for ' + type + ' data to complete...')
     
     # 3. merge data
     if counter == 3:
@@ -260,11 +260,10 @@ def lumiDetermination(scen):
     counter = scen.counter
     last_counter = scen.last_counter
     
-    print 'processing scenario ' + dir_path + ' at step ' + str(counter)
+    print('processing scenario ' + dir_path + ' at step ' + str(counter))
     
     m = re.search('(\d*?\.\d*?)GeV', dir_path)
     momentum = float(m.group(1))
-    print momentum
     
     finished = False
     # 1. create vertex data (that means bunch data, create data objects and merge)
@@ -335,11 +334,11 @@ def lumiDetermination(scen):
         found_dirs = temp_dir_searcher.getListOfDirectories()
         if not found_dirs:
             os.chdir(lmd_fit_script_path)
-            print 'running lmdfit!'
+            print('running lmdfit!')
             bashcommand = 'python doMultipleLuminosityFits.py --forced_box_gen_data ' + scen.acc_and_res_dir_path + ' ' + scen.filtered_dir_path + ' xy_m_cut_real ' + lmd_fit_path+'/fitconfig.json'
             returnvalue = subprocess.call(bashcommand.split())        
         
-        print 'this scenario is fully processed!!!'
+        print('this scenario is fully processed!!!')
         finished = True
 
     # if we are in an intermediate step then push on the waiting stack and increase step counter
@@ -364,6 +363,7 @@ parser.add_argument('--low_index', metavar='low_index', type=int, default=1,
 parser.add_argument('--high_index', metavar='high_index', type=int, default=100,
                    help='Highest index of generator file which is supposed to be used in the simulation. Default setting is -1 which will take the highest found index.')
 
+args = parser.parse_args()
 
 base_out_dir = args.output_data_dir[0]
 os.environ["DATA_DIR"] = base_out_dir
@@ -383,7 +383,7 @@ dir_searcher = general.DirectorySearcher(['dpm_elastic', 'uncut'])
 dir_searcher.searchListOfDirectories(base_out_dir, 'Lumi_TrksQA_*.root')
 dirs = dir_searcher.getListOfDirectories()
 
-print dirs
+print(dirs)
 
 # at first assign each scenario the first step and push on the active stack
 for dir in dirs:
@@ -399,7 +399,7 @@ while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
     active_scenario_stack = []
     # if all scenarios are currently processed just wait a bit and check again
     if len(waiting_scenario_stack) > 0:
-        print 'currently waiting for 10min to process scenarios again'
+        print('currently waiting for 10min to process scenarios again')
         time.sleep(600)  # wait for 5min
         active_scenario_stack = waiting_scenario_stack    
         waiting_scenario_stack = []

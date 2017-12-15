@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 #return which of the two numbers is smaller
 min () {

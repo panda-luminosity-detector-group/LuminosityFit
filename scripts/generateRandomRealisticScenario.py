@@ -1,6 +1,6 @@
+#! /usr/bin/python3
+
 import random, os, sys
-lib_path = os.path.abspath('argparse-1.2.1/build/lib')
-sys.path.append(lib_path)
 import argparse
 from decimal import *
 import subprocess
@@ -40,7 +40,7 @@ scen_params.beam_tilt_y = Decimal('{0:.5f}'.format(round(random.uniform(-0.0002,
 scen_params.beam_divergence_x = Decimal('{0:.5f}'.format(round(random.uniform(0.00005, 0.0002),5)))  # in rad
 scen_params.beam_divergence_y = Decimal('{0:.5f}'.format(round(random.uniform(0.00005, 0.0002),5)))  # in rad
 
-print scen_params
+print(scen_params)
 
 bashcommand = 'python runSimulations.py --low_index ' + str(low_index) + ' --high_index ' + str(high_index) \
               + ' --use_ip_offset ' + str(scen_params.ip_offset_x) + ' ' + str(scen_params.ip_offset_y) + ' ' + str(scen_params.ip_offset_z) + ' ' \

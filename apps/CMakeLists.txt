@@ -1,13 +1,13 @@
 set(INCLUDE_DIRECTORIES
   $ENV{MODEL_FRAMEWORK}/include
-  $ENV{ROOT_INCLUDE_DIR}
+  ${ROOT_INCLUDE_DIR}
   $ENV{BOOST_ROOT}/include
 )
 include_directories(${INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
   $ENV{MODEL_FRAMEWORK}/lib
-  $ENV{ROOT_LIBRARY_DIR}
+  ${ROOT_LIBRARY_DIR}
   $ENV{BOOST_ROOT}/lib
 )
 link_directories(${LINK_DIRECTORIES})
@@ -36,11 +36,11 @@ target_link_libraries(checkDivergenceSmearing $ENV{ROOT_LIBRARIES} LmdUI)
 
 ########################### create acceptanceComparison app ##################################
 
-add_executable(compareAcceptances compareAcceptances.cxx)
-target_link_libraries(compareAcceptances LmdUI)
+#add_executable(compareAcceptances compareAcceptances.cxx)
+#target_link_libraries(compareAcceptances LmdUI)
 
-add_executable(analyzeAcceptances analyzeAcceptances.cxx)
-target_link_libraries(analyzeAcceptances LmdUI Minuit2)
+#add_executable(analyzeAcceptances analyzeAcceptances.cxx)
+#target_link_libraries(analyzeAcceptances LmdUI Minuit2)
 
 add_executable(analyzeResolutionMapData analyzeResolutionMapData.cxx)
 target_link_libraries(analyzeResolutionMapData LmdUI)
