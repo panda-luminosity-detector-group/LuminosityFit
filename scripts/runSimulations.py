@@ -32,7 +32,7 @@ parser.add_argument('--high_index', metavar='high_index', type=int, default=-1,
                    help='Highest index of generator file which is supposed to be used in the simulation.\n'
                    'Default setting is -1 which will take the highest found index.')
 
-parser.add_argument('--gen_data_dir', metavar='gen_data_dir', type=str, default=os.getenv('GEN_DATA'),
+parser.add_argument('--gen_data_dir', metavar='gen_data_dir', type=str, default=os.getenv('LMDFIT_GEN_DATA'),
                    help='Base directory to input files created by external generator.\n'
                    'By default the environment variable $GEN_DATA will be used!')
 
@@ -105,10 +105,10 @@ low_index_used = sim_params.low_index
 high_index_used = sim_params.high_index
 
 filename_base = re.sub('\.', 'o', generator_filename_base)
-pathname_base = os.getenv('DATA_DIR') + '/' + dirname
+pathname_base = os.getenv('LMDFIT_DATA_DIR') + '/' + dirname
 path_mc_data = pathname_base + '/mc_data'
 dirname_full = dirname + '/' + dirname_filter_suffix
-pathname_full = os.getenv('DATA_DIR') + '/' + dirname_full
+pathname_full = os.getenv('LMDFIT_DATA_DIR') + '/' + dirname_full
 
 print('using output folder structure: ' + pathname_full)
 
@@ -119,10 +119,12 @@ except OSError as exception:
     if exception.errno != errno.EEXIST:
         print('error: thought dir does not exists but it does...')
 
+min_file_size = 3000 #in bytes
 if args.force_level == 0:
     # check if the directory already has the reco data in it 
     reco_files = glob.glob(pathname_full + '/Lumi_TrksQA_*.root')
     total_requested_jobs=(high_index_used-low_index_used+1)
+    reco_files = [x for x in reco_files if os.path.getsize(x) > min_file_size]
     if total_requested_jobs == 1:
         if len(reco_files) == total_requested_jobs:
             print('directory of with fully reconstructed track file already exists! Skipping...')
@@ -137,42 +139,41 @@ simulation.generateSimulationParameterPropertyFile(pathname_base, sim_params)
 
 joblist = []
 
-resource_request = himster.JobResourceRequest(20 * 60)
+resource_request = himster.JobResourceRequest(12*60)
 resource_request.number_of_nodes = 1
 resource_request.processors_per_node = 1
-resource_request.memory_in_mb = 4000
-resource_request.virtual_memory_in_mb = 4000
-resource_request.node_scratch_filesize_in_mb = 3000
-job = himster.Job(resource_request, './runLumiFullSimPixel.sh', 'lmd_fullsim_' + args.sim_type[0], pathname_full + '/sim.log')
-job.setJobArraySize(low_index_used, high_index_used)
+resource_request.memory_in_mb = 3000
+resource_request.node_scratch_filesize_in_mb = 0
+job = himster.Job(resource_request, './runLumiFullSimPixel.sh', 'lmd_fullsim_' + args.sim_type[0], pathname_full + '/sim-%a.log')
+job.set_job_array_size(low_index_used, high_index_used)
   
-job.addExportedUserVariable('num_evts', str(args.num_events[0]))
-job.addExportedUserVariable('mom', str(args.lab_momentum[0]))
-job.addExportedUserVariable('gen_input_file_stripped', args.gen_data_dir + '/' + generator_filename_base + '/' + filename_base)
-job.addExportedUserVariable('dirname', dirname_full)
-job.addExportedUserVariable('path_mc_data', path_mc_data)
-job.addExportedUserVariable('pathname', pathname_full)
-job.addExportedUserVariable('beamX0', str(args.use_ip_offset[0]))
-job.addExportedUserVariable('beamY0', str(args.use_ip_offset[1]))
-job.addExportedUserVariable('targetZ0', str(args.use_ip_offset[2]))
-job.addExportedUserVariable('beam_widthX', str(args.use_ip_offset[3]))
-job.addExportedUserVariable('beam_widthY', str(args.use_ip_offset[4]))
-job.addExportedUserVariable('target_widthZ', str(args.use_ip_offset[5]))
-job.addExportedUserVariable('beam_gradX', str(args.use_beam_gradient[0]))
-job.addExportedUserVariable('beam_gradY', str(args.use_beam_gradient[1]))
-job.addExportedUserVariable('beam_grad_sigmaX', str(args.use_beam_gradient[2]))
-job.addExportedUserVariable('beam_grad_sigmaY', str(args.use_beam_gradient[3]))
-job.addExportedUserVariable('SkipFilt', str(not args.use_xy_cut).lower())
-job.addExportedUserVariable('XThetaCut', str(args.use_xy_cut).lower())
-job.addExportedUserVariable('YPhiCut', str(args.use_xy_cut).lower())
-job.addExportedUserVariable('CleanSig', str(args.use_m_cut).lower())
-job.addExportedUserVariable('track_search_algorithm', args.track_search_algo)
-job.addExportedUserVariable('lmd_geometry_filename', args.lmd_detector_geometry_filename)
+job.add_exported_user_variable('num_evts', str(args.num_events[0]))
+job.add_exported_user_variable('mom', str(args.lab_momentum[0]))
+job.add_exported_user_variable('gen_input_file_stripped', args.gen_data_dir + '/' + generator_filename_base + '/' + filename_base)
+job.add_exported_user_variable('dirname', dirname_full)
+job.add_exported_user_variable('path_mc_data', path_mc_data)
+job.add_exported_user_variable('pathname', pathname_full)
+job.add_exported_user_variable('beamX0', str(args.use_ip_offset[0]))
+job.add_exported_user_variable('beamY0', str(args.use_ip_offset[1]))
+job.add_exported_user_variable('targetZ0', str(args.use_ip_offset[2]))
+job.add_exported_user_variable('beam_widthX', str(args.use_ip_offset[3]))
+job.add_exported_user_variable('beam_widthY', str(args.use_ip_offset[4]))
+job.add_exported_user_variable('target_widthZ', str(args.use_ip_offset[5]))
+job.add_exported_user_variable('beam_gradX', str(args.use_beam_gradient[0]))
+job.add_exported_user_variable('beam_gradY', str(args.use_beam_gradient[1]))
+job.add_exported_user_variable('beam_grad_sigmaX', str(args.use_beam_gradient[2]))
+job.add_exported_user_variable('beam_grad_sigmaY', str(args.use_beam_gradient[3]))
+job.add_exported_user_variable('SkipFilt', str(not args.use_xy_cut).lower())
+job.add_exported_user_variable('XThetaCut', str(args.use_xy_cut).lower())
+job.add_exported_user_variable('YPhiCut', str(args.use_xy_cut).lower())
+job.add_exported_user_variable('CleanSig', str(args.use_m_cut).lower())
+job.add_exported_user_variable('track_search_algorithm', args.track_search_algo)
+job.add_exported_user_variable('lmd_geometry_filename', args.lmd_detector_geometry_filename)
 if args.sim_type[0] == 'noise':
-  job.addExportedUserVariable('simulate_noise', '1')
-job.addExportedUserVariable('rec_ipx', str(args.reco_ip_offset[0]))
-job.addExportedUserVariable('rec_ipy', str(args.reco_ip_offset[1]))
-job.addExportedUserVariable('rec_ipz', str(args.reco_ip_offset[2]))
+  job.add_exported_user_variable('simulate_noise', '1')
+job.add_exported_user_variable('rec_ipx', str(args.reco_ip_offset[0]))
+job.add_exported_user_variable('rec_ipy', str(args.reco_ip_offset[1]))
+job.add_exported_user_variable('rec_ipz', str(args.reco_ip_offset[2]))
 
 joblist.append(job)
 
@@ -180,5 +181,5 @@ joblist.append(job)
 # as quite a lot of data is read in from the storage...)
 job_manager = himster.HimsterJobManager(2000, 3600)
 
-job_manager.submitJobsToHimster(joblist)
-job_manager.manageJobs()
+job_manager.submit_jobs_to_himster(joblist)
+job_manager.manage_jobs()

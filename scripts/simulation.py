@@ -32,7 +32,7 @@ class SimulationParameters:
     gen_data_dirname = ''
     low_index=0
     high_index=0
-    gen_data_dir=os.getenv('GEN_DATA')
+    gen_data_dir=os.getenv('LMDFIT_GEN_DATA')
     output_dir=''
     use_xy_cut=False
     use_m_cut=False

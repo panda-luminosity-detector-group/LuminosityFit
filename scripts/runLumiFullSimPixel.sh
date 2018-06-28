@@ -1,15 +1,13 @@
-#!/bin/bash      
-
-cd ${PBS_O_WORKDIR}
+#!/bin/sh
 
 #include some helper functions
-. bashFunctions.sh
+. ./bashFunctions.sh
 
-cd ${VMCWORKDIR}/macro/lmd
+cd ${VMCWORKDIR}/macro/detectors/lmd
 
 filename_index=1
-if [ ${PBS_ARRAYID} ]; then
-  filename_index=${PBS_ARRAYID}
+if [ ${SLURM_ARRAY_TASK_ID} ]; then
+  filename_index=${SLURM_ARRAY_TASK_ID}
 fi
 
 gen_input_filename="${gen_input_file_stripped}_${filename_index}.root"
@@ -58,8 +56,7 @@ numTrks=1
 #ok we want to simulate only on the node so also the output files of the simulation so change the pathname to /local/scratch/dirname
 dirname=`echo $dirname | sed -e 's/\//_/g'`
 
-#workpathname=$pathname
-workpathname="/local/scratch/${dirname}"
+workpathname="/localscratch/${SLURM_JOB_ID}/${dirname}"
 if [ ! -d $workpathname ]; then
   mkdir -p $workpathname
 fi
