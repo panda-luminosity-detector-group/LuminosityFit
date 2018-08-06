@@ -181,15 +181,15 @@ double PndLmdFitFacade::calcHistIntegral(const TH2D* hist,
   return hist->Integral(bin_low_x, bin_high_x, bin_low_y, bin_high_y, "width");
 }
 
-shared_ptr<Data> PndLmdFitFacade::createData1D(
+std::shared_ptr<Data> PndLmdFitFacade::createData1D(
     const PndLmdHistogramData &lmd_hist_data) const {
-  shared_ptr<Data> data(new Data(1));
+  std::shared_ptr<Data> data(new Data(1));
   data_helper.fillBinnedData(data, lmd_hist_data.get1DHistogram());
   return data;
 }
-shared_ptr<Data> PndLmdFitFacade::createData2D(
+std::shared_ptr<Data> PndLmdFitFacade::createData2D(
     const PndLmdHistogramData &lmd_hist_data) const {
-  shared_ptr<Data> data(new Data(2));
+  std::shared_ptr<Data> data(new Data(2));
   data_helper.fillBinnedData(data, lmd_hist_data.get2DHistogram());
   return data;
 }
@@ -234,7 +234,7 @@ std::set<std::string, ModelStructs::string_comp> PndLmdFitFacade::constructFreeF
   return free_params;
 }
 
-void PndLmdFitFacade::freeParametersForModel(shared_ptr<Model> current_model,
+void PndLmdFitFacade::freeParametersForModel(std::shared_ptr<Model> current_model,
     const PndLmdFitOptions &fit_opts) const {
   const std::set<std::string, ModelStructs::string_comp> &free_params =
       fit_opts.getFreeParameterSet();
@@ -246,7 +246,7 @@ void PndLmdFitFacade::freeParametersForModel(shared_ptr<Model> current_model,
 }
 
 void PndLmdFitFacade::initBeamParametersForModel(
-    shared_ptr<Model> current_model, const ptree& model_opt_ptree) const {
+    std::shared_ptr<Model> current_model, const ptree& model_opt_ptree) const {
   current_model->getModelParameterSet().setModelParameterValue("luminosity",
       1.0);
 
@@ -470,7 +470,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     fit_options_no_div.free_parameter_names.erase("gauss_sigma_var1");
     fit_options_no_div.free_parameter_names.erase("gauss_sigma_var2");
 
-    shared_ptr<Model> model = generateModel(lmd_data, fit_options_no_div);
+    std::shared_ptr<Model> model = generateModel(lmd_data, fit_options_no_div);
 
     // init beam parameters in model
     initBeamParametersForModel(model,
@@ -522,12 +522,12 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
         lumi_start);
 
     // create minimizer instance with control parameter
-    shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer());
-    //shared_ptr<CeresMinimizer> ceres_minimizer(new CeresMinimizer());
+    std::shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer());
+    //std::shared_ptr<CeresMinimizer> ceres_minimizer(new CeresMinimizer());
 
     model_fit_facade.setMinimizer(minuit_minimizer);
     // create estimator
-    shared_ptr<ModelEstimator> estimator;
+    std::shared_ptr<ModelEstimator> estimator;
     if (fit_options.estimator_type == LumiFit::CHI2)
       estimator.reset(new Chi2Estimator());
     else
@@ -590,10 +590,10 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
 
     std::vector<std::string> scan_var_names = { "gauss_sigma_var1",
         "gauss_sigma_var2" };
-    std::vector<shared_ptr<ModelPar> > pars;
+    std::vector<std::shared_ptr<ModelPar> > pars;
     bool has_divergence_parameters(true);
     for (unsigned int i = 0; i < scan_var_names.size(); ++i) {
-      shared_ptr<ModelPar> temp_par =
+      std::shared_ptr<ModelPar> temp_par =
           model->getModelParameterSet().getModelParameter(scan_var_names[i]);
       if (temp_par->isParameterFixed() == false) {
         pars.push_back(temp_par);
@@ -616,7 +616,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
   }
 
   else {
-    shared_ptr<Model> model = generateModel(lmd_data, fit_options);
+    std::shared_ptr<Model> model = generateModel(lmd_data, fit_options);
 
 // init beam parameters in model
     initBeamParametersForModel(model,
@@ -668,12 +668,12 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
         lumi_start);
 
 // create minimizer instance with control parameter
-    shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer());
-    //shared_ptr<CeresMinimizer> ceres_minimizer(new CeresMinimizer());
+    std::shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer());
+    //std::shared_ptr<CeresMinimizer> ceres_minimizer(new CeresMinimizer());
 
     model_fit_facade.setMinimizer(minuit_minimizer);
     // create estimator
-    shared_ptr<ModelEstimator> estimator;
+    std::shared_ptr<ModelEstimator> estimator;
     if (fit_options.estimator_type == LumiFit::CHI2)
       estimator.reset(new Chi2Estimator());
     else
@@ -691,16 +691,16 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
   }
 }
 
-shared_ptr<Model> PndLmdFitFacade::generateModel(
+std::shared_ptr<Model> PndLmdFitFacade::generateModel(
     const PndLmdAngularData &lmd_data) {
   PndLmdFitOptions fit_options(createFitOptions(lmd_data));
 
   return generateModel(lmd_data, fit_options);
 }
 
-shared_ptr<Model> PndLmdFitFacade::generateModel(
+std::shared_ptr<Model> PndLmdFitFacade::generateModel(
     const PndLmdAngularData &lmd_data, const PndLmdFitOptions &fit_options) {
-  shared_ptr<Model> model = model_factory.generateModel(
+  std::shared_ptr<Model> model = model_factory.generateModel(
       fit_options.getModelOptionsPropertyTree(), lmd_data);
 
 // init beam parameters in model
@@ -727,7 +727,7 @@ void PndLmdFitFacade::scanEstimatorSpace(PndLmdHistogramData &lmd_hist_data,
   cout << fit_options << endl;
 
 // create estimator
-  shared_ptr<ModelEstimator> estimator;
+  std::shared_ptr<ModelEstimator> estimator;
   if (fit_options.estimator_type == LumiFit::CHI2)
     estimator.reset(new Chi2Estimator());
   else
@@ -777,7 +777,7 @@ void PndLmdFitFacade::doFit(PndLmdHistogramData &lmd_hist_data,
    }*/
 
 // create estimator
-  shared_ptr<ModelEstimator> estimator;
+  std::shared_ptr<ModelEstimator> estimator;
   if (fit_options.estimator_type == LumiFit::CHI2)
     estimator.reset(new Chi2Estimator());
   else
@@ -894,7 +894,7 @@ void PndLmdFitFacade::fitVertexData(
 
     ptree model_opt_ptree = fit_options.getModelOptionsPropertyTree();
     // generate the model
-    shared_ptr<Model1D> vertex_model = model_factory.generate1DVertexModel(
+    std::shared_ptr<Model1D> vertex_model = model_factory.generate1DVertexModel(
         model_opt_ptree);
 
     LumiFit::ModelType model_type = LumiFit::StringToModelType.at(
@@ -927,7 +927,7 @@ void PndLmdFitFacade::fitVertexData(
     model_fit_facade.setModel(vertex_model);
 
     // create minimizer instance with control parameter
-    shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer(1));
+    std::shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer(1));
 
     model_fit_facade.setMinimizer(minuit_minimizer);
 

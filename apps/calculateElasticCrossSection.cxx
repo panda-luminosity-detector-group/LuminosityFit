@@ -35,7 +35,7 @@ void calculateElasticCrossSection(double momentum, double lower_bound,
 	PndLmdAngularData data;
 	data.setLabMomentum(momentum);
 
-	shared_ptr<Model> approx_model = model_factory.generateModel(approx_model_opt, data);
+	std::shared_ptr<Model> approx_model = model_factory.generateModel(approx_model_opt, data);
 	std::vector<DataStructs::DimensionRange> integral_ranges;
 	DataStructs::DimensionRange dr(lower_bound / 1000.0, upper_bound / 1000.0);
 	integral_ranges.push_back(dr);
@@ -50,7 +50,7 @@ void calculateElasticCrossSection(double momentum, double lower_bound,
 boost::property_tree::ptree correct_model_opt(base_model_opt);
         correct_model_opt.put("theta_t_trafo_option", "CORRECT");
 
-	shared_ptr<Model> correct_model = model_factory.generateModel(correct_model_opt, data);
+	std::shared_ptr<Model> correct_model = model_factory.generateModel(correct_model_opt, data);
 using namespace std::chrono;
 
   duration<double> time_span_approx;

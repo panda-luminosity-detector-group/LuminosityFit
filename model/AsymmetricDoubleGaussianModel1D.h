@@ -6,10 +6,10 @@
 class AsymmetricGaussianModel1D;
 
 class AsymmetricDoubleGaussianModel1D: public Model1D {
-	shared_ptr<AsymmetricGaussianModel1D> wide_gauss;
-	shared_ptr<AsymmetricGaussianModel1D> narrow_gauss;
+	std::shared_ptr<AsymmetricGaussianModel1D> wide_gauss;
+	std::shared_ptr<AsymmetricGaussianModel1D> narrow_gauss;
 
-	shared_ptr<ModelPar> ratio_narrow_wide_gauss;
+	std::shared_ptr<ModelPar> ratio_narrow_wide_gauss;
 
 public:
 	AsymmetricDoubleGaussianModel1D(std::string name_);

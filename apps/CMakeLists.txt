@@ -1,12 +1,10 @@
 set(INCLUDE_DIRECTORIES
-  $ENV{MODEL_FRAMEWORK}/include
   ${ROOT_INCLUDE_DIR}
   $ENV{BOOST_ROOT}/include
 )
 include_directories(${INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
-  $ENV{MODEL_FRAMEWORK}/lib
   ${ROOT_LIBRARY_DIR}
   $ENV{BOOST_ROOT}/lib
 )
@@ -22,7 +20,7 @@ target_link_libraries(calculateElasticCrossSection LmdUI)
 ########################### create checkFramework app ##################################
 
 add_executable(checkFramework checkFramework.cxx)
-target_link_libraries(checkFramework $ENV{ROOT_LIBRARIES} Model)
+target_link_libraries(checkFramework Model RIO)
 
 ########################### create fitRawDPMElasticData app ##################################
 
@@ -32,7 +30,7 @@ target_link_libraries(checkFramework $ENV{ROOT_LIBRARIES} Model)
 ########################### create checkDivergenceSmearing app ##################################
 
 add_executable(checkDivergenceSmearing checkDivergenceSmearing.cxx)
-target_link_libraries(checkDivergenceSmearing $ENV{ROOT_LIBRARIES} LmdUI)
+target_link_libraries(checkDivergenceSmearing LmdUI)
 
 ########################### create acceptanceComparison app ##################################
 
@@ -48,7 +46,7 @@ target_link_libraries(analyzeResolutionMapData LmdUI)
 ########################### create lumiFitData app ##################################
 
 add_executable(createLmdFitData createLmdFitData.cxx)
-target_link_libraries(createLmdFitData LmdUI)
+target_link_libraries(createLmdFitData LmdUI boost_filesystem boost_system)
 
 ########################### create determineBeamOffset app ##################################
 

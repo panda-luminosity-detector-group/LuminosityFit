@@ -1,5 +1,4 @@
 set(INCLUDE_DIRECTORIES
-  $ENV{MODEL_FRAMEWORK}/include
   ${ROOT_INCLUDE_DIR}
   $ENV{BOOST_ROOT}/include
 )
@@ -7,17 +6,11 @@ include_directories(${INCLUDE_DIRECTORIES})
 
 
 set(LINK_DIRECTORIES
-  $ENV{MODEL_FRAMEWORK}/lib
   ${ROOT_LIBRARY_DIR}
   $ENV{BOOST_ROOT}/lib
 )
-
 link_directories(${LINK_DIRECTORIES})
-set(LINK_LIBS 
-Model
-boost_filesystem
-boost_regex
-)
+
 
 set(SRCS
 AsymmetricDoubleGaussianModel1D.cxx
@@ -46,4 +39,7 @@ PndLmdSmearingModel2D.cxx
 
 add_library(LmdModel SHARED ${SRCS})
 
-target_link_libraries(LmdModel LINK_PRIVATE ${LINK_LIBS})
+target_link_libraries(LmdModel 
+	PUBLIC Model boost_filesystem boost_regex
+	PRIVATE Physics EG pthread
+	INTERFACE LmdFitData )

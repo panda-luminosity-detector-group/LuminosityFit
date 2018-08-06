@@ -7,10 +7,10 @@
 class PndLmdFastDPMAngModel2D: public Model2D {
   mydouble one_over_two_pi;
 
-  shared_ptr<Model> dpm_model_1d;
+  std::shared_ptr<Model> dpm_model_1d;
 
-	shared_ptr<ModelPar> tilt_x;
-	shared_ptr<ModelPar> tilt_y;
+	std::shared_ptr<ModelPar> tilt_x;
+	std::shared_ptr<ModelPar> tilt_y;
 
 	mydouble calculateThetaFromTiltedSystem(const mydouble theta,
 			const mydouble phi) const;
@@ -20,7 +20,7 @@ class PndLmdFastDPMAngModel2D: public Model2D {
 
 public:
 	PndLmdFastDPMAngModel2D(std::string name_,
-			shared_ptr<PndLmdDPMAngModel1D> dpm_model_1d_);
+			std::shared_ptr<PndLmdDPMAngModel1D> dpm_model_1d_);
 	virtual ~PndLmdFastDPMAngModel2D();
 
 	virtual void initModelParameters();

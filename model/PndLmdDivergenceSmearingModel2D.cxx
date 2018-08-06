@@ -20,7 +20,7 @@
 #include <random>
 
 PndLmdDivergenceSmearingModel2D::PndLmdDivergenceSmearingModel2D(
-    shared_ptr<Model2D> divergence_model_,
+    std::shared_ptr<Model2D> divergence_model_,
     const LumiFit::LmdDimension& data_dim_x_,
     const LumiFit::LmdDimension& data_dim_y_) :
     divergence_model(divergence_model_), data_dim_x(data_dim_x_), data_dim_y(
@@ -146,7 +146,7 @@ void PndLmdDivergenceSmearingModel2D::optimizeNumericalIntegration(
   unsigned int nthreads =
       PndLmdRuntimeConfiguration::Instance().getNumberOfThreads();
 
-  /*shared_ptr<SimpleIntegralStrategy2D> integral_strategy(
+  /*std::shared_ptr<SimpleIntegralStrategy2D> integral_strategy(
       new SimpleIntegralStrategy2D());
   divergence_model->setIntegralStrategy(integral_strategy);
 
@@ -157,7 +157,7 @@ void PndLmdDivergenceSmearingModel2D::optimizeNumericalIntegration(
   mydouble div_bin_size_x = data_dim_x.bin_size;
   mydouble div_bin_size_y = data_dim_y.bin_size;
 
-  shared_ptr<IntegralStrategyGSL2D> integral_strategy(
+  std::shared_ptr<IntegralStrategyGSL2D> integral_strategy(
       new IntegralStrategyGSL2D());
   divergence_model->setIntegralStrategy(integral_strategy);
 

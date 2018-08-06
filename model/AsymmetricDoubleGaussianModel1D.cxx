@@ -33,7 +33,6 @@ void AsymmetricDoubleGaussianModel1D::initModelParameters() {
 }
 
 mydouble AsymmetricDoubleGaussianModel1D::eval(const double *x) const {
-	double value = 0.0;
 	// left side
 	return wide_gauss->eval(x) + narrow_gauss->eval(x);
 }

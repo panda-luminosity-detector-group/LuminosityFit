@@ -1,0 +1,65 @@
+#include "CeresMinimizer.h"
+#include "fit/ModelEstimator.h"
+
+CeresMinimizer::CeresMinimizer() :
+    x(0) {
+
+}
+
+CeresMinimizer::~CeresMinimizer() {
+  // TODO Auto-generated destructor stub
+}
+
+ModelFitResult CeresMinimizer::createModelFitResult() const {
+  ModelFitResult fit_result;
+
+  for (unsigned int i = 0; i < summary.num_parameters; i++) {
+    fit_result.addFitParameter(std::make_pair("", ""), x[i], 0.0);
+  }
+
+  return fit_result;
+}
+
+int CeresMinimizer::minimize() {
+  std::cout << "Setting up fit..." << std::endl;
+
+  std::cout << "Number of free parameters in fit: "
+      << control_parameter->getParameterList().size() << std::endl;
+  google::InitGoogleLogging("fit");
+
+  if (x != 0)
+    delete[] x;
+
+  x = new double[control_parameter->getParameterList().size()];
+  // Set the free variables to be minimized!
+  for (unsigned int i = 0; i < control_parameter->getParameterList().size();
+      i++) {
+    std::cout << "setting value "
+        << control_parameter->getParameterList()[i].name.first << ":" <<
+    control_parameter->getParameterList()[i].name.second << " to "
+        << control_parameter->getParameterList()[i].value << std::endl;
+    x[i] = control_parameter->getParameterList()[i].value;
+  }
+
+  // Build the problem.
+  ceres::Problem problem;
+  // Set up the only cost function (also known as residual). This uses
+  // numeric differentiation to obtain the derivative (jacobian).
+  ceres::DynamicNumericDiffCostFunction<CostFunctor, ceres::RIDDERS>* cost_function =
+    new ceres::DynamicNumericDiffCostFunction<CostFunctor, ceres::RIDDERS>(new CostFunctor(control_parameter));
+  cost_function->AddParameterBlock(control_parameter->getParameterList().size());
+  cost_function->SetNumResiduals(1);
+  problem.AddResidualBlock(cost_function, NULL, x);
+
+  std::cout << "Finished setting up fit!" << std::endl;
+
+  std::cout << "Performing fit..." << std::endl;
+  // Run the solver!
+  ceres::Solver::Options options;
+  options.minimizer_progress_to_stdout = true;
+
+  ceres::Solve(options, &problem, &summary);
+  std::cout << summary.BriefReport() << "\n";
+  std::cout << "Fit done!" << std::endl;
+  return 0;
+}

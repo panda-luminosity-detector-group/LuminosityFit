@@ -39,8 +39,8 @@ private:
 
   static void signalHandler(int signum);
 
-  shared_ptr<Data> createData1D(const PndLmdHistogramData &lmd_hist_data) const;
-  shared_ptr<Data> createData2D(const PndLmdHistogramData &lmd_hist_data) const;
+  std::shared_ptr<Data> createData1D(const PndLmdHistogramData &lmd_hist_data) const;
+  std::shared_ptr<Data> createData2D(const PndLmdHistogramData &lmd_hist_data) const;
 
   void saveFittedObjectsToFile(
       std::vector<PndLmdAngularData>& lmd_data_vec) const;
@@ -50,7 +50,7 @@ private:
   std::set<std::string, ModelStructs::string_comp> constructFreeFitParameterListFromConfig(
       const boost::property_tree::ptree& pt) const;
 
-  void freeParametersForModel(shared_ptr<Model> current_model,
+  void freeParametersForModel(std::shared_ptr<Model> current_model,
       const PndLmdFitOptions &fit_opts) const;
 
   void addBeamParametersToFreeParameterList(PndLmdFitOptions &fit_opts,
@@ -82,7 +82,7 @@ public:
       const PndLmdAbstractData &lmd_abs_data,
       const EstimatorOptions &est_options) const;
 
-  void initBeamParametersForModel(shared_ptr<Model> current_model,
+  void initBeamParametersForModel(std::shared_ptr<Model> current_model,
       const boost::property_tree::ptree& model_opt_ptree) const;
 
   PndLmdFitDataBundle doLuminosityFits(
@@ -90,8 +90,8 @@ public:
 
   void fitElasticPPbar(PndLmdAngularData &lmd_data);
 
-  shared_ptr<Model> generateModel(const PndLmdAngularData &lmd_data);
-  shared_ptr<Model> generateModel(const PndLmdAngularData &lmd_data,
+  std::shared_ptr<Model> generateModel(const PndLmdAngularData &lmd_data);
+  std::shared_ptr<Model> generateModel(const PndLmdAngularData &lmd_data,
       const PndLmdFitOptions &fit_options);
 
   void scanEstimatorSpace(PndLmdHistogramData &lmd_hist_data,

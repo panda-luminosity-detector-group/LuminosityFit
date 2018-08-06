@@ -12,7 +12,7 @@
 #include <random>
 
 CachedModel2D::CachedModel2D(const std::string& name,
-    shared_ptr<Model2D> model_, const LumiFit::LmdDimension& data_dim_x_,
+    std::shared_ptr<Model2D> model_, const LumiFit::LmdDimension& data_dim_x_,
     const LumiFit::LmdDimension& data_dim_y_) :
     Model2D(name), model(model_), data_dim_x(data_dim_x_), data_dim_y(
         data_dim_y_), integral_precision(1e-6) {
@@ -111,7 +111,7 @@ void CachedModel2D::optimizeNumericalIntegration() {
 
   //integral_strategy.reset(
   //    new IntegralStrategyGSL2D());
-  shared_ptr<SimpleIntegralStrategy2D> integral_strategy(
+  std::shared_ptr<SimpleIntegralStrategy2D> integral_strategy(
       new SimpleIntegralStrategy2D());
   model->setIntegralStrategy(integral_strategy);
 
@@ -157,7 +157,7 @@ void CachedModel2D::generateModelGrid2D(
     const std::vector<IntRange2D>& int_ranges) {
   mydouble x[2];
 
-  shared_ptr<SimpleIntegralStrategy2D> test_integral_strategy(
+  std::shared_ptr<SimpleIntegralStrategy2D> test_integral_strategy(
       new SimpleIntegralStrategy2D());
   test_integral_strategy->setUsedEvaluationGridConstant(5);
 

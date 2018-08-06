@@ -12,8 +12,8 @@ class PndLmdDifferentialSmearingConvolutionModel2D: public Model2D {
     unsigned int y_bin_high;
   };
 
-  shared_ptr<Model2D> unsmeared_model;
-  shared_ptr<PndLmdDivergenceSmearingModel2D> smearing_model;
+  std::shared_ptr<Model2D> unsmeared_model;
+  std::shared_ptr<PndLmdDivergenceSmearingModel2D> smearing_model;
 
   LumiFit::LmdDimension data_dim_x;
   LumiFit::LmdDimension data_dim_y;
@@ -39,8 +39,8 @@ class PndLmdDifferentialSmearingConvolutionModel2D: public Model2D {
 
 public:
   PndLmdDifferentialSmearingConvolutionModel2D(std::string name_,
-      shared_ptr<Model2D> unsmeared_model_,
-      shared_ptr<PndLmdDivergenceSmearingModel2D> smearing_model_,
+      std::shared_ptr<Model2D> unsmeared_model_,
+      std::shared_ptr<PndLmdDivergenceSmearingModel2D> smearing_model_,
       const LumiFit::LmdDimension& data_dim_x_,
       const LumiFit::LmdDimension& data_dim_y_,
       unsigned int combine_grid_factor_);
@@ -48,7 +48,7 @@ public:
 
   void initModelParameters();
 
-  void injectModelParameter(shared_ptr<ModelPar> model_param);
+  void injectModelParameter(std::shared_ptr<ModelPar> model_param);
 
   mydouble eval(const mydouble *x) const;
 

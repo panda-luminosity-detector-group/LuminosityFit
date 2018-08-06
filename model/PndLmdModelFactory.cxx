@@ -55,7 +55,7 @@ PndLmdModelFactory::~PndLmdModelFactory() {
 
 }
 
-shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel(
+std::shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel(
     const LumiFit::LmdDimension &dimx,
     const LumiFit::LmdDimension &dimy) const {
   // convert to a vector for faster access due to better caching
@@ -165,7 +165,7 @@ shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel(
 
   //gPad = current_pad; // reset pad to the one before*/
 
-  shared_ptr<PndLmdSmearingModel2D> detector_smearing_model(
+  std::shared_ptr<PndLmdSmearingModel2D> detector_smearing_model(
       new PndLmdSmearingModel2D(dimx, dimy));
 
   detector_smearing_model->setSmearingParameterization(smearing_param);
@@ -175,7 +175,7 @@ shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel(
   return detector_smearing_model;
 }
 
-shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel(
+std::shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel(
     const PndLmdHistogramData &data, const LumiFit::LmdDimension &dimx,
     const LumiFit::LmdDimension &dimy) const {
   std::map<std::pair<double, double>, std::map<LumiFit::BinDimension, double> > resolution_map;
@@ -423,7 +423,7 @@ shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel(
   }
   std::cout << "done!" << std::endl;
 
-  shared_ptr<PndLmdSmearingModel2D> detector_smearing_model(
+  std::shared_ptr<PndLmdSmearingModel2D> detector_smearing_model(
       new PndLmdSmearingModel2D(dimx, dimy));
 
   detector_smearing_model->setSmearingParameterization(smearing_param);
@@ -433,7 +433,7 @@ shared_ptr<PndLmdSmearingModel2D> PndLmdModelFactory::generate2DSmearingModel(
 double PndLmdModelFactory::getMomentumTransferFromTheta(double plab,
     double theta) const {
   PndLmdDPMAngModel1D model("dpm_angular_1d", LumiFit::ALL, LumiFit::APPROX);
-  shared_ptr<Parametrization> para(
+  std::shared_ptr<Parametrization> para(
       new PndLmdDPMModelParametrization(model.getModelParameterSet()));
   model.getModelParameterHandler().registerParametrizations(
       model.getModelParameterSet(), para);
@@ -442,10 +442,10 @@ double PndLmdModelFactory::getMomentumTransferFromTheta(double plab,
   return -model.getMomentumTransferFromTheta(theta);
 }
 
-shared_ptr<Model1D> PndLmdModelFactory::generate1DModel(
+std::shared_ptr<Model1D> PndLmdModelFactory::generate1DModel(
     const boost::property_tree::ptree& model_opt_ptree,
     const PndLmdAngularData& data) const {
-  shared_ptr<Model1D> current_model;
+  std::shared_ptr<Model1D> current_model;
 
   LumiFit::DPMElasticParts elastic_parts = LumiFit::StringToDPMElasticParts.at(
       model_opt_ptree.get<std::string>("dpm_elastic_parts"));
@@ -462,7 +462,7 @@ shared_ptr<Model1D> PndLmdModelFactory::generate1DModel(
         new PndLmdDPMAngModel1D("dpm_angular_1d", elastic_parts, trans_option));
   }
 
-  shared_ptr<Parametrization> dpm_parametrization(
+  std::shared_ptr<Parametrization> dpm_parametrization(
       new PndLmdDPMModelParametrization(current_model->getModelParameterSet()));
   current_model->getModelParameterHandler().registerParametrizations(
       current_model->getModelParameterSet(), dpm_parametrization);
@@ -490,7 +490,7 @@ shared_ptr<Model1D> PndLmdModelFactory::generate1DModel(
       }
       data_model->setDataDimension(
           acceptance.getPrimaryDimension().dimension_range);
-      shared_ptr<Model1D> acc(data_model);
+      std::shared_ptr<Model1D> acc(data_model);
 
       current_model.reset(
           new ProductModel1D("acceptance_corrected_1d", current_model, acc));
@@ -526,10 +526,10 @@ shared_ptr<Model1D> PndLmdModelFactory::generate1DModel(
   return current_model;
 }
 
-shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
+std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
     const boost::property_tree::ptree& model_opt_ptree,
     const PndLmdAngularData& data) const {
-  shared_ptr<Model2D> current_model;
+  std::shared_ptr<Model2D> current_model;
 
   std::stringstream model_name;
   model_name << "dpm_angular_2d";
@@ -538,13 +538,13 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
       LumiFit::StringToTransformationOption.at(
           model_opt_ptree.get<std::string>("theta_t_trafo_option"));
 
-  shared_ptr<PndLmdDPMAngModel1D> dpm_angular_1d(
+  std::shared_ptr<PndLmdDPMAngModel1D> dpm_angular_1d(
       new PndLmdDPMAngModel1D("dpm_angular_1d",
           LumiFit::StringToDPMElasticParts.at(
               model_opt_ptree.get<std::string>("dpm_elastic_parts")),
           trans_option));
 
-  shared_ptr<Parametrization> dpm_parametrization(
+  std::shared_ptr<Parametrization> dpm_parametrization(
       new PndLmdDPMModelParametrization(
           dpm_angular_1d->getModelParameterSet()));
   dpm_angular_1d->getModelParameterHandler().registerParametrizations(
@@ -570,7 +570,7 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
     temp_prim_dim.calculateBinSize();
     temp_sec_dim.calculateBinSize();
 
-    shared_ptr<PndLmdFastDPMAngModel2D> dpm_model_2d(
+    std::shared_ptr<PndLmdFastDPMAngModel2D> dpm_model_2d(
         new PndLmdFastDPMAngModel2D(model_name.str(), dpm_angular_1d));
 
     model_name << "_cached";
@@ -586,18 +586,18 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
       // at this point we introduce "non numerical" discretization from the data
       // thats why the data object is required here
 
-      shared_ptr<GaussianModel2D> divergence_model(
+      std::shared_ptr<GaussianModel2D> divergence_model(
           new GaussianModel2D("divergence_model", 5.0));
 
       divergence_model->init();
 
-      shared_ptr<PndLmdDivergenceSmearingModel2D> divergence_smearing_model(
+      std::shared_ptr<PndLmdDivergenceSmearingModel2D> divergence_smearing_model(
           new PndLmdDivergenceSmearingModel2D(divergence_model, temp_prim_dim,
               temp_sec_dim));
 
       model_name << "_div_smeared";
 
-      shared_ptr<PndLmdDifferentialSmearingConvolutionModel2D> div_smeared_model(
+      std::shared_ptr<PndLmdDifferentialSmearingConvolutionModel2D> div_smeared_model(
           new PndLmdDifferentialSmearingConvolutionModel2D(model_name.str(),
               current_model, divergence_smearing_model, data_primary_dimension,
               data_secondary_dimension, combine));
@@ -626,7 +626,7 @@ shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
 
   if (model_opt_ptree.get<bool>("acceptance_correction_active")) { // with acceptance corr
     if (acceptance.getAcceptance2D()) {
-      shared_ptr<DataModel2D> acc(
+      std::shared_ptr<DataModel2D> acc(
           new DataModel2D("acceptance_2d",
               LumiFit::StringToInterpolationType.at(
                   model_opt_ptree.get<std::string>(
@@ -794,9 +794,9 @@ void PndLmdModelFactory::setResolutions(
   resolutions = resolutions_;
 }
 
-shared_ptr<Model1D> PndLmdModelFactory::generate1DVertexModel(
+std::shared_ptr<Model1D> PndLmdModelFactory::generate1DVertexModel(
     const boost::property_tree::ptree& model_opt_ptree) const {
-  shared_ptr<Model1D> vertex_model;
+  std::shared_ptr<Model1D> vertex_model;
 
   LumiFit::ModelType model_type(
       LumiFit::StringToModelType.at(
@@ -815,10 +815,10 @@ shared_ptr<Model1D> PndLmdModelFactory::generate1DVertexModel(
   return vertex_model;
 }
 
-shared_ptr<Model> PndLmdModelFactory::generateModel(
+std::shared_ptr<Model> PndLmdModelFactory::generateModel(
     const boost::property_tree::ptree& model_opt_ptree,
     const PndLmdAngularData& data) const {
-  shared_ptr<Model> current_model;
+  std::shared_ptr<Model> current_model;
 
   std::cout << "Generating model ... " << std::endl;
 

@@ -16,7 +16,7 @@ class CachedModel2D: public Model2D {
   unsigned int nthreads;
   mydouble integral_precision;
 
-  shared_ptr<Model2D> model;
+  std::shared_ptr<Model2D> model;
 
   LumiFit::LmdDimension data_dim_x;
   LumiFit::LmdDimension data_dim_y;
@@ -33,7 +33,7 @@ class CachedModel2D: public Model2D {
   void generateModelGrid2D(const std::vector<IntRange2D>& int_ranges);
 
 public:
-  CachedModel2D(const std::string& name, shared_ptr<Model2D> model_,
+  CachedModel2D(const std::string& name, std::shared_ptr<Model2D> model_,
       const LumiFit::LmdDimension& data_dim_x_,
       const LumiFit::LmdDimension& data_dim_y_);
   virtual ~CachedModel2D();

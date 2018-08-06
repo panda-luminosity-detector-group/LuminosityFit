@@ -6,7 +6,7 @@
 #include "TVector3.h"
 
 PndLmdFastDPMAngModel2D::PndLmdFastDPMAngModel2D(std::string name_,
-    shared_ptr<PndLmdDPMAngModel1D> dpm_model_1d_) :
+    std::shared_ptr<PndLmdDPMAngModel1D> dpm_model_1d_) :
     Model2D(name_), dpm_model_1d(dpm_model_1d_) {
   one_over_two_pi = 0.5 / TMath::Pi();
   initModelParameters();

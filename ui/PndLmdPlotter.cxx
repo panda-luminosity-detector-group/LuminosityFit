@@ -228,11 +228,11 @@ namespace LumiFit {
       lmd_fit_facade.setModelFactoryResolutionMap(temp_data);
     }
 
-    shared_ptr<Model> model = lmd_fit_facade.generateModel(elastic_data_bundle,
+    std::shared_ptr<Model> model = lmd_fit_facade.generateModel(elastic_data_bundle,
         fit_opt);
     lmd_fit_facade.initBeamParametersForModel(model,
         fit_opt.getModelOptionsPropertyTree());
-    //shared_ptr<Model> model = model_factory.generateModel(
+    //std::shared_ptr<Model> model = model_factory.generateModel(
     //		fit_opt.getModelOptionsPropertyTree(), elastic_data_bundle);
 
     // now just overwrite all parameters in the model from the fit result
@@ -267,7 +267,7 @@ namespace LumiFit {
   TGraphAsymmErrors* PndLmdPlotter::createGraphFromFitResult(
       const PndLmdFitOptions &fit_opt, PndLmdAngularData &data) const {
 
-    shared_ptr<Model> model = model_factory.generateModel(
+    std::shared_ptr<Model> model = model_factory.generateModel(
         fit_opt.getModelOptionsPropertyTree(), data);
     if (model->init()) {
       std::cout << "Error: not all parameters have been set!" << std::endl;
@@ -286,7 +286,7 @@ namespace LumiFit {
   TGraphAsymmErrors* PndLmdPlotter::createVertexGraphFromFitResult(
       const PndLmdFitOptions &fit_opt, const PndLmdHistogramData &data) const {
 
-    shared_ptr<Model1D> model = model_factory.generate1DVertexModel(
+    std::shared_ptr<Model1D> model = model_factory.generate1DVertexModel(
         fit_opt.getModelOptionsPropertyTree());
     if (model->init()) {
       std::cout << "Error: not all parameters have been set!" << std::endl;
@@ -307,7 +307,7 @@ namespace LumiFit {
    const PndLmdHistogramData &res_data) const {
 
    PndLmdModelFactory model_factory;
-   shared_ptr<Model2D> model = model_factory.generate2DResolutionModel(
+   std::shared_ptr<Model2D> model = model_factory.generate2DResolutionModel(
    fit_opt);
    if (model->init()) {
    std::cout << "Error: not all parameters have been set!" << std::endl;
@@ -329,7 +329,7 @@ namespace LumiFit {
    const PndLmdFitOptions &fit_opt,
    const PndLmdHistogramData &res_data) const {
    PndLmdModelFactory model_factory;
-   shared_ptr<Model1D> model = model_factory.generate1DResolutionModel(
+   std::shared_ptr<Model1D> model = model_factory.generate1DResolutionModel(
    fit_opt.getFitModelOptions());
    if (model->init()) {
    std::cout << "Error: not all parameters have been set!" << std::endl;
@@ -356,7 +356,7 @@ namespace LumiFit {
 
    PndLmdModelFactory model_factory;
 
-   shared_ptr<Model1D> model = model_factory.generate1DModel(
+   std::shared_ptr<Model1D> model = model_factory.generate1DModel(
    fit_opt.getFitModelOptions(), data.getLabMomentum());
    if (model->init()) {
    std::cout << "Error: not all parameters have been set!" << std::endl;
@@ -446,7 +446,7 @@ namespace LumiFit {
     PndLmdAngularData data;
     data.setLabMomentum(plab);
 
-    shared_ptr<Model> model = model_factory.generateModel(model_opt_ptree,
+    std::shared_ptr<Model> model = model_factory.generateModel(model_opt_ptree,
         data);
     if (model->init()) {
       std::cout << "Error: not all parameters have been set!" << std::endl;

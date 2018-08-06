@@ -12,10 +12,10 @@
 #include "PndLmdDPMAngModel1D.h"
 
 class PndLmdDPMAngModel2D: public Model2D {
-	shared_ptr<Model> dpm_model_1d;
+	std::shared_ptr<Model> dpm_model_1d;
 
-	shared_ptr<ModelPar> tilt_x;
-	shared_ptr<ModelPar> tilt_y;
+	std::shared_ptr<ModelPar> tilt_x;
+	std::shared_ptr<ModelPar> tilt_y;
 
 	std::pair<mydouble, mydouble> calculateThetaFromTiltedSystem(const mydouble theta,
 			const mydouble phi) const;
@@ -25,7 +25,7 @@ class PndLmdDPMAngModel2D: public Model2D {
 
 public:
 	PndLmdDPMAngModel2D(std::string name_,
-			shared_ptr<PndLmdDPMAngModel1D> dpm_model_1d_);
+			std::shared_ptr<PndLmdDPMAngModel1D> dpm_model_1d_);
 	virtual ~PndLmdDPMAngModel2D();
 
 	virtual void initModelParameters();

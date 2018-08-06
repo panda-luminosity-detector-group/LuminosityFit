@@ -18,61 +18,61 @@
 #include "TGraphAsymmErrors.h"
 
 PndLmdSmearingGaussianModelParametrization2D::PndLmdSmearingGaussianModelParametrization2D(
-		shared_ptr<Model2D> model,
+		std::shared_ptr<Model2D> model,
 		const LumiFit::PndLmdFitModelOptions& model_options) {
 	p_lab = model->getModelParameterSet().addModelParameter("p_lab");
 	p_lab->setSuperior(true);
 
 	/*if (!model_options.use_resolution_parameter_interpolation) {
-		shared_ptr<Model1D> poly_model1(
+		std::shared_ptr<Model1D> poly_model1(
 		 new PolynomialModel1D("gauss_sigma_poly_model_1d", 1));
-		 shared_ptr<ParametrizationModel> pm1(new ParametrizationModel(poly_model1));
+		 std::shared_ptr<ParametrizationModel> pm1(new ParametrizationModel(poly_model1));
 		 model->getModelParameterHandler().registerParametrizationModel(
 		 model->getModelParameterSet().getModelParameter("gauss_sigma"),
 		 pm1);
 
-		 shared_ptr<Model1D> poly_model2(
+		 std::shared_ptr<Model1D> poly_model2(
 		 new PolynomialModel1D("gauss_mean_poly_model_1d", 1));
-		 shared_ptr<ParametrizationModel> pm2(new ParametrizationModel(poly_model2));
+		 std::shared_ptr<ParametrizationModel> pm2(new ParametrizationModel(poly_model2));
 		 model->getModelParameterHandler().registerParametrizationModel(
 		 model->getModelParameterSet().getModelParameter("gauss_mean"),
 		 pm2);
 
 //	model->getModelParameterSet().getModelParameter("gauss_mean")->setValue(0.0);
 	} else {
-		shared_ptr<PndLmdROOTDataModel2D> interpolation_model_sigma1(
+		std::shared_ptr<PndLmdROOTDataModel2D> interpolation_model_sigma1(
 				new PndLmdROOTDataModel2D("gauss_sigma_var1_data_model_2d"));
-		shared_ptr<ParametrizationModel> pm_sigma1(
+		std::shared_ptr<ParametrizationModel> pm_sigma1(
 				new ParametrizationModel(interpolation_model_sigma1));
 		model->getModelParameterHandler().registerParametrizationModel(
 				model->getModelParameterSet().getModelParameter("gauss_sigma_var1"),
 				pm_sigma1);
-		shared_ptr<PndLmdROOTDataModel2D> interpolation_model_sigma2(
+		std::shared_ptr<PndLmdROOTDataModel2D> interpolation_model_sigma2(
 				new PndLmdROOTDataModel2D("gauss_sigma_var2_data_model_2d"));
-		shared_ptr<ParametrizationModel> pm_sigma2(
+		std::shared_ptr<ParametrizationModel> pm_sigma2(
 				new ParametrizationModel(interpolation_model_sigma2));
 		model->getModelParameterHandler().registerParametrizationModel(
 				model->getModelParameterSet().getModelParameter("gauss_sigma_var2"),
 				pm_sigma2);
 
-		shared_ptr<PndLmdROOTDataModel2D> interpolation_model_mean1(
+		std::shared_ptr<PndLmdROOTDataModel2D> interpolation_model_mean1(
 				new PndLmdROOTDataModel2D("gauss_mean_var1_data_model_2d"));
-		shared_ptr<ParametrizationModel> pm_mean1(
+		std::shared_ptr<ParametrizationModel> pm_mean1(
 				new ParametrizationModel(interpolation_model_mean1));
 		model->getModelParameterHandler().registerParametrizationModel(
 				model->getModelParameterSet().getModelParameter("gauss_mean_var1"),
 				pm_mean1);
-		shared_ptr<PndLmdROOTDataModel2D> interpolation_model_mean2(
+		std::shared_ptr<PndLmdROOTDataModel2D> interpolation_model_mean2(
 				new PndLmdROOTDataModel2D("gauss_mean_var2_data_model_2d"));
-		shared_ptr<ParametrizationModel> pm_mean2(
+		std::shared_ptr<ParametrizationModel> pm_mean2(
 				new ParametrizationModel(interpolation_model_mean2));
 		model->getModelParameterHandler().registerParametrizationModel(
 				model->getModelParameterSet().getModelParameter("gauss_mean_var2"),
 				pm_mean2);
 
-		shared_ptr<PndLmdROOTDataModel2D> interpolation_model_rho(
+		std::shared_ptr<PndLmdROOTDataModel2D> interpolation_model_rho(
 				new PndLmdROOTDataModel2D("gauss_rho_data_model_2d"));
-		shared_ptr<ParametrizationModel> pm_rho(
+		std::shared_ptr<ParametrizationModel> pm_rho(
 				new ParametrizationModel(interpolation_model_rho));
 		model->getModelParameterHandler().registerParametrizationModel(
 				model->getModelParameterSet().getModelParameter("gauss_rho"), pm_rho);

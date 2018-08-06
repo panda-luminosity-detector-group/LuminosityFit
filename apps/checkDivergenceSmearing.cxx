@@ -24,7 +24,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-void makeSinglePlot(shared_ptr<Model2D> model, string name, bool symmetrize =
+void makeSinglePlot(std::shared_ptr<Model2D> model, string name, bool symmetrize =
     false) {
   //plot smeared model
   double var_min = -4.0;
@@ -89,9 +89,9 @@ void plotSmeared2DModel(unsigned int nthreads, unsigned int scale_, unsigned int
 
   //Just take very simple box model
   //model_name << "box_model";
-  //shared_ptr<Model2D> signal_model(new BoxModel2D(model_name.str()));
+  //std::shared_ptr<Model2D> signal_model(new BoxModel2D(model_name.str()));
   model_name << "gaus_model";
-  shared_ptr<Model2D> signal_model(new GaussianModel2D(model_name.str(), 3.0));
+  std::shared_ptr<Model2D> signal_model(new GaussianModel2D(model_name.str(), 3.0));
 
   signal_model->getModelParameterSet().setModelParameterValue(
       "gauss_sigma_var1", data_sigma_x);
@@ -103,7 +103,7 @@ void plotSmeared2DModel(unsigned int nthreads, unsigned int scale_, unsigned int
       0.0);
   signal_model->getModelParameterSet().setModelParameterValue("gauss_rho", 0.0);
 
-  shared_ptr<Model2D> cached_signal_model(
+  std::shared_ptr<Model2D> cached_signal_model(
       new CachedModel2D(model_name.str(), signal_model, temp_prim_dim,
           temp_sec_dim));
   cached_signal_model->updateModel();
@@ -130,16 +130,16 @@ void plotSmeared2DModel(unsigned int nthreads, unsigned int scale_, unsigned int
 
   model_name << "_cached";
 
-  shared_ptr<GaussianModel2D> divergence_model(
+  std::shared_ptr<GaussianModel2D> divergence_model(
       new GaussianModel2D("divergence_model", 5.0));
 
-  shared_ptr<PndLmdDivergenceSmearingModel2D> divergence_smearing_model(
+  std::shared_ptr<PndLmdDivergenceSmearingModel2D> divergence_smearing_model(
       new PndLmdDivergenceSmearingModel2D(divergence_model, temp_prim_dim,
           temp_sec_dim));
 
   model_name << "_div_smeared";
 
-  shared_ptr<PndLmdDifferentialSmearingConvolutionModel2D> div_smeared_model(
+  std::shared_ptr<PndLmdDifferentialSmearingConvolutionModel2D> div_smeared_model(
       new PndLmdDifferentialSmearingConvolutionModel2D(model_name.str(),
           cached_signal_model, divergence_smearing_model, temp_prim_dim, temp_sec_dim,
           PndLmdRuntimeConfiguration::Instance().getNumberOfThreads()));
@@ -184,7 +184,7 @@ void plotSmeared2DModel(unsigned int nthreads, unsigned int scale_, unsigned int
 
   ModelFitFacade model_fit_facade;
 
-  shared_ptr<ModelEstimator> estimator(new LogLikelihoodEstimator());
+  std::shared_ptr<ModelEstimator> estimator(new LogLikelihoodEstimator());
 
   estimator->setNumberOfThreads(lmd_runtime_config.getNumberOfThreads());
 
@@ -319,7 +319,7 @@ void plotSmeared2DModel(unsigned int nthreads, unsigned int scale_, unsigned int
    lmd_fit_facade.addAcceptencesToPool(my_lmd_acc_vec);
    lmd_fit_facade.addResolutionsToPool(all_lmd_res);
 
-   shared_ptr<Model> model = lmd_fit_facade.createModel2D(my_lmd_data_vec[0]);
+   std::shared_ptr<Model> model = lmd_fit_facade.createModel2D(my_lmd_data_vec[0]);
 
    //plot smeared model
    const double var_min = -1e-2;

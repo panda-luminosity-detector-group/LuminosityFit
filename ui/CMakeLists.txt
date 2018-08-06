@@ -1,24 +1,15 @@
 set(INCLUDE_DIRECTORIES
-  $ENV{MODEL_FRAMEWORK}/include
-  $ENV{ROOT_INCLUDE_DIR}
+  ${ROOT_INCLUDE_DIR}
   $ENV{BOOST_ROOT}/include
 )
 include_directories(${INCLUDE_DIRECTORIES})
 
-
 set(LINK_DIRECTORIES
-  $ENV{MODEL_FRAMEWORK}/lib
-  $ENV{ROOT_LIBRARY_DIR}
+  ${ROOT_LIBRARY_DIR}
   $ENV{BOOST_ROOT}/lib
 )
 
 link_directories(${LINK_DIRECTORIES})
-set(LINK_LIBS 
-LmdFit
-LmdFitData
-LmdModel
-boost_regex
-)
 
 set(SRCS
 PndLmdDataFacade.cxx
@@ -29,4 +20,8 @@ PndLmdRuntimeConfiguration.cxx
 
 add_library(LmdUI SHARED ${SRCS})
 
-target_link_libraries(LmdUI LINK_PRIVATE ${LINK_LIBS})
+target_link_libraries(LmdUI 
+	PUBLIC LmdFitData LmdFit Physics RIO Matrix
+	PRIVATE boost_regex
+	INTERFACE LmdModel
+)

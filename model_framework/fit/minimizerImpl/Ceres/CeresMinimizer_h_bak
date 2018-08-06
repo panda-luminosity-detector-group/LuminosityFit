@@ -1,0 +1,23 @@
+#ifndef CERESMINIMIZER_H_
+#define CERESMINIMIZER_H_
+
+#include "fit/ModelMinimizer.h"
+#include "fit/ModelFitResult.h"
+
+#include "ceres/ceres.h"
+
+class CeresMinimizer: public ModelMinimizer {
+private:
+    ceres::Solver::Summary summary;
+    double* x;
+
+	int minimize();
+
+public:
+	CeresMinimizer();
+	virtual ~CeresMinimizer();
+
+	virtual ModelFitResult createModelFitResult() const;
+};
+
+#endif /* CERESMINIMIZER_H_ */

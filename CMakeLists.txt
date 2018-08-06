@@ -5,6 +5,7 @@ project(LmdFit)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++0x")
 
 include_directories(./)
+include_directories(./model_framework)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
@@ -12,6 +13,8 @@ find_package( ROOT REQUIRED )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+add_subdirectory(model_framework)
 
 add_subdirectory(data)
 add_subdirectory(fit)

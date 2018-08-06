@@ -10,8 +10,8 @@
 #include "TMath.h"
 
 PndLmdDifferentialSmearingConvolutionModel2D::PndLmdDifferentialSmearingConvolutionModel2D(
-    std::string name_, shared_ptr<Model2D> unsmeared_model_,
-    shared_ptr<PndLmdDivergenceSmearingModel2D> smearing_model_,
+    std::string name_, std::shared_ptr<Model2D> unsmeared_model_,
+    std::shared_ptr<PndLmdDivergenceSmearingModel2D> smearing_model_,
     const LumiFit::LmdDimension& data_dim_x_,
     const LumiFit::LmdDimension& data_dim_y_, unsigned int combine_factor_) :
     Model2D(name_), data_dim_x(data_dim_x_), data_dim_y(data_dim_y_), combine_factor(
@@ -119,7 +119,7 @@ void PndLmdDifferentialSmearingConvolutionModel2D::initModelParameters() {
 }
 
 void PndLmdDifferentialSmearingConvolutionModel2D::injectModelParameter(
-    shared_ptr<ModelPar> model_param) {
+    std::shared_ptr<ModelPar> model_param) {
   getModelParameterSet().addModelParameter(model_param);
 }
 

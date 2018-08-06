@@ -11,7 +11,7 @@
 #include "TVector3.h"
 
 PndLmdDPMAngModel2D::PndLmdDPMAngModel2D(std::string name_,
-		shared_ptr<PndLmdDPMAngModel1D> dpm_model_1d_) :
+		std::shared_ptr<PndLmdDPMAngModel1D> dpm_model_1d_) :
 		Model2D(name_), dpm_model_1d(dpm_model_1d_) {
 	initModelParameters();
 	this->addModelToList(dpm_model_1d);

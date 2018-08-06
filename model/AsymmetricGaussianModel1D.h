@@ -13,10 +13,10 @@
 class AsymmetricGaussianModel1D: public Model1D {
 private:
 	double num_sigmas;
-	shared_ptr<ModelPar> asymm_gauss_sigma_left;
-	shared_ptr<ModelPar> asymm_gauss_sigma_right;
-	shared_ptr<ModelPar> asymm_gauss_mean;
-	shared_ptr<ModelPar> asymm_gauss_amplitude;
+	std::shared_ptr<ModelPar> asymm_gauss_sigma_left;
+	std::shared_ptr<ModelPar> asymm_gauss_sigma_right;
+	std::shared_ptr<ModelPar> asymm_gauss_mean;
+	std::shared_ptr<ModelPar> asymm_gauss_amplitude;
 
 public:
 	/**

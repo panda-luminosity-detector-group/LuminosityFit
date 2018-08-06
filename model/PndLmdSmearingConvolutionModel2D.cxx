@@ -7,8 +7,8 @@
 #include <boost/thread.hpp>
 
 PndLmdSmearingConvolutionModel2D::PndLmdSmearingConvolutionModel2D(
-    std::string name_, shared_ptr<Model2D> unsmeared_model_,
-    shared_ptr<PndLmdSmearingModel2D> smearing_model_,
+    std::string name_, std::shared_ptr<Model2D> unsmeared_model_,
+    std::shared_ptr<PndLmdSmearingModel2D> smearing_model_,
     const LumiFit::LmdDimension& data_dim_x_,
     const LumiFit::LmdDimension& data_dim_y_) :
     Model2D(name_), data_dim_x(data_dim_x_), data_dim_y(data_dim_y_) {
@@ -41,7 +41,7 @@ void PndLmdSmearingConvolutionModel2D::initModelParameters() {
 }
 
 void PndLmdSmearingConvolutionModel2D::injectModelParameter(
-    shared_ptr<ModelPar> model_param) {
+    std::shared_ptr<ModelPar> model_param) {
   getModelParameterSet().addModelParameter(model_param);
 }
 

@@ -1,7 +1,6 @@
 set(INCLUDE_DIRECTORIES
-  $ENV{MODEL_FRAMEWORK}/include
   ${ROOT_INCLUDE_DIR}
-  $ENV{VMCWORKDIR}/lmd/LmdQA
+  $ENV{VMCWORKDIR}/detectors/lmd/LmdQA
   $ENV{VMCWORKDIR}/pnddata
   $ENV{VMCWORKDIR}/pnddata/SdsData
   $ENV{VMCWORKDIR}/pnddata/TrackData
@@ -17,13 +16,6 @@ set(LINK_DIRECTORIES
 )
 link_directories(${LINK_DIRECTORIES})
 
-set(LINK_LIBS
-MathMore
-PndData
-LmdTool
-LmdFit
-)
-
 set(ROOT_DICT_HEADERS
 data/PndLmdFitDataBundle.h
 data/PndLmdAbstractData.h
@@ -36,9 +28,9 @@ LumiFitStructs.h
 
 set(LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/LinkDef.h)
 
-MESSAGE("Generating root dictionary...")
-execute_process(COMMAND rootcling -f LmdFitDataDict.cxx -I$ENV{MODEL_FRAMEWORK}/include -I${CMAKE_SOURCE_DIR} ${ROOT_DICT_HEADERS} ${LINKDEF})
-MESSAGE("done!")
+message(STATUS "Generating root dictionary for data objects...")
+execute_process(COMMAND rootcling -f LmdFitDataDict.cxx -I${CMAKE_SOURCE_DIR}/model_framework -I${CMAKE_SOURCE_DIR} ${ROOT_DICT_HEADERS} ${LINKDEF})
+message(STATUS "done!")
 
 set(SRCS
 PndLmdAbstractData.cxx
@@ -55,11 +47,13 @@ ${CMAKE_BINARY_DIR}/LmdFitDataDict.cxx
 
 add_library(LmdFitData SHARED ${SRCS})
 
-target_link_libraries(LmdFitData LINK_PRIVATE ${LINK_LIBS})
+target_link_libraries(LmdFitData 
+	INTERFACE MathMore LmdFit
+	PRIVATE PndData LmdTool)
 
 add_custom_command(TARGET LmdFitData 
 		   POST_BUILD 
-		   COMMAND rootcling -f LmdFitDataDict.cxx -rml ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libLmdFitData.so -rmf ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libLmdFitData.rootmap -I$ENV{MODEL_FRAMEWORK}/include -I${CMAKE_SOURCE_DIR} ${ROOT_DICT_HEADERS} ${LINKDEF}
+		   COMMAND rootcling -f LmdFitDataDict.cxx -rml ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libLmdFitData.so -rmf ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libLmdFitData.rootmap -I${CMAKE_SOURCE_DIR}/model_framework -I${CMAKE_SOURCE_DIR} ${ROOT_DICT_HEADERS} ${LINKDEF}
  		   COMMENT "Generating root map..."
                 
 		  )

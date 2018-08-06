@@ -24,11 +24,11 @@ private:
   std::vector<PndLmdHistogramData> resolutions;
   PndLmdMapData resolution_map_data;
 
-  shared_ptr<PndLmdSmearingModel2D> generate2DSmearingModel(
+  std::shared_ptr<PndLmdSmearingModel2D> generate2DSmearingModel(
       const LumiFit::LmdDimension &dimx,
       const LumiFit::LmdDimension &dimy) const;
 
-  shared_ptr<PndLmdSmearingModel2D> generate2DSmearingModel(
+  std::shared_ptr<PndLmdSmearingModel2D> generate2DSmearingModel(
       const PndLmdHistogramData &data, const LumiFit::LmdDimension &dimx,
       const LumiFit::LmdDimension &dimy) const;
 
@@ -36,7 +36,7 @@ private:
    * 1D Model generator method
    * @param model_opt_ptree are the options which model will be built and returned
    */
-  shared_ptr<Model1D> generate1DModel(
+  std::shared_ptr<Model1D> generate1DModel(
       const boost::property_tree::ptree& model_opt_ptree,
       const PndLmdAngularData& data) const;
 
@@ -44,7 +44,7 @@ private:
    * 2D Model generator method
    * @param model_opt_ptree are the options which model will be built and returned
    */
-  shared_ptr<Model2D> generate2DModel(
+  std::shared_ptr<Model2D> generate2DModel(
       const boost::property_tree::ptree& model_opt_ptree,
       const PndLmdAngularData& data) const;
 public:
@@ -59,10 +59,10 @@ public:
   void setResolutionMapData(const PndLmdMapData& res_map_);
   void setResolutions(const std::vector<PndLmdHistogramData>& resolutions_);
 
-  shared_ptr<Model1D> generate1DVertexModel(
+  std::shared_ptr<Model1D> generate1DVertexModel(
       const boost::property_tree::ptree& model_opt_ptree) const;
 
-  shared_ptr<Model> generateModel(
+  std::shared_ptr<Model> generateModel(
       const boost::property_tree::ptree& model_opt_ptree,
       const PndLmdAngularData& data) const;
 };

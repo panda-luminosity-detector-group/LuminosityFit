@@ -78,15 +78,15 @@ void checkFramework(unsigned int num_events) {
 		ModelFitFacade model_fit_facade;
 
 		// create chi2 estimator
-		//shared_ptr<Chi2Estimator> chi2_est(new Chi2Estimator());
+		//std::shared_ptr<Chi2Estimator> chi2_est(new Chi2Estimator());
 		//model_fit_facade.setEstimator(chi2_est);
 
 		// create loglikelihood estimator
-		shared_ptr<LogLikelihoodEstimator> loglikelihood_est(new LogLikelihoodEstimator());
+		std::shared_ptr<LogLikelihoodEstimator> loglikelihood_est(new LogLikelihoodEstimator());
 		model_fit_facade.setEstimator(loglikelihood_est);
 
 		// create a new model
-		shared_ptr<Model1D> model1d(new GaussianModel1D("gauss"));
+		std::shared_ptr<Model1D> model1d(new GaussianModel1D("gauss"));
 		model1d->getModelParameterSet().getModelParameter("gauss_sigma")->setValue(
 				sigma);
 		model1d->getModelParameterSet().getModelParameter("gauss_sigma")->setParameterFixed(
@@ -104,7 +104,7 @@ void checkFramework(unsigned int num_events) {
 
 		// create and set data
 		ROOTDataHelper data_helper;
-		shared_ptr<Data> data(new Data(1));
+		std::shared_ptr<Data> data(new Data(1));
 		data_helper.fillBinnedData(data, gaushist);
 		model_fit_facade.setData(data);
 
@@ -128,7 +128,7 @@ void checkFramework(unsigned int num_events) {
 			model_fit_facade.setEstimatorOptions(est_opt);
 
 			// create minimizer instance with control parameter
-			shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer());
+			std::shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer());
 
 			model_fit_facade.setMinimizer(minuit_minimizer);
 

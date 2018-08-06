@@ -8,7 +8,7 @@
 #ifndef PNDLMDSMEARINGGAUSSIANMODELPARAMETRIZATION2D_H_
 #define PNDLMDSMEARINGGAUSSIANMODELPARAMETRIZATION2D_H_
 
-#include "SharedPtr.h"
+#include <memory>
 
 class Model2D;
 class ModelPar;
@@ -18,9 +18,9 @@ namespace LumiFit {
 
 class PndLmdSmearingGaussianModelParametrization2D {
 private:
-	shared_ptr<ModelPar> p_lab;
+	std::shared_ptr<ModelPar> p_lab;
 public:
-	PndLmdSmearingGaussianModelParametrization2D(shared_ptr<Model2D> model,
+	PndLmdSmearingGaussianModelParametrization2D(std::shared_ptr<Model2D> model,
 			const LumiFit::PndLmdFitModelOptions& model_options);
 	virtual ~PndLmdSmearingGaussianModelParametrization2D();
 };

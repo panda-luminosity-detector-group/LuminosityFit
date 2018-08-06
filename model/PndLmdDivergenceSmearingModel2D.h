@@ -30,7 +30,7 @@ struct DifferentialCoordinateContribution {
 };
 
 class PndLmdDivergenceSmearingModel2D {
-  shared_ptr<Model2D> divergence_model;
+  std::shared_ptr<Model2D> divergence_model;
 
   double integral_precision;
 
@@ -56,7 +56,7 @@ public:
     }
   };
 
-  PndLmdDivergenceSmearingModel2D(shared_ptr<Model2D> divergence_model_,
+  PndLmdDivergenceSmearingModel2D(std::shared_ptr<Model2D> divergence_model_,
       const LumiFit::LmdDimension& data_dim_x_,
       const LumiFit::LmdDimension& data_dim_y_);
   virtual ~PndLmdDivergenceSmearingModel2D();

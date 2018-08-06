@@ -5,8 +5,8 @@
 #include "PndLmdSmearingModel2D.h"
 
 class PndLmdSmearingConvolutionModel2D: public Model2D {
-  shared_ptr<Model2D> unsmeared_model;
-  shared_ptr<PndLmdSmearingModel2D> smearing_model;
+  std::shared_ptr<Model2D> unsmeared_model;
+  std::shared_ptr<PndLmdSmearingModel2D> smearing_model;
 
   LumiFit::LmdDimension data_dim_x;
   LumiFit::LmdDimension data_dim_y;
@@ -20,15 +20,15 @@ class PndLmdSmearingConvolutionModel2D: public Model2D {
 
 public:
   PndLmdSmearingConvolutionModel2D(std::string name_,
-      shared_ptr<Model2D> unsmeared_model_,
-      shared_ptr<PndLmdSmearingModel2D> smearing_model_,
+      std::shared_ptr<Model2D> unsmeared_model_,
+      std::shared_ptr<PndLmdSmearingModel2D> smearing_model_,
       const LumiFit::LmdDimension& data_dim_x_,
       const LumiFit::LmdDimension& data_dim_y_);
   virtual ~PndLmdSmearingConvolutionModel2D();
 
   void initModelParameters();
 
-  void injectModelParameter(shared_ptr<ModelPar> model_param);
+  void injectModelParameter(std::shared_ptr<ModelPar> model_param);
 
   mydouble eval(const mydouble *x) const;
 

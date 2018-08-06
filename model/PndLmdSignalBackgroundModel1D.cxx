@@ -10,7 +10,7 @@
 #include <iostream>
 
 PndLmdSignalBackgroundModel1D::PndLmdSignalBackgroundModel1D(std::string name_,
-		shared_ptr<Model1D> signal_, shared_ptr<Model1D> background_) :
+		std::shared_ptr<Model1D> signal_, std::shared_ptr<Model1D> background_) :
 		Model1D(name_), signal(signal_), background(background_) {
 	initModelParameters();
 	addModelToList(signal);
