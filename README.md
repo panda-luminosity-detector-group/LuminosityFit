@@ -8,6 +8,7 @@ Make sure your Pandaroot enviroment is set up correctly, more precisely that the
 - FAIRROOTPATH
 - ROOTSYS
 
+A further requirement is the gsl library, which can be loaded on the himster2 via `module load numlib/GSL/2.4-foss-2017a`.
 Additionally, make sure you are using a boost version which was build using a gcc version 5 or greater. You can set the location of the boost via the *BOOST_ROOT* environment variable.
 
 ### Compilation
