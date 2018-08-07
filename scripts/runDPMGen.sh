@@ -1,10 +1,10 @@
 #! /bin/bash
 
-cd ${VMCWORKDIR}/macro/lmd/steve/myDpm
+cd myDpm
 random_num=$RANDOM.$RANDOM
 
-if [ $PBS_ARRAYID ]; then
-  index=$PBS_ARRAYID
+if [ $SLURM_ARRAY_TASK_ID ]; then
+  index=$SLURM_ARRAY_TASK_ID
 fi
 
 if [ $# -eq '8' ]; then

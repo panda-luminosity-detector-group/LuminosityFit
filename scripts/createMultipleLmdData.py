@@ -2,12 +2,6 @@ import himster
 import general
 import os, sys, errno, glob
 import shutil
-
-from pickle import BINSTRING
-
-lib_path = os.path.abspath('argparse-1.2.1/build/lib')
-sys.path.append(lib_path)
-
 import argparse
 
 
@@ -96,7 +90,7 @@ for config_path in config_paths:
     resource_request.memory_in_mb = 2500
     resource_request.virtual_memory_in_mb = 2500
     job = himster.Job(resource_request, './createLumiFitData.sh', 'createLumiFitData', config_path + '/createLumiFitData_pbs.log')
-    job.setJobArraySize(1, num_filelists)
+    job.set_job_array_indices(list(range(1, num_filelists+1)))
     
     job.addExportedUserVariable('numEv', args.num_events)
     job.addExportedUserVariable('pbeam', args.lab_momentum[0])

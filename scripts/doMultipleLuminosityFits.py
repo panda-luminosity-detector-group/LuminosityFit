@@ -1,13 +1,6 @@
 import os, sys, re, errno, glob, time, glob
 import subprocess
-import multiprocessing
 import general, himster
-
-cpu_cores = multiprocessing.cpu_count()
-
-lib_path = os.path.abspath('argparse-1.2.1/build/lib')
-sys.path.append(lib_path)
-
 import argparse
 
 dirs = []
@@ -20,7 +13,7 @@ top_level_box_directory = ''
 
 def getListOfBoxDirectories(path):
   if os.path.isdir(path):
-    print 'currently looking at directory ' + path
+    print('currently looking at directory ' + path)
     
     if os.path.split(path)[1] == 'mc_data':
       return
@@ -59,7 +52,7 @@ def findMatchingDirs(box_data_path):
   matching_dir_pairs = []
   if box_data_path == '':
     for dpm_dir in dirs:
-      print dpm_dir
+      print(dpm_dir)
       match = re.search('^(.*/)dpm_.*?/(ip_offset_XYZDXDYDZ_.*)/.*/\d*/\d*-\d*_(.*cut)/.*/(binning_\d*)/merge_data$', dpm_dir)
       pattern = '^' + match.group(1) + 'box_.*?' + match.group(2) + '.*' + match.group(3) + '/.*' + match.group(4) + '/merge_data$'
       #print pattern
@@ -72,7 +65,7 @@ def findMatchingDirs(box_data_path):
   else:
     for dpm_dir in dirs:
       #attempt to find directory with same binning
-      print 'checking for matching directory for ' + dpm_dir
+      print('checking for matching directory for ' + dpm_dir)
       match = re.search('^.*(binning_\d*)/.*$', dpm_dir)
       if match:
         dir_searcher = general.DirectorySearcher([match.group(1)])
@@ -125,22 +118,17 @@ dirs = dir_searcher.getListOfDirectories()
 
 if args.forced_box_gen_data == '':
   getTopBoxDirectory(args.dirname[0])
-  print 'box top dir: ' + top_level_box_directory
+  print ('box top dir: ' + top_level_box_directory)
   #getListOfBoxDirectories(top_level_box_directory)
   box_dir_searcher = general.DirectorySearcher(patterns)
   box_dir_searcher.searchListOfDirectories(top_level_box_directory, box_acc_glob_pattern)
   box_dirs = box_dir_searcher.getListOfDirectories()
 
-#print dirs
-#print box_dirs  
 
 matches = findMatchingDirs(args.forced_box_gen_data)
 
 print matches
 print len(matches)
-
-command_suffix = '" -V';
-
 
 joblist = []
 
@@ -154,7 +142,7 @@ for match in matches:
   resource_request.memory_in_mb = 18000
   resource_request.virtual_memory_in_mb = 18000
   job = himster.Job(resource_request, './runLmdFit.sh', 'runLmdFit', elastic_data_path + '/runLmdFit_pbs.log')
-  job.setJobArraySize(1, 1) 
+  job.set_job_array_indices([1]) 
 
   job.addExportedUserVariable('config_url', args.config_url[0])
   job.addExportedUserVariable('data_path', elastic_data_path)

@@ -5,7 +5,7 @@
 ###############################################################################
 
 batchjob=0
-if [ $PBS_O_WORKDIR ]; then
+if [ $SLURM_ARRAY_TASK_ID ]; then
   batchjob=1
 fi
 
@@ -14,7 +14,7 @@ fi
 #number of events used for the fitting procedure
 #numEv=$var2
 # directory of the data generated with dpm
-if [[ ${PBS_ARRAYID} ]]; then
+if [[ ${SLURM_ARRAY_TASK_ID} ]]; then
   filelist_url=${filelist_path}/filelist_${PBS_ARRAYID}.txt
 else
   filelist_url=${filelist_path}

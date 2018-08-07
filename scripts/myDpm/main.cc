@@ -20,7 +20,7 @@
 
 using namespace std;
 
-extern struct {
+extern "C" struct {
   long int n, k[2000];  
   double p[5000];   	
 } lujets_;

@@ -1,13 +1,6 @@
 import os, sys, re, errno, glob, time, glob
 import subprocess
-import multiprocessing
 import general
-
-cpu_cores = multiprocessing.cpu_count()
-
-lib_path = os.path.abspath('argparse-1.2.1/build/lib')
-sys.path.append(lib_path)
-
 import argparse
 
 class DataTypeInfo:
@@ -53,7 +46,7 @@ for data_type_info in data_type_list:
   dir_searcher.searchListOfDirectories(args.dirname[0], data_type_info.glob_pattern)
   dirs = dir_searcher.getListOfDirectories()    
   for dir in dirs:
-    print 'starting merge for ' + dir
+    print('starting merge for ' + dir)
     bashcommand = default = os.getenv('LMDFIT_BUILD_PATH') + '/bin/mergeLmdData -p ' + dir + ' -t ' + data_type_info.data_type + ' -n ' + str(args.num_samples) + ' -s ' + str(args.sample_size) + data_type_info.pattern 
-    print bashcommand    
+    print(bashcommand)    
     returnvalue = subprocess.call(bashcommand.split())

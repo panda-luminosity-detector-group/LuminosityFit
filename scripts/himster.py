@@ -17,27 +17,6 @@ def get_num_jobs_on_himster():
     return int(out)
 
 
-def get_exe_path(exe_name):
-    exe_url = ''
-    found = False
-    for path in os.environ["PATH"].split(os.pathsep):
-        path = path.strip('"')
-        exe_url = os.path.join(path, exe_name)
-        if os.path.isfile(exe_url):
-            found = True
-            break
-    if not found:
-        exe_url = os.path.join(os.getcwd(), exe_name)
-        if not os.path.isfile(exe_url):
-            raise FileNotFoundError(
-                'Could not find executable ' + str(exe_name))
-    if not os.access(exe_url, os.X_OK):
-        raise PermissionError(
-            'Please give ' + str(exe_url) + ' execute permission!')
-
-    return exe_url
-
-
 def is_cluster_environment():
     return is_executable(batch_command)
 
@@ -51,9 +30,21 @@ def is_executable(exe_name):
     return False
 
 
+def make_test_resource_request():
+    test_rr = JobResourceRequest(30)
+    test_rr.partition = 'devel'
+    test_rr.number_of_nodes = 1
+    test_rr.processors_per_node = 1
+    test_rr.memory_in_mb = 500
+    test_rr.virtual_memory_in_mb = 500
+    test_rr.node_scratch_filesize_in_mb = 0
+    return test_rr
+
+
 class JobResourceRequest:
     def __init__(self, walltime_in_minutes):
         self.walltime_string = self.format_walltime(walltime_in_minutes)
+        self.partition = 'himster2_exp'
         self.number_of_nodes = 1
         self.processors_per_node = 1
         self.memory_in_mb = 1000
@@ -77,11 +68,11 @@ class JobResourceRequest:
 
     def get_submit_string(self):
         # hyperthreading on himster2 virtually increases cpu count by a
-        # factor of 2. we want to allocate only real cpus, hence the 
+        # factor of 2. we want to allocate only real cpus, hence the
         # factors of 2 in the code below
         resource_request = ' -N ' + str(self.number_of_nodes) \
-            + ' -n 1 -c ' + str(2*self.processors_per_node) \
-            + ' --mem-per-cpu=' + str(int(self.memory_in_mb/2)) + 'mb' \
+            + ' -n 1 -c ' + str(2 * self.processors_per_node) \
+            + ' --mem-per-cpu=' + str(int(self.memory_in_mb / 2)) + 'mb' \
             + ' --time=' + self.walltime_string
         # if self.node_scratch_filesize_in_mb > 0:
         #    resource_request += ' --tmp=' + \
@@ -99,31 +90,63 @@ class Job:
         self.application_url = str(application_url)
         self.jobname = str(jobname)
         self.logfile_url = str(logfile_url)
-        self.job_array_index_low = 1
-        self.job_array_index_high = 1
+        self.job_array_index_bundles = []
         self.exported_user_variables = {}
 
-    def set_job_array_size(self, job_array_index_low, job_array_index_high):
-        self.job_array_index_low = int(job_array_index_low)
-        self.job_array_index_high = int(job_array_index_high)
-        if self.job_array_index_low == self.job_array_index_high:
-            self.add_exported_user_variable(
-                'SLURM_ARRAY_TASK_ID', self.job_array_index_low)
+    def set_job_array_indices(self, array_indices):
+        if not isinstance(array_indices, list):
+            raise TypeError("array_indices must be of type list")
+        if not array_indices:
+            raise ValueError("array_indices is empty! This can occur, when all"
+                             " of the output files already exist and are above"
+                             " the defined threshold filesize. Please use the"
+                             " --force flag to overwrite the output.")
+        self.job_array_index_bundles = [array_indices]
 
     def add_exported_user_variable(self, name, value):
         self.exported_user_variables[str(name)] = str(value)
 
-    def create_bash_commands(self, max_jobarray_size):
+    def create_array_string(self, array_indices):
+        if len(array_indices) > 1:
+            indices_string = ''
+            temp_range_start = -1
+            previous_index = -1
+            array_indices.sort()
+            for index in array_indices:
+                if temp_range_start == -1:
+                    temp_range_start = index
+                elif index > previous_index + 1:
+                    if previous_index - temp_range_start > 1:
+                        indices_string += str(temp_range_start) + \
+                            '-' + str(previous_index) + ','
+                    else:
+                        if temp_range_start != previous_index:
+                            indices_string += str(temp_range_start) + ','
+                        indices_string += str(previous_index) + ','
+                    temp_range_start = index
+                previous_index = index
+            if temp_range_start < index:
+                indices_string += str(temp_range_start) + \
+                    '-' + str(array_indices[-1])
+            else:
+                indices_string += str(array_indices[-1])
+            return ' --array=' + indices_string
+        elif len(array_indices) == 1:
+            self.add_exported_user_variable(
+                'SLURM_ARRAY_TASK_ID', array_indices[0])
+            return ''
+        else:
+            raise ValueError("Number of jobs is zero!")
+
+    def create_bash_commands(self):
         bashcommand_list = []
-        for job_index in range(self.job_array_index_low,
-                               self.job_array_index_high + 1,
-                               max_jobarray_size):
-            bashcommand = batch_command + ' -A m2_him_exp -p himster2_exp'
-            bashcommand += ' --constraint=\"skylake,mhz-2101\"'
-            if self.job_array_index_high > self.job_array_index_low:
-                bashcommand += ' --array=' + str(job_index) + '-' \
-                    + str(min(job_index + max_jobarray_size - 1,
-                              self.job_array_index_high))
+        for array_indices in self.job_array_index_bundles:
+            bashcommand = batch_command + ' -A m2_him_exp -p ' + \
+                self.resource_request.partition + \
+                ' --constraint=\"skylake,mhz-2101\"'
+
+            bashcommand += self.create_array_string(array_indices)
+
             bashcommand += ' --job-name=' + self.jobname + \
                 self.resource_request.get_submit_string() + ' --output=' \
                 + self.logfile_url
@@ -131,20 +154,19 @@ class Job:
             bashcommand += ' --export=ALL,'
             for name, value in self.exported_user_variables.items():
                 bashcommand += name + '="' + value + '",'
+
             bashcommand = bashcommand[:-1] + ' ' + self.application_url
+            # print(bashcommand)
             bashcommand_list.append(bashcommand)
         return bashcommand_list
 
 
 class HimsterJobManager:
     def __init__(self, himster_total_job_threshold=1600,
-                 resubmit_wait_time_in_seconds=1800,
-                 max_jobarray_size=100):
+                 resubmit_wait_time_in_seconds=1800):
         self.job_command_list = []
         # user total job threshold
         self.himster_total_job_threshold = himster_total_job_threshold
-        # max number of jobs within a job array on himster (atm 100)
-        self.max_jobarray_size = max_jobarray_size
         # sleep time when total job threshold is reached in seconds
         self.resubmit_wait_time_in_seconds = resubmit_wait_time_in_seconds
 
@@ -155,8 +177,8 @@ class HimsterJobManager:
             bashcommand = self.job_command_list.pop(0)
             if get_num_jobs_on_himster() < self.himster_total_job_threshold:
                 print("Nope, trying to submit job...")
-                returnvalue = subprocess.call(bashcommand, shell=True)
-                if returnvalue > 0:
+                returncode = subprocess.call(bashcommand, shell=True)
+                if returncode > 0:
                     resubmit = True
                     if bashcommand in failed_submit_commands:
                         if time() < (failed_submit_commands[bashcommand]
@@ -176,8 +198,8 @@ class HimsterJobManager:
                         # put the command back into the list
                         self.job_command_list.insert(0, bashcommand)
                 else:
-                    # sleep 5 sec to make the queue changes active
-                    sleep(5)
+                    # sleep 3 sec to make the queue changes active
+                    sleep(3)
             else:
                 # put the command back into the list
                 self.job_command_list.insert(0, bashcommand)
@@ -194,8 +216,7 @@ class HimsterJobManager:
         if is_cluster_environment():
             print('This is a cluster environment. Adding jobs to queue list!')
             for job in job_list:
-                for bashcommand in job.create_bash_commands(
-                        self.max_jobarray_size):
+                for bashcommand in job.create_bash_commands():
                     self.job_command_list.append(bashcommand)
 
         else:

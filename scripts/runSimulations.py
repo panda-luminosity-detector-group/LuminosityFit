@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import himster
 import simulation
@@ -145,7 +145,7 @@ resource_request.processors_per_node = 1
 resource_request.memory_in_mb = 3000
 resource_request.node_scratch_filesize_in_mb = 0
 job = himster.Job(resource_request, './runLumiFullSimPixel.sh', 'lmd_fullsim_' + args.sim_type[0], pathname_full + '/sim-%a.log')
-job.set_job_array_size(low_index_used, high_index_used)
+job.set_job_array_indices(list(range(low_index_used, high_index_used+1)))
   
 job.add_exported_user_variable('num_evts', str(args.num_events[0]))
 job.add_exported_user_variable('mom', str(args.lab_momentum[0]))

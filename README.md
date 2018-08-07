@@ -15,4 +15,9 @@ Additionally, make sure you are using a boost version which was build using a gc
 Simply create a build directory, change into that build directory, and run `cmake {PATH_TO_YOUR_LUMINOSITY_FIT_SOURCE}`
 
 ## Using
-Export the *build/bin* and *build/lib* directory to *$PATH* and *$LD_LIBRARY_PATH* respectively. Then you can run the python scripts in the ./scripts subdirectory.
+The binaries in the ./bin subdirectory of the build path can be used directly. For more convenient use, especially for larger datasamples sizes it is recommended to use the python scripts in the ./scripts subdirectory. However, to use these scripts several environment variables have to be exported.
+
+`export LMDFIT_BUILD_PATH="path-to-your-luminosityfit-build-directory"
+export DATA_HOME="path-to-himspecf-data-storage"`
+export LMDFIT_GEN_DATA=$DATA_HOME/paluma/lmdfit_sim_gen_samples
+export LMDFIT_DATA_DIR=$DATA_HOME/paluma/"directory-name-of-your-choice"`
