@@ -64,6 +64,7 @@ parser.add_argument('--reco_ip_offset', metavar=("rec_ip_offset_x", "rec_ip_offs
             "rec_ip_offset_z: interaction vertex mean Z position (in cm)\n")
 
 parser.add_argument('--lmd_detector_geometry_filename', metavar='lmd_detector_geometry_filename', type=str, default='Luminosity-Detector.root', help='Filename of the Geant Luminosity Detector geometry file in the pandaroot geometry subfolder')
+parser.add_argument('--use_devel_queue', action='store_true', help='If flag is set, the devel queue is used')
 
 
 args = parser.parse_args()
@@ -144,6 +145,10 @@ resource_request.number_of_nodes = 1
 resource_request.processors_per_node = 1
 resource_request.memory_in_mb = 3000
 resource_request.node_scratch_filesize_in_mb = 0
+
+if args.use_devel_queue:
+    resource_request = himster.make_test_resource_request()
+
 job = himster.Job(resource_request, './runLumiFullSimPixel.sh', 'lmd_fullsim_' + args.sim_type[0], pathname_full + '/sim-%a.log')
 job.set_job_array_indices(list(range(low_index_used, high_index_used+1)))
   
