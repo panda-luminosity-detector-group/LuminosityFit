@@ -2,17 +2,18 @@ import os, sys, re
 from decimal import *
 
 class IPParams:
-  ip_offset_x = Decimal('0.0')  # in cm
-  ip_offset_y = Decimal('0.0')  # in cm
-  ip_offset_z = Decimal('0.0')  # in cm
-  ip_spread_x = Decimal('0.08')  # in cm
-  ip_spread_y = Decimal('0.08')  # in cm
-  ip_spread_z = Decimal('0.35')  # in cm
+  def __init__(self):
+    self.ip_offset_x = Decimal('0.0')  # in cm
+    self.ip_offset_y = Decimal('0.0')  # in cm
+    self.ip_offset_z = Decimal('0.0')  # in cm
+    self.ip_spread_x = Decimal('0.08')  # in cm
+    self.ip_spread_y = Decimal('0.08')  # in cm
+    self.ip_spread_z = Decimal('0.35')  # in cm
   
-  beam_tilt_x = Decimal('0.0')  # in rad
-  beam_tilt_y = Decimal('0.0')  # in rad
-  beam_divergence_x = Decimal('0.0')  # in rad
-  beam_divergence_y = Decimal('0.0')  # in rad
+    self.beam_tilt_x = Decimal('0.0')  # in rad
+    self.beam_tilt_y = Decimal('0.0')  # in rad
+    self.beam_divergence_x = Decimal('0.0')  # in rad
+    self.beam_divergence_y = Decimal('0.0')  # in rad
 
   def __repr__(self):
     return 'IP center: [' + str(self.ip_offset_x) + ',' + str(self.ip_offset_y) + ',' + str(self.ip_offset_z) \
@@ -21,6 +22,14 @@ class IPParams:
            + '] Divergence: [' + str(self.beam_divergence_x) + ',' + str(self.beam_divergence_y) + ']\n'
   def __str__(self):
     return self.__repr__()
+
+  def isZero(self):
+    print("check zero...")
+    for attr, value in self.__dict__.items():
+      print(attr, value)
+      if value != Decimal('0.0'):
+        return False
+    return True
 
 class SimulationParameters:
     ip_params = IPParams()
@@ -91,12 +100,13 @@ def generateDirectory(sim_params, generator_filename_base):
   
     dirname += '/' + gen_part
   
-    dirname += '/ip_offset_XYZDXDYDZ_'+str(sim_params.ip_params.ip_offset_x)+'_'+str(sim_params.ip_params.ip_offset_y)+'_'\
-        +str(sim_params.ip_params.ip_offset_z)+'_'+str(sim_params.ip_params.ip_spread_x)+'_'\
-        +str(sim_params.ip_params.ip_spread_y)+'_'+str(sim_params.ip_params.ip_spread_z)
+    if not sim_params.ip_params.isZero():
+        dirname += '/ip_offset_XYZDXDYDZ_'+str(sim_params.ip_params.ip_offset_x)+'_'+str(sim_params.ip_params.ip_offset_y)+'_'\
+            +str(sim_params.ip_params.ip_offset_z)+'_'+str(sim_params.ip_params.ip_spread_x)+'_'\
+            +str(sim_params.ip_params.ip_spread_y)+'_'+str(sim_params.ip_params.ip_spread_z)
 
-    dirname += '/beam_grad_XYDXDY_'+str(sim_params.ip_params.beam_tilt_x)+'_'+str(sim_params.ip_params.beam_tilt_y)+'_'\
-        +str(sim_params.ip_params.beam_divergence_x)+'_'+str(sim_params.ip_params.beam_divergence_y)
+        dirname += '/beam_grad_XYDXDY_'+str(sim_params.ip_params.beam_tilt_x)+'_'+str(sim_params.ip_params.beam_tilt_y)+'_'\
+            +str(sim_params.ip_params.beam_divergence_x)+'_'+str(sim_params.ip_params.beam_divergence_y)
 
     dirname += '/' + str(os.path.splitext(sim_params.lmd_geometry_filename)[0])
 
