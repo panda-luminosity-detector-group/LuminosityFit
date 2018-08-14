@@ -61,6 +61,11 @@ if [ ! -d $workpathname ]; then
   mkdir -p $workpathname
 fi
 
+if [ ! -d $path_mc_data/Pairs ]; then
+  mkdir -p $path_mc_data/Pairs
+fi
+
+
 #simulation
 check_stage_success "${path_mc_data}/Lumi_MC_${start_evt}.root"
 if [ 0 -eq "$?" ]; then
@@ -91,6 +96,11 @@ check_stage_success "$workpathname/Lumi_reco_${start_evt}.root"
 if [ 0 -eq "$?" ]; then
   root -l -b -q 'runLumiPixel2Reco.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',false)'
 fi
+
+#find pairs
+root -l -b -q 'runLumiPixel2Reco.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',false)'
+#copy pairs
+cp $workpathname/Lumi_Pairs_${start_evt}.root ${path_mc_data}/Pairs/Lumi_Pairs_${start_evt}.root
 
 #merge hits
 check_stage_success "$workpathname/Lumi_recoMerged_${start_evt}.root"
