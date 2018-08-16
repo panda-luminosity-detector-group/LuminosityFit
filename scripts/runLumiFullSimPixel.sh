@@ -62,6 +62,7 @@ if [ ! -d $workpathname ]; then
 fi
 
 echo "force level: ${force_level}"
+
 #simulation
 check_stage_success "${path_mc_data}/Lumi_MC_${start_evt}.root"
 if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
@@ -93,6 +94,11 @@ check_stage_success "$workpathname/Lumi_reco_${start_evt}.root"
 if [ 0 -eq "$?" ]; then
   root -l -b -q 'runLumiPixel2Reco.C('${num_evts}','${start_evt}',"'${workpathname}'", "'${alignment_matrices_path}'", '$verbositylvl')'
 fi
+
+#find pairs
+root -l -b -q 'runLumiPixel2ePairFinder.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl')'
+#copy pairs
+cp $workpathname/Lumi_Pairs_${start_evt}.root ${pathname}/Pairs/Lumi_Pairs_${start_evt}.root
 
 #merge hits
 check_stage_success "$workpathname/Lumi_recoMerged_${start_evt}.root"

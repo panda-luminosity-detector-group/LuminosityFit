@@ -117,6 +117,7 @@ print('using output folder structure: ' + pathname_full)
 
 try:
     os.makedirs(pathname_full)
+    os.makedirs(pathname_full+'/Pairs')
     os.makedirs(path_mc_data)
 except OSError as exception:
     if exception.errno != errno.EEXIST:
