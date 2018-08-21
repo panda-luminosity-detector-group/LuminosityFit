@@ -2,6 +2,8 @@
 
 import himster
 import simulation
+import random
+import math
 import os, errno, sys, glob, re
 import argparse
 
@@ -13,17 +15,19 @@ parser.add_argument('sim_type', metavar='simulation_type', type=str, nargs=1, ch
                     help='Simulation type which can be one of the following: box, dpm_elastic, dpm_elastic_inelastic, noise.\n'
                         'This information is used to automatically obtain the generator data and output naming scheme.')
 
+parser.add_argument('--theta_min', metavar='theta_min', type=float, default=2.0,
+                   help='Minimal value of the scattering angle theta in mrad.')
+parser.add_argument('--theta_max', metavar='theta_max', type=float, default=12.0,
+                   help='Maximal value of the scattering angle theta in mrad. Only used for box generator')
+parser.add_argument('--neglect_recoil_momentum', action='store_false', 
+                    help='If recoil momentum should not be subtracted from scattered antiprotons. Only for box generator')
+parser.add_argument('--random_seed', metavar='random_seed', type=int, default=random.randint(10, 9999),
+                   help='random seed used in data generation and mc simulation')
+
 parser.add_argument('--force_level', metavar='force_level', type=int, default=0,
                     help='force level 0: if directories exist with data files no new simulation is started\n'
                     'force level 1: will do full reconstruction even if this data already exists, but not geant simulation\n'
                     'force level 2: resimulation of everything!')
-
-parser.add_argument('--gen_data_dirname', metavar='gen_data_dirname', type=str, default='',
-                    help='Name of directory containing the generator data that is used as input.\n'
-                    'Note that this is only the name of the directory and NOT the full path.\n'
-                    'The base path of the directory should be specified with the\n'
-                    '--gen_data_dir flag. Default will be either an empty string for direct simulations\n'
-                    'or the same generated name as for the generated data, based on the simulation type')
 
 parser.add_argument('--low_index', metavar='low_index', type=int, default=-1,
                    help='Lowest index of generator file which is supposed to be used in the simulation.\n'
@@ -31,10 +35,6 @@ parser.add_argument('--low_index', metavar='low_index', type=int, default=-1,
 parser.add_argument('--high_index', metavar='high_index', type=int, default=-1,
                    help='Highest index of generator file which is supposed to be used in the simulation.\n'
                    'Default setting is -1 which will take the highest found index.')
-
-parser.add_argument('--gen_data_dir', metavar='gen_data_dir', type=str, default=os.getenv('LMDFIT_GEN_DATA'),
-                   help='Base directory to input files created by external generator.\n'
-                   'By default the environment variable $GEN_DATA will be used!')
 
 parser.add_argument('--output_dir', metavar='output_dir', type=str, default='', help='This directory is used for the output.\n'
                     'Default is the generator directory as a prefix, with beam offset infos etc. added')
@@ -69,45 +69,17 @@ parser.add_argument('--use_devel_queue', action='store_true', help='If flag is s
 parser.add_argument('--misalignment_matrices_path', metavar='misalignment_matrices_path', type=str, default='', help='')
 parser.add_argument('--alignment_matrices_path', metavar='alignment_matrices_path', type=str, default='', help='')
 
+
 args = parser.parse_args()
- 
-sim_params=simulation.SimulationParameters()
 
-sim_params.ip_params.ip_offset_x=args.use_ip_offset[0]
-sim_params.ip_params.ip_offset_y=args.use_ip_offset[1]
-sim_params.ip_params.ip_offset_z=args.use_ip_offset[2]
-sim_params.ip_params.ip_spread_x=args.use_ip_offset[3]
-sim_params.ip_params.ip_spread_y=args.use_ip_offset[4]
-sim_params.ip_params.ip_spread_z=args.use_ip_offset[5]
+sim_params=simulation.generateSimulationParameters(args)
 
-sim_params.ip_params.beam_tilt_x=args.use_beam_gradient[0]
-sim_params.ip_params.beam_tilt_y=args.use_beam_gradient[1]
-sim_params.ip_params.beam_divergence_x=args.use_beam_gradient[2]
-sim_params.ip_params.beam_divergence_y=args.use_beam_gradient[3]
-
-sim_params.num_events = args.num_events[0]
-sim_params.lab_momentum = args.lab_momentum[0]
-sim_params.sim_type = args.sim_type[0]
-sim_params.force_level = args.force_level
-sim_params.gen_data_dirname = args.gen_data_dirname
-sim_params.low_index=args.low_index
-sim_params.high_index=args.high_index
-sim_params.gen_data_dir=args.gen_data_dir
-sim_params.output_dir=args.output_dir
-sim_params.use_xy_cut=args.use_xy_cut
-sim_params.use_m_cut=args.use_m_cut
-sim_params.track_search_algo=args.track_search_algo
-sim_params.reco_ip_offset=args.reco_ip_offset
-sim_params.lmd_geometry_filename=args.lmd_detector_geometry_filename
-
-generator_filename_base = simulation.generateGeneratorBaseFilename(sim_params)
-dirname = simulation.generateDirectory(sim_params, generator_filename_base)
+dirname = simulation.generateDirectory(sim_params)
 dirname_filter_suffix = simulation.generateFilterSuffix(sim_params)
 
-low_index_used = sim_params.low_index
-high_index_used = sim_params.high_index
+low_index_used = sim_params['low_index']
+high_index_used = sim_params['high_index']
 
-filename_base = re.sub('\.', 'o', generator_filename_base)
 pathname_base = os.getenv('LMDFIT_DATA_DIR') + '/' + dirname
 path_mc_data = pathname_base + '/mc_data'
 dirname_full = dirname + '/' + dirname_filter_suffix
@@ -141,6 +113,23 @@ if args.force_level == 0:
 # generate simulation config parameter file
 simulation.generateSimulationParameterPropertyFile(pathname_base, sim_params)
 
+use_recoil_momentum = 1
+if args.neglect_recoil_momentum:
+    use_recoil_momentum = 0
+
+# box gen: -1
+# dpm only inelastic: 0
+# dpm elastic & inelastic: 1
+# dpm only elastic: 2
+print("simulation type:", args.sim_type[0])
+reaction_type = 2
+if args.sim_type[0] == 'box':
+    reaction_type = -1
+elif args.sim_type[0] == 'dpm_elastic':
+    reaction_type = 2
+elif args.sim_type[0] == 'dpm_elastic_inelastic':
+    reaction_type = 1
+
 joblist = []
 
 resource_request = himster.JobResourceRequest(12*60)
@@ -154,10 +143,16 @@ if args.use_devel_queue:
 
 job = himster.Job(resource_request, './runLumiFullSimPixel.sh', 'lmd_fullsim_' + args.sim_type[0], pathname_full + '/sim-%a.log')
 job.set_job_array_indices(list(range(low_index_used, high_index_used+1)))
-  
+
 job.add_exported_user_variable('num_evts', str(args.num_events[0]))
 job.add_exported_user_variable('mom', str(args.lab_momentum[0]))
-job.add_exported_user_variable('gen_input_file_stripped', args.gen_data_dir + '/' + generator_filename_base + '/' + filename_base)
+job.add_exported_user_variable('reaction_type', reaction_type)
+job.add_exported_user_variable('theta_min_in_mrad', args.theta_min)
+job.add_exported_user_variable('theta_min_in_deg', args.theta_min*0.180/math.pi)
+job.add_exported_user_variable('theta_max_in_mrad', args.theta_max)
+job.add_exported_user_variable('use_recoil_momentum', use_recoil_momentum)
+job.add_exported_user_variable('random_seed', args.random_seed)
+                               
 job.add_exported_user_variable('dirname', dirname_full)
 job.add_exported_user_variable('path_mc_data', path_mc_data)
 job.add_exported_user_variable('pathname', pathname_full)

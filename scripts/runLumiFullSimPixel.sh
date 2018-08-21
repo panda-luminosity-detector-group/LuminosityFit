@@ -3,14 +3,17 @@
 #include some helper functions
 . ./bashFunctions.sh
 
-cd ${VMCWORKDIR}/macro/detectors/lmd
+scriptpath=$PWD
+macropath="${VMCWORKDIR}/macro/detectors/lmd"
+cd $macropath
 
 filename_index=1
 if [ ${SLURM_ARRAY_TASK_ID} ]; then
   filename_index=${SLURM_ARRAY_TASK_ID}
 fi
 
-gen_input_filename="${gen_input_file_stripped}_${filename_index}.root"
+random_seed="${filename_index}${random_seed}"
+echo "using random seed: ${random_seed}"
 
 if [ ! -d $pathname ]; then
   mkdir -p $pathname
@@ -61,17 +64,29 @@ if [ ! -d $workpathname ]; then
   mkdir -p $workpathname
 fi
 
+gen_filepath="$workpathname/gen_mc.root"
 echo "force level: ${force_level}"
 
 #simulation
 check_stage_success "${path_mc_data}/Lumi_MC_${start_evt}.root"
 if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
+  cd $scriptpath
+  if [ ${reaction_type} -eq -1 ]; then
+    echo "generating box MC sample"
+    root -l -b -q 'standaloneBoxGen.C('${mom}', '${num_evts}', '${theta_min_in_mrad}', '${theta_max_in_mrad}', "'${gen_filepath}'", '${random_seed}', '${use_recoil_momentum}')'
+  else
+    echo "generating dpm MC sample"
+    minimal_theta_value=${theta_min_in_mrad}
+    echo "Running ./DPMGen -s ${random_seed} -m ${mom} -n ${num_evts} -e ${reaction_type} -t ${theta_min_in_deg} -f ${gen_filepath}"
+    ./myDpm/DPMGen -s ${random_seed} -m ${mom} -n ${num_evts} -e ${reaction_type} -t ${theta_min_in_deg} -f ${gen_filepath} > $workpathname/dpm.log
+  fi
+  cd $macropath
   echo "starting up a pandaroot simulation..."
   if [ ${simulate_noise} ]; then
     #simulation with Box generator cheating with neutrons, since "no tracks" gave problems
-    root -l -b -q 'runLumiPixel0SimBox.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',2112,'${mom}','${numTrks}','$RANDOM')' > /dev/null 2>&1
+    root -l -b -q 'runLumiPixel0SimBox.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',2112,'${mom}','${numTrks}','${random_seed}')' > /dev/null 2>&1
   else
-    root -l -b -q 'runLumiPixel0SimDPM.C('${num_evts}','${start_evt}','${mom}',"'${gen_input_filename}'", "'${workpathname}'",'$beamX0', '$beamY0', '${targetZ0}', '${beam_widthX}', '${beam_widthY}', '${target_widthZ}', '${beam_gradX}', '${beam_gradY}', '${beam_grad_sigmaX}', '${beam_grad_sigmaY}', "'${lmd_geometry_filename}'", "'${misalignment_matrices_path}'", '$verbositylvl')'
+    root -l -b -q 'runLumiPixel0SimDPM.C('${num_evts}','${start_evt}','${mom}',"'${gen_filepath}'", "'${workpathname}'",'$beamX0', '$beamY0', '${targetZ0}', '${beam_widthX}', '${beam_widthY}', '${target_widthZ}', '${beam_gradX}', '${beam_gradY}', '${beam_grad_sigmaX}', '${beam_grad_sigmaY}', "'${lmd_geometry_filename}'", "'${misalignment_matrices_path}'", '$verbositylvl')'
   fi
   cp $workpathname/Lumi_MC_${start_evt}.root ${path_mc_data}/Lumi_MC_${start_evt}.root
   cp $workpathname/Lumi_Params_${start_evt}.root ${path_mc_data}/Lumi_Params_${start_evt}.root
@@ -84,7 +99,7 @@ fi
 check_stage_success "$workpathname/Lumi_digi_${start_evt}.root"
 if [ 0 -eq "$?" ]; then
   if [ ${simulate_noise} ]; then
-    root -l -b -q 'runLumiPixel1bDigiNoise.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl', '$RANDOM')'
+    root -l -b -q 'runLumiPixel1bDigiNoise.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl', '${random_seed}')'
   else 
     root -l -b -q 'runLumiPixel1Digi.C('${num_evts}','${start_evt}',"'${workpathname}'", "'${misalignment_matrices_path}'", '$verbositylvl')'
   fi
