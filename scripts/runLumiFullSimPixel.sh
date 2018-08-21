@@ -12,7 +12,7 @@ if [ ${SLURM_ARRAY_TASK_ID} ]; then
   filename_index=${SLURM_ARRAY_TASK_ID}
 fi
 
-random_seed="${filename_index}${random_seed}"
+random_seed=$((${random_seed}+${filename_index}))
 echo "using random seed: ${random_seed}"
 
 if [ ! -d $pathname ]; then
