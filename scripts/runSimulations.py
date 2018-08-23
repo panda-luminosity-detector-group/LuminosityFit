@@ -69,6 +69,8 @@ parser.add_argument('--use_devel_queue', action='store_true', help='If flag is s
 parser.add_argument('--misalignment_matrices_path', metavar='misalignment_matrices_path', type=str, default='', help='')
 parser.add_argument('--alignment_matrices_path', metavar='alignment_matrices_path', type=str, default='', help='')
 
+parser.add_argument('--debug', action='store_true', help='If flag is set, the simulation runs locally for debug purposes')
+
 
 args = parser.parse_args()
 
@@ -185,7 +187,7 @@ joblist.append(job)
 
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
-job_manager = himster.HimsterJobManager(2000, 3600)
+job_manager = himster.HimsterJobManager(2000, 3600, debug=args.debug)
 
 job_manager.submit_jobs_to_himster(joblist)
 job_manager.manage_jobs()

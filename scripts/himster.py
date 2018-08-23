@@ -138,87 +138,100 @@ class Job:
         else:
             raise ValueError("Number of jobs is zero!")
 
-    def create_bash_commands(self):
+    def create_bash_commands(self, debug=False):
         bashcommand_list = []
-        for array_indices in self.job_array_index_bundles:
-            bashcommand = batch_command + ' -A m2_him_exp -p ' + \
-                self.resource_request.partition + \
-                ' --constraint=\"skylake,mhz-2101\"'
-
-            bashcommand += self.create_array_string(array_indices)
-
-            bashcommand += ' --job-name=' + self.jobname + \
-                self.resource_request.get_submit_string() + ' --output=' \
-                + self.logfile_url
-            # export variables
-            bashcommand += ' --export=ALL,'
-            for name, value in self.exported_user_variables.items():
-                bashcommand += name + '="' + value + '",'
-
-            bashcommand = bashcommand[:-1] + ' ' + self.application_url
-            # print(bashcommand)
-            bashcommand_list.append(bashcommand)
+        if debug:
+            bashcommand_list.append((self.application_url, self.exported_user_variables))
+        else:
+            for array_indices in self.job_array_index_bundles:
+                bashcommand = batch_command + ' -A m2_him_exp -p ' + \
+                    self.resource_request.partition + \
+                    ' --constraint=\"skylake,mhz-2101\"'
+    
+                bashcommand += self.create_array_string(array_indices)
+    
+                bashcommand += ' --job-name=' + self.jobname + \
+                    self.resource_request.get_submit_string() + ' --output=' \
+                    + self.logfile_url
+                # export variables
+                bashcommand += ' --export=ALL,'
+                for name, value in self.exported_user_variables.items():
+                    bashcommand += name + '="' + value + '",'
+    
+                bashcommand = bashcommand[:-1] + ' ' + self.application_url
+                # print(bashcommand)
+                bashcommand_list.append(bashcommand)
         return bashcommand_list
 
 
 class HimsterJobManager:
     def __init__(self, himster_total_job_threshold=1600,
-                 resubmit_wait_time_in_seconds=1800):
+                 resubmit_wait_time_in_seconds=1800, debug=False):
         self.job_command_list = []
         # user total job threshold
         self.himster_total_job_threshold = himster_total_job_threshold
         # sleep time when total job threshold is reached in seconds
         self.resubmit_wait_time_in_seconds = resubmit_wait_time_in_seconds
+        self.debug = debug
 
     def manage_jobs(self):
         failed_submit_commands = {}
-        while self.job_command_list:
-            print("checking if total job threshold is reached...")
-            bashcommand = self.job_command_list.pop(0)
-            if get_num_jobs_on_himster() < self.himster_total_job_threshold:
-                print("Nope, trying to submit job...")
-                returncode = subprocess.call(bashcommand, shell=True)
-                if returncode > 0:
-                    resubmit = True
-                    if bashcommand in failed_submit_commands:
-                        if time() < (failed_submit_commands[bashcommand]
-                                     + self.resubmit_wait_time_in_seconds):
-                            print(bashcommand)
+        if self.debug:
+            for cmd in self.job_command_list:
+                my_env = os.environ.copy()
+                bashcommand = cmd
+                if len(cmd) == 2:
+                    my_env.update(cmd[1])
+                    bashcommand = cmd[0]
+                returncode = subprocess.call(bashcommand, env=my_env)
+        else:
+            while self.job_command_list:
+                print("checking if total job threshold is reached...")
+                bashcommand = self.job_command_list.pop(0)
+                if get_num_jobs_on_himster() < self.himster_total_job_threshold:
+                    print("Nope, trying to submit job...")
+                    returncode = subprocess.call(bashcommand, shell=True)
+                    if returncode > 0:
+                        resubmit = True
+                        if bashcommand in failed_submit_commands:
+                            if time() < (failed_submit_commands[bashcommand]
+                                         + self.resubmit_wait_time_in_seconds):
+                                print(bashcommand)
+                                print(
+                                    "something is wrong with this submit command."
+                                    " Skipping...")
+                                resubmit = False
+                        else:
                             print(
-                                "something is wrong with this submit command."
-                                " Skipping...")
-                            resubmit = False
+                                "Submit failed! Appending job to resubmit list "
+                                "for later submission...")
+                            failed_submit_commands[bashcommand] = time()
+    
+                        if resubmit:
+                            # put the command back into the list
+                            self.job_command_list.insert(0, bashcommand)
                     else:
-                        print(
-                            "Submit failed! Appending job to resubmit list "
-                            "for later submission...")
-                        failed_submit_commands[bashcommand] = time()
-
-                    if resubmit:
-                        # put the command back into the list
-                        self.job_command_list.insert(0, bashcommand)
+                        # sleep 3 sec to make the queue changes active
+                        sleep(3)
                 else:
-                    # sleep 3 sec to make the queue changes active
-                    sleep(3)
-            else:
-                # put the command back into the list
-                self.job_command_list.insert(0, bashcommand)
-                print('Yep, we have currently have ' +
-                      str(len(self.job_command_list)) +
-                      ' jobs waiting in queue!')
-                # and sleep for some time
-                print('Waiting for '
-                      + str(self.resubmit_wait_time_in_seconds / 60)
-                      + ' min and then trying a resubmit...')
-                sleep(self.resubmit_wait_time_in_seconds)
+                    # put the command back into the list
+                    self.job_command_list.insert(0, bashcommand)
+                    print('Yep, we have currently have ' +
+                          str(len(self.job_command_list)) +
+                          ' jobs waiting in queue!')
+                    # and sleep for some time
+                    print('Waiting for '
+                          + str(self.resubmit_wait_time_in_seconds / 60)
+                          + ' min and then trying a resubmit...')
+                    sleep(self.resubmit_wait_time_in_seconds)
 
     def submit_jobs_to_himster(self, job_list):
-        if is_cluster_environment():
-            print('This is a cluster environment. Adding jobs to queue list!')
+        if self.debug or is_cluster_environment():
+            print('Adding jobs to queue list!')
             for job in job_list:
-                for bashcommand in job.create_bash_commands():
+                for bashcommand in job.create_bash_commands(self.debug):
                     self.job_command_list.append(bashcommand)
 
         else:
             print('This is not a cluster environment! Please make sure this '
-                  'script is executed on a cluster environment!')
+                  'script is executed on a cluster environment or use debug mode!')

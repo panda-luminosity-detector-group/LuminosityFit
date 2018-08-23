@@ -26,6 +26,9 @@ def generateSimulationParameters(args):
         'reco_ip_offset': args.reco_ip_offset,
         'lmd_geometry_filename': args.lmd_detector_geometry_filename
     }
+    if args.debug:
+        sim_params['low_index'] = 1
+        sim_params['high_index'] = 1
     
     ip_params = {
         'ip_offset_x': Decimal(args.use_ip_offset[0]),  # in cm
