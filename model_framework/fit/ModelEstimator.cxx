@@ -14,6 +14,7 @@
 #include <thread>
 #include <future>
 #include <functional>
+#include <iostream>
 
 ModelEstimator::ModelEstimator(bool allow_initial_normalization_) :
     free_parameters(), data(), fit_model(), estimator_options(), mtx(), nthreads(

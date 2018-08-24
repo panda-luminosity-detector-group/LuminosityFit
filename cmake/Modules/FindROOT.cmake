@@ -1,15 +1,17 @@
 # - Finds ROOT instalation
 # This module sets up ROOT information
 # It defines:
-# ROOT_FOUND          If the ROOT is found
-# ROOT_INCLUDE_DIR    PATH to the include directory
-# ROOT_INCLUDE_DIRS   PATH to the include directories (not cached)
-# ROOT_LIBRARIES      Most common libraries
-# ROOT_<name>_LIBRARY Full path to the library <name>
-# ROOT_LIBRARY_DIR    PATH to the library directory
-# ROOT_DEFINITIONS    Compiler definitions
-# ROOT_CXX_FLAGS      Compiler flags to used by client packages
-# ROOT_C_FLAGS        Compiler flags to used by client packages
+# ROOT_FOUND             If the ROOT is found
+# ROOT_INCLUDE_DIR       PATH to the include directory
+# ROOT_INCLUDE_DIRS      PATH to the include directories (not cached)
+# ROOT_LIBRARIES         Most common libraries
+# ROOT_<name>_LIBRARY    Full path to the library <name>
+# ROOT_LIBRARY_DIR       PATH to the library directory
+# ROOT_ETC_DIR           PATH to the etc directory
+# ROOT_DEFINITIONS       Compiler definitions
+# ROOT_CXX_FLAGS         Compiler flags to used by client packages
+# ROOT_C_FLAGS           Compiler flags to used by client packages
+# ROOT_EXE_LINKER_FLAGS  Linker flags to used by client packages
 #
 # Updated by K. Smith (ksmith37@nd.edu) to properly handle
 #  dependencies in ROOT_GENERATE_DICTIONARY
@@ -34,22 +36,34 @@ execute_process(
 set(ROOT_INCLUDE_DIRS ${ROOT_INCLUDE_DIR})
 
 execute_process(
+    COMMAND ${ROOT_CONFIG_EXECUTABLE} --etcdir
+    OUTPUT_VARIABLE ROOT_ETC_DIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+set(ROOT_ETC_DIRS ${ROOT_ETC_DIR})
+
+execute_process(
     COMMAND ${ROOT_CONFIG_EXECUTABLE} --libdir
     OUTPUT_VARIABLE ROOT_LIBRARY_DIR
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 set(ROOT_LIBRARY_DIRS ${ROOT_LIBRARY_DIR})
 
-set(rootlibs Core Cint RIO EG Net Hist Graf Graf3d Gpad Tree Rint Postscript Matrix Physics MathCore Thread)
+set(rootlibs Core RIO Net Hist Graf Graf3d Gpad Tree Rint Postscript Matrix Physics MathCore Thread MultiProc)
 set(ROOT_LIBRARIES)
 foreach(_cpt ${rootlibs} ${ROOT_FIND_COMPONENTS})
   find_library(ROOT_${_cpt}_LIBRARY ${_cpt} HINTS ${ROOT_LIBRARY_DIR})
   if(ROOT_${_cpt}_LIBRARY)
+    string(TOUPPER ${_cpt} UPPERCOMPONENT)
+    set(ROOT_${UPPERCOMPONENT}_FOUND TRUE)
     mark_as_advanced(ROOT_${_cpt}_LIBRARY)
     list(APPEND ROOT_LIBRARIES ${ROOT_${_cpt}_LIBRARY})
-    list(REMOVE_ITEM ROOT_FIND_COMPONENTS ${_cpt})
+    if(ROOT_FIND_COMPONENTS)
+      list(REMOVE_ITEM ROOT_FIND_COMPONENTS ${_cpt})
+    endif()
   endif()
 endforeach()
-list(REMOVE_DUPLICATES ROOT_LIBRARIES)
+if(ROOT_LIBRARIES)
+  list(REMOVE_DUPLICATES ROOT_LIBRARIES)
+endif()
 
 execute_process(
     COMMAND ${ROOT_CONFIG_EXECUTABLE} --cflags
@@ -58,6 +72,12 @@ execute_process(
 string(REGEX MATCHALL "-(D|U)[^ ]*" ROOT_DEFINITIONS "${__cflags}")
 string(REGEX REPLACE "(^|[ ]*)-I[^ ]*" "" ROOT_CXX_FLAGS "${__cflags}")
 string(REGEX REPLACE "(^|[ ]*)-I[^ ]*" "" ROOT_C_FLAGS "${__cflags}")
+
+execute_process(
+    COMMAND ${ROOT_CONFIG_EXECUTABLE} --ldflags
+    OUTPUT_VARIABLE __ldflags
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+set(ROOT_EXE_LINKER_FLAGS "${__ldflags}")
 
 set(ROOT_USE_FILE ${CMAKE_CURRENT_LIST_DIR}/RootUseFile.cmake)
 
@@ -77,9 +97,74 @@ find_package_handle_standard_args(ROOT DEFAULT_MSG ROOT_CONFIG_EXECUTABLE
 mark_as_advanced(ROOT_CONFIG_EXECUTABLE)
 
 include(CMakeParseArguments)
-find_program(ROOTCINT_EXECUTABLE rootcint HINTS $ENV{ROOTSYS}/bin)
+find_program(ROOTCLING_EXECUTABLE rootcling HINTS $ENV{ROOTSYS}/bin)
 find_program(GENREFLEX_EXECUTABLE genreflex HINTS $ENV{ROOTSYS}/bin)
 find_package(GCCXML)
+
+
+# ------------------------------------------------------------------------
+#  Add imported targets
+# ------------------------------------------------------------------------
+
+set(_ROOT_IMPORTED_TARGETS TRUE)
+if(ROOT_FOUND)
+  message(STATUS "Found ROOT version ${ROOT_VERSION}")
+  message(STATUS "Found following Root libraries:")
+  foreach(COMPONENT ${rootlibs} ${ROOT_FIND_COMPONENTS})
+    if(_ROOT_IMPORTED_TARGETS AND NOT TARGET ROOT::${COMPONENT})
+      string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
+      if(ROOT_${UPPERCOMPONENT}_FOUND)
+	message(STATUS "  ${COMPONENT}")
+        if(ROOT_USE_STATIC_LIBS)
+          add_library(ROOT::${COMPONENT} STATIC IMPORTED)
+        else()
+          # Even if ROOT_USE_STATIC_LIBS is OFF, we might have static
+          # libraries as a result.
+          add_library(ROOT::${COMPONENT} UNKNOWN IMPORTED)
+        endif()
+        if(ROOT_INCLUDE_DIRS)
+          set_target_properties(ROOT::${COMPONENT} PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${ROOT_INCLUDE_DIRS}")
+        endif()
+        if(EXISTS "${ROOT_${COMPONENT}_LIBRARY}")
+          set_target_properties(ROOT::${COMPONENT} PROPERTIES
+            IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
+            IMPORTED_LOCATION "${ROOT_${COMPONENT}_LIBRARY}")
+        endif()
+        if(EXISTS "${ROOT_${UPPERCOMPONENT}_LIBRARY_RELEASE}")
+          set_property(TARGET ROOT::${COMPONENT} APPEND PROPERTY
+            IMPORTED_CONFIGURATIONS RELEASE)
+          set_target_properties(ROOT::${COMPONENT} PROPERTIES
+            IMPORTED_LINK_INTERFACE_LANGUAGES_RELEASE "CXX"
+            IMPORTED_LOCATION_RELEASE "${ROOT_${UPPERCOMPONENT}_LIBRARY_RELEASE}")
+        endif()
+	if(EXISTS "${ROOT_${UPPERCOMPONENT}_LIBRARY_DEBUG}")
+          set_property(TARGET ROOT::${COMPONENT} APPEND PROPERTY
+            IMPORTED_CONFIGURATIONS DEBUG)
+          set_target_properties(ROOT::${COMPONENT} PROPERTIES
+            IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "CXX"
+            IMPORTED_LOCATION_DEBUG "${ROOT_${UPPERCOMPONENT}_LIBRARY_DEBUG}")
+        endif()
+        if(_ROOT_${UPPERCOMPONENT}_DEPENDENCIES)
+          unset(_ROOT_${UPPERCOMPONENT}_TARGET_DEPENDENCIES)
+          foreach(dep ${_ROOT_${UPPERCOMPONENT}_DEPENDENCIES})
+            list(APPEND _ROOT_${UPPERCOMPONENT}_TARGET_DEPENDENCIES ROOT::${dep})
+          endforeach()
+          if(COMPONENT STREQUAL "thread")
+            list(APPEND _ROOT_${UPPERCOMPONENT}_TARGET_DEPENDENCIES Threads::Threads)
+          endif()
+          set_target_properties(ROOT::${COMPONENT} PROPERTIES
+            INTERFACE_LINK_LIBRARIES "${_ROOT_${UPPERCOMPONENT}_TARGET_DEPENDENCIES}")
+        endif()
+        if(_ROOT_${UPPERCOMPONENT}_COMPILER_FEATURES)
+          set_target_properties(ROOT::${COMPONENT} PROPERTIES
+            INTERFACE_COMPILE_FEATURES "${_ROOT_${UPPERCOMPONENT}_COMPILER_FEATURES}")
+        endif()
+      endif()
+    endif()
+  endforeach()
+endif()
+
 
 #----------------------------------------------------------------------------
 # function ROOT_GENERATE_DICTIONARY( dictionary
@@ -91,7 +176,6 @@ function(ROOT_GENERATE_DICTIONARY dictionary)
   #---Get the list of include directories------------------
   get_directory_property(incdirs INCLUDE_DIRECTORIES)
   set(includedirs)
-
   foreach( d ${incdirs})
      set(includedirs ${includedirs} -I${d})
   endforeach()
@@ -114,16 +198,17 @@ function(ROOT_GENERATE_DICTIONARY dictionary)
   #---Get LinkDef.h file------------------------------------
   set(linkdefs)
   foreach( f ${ARG_LINKDEF})
-    find_file(linkFile ${f} HINTS ${incdirs})
+    find_file(linkFile ${f} HINTS ${incdirs} "./")
     set(linkdefs ${linkdefs} ${linkFile})
     unset(linkFile CACHE)
   endforeach()
-  #---call rootcint------------------------------------------
-  MESSAGE( STATUS "Calling rootcint " ${ROOTCINT_EXECUTABLE} -cint -f ${dictionary}.cxx -c ${ARG_OPTIONS} ${includedirs} ${headerfiles} ${linkdefs})
+  #---call rootcling------------------------------------------
   add_custom_command(OUTPUT ${dictionary}.cxx
-                     COMMAND ${ROOTCINT_EXECUTABLE} -cint -f  ${dictionary}.cxx
-                                          -c ${ARG_OPTIONS} ${includedirs} ${headerfiles} ${linkdefs}
-                     DEPENDS ${headerfiles} ${linkdefs} VERBATIM)
+                     COMMAND rootcling -f ${dictionary}.cxx 
+		     ${ARG_OPTIONS} ${includedirs} ${headerfiles} ${linkdefs}
+                     DEPENDS ${headerfiles} ${linkdefs} 
+		     COMMENT "Generating root dictionary ${dictionary}"
+		     )
 endfunction()
 
 #----------------------------------------------------------------------------

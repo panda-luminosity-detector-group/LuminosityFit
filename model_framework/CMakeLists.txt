@@ -1,23 +1,16 @@
-set(INCLUDE_DIRECTORIES
-  ${ROOT_INCLUDE_DIR}
-  $ENV{BOOST_ROOT}/include
-)
-include_directories(${INCLUDE_DIRECTORIES})
-
-
-set(LINK_DIRECTORIES
-  ${ROOT_LIBRARY_DIR}
-  $ENV{BOOST_ROOT}/lib
-)
-link_directories(${LINK_DIRECTORIES})
-set(LINK_LIBS Core Hist MathCore Gpad Graf gsl gslcblas boost_thread boost_filesystem boost_system) 
-
+find_package(GSL REQUIRED)
 
 file(GLOB_RECURSE SRCS ./*.cxx)
 
 add_library(Model SHARED ${SRCS})
 
-target_link_libraries(Model ${LINK_LIBS})
+target_include_directories(Model
+	PUBLIC ${Boost_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS}
+	PRIVATE ${ROOT_INCLUDE_DIR} 
+)
+target_link_libraries(Model
+	PRIVATE Boost::thread Boost::filesystem Boost::system ${ROOT_LIBRARIES} ${GSL_LIBRARIES}
+)
 
 install(TARGETS Model LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/lib)
 

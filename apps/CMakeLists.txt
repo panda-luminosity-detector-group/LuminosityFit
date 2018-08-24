@@ -1,84 +1,47 @@
 set(INCLUDE_DIRECTORIES
   ${ROOT_INCLUDE_DIR}
-  $ENV{BOOST_ROOT}/include
+  ${Boost_INCLUDE_DIRS}
 )
 include_directories(${INCLUDE_DIRECTORIES})
 
-set(LINK_DIRECTORIES
-  ${ROOT_LIBRARY_DIR}
-  $ENV{BOOST_ROOT}/lib
-)
-link_directories(${LINK_DIRECTORIES})
 
-
-
-########################### create elastic cross section integrator app ##################################
+########################### active apps ##################################
 
 add_executable(calculateElasticCrossSection calculateElasticCrossSection.cxx)
-target_link_libraries(calculateElasticCrossSection LmdUI)
+target_link_libraries(calculateElasticCrossSection LmdUI ROOT::Hist ROOT::Gpad ROOT::RIO)
 
-########################### create checkFramework app ##################################
-
+add_executable(generatePbarPElasticScattering generatePbarPElasticScattering.cxx)
+target_link_libraries(generatePbarPElasticScattering LmdModel LmdFitData)
+	
 add_executable(checkFramework checkFramework.cxx)
-target_link_libraries(checkFramework Model RIO)
-
-########################### create fitRawDPMElasticData app ##################################
-
-#add_executable(fitRawDPMElasticData fitRawDPMElasticData.cxx)
-#target_link_libraries(fitRawDPMElasticData LmdUI)
-
-########################### create checkDivergenceSmearing app ##################################
+target_link_libraries(checkFramework Model ROOT::Core ROOT::MathCore ROOT::RIO ROOT::Hist Boost::system)
 
 add_executable(checkDivergenceSmearing checkDivergenceSmearing.cxx)
-target_link_libraries(checkDivergenceSmearing LmdUI)
-
-########################### create acceptanceComparison app ##################################
-
-#add_executable(compareAcceptances compareAcceptances.cxx)
-#target_link_libraries(compareAcceptances LmdUI)
-
-#add_executable(analyzeAcceptances analyzeAcceptances.cxx)
-#target_link_libraries(analyzeAcceptances LmdUI Minuit2)
+target_link_libraries(checkDivergenceSmearing LmdUI ROOT::Hist ROOT::RIO)
 
 add_executable(analyzeResolutionMapData analyzeResolutionMapData.cxx)
-target_link_libraries(analyzeResolutionMapData LmdUI)
-
-########################### create lumiFitData app ##################################
+target_link_libraries(analyzeResolutionMapData LmdUI ROOT::Hist ROOT::Gpad ROOT::RIO ROOT::Graf)
 
 add_executable(createLmdFitData createLmdFitData.cxx)
-target_link_libraries(createLmdFitData LmdUI boost_filesystem boost_system)
-
-########################### create determineBeamOffset app ##################################
+target_link_libraries(createLmdFitData LmdUI ${BOOST_LIBRARIES})
 
 add_executable(determineBeamOffset determineBeamOffset.cxx)
-target_link_libraries(determineBeamOffset LmdUI)
-
-########################### create lumiFitSystematic app ##################################
+target_link_libraries(determineBeamOffset PRIVATE LmdUI ${ROOT_LIBRARIES})
 
 add_executable(determineLumiFitSystematics determineLumiFitSystematics.cxx)
-target_link_libraries(determineLumiFitSystematics LmdUI)
-
-########################### create lumi resolution plotter app ##################################
+target_link_libraries(determineLumiFitSystematics LmdUI ${ROOT_LIBRARIES})
 
 add_executable(makeResolutionPlots makeResolutionPlots.cxx)
-target_link_libraries(makeResolutionPlots LmdUI)
-
-########################### create mergeLmdData app ##################################
+target_link_libraries(makeResolutionPlots LmdUI ${ROOT_LIBRARIES})
 
 add_executable(mergeLmdData mergeLmdData.cxx)
-target_link_libraries(mergeLmdData LmdUI)
-
-########################### create BeamOffsetResult plotter app ##################################
+target_link_libraries(mergeLmdData LmdUI ${ROOT_LIBRARIES})
 
 add_executable(plotIPDistribution plotIPDistribution.cxx)
-target_link_libraries(plotIPDistribution LmdUI)
-
-########################### create LumiFit plotter app ##################################
+target_link_libraries(plotIPDistribution LmdUI ROOT::Graf ROOT::RIO)
 
 add_executable(plotLumiFitResults plotLumiFitResults.cxx)
-target_link_libraries(plotLumiFitResults LmdUI)
-
-########################### create lumiFit app ##################################
+target_link_libraries(plotLumiFitResults LmdUI  ROOT::Hist ROOT::Gpad ROOT::RIO ROOT::Graf)
 
 add_executable(runLmdFit runLmdFit.cxx)
 target_link_libraries(runLmdFit LmdUI)
@@ -87,7 +50,18 @@ target_link_libraries(runLmdFit LmdUI)
 
 
 
-########################### create phiSlicing app ##################################
+########################### inactive apps ##################################
+
+########################### create fitRawDPMElasticData app ##################################
+
+#add_executable(fitRawDPMElasticData fitRawDPMElasticData.cxx)
+#target_link_libraries(fitRawDPMElasticData LmdUI)
+
+#add_executable(compareAcceptances compareAcceptances.cxx)
+#target_link_libraries(compareAcceptances LmdUI)
+
+#add_executable(analyzeAcceptances analyzeAcceptances.cxx)
+#target_link_libraries(analyzeAcceptances LmdUI Minuit2)
 
 #add_executable(phiSliceData phiSliceData.cxx)
 #target_link_libraries(phiSliceData Lmd LmdTool MathMore Eve)
@@ -119,4 +93,4 @@ target_link_libraries(runLmdFit LmdUI)
 ########################### create DPMModel2D plotter app ##################################
 
 add_executable(plot2DDPMModel plot2DDPMModel.cxx)
-target_link_libraries(plot2DDPMModel LmdUI)
+target_link_libraries(plot2DDPMModel LmdUI ROOT::Hist ROOT::RIO)
