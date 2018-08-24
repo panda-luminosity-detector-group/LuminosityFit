@@ -10,7 +10,8 @@ def check_ip_params_zero(ip_params):
 
 def generateSimulationParameters(args):
     sim_params = {
-        'num_events': args.num_events[0],
+        'num_events_per_sample': args.num_events_per_sample[0],
+        'num_samples': args.num_samples[0],
         'lab_momentum': args.lab_momentum[0],
         'sim_type': args.sim_type[0],
         'theta_min_in_mrad': args.theta_min,
@@ -18,7 +19,6 @@ def generateSimulationParameters(args):
         'neglect_recoil_momentum': not args.neglect_recoil_momentum,
         'random_seed': args.random_seed,
         'low_index': args.low_index,
-        'high_index': args.high_index,
         'output_dir': args.output_dir,
         'use_xy_cut': args.use_xy_cut,
         'use_m_cut': args.use_m_cut,
@@ -26,9 +26,9 @@ def generateSimulationParameters(args):
         'reco_ip_offset': args.reco_ip_offset,
         'lmd_geometry_filename': args.lmd_detector_geometry_filename
     }
-    if args.debug:
-        sim_params['low_index'] = 1
-        sim_params['high_index'] = 1
+    if args.debug and sim_params['num_samples'] > 1:
+        print("Warning: number of samples in debug mode is limited to 1! Setting to 1!")
+        sim_params['num_samples'] = 1
     
     ip_params = {
         'ip_offset_x': Decimal(args.use_ip_offset[0]),  # in cm
@@ -58,15 +58,16 @@ def generateSimulationParameterPropertyFile(output_dirname, sim_params):
 
 
 def generateDirectory(sim_params):
-  print('preparing simulations in index range ' + str(sim_params['low_index']) + ' - ' + str(sim_params['high_index']))
+  print('preparing simulations in index range ' + str(sim_params['low_index']) 
+        + ' - ' + str(sim_params['low_index']+sim_params['num_samples']-1))
 
   if sim_params['output_dir'] == '':
     # generate output directory name
     # lets generate a folder structure based on the input
     dirname = 'plab_' + str(sim_params['lab_momentum']) + 'GeV'
     gen_part = sim_params['sim_type'] + '_theta_' + str(sim_params['theta_min_in_mrad'])
-    if sim_params['sim_type'] is 'box':
-        gen_part += '-' + str(sim_params['theta_max_in_mrad'])
+    #if sim_params['sim_type'] is 'box':
+    gen_part += '-' + str(sim_params['theta_max_in_mrad'])
     gen_part += 'mrad'
     if not sim_params['neglect_recoil_momentum']:
         gen_part += '_recoil_corrected'
@@ -85,7 +86,7 @@ def generateDirectory(sim_params):
 
     dirname += '/' + str(os.path.splitext(sim_params['lmd_geometry_filename'])[0])
 
-    dirname += '/' + str(sim_params['num_events'])
+    dirname += '/' + str(sim_params['num_events_per_sample'])
   else:
     dirname = sim_params['output_dir']
     
@@ -93,7 +94,7 @@ def generateDirectory(sim_params):
 
 
 def generateFilterSuffix(sim_params):
-  dirname_filter_suffix = str(sim_params['low_index']) + '-' + str(sim_params['high_index']) + '_'
+  dirname_filter_suffix = str(sim_params['low_index']) + '-' + str(sim_params['low_index']+sim_params['num_samples']-1) + '_'
   if sim_params['use_xy_cut']:
     dirname_filter_suffix += 'xy_'
   if sim_params['use_m_cut']:

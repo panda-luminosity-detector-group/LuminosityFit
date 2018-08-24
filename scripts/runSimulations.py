@@ -9,7 +9,8 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Script for full simulation of PANDA Luminosity Detector via externally generated MC data.', formatter_class=argparse.RawTextHelpFormatter)
 
-parser.add_argument('num_events', metavar='num_events', type=int, nargs=1, help='number of events to simulate')
+parser.add_argument('num_events_per_sample', metavar='num_events_per_sample', type=int, nargs=1, help='number of events per sample to simulate')
+parser.add_argument('num_samples', metavar='num_samples', type=int, nargs=1, help='number of samples to simulate')
 parser.add_argument('lab_momentum', metavar='lab_momentum', type=float, nargs=1, help='lab momentum of incoming beam antiprotons\n(required to set correct magnetic field maps etc)')
 parser.add_argument('sim_type', metavar='simulation_type', type=str, nargs=1, choices=['box', 'dpm_elastic', 'dpm_elastic_inelastic', 'noise'],
                     help='Simulation type which can be one of the following: box, dpm_elastic, dpm_elastic_inelastic, noise.\n'
@@ -29,12 +30,8 @@ parser.add_argument('--force_level', metavar='force_level', type=int, default=0,
                     'force level 1: will do full reconstruction even if this data already exists, but not geant simulation\n'
                     'force level 2: resimulation of everything!')
 
-parser.add_argument('--low_index', metavar='low_index', type=int, default=-1,
-                   help='Lowest index of generator file which is supposed to be used in the simulation.\n'
-                   'Default setting is -1 which will take the lowest found index.')
-parser.add_argument('--high_index', metavar='high_index', type=int, default=-1,
-                   help='Highest index of generator file which is supposed to be used in the simulation.\n'
-                   'Default setting is -1 which will take the highest found index.')
+parser.add_argument('--low_index', metavar='low_index', type=int, default=1,
+                   help='Index of first sample and lowest index of job array.')
 
 parser.add_argument('--output_dir', metavar='output_dir', type=str, default='', help='This directory is used for the output.\n'
                     'Default is the generator directory as a prefix, with beam offset infos etc. added')
@@ -80,7 +77,7 @@ dirname = simulation.generateDirectory(sim_params)
 dirname_filter_suffix = simulation.generateFilterSuffix(sim_params)
 
 low_index_used = sim_params['low_index']
-high_index_used = sim_params['high_index']
+num_samples = sim_params['num_samples']
 
 pathname_base = os.getenv('LMDFIT_DATA_DIR') + '/' + dirname
 path_mc_data = pathname_base + '/mc_data'
@@ -101,7 +98,7 @@ min_file_size = 3000 #in bytes
 if args.force_level == 0:
     # check if the directory already has the reco data in it 
     reco_files = glob.glob(pathname_full + '/Lumi_TrksQA_*.root')
-    total_requested_jobs=(high_index_used-low_index_used+1)
+    total_requested_jobs=num_samples
     reco_files = [x for x in reco_files if os.path.getsize(x) > min_file_size]
     if total_requested_jobs == 1:
         if len(reco_files) == total_requested_jobs:
@@ -144,13 +141,12 @@ if args.use_devel_queue:
     resource_request = himster.make_test_resource_request()
 
 job = himster.Job(resource_request, './runLumiFullSimPixel.sh', 'lmd_fullsim_' + args.sim_type[0], pathname_full + '/sim-%a.log')
-job.set_job_array_indices(list(range(low_index_used, high_index_used+1)))
+job.set_job_array_indices(list(range(low_index_used, low_index_used+num_samples)))
 
-job.add_exported_user_variable('num_evts', str(args.num_events[0]))
+job.add_exported_user_variable('num_evts', str(args.num_events_per_sample[0]))
 job.add_exported_user_variable('mom', str(args.lab_momentum[0]))
 job.add_exported_user_variable('reaction_type', reaction_type)
 job.add_exported_user_variable('theta_min_in_mrad', args.theta_min)
-job.add_exported_user_variable('theta_min_in_deg', args.theta_min*0.180/math.pi)
 job.add_exported_user_variable('theta_max_in_mrad', args.theta_max)
 job.add_exported_user_variable('use_recoil_momentum', use_recoil_momentum)
 job.add_exported_user_variable('random_seed', args.random_seed)

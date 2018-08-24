@@ -20,8 +20,7 @@
 #include <set>
 
 #ifndef __CINT__
-#include <boost/assign/list_of.hpp>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #endif
 
 #include "TObject.h"
@@ -34,11 +33,11 @@ enum LmdEstimatorType {
 };
 
 #ifndef __CINT__
-const boost::unordered_map<std::string, LmdEstimatorType> StringToLmdEstimatorType =
-		boost::assign::map_list_of("CHI2", CHI2)("LOG_LIKELIHOOD", LOG_LIKELIHOOD);
+const std::unordered_map<std::string, LmdEstimatorType> StringToLmdEstimatorType =
+		{{"CHI2", CHI2},{"LOG_LIKELIHOOD", LOG_LIKELIHOOD}};
 
-const boost::unordered_map<LmdEstimatorType, std::string> LmdEstimatorTypeToString =
-		boost::assign::map_list_of(CHI2, "CHI2")(LOG_LIKELIHOOD, "LOG_LIKELIHOOD");
+const std::unordered_map<LmdEstimatorType, std::string> LmdEstimatorTypeToString =
+		{{CHI2, "CHI2"},{LOG_LIKELIHOOD, "LOG_LIKELIHOOD"}};
 #endif
 
 enum LmdDataType {
@@ -59,10 +58,10 @@ enum LmdDimensionType {
 };
 
 #ifndef __CINT__
-const boost::unordered_map<std::string, LmdDimensionType> StringToDimensionType =
-		boost::assign::map_list_of("X", X)("Y", Y)("Z", Z)("T", T)("THETA", THETA)(
-				"PHI", PHI)("THETA_X", THETA_X)("THETA_Y", THETA_Y)("PARTICLE_ID", PARTICLE_ID)(
-				"SECONDARY", SECONDARY);
+const std::unordered_map<std::string, LmdDimensionType> StringToDimensionType =
+		{{"X", X},{"Y", Y},{"Z", Z},{"T", T},{"THETA", THETA},{
+				"PHI", PHI},{"THETA_X", THETA_X},{"THETA_Y", THETA_Y},{"PARTICLE_ID", PARTICLE_ID},{
+				"SECONDARY", SECONDARY}};
 #endif
 
 enum LmdTrackType {
@@ -74,8 +73,8 @@ enum LmdTrackParamType {
 };
 
 #ifndef __CINT__
-const boost::unordered_map<std::string, LmdTrackParamType> StringToTrackParamType =
-		boost::assign::map_list_of("IP", IP)("LMD", LMD);
+const std::unordered_map<std::string, LmdTrackParamType> StringToTrackParamType =
+		{{"IP", IP},{"LMD", LMD}};
 #endif
 
 enum ModelType {
@@ -83,16 +82,16 @@ enum ModelType {
 };
 
 #ifndef __CINT__
-const boost::unordered_map<std::string, ModelType> StringToModelType =
-		boost::assign::map_list_of("GAUSSIAN", GAUSSIAN)("DOUBLE_GAUSSIAN",
-				DOUBLE_GAUSSIAN)("ASYMMETRIC_GAUSSIAN", ASYMMETRIC_GAUSSIAN)("UNIFORM",
-				UNIFORM);
+const std::unordered_map<std::string, ModelType> StringToModelType =
+		{{"GAUSSIAN", GAUSSIAN},{"DOUBLE_GAUSSIAN",
+				DOUBLE_GAUSSIAN},{"ASYMMETRIC_GAUSSIAN", ASYMMETRIC_GAUSSIAN},{"UNIFORM",
+				UNIFORM}};
 #endif
 
 #ifndef __CINT__
-const boost::unordered_map<std::string, ModelStructs::InterpolationType> StringToInterpolationType =
-		boost::assign::map_list_of("CONSTANT", ModelStructs::CONSTANT)("LINEAR",
-				ModelStructs::LINEAR)("SPLINE", ModelStructs::SPLINE);
+const std::unordered_map<std::string, ModelStructs::InterpolationType> StringToInterpolationType =
+		{{"CONSTANT", ModelStructs::CONSTANT},{"LINEAR",
+				ModelStructs::LINEAR},{"SPLINE", ModelStructs::SPLINE}};
 #endif
 
 enum TransformationOption { 
@@ -100,10 +99,10 @@ enum TransformationOption {
 };
 
 #ifndef __CINT__
-const boost::unordered_map<std::string, TransformationOption> StringToTransformationOption =
-                boost::assign::map_list_of("APPROX", APPROX)("CORRECT", CORRECT);
-const boost::unordered_map<TransformationOption, std::string> TransformationOptionToString =
-                boost::assign::map_list_of(APPROX, "APPROX")(CORRECT, "CORRECT");
+const std::unordered_map<std::string, TransformationOption> StringToTransformationOption =
+                {{"APPROX", APPROX},{"CORRECT", CORRECT}};
+const std::unordered_map<TransformationOption, std::string> TransformationOptionToString =
+                {{APPROX, "APPROX"},{CORRECT, "CORRECT"}};
 #endif
 
 enum DPMElasticParts {
@@ -111,15 +110,15 @@ enum DPMElasticParts {
 };
 
 #ifndef __CINT__
-const boost::unordered_map<std::string, DPMElasticParts> StringToDPMElasticParts =
-		boost::assign::map_list_of("COUL", COUL)("INT", INT)("HAD", HAD)(
-				"HAD_RHO_B_SIGTOT", HAD_RHO_B_SIGTOT)("ALL_RHO_B_SIGTOT",
-				ALL_RHO_B_SIGTOT)("ALL", ALL);
+const std::unordered_map<std::string, DPMElasticParts> StringToDPMElasticParts =
+		{{"COUL", COUL},{"INT", INT},{"HAD", HAD},{
+				"HAD_RHO_B_SIGTOT", HAD_RHO_B_SIGTOT},{"ALL_RHO_B_SIGTOT",
+				ALL_RHO_B_SIGTOT},{"ALL", ALL}};
 
-const boost::unordered_map<DPMElasticParts, std::string> DPMElasticPartsToString =
-		boost::assign::map_list_of(COUL, "COUL")(INT, "INT")(HAD, "HAD")(
-				HAD_RHO_B_SIGTOT, "HAD_RHO_B_SIGTOT")(ALL_RHO_B_SIGTOT,
-				"ALL_RHO_B_SIGTOT")(ALL, "ALL");
+const std::unordered_map<DPMElasticParts, std::string> DPMElasticPartsToString =
+		{{COUL, "COUL"},{INT, "INT"},{HAD, "HAD"},{
+				HAD_RHO_B_SIGTOT, "HAD_RHO_B_SIGTOT"},{ALL_RHO_B_SIGTOT,
+				"ALL_RHO_B_SIGTOT"},{ALL, "ALL"}};
 
 #endif
 

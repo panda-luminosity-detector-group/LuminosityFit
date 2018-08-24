@@ -4,12 +4,14 @@
 
 ### Prerequisites
 Make sure your Pandaroot enviroment is set up correctly, more precisely that these environment variables are set:
+- SIMPATH
 - VMCWORKDIR
 - FAIRROOTPATH
 - ROOTSYS
 
-A further requirement is the gsl library, which can be loaded on the himster2 via `module load numlib/GSL/2.4-foss-2017a`.
-Additionally, make sure you are using a boost version which was build using a gcc version 5 or greater. You can set the location of the boost via the *BOOST_ROOT* environment variable.
+Boost and the gsl library are two requirements, which are automatically included with fairsoft, so you already have them installed for sure. It is recommended to use the same boost, which was used to build the pandaroot enviroment. Use the *BOOST_ROOT* environment variable to hint cmake to correct boost location.
+`export BOOST_ROOT=$SIMPATH`
+(No need to put that export in your bashrc, just run it in your shell before cmake call)
 
 ### Compilation
 Simply create a build directory, change into that build directory, and run `cmake {PATH_TO_YOUR_LUMINOSITY_FIT_SOURCE}`
@@ -20,6 +22,11 @@ The binaries in the ./bin subdirectory of the build path can be used directly. F
 ```bash
 export LMDFIT_BUILD_PATH="path-to-your-luminosityfit-build-directory"
 export DATA_HOME="path-to-himspecf-data-storage"`
-export LMDFIT_GEN_DATA=$DATA_HOME/paluma/lmdfit_sim_gen_samples
 export LMDFIT_DATA_DIR=$DATA_HOME/paluma/"directory-name-of-your-choice"
 ```
+
+In order to avoid some ROOT cling errors related to .pcm files, export the location of the pcm files to the LD_LIBRARY_PATH.
+
+```bash
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LMDFIT_BUILD_PATH/data:$LMDFIT_BUILD_PATH:fit
+``` 

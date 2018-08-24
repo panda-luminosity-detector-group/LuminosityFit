@@ -82,9 +82,8 @@ if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
     root -l -b -q 'standaloneBoxGen.C('${mom}', '${num_evts}', '${theta_min_in_mrad}', '${theta_max_in_mrad}', "'${gen_filepath}'", '${random_seed}', '${use_recoil_momentum}')'
   else
     echo "generating dpm MC sample"
-    minimal_theta_value=${theta_min_in_mrad}
-    echo "Running ./DPMGen -s ${random_seed} -m ${mom} -n ${num_evts} -e ${reaction_type} -t ${theta_min_in_deg} -f ${gen_filepath}"
-    ./myDpm/DPMGen -s ${random_seed} -m ${mom} -n ${num_evts} -e ${reaction_type} -t ${theta_min_in_deg} -f ${gen_filepath} > $workpathname/dpm.log
+    echo "Running generatePbarPElasticScattering ${mom} ${num_evts} -l ${theta_min_in_mrad} -u ${theta_max_in_mrad} -s ${random_seed} -o ${gen_filepath}"
+    ${LMDFIT_BUILD_PATH}/bin/generatePbarPElasticScattering ${mom} ${num_evts} -l ${theta_min_in_mrad} -u ${theta_max_in_mrad} -s ${random_seed} -o ${gen_filepath}
   fi
   cd $macropath
   echo "starting up a pandaroot simulation..."
