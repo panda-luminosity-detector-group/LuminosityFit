@@ -22,9 +22,11 @@ def generateSimulationParameters(args):
         'output_dir': args.output_dir,
         'use_xy_cut': args.use_xy_cut,
         'use_m_cut': args.use_m_cut,
-        'track_search_algo': args.track_search_algo,
+        'track_search_algo': args.track_search_algo, 
         'reco_ip_offset': args.reco_ip_offset,
-        'lmd_geometry_filename': args.lmd_detector_geometry_filename
+        'lmd_geometry_filename': args.lmd_detector_geometry_filename,
+        'misalignment_matrices_path': args.misalignment_matrices_path,
+        'alignment_matrices_path': args.alignment_matrices_path
     }
     if args.debug and sim_params['num_samples'] > 1:
         print("Warning: number of samples in debug mode is limited to 1! Setting to 1!")
@@ -84,7 +86,11 @@ def generateDirectory(sim_params):
             +str(sim_params['ip_params']['beam_tilt_y'])+'_'\
             +str(sim_params['ip_params']['beam_divergence_x'])+'_'+str(sim_params['ip_params']['beam_divergence_y'])
 
-    dirname += '/' + str(os.path.splitext(sim_params['lmd_geometry_filename'])[0])
+    #dirname += '/' + str(os.path.splitext(sim_params['lmd_geometry_filename'])[0])
+    if sim_params['misalignment_matrices_path'] == '':
+        dirname += '/aligned'
+    else:
+        dirname += '/' + str(os.path.basename(sim_params['misalignment_matrices_path']))
 
     dirname += '/' + str(sim_params['num_events_per_sample'])
   else:
