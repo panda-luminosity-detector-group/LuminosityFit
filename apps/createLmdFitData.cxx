@@ -36,7 +36,8 @@ void createLmdFitData(const std::string &input_dir_path,
   lmd_runtime_config.setTotalElasticCrossSection(total_elastic_cross_section);
 
   lmd_runtime_config.setRawDataDirectory(input_dir_path);
-  lmd_runtime_config.setRawDataFilelistPath(filelist_path);
+  if(filelist_path != "")
+    lmd_runtime_config.setRawDataFilelistPath(filelist_path);
   lmd_runtime_config.setDataOutputDirectory(output_dir_path);
 
   // set general config path

@@ -20,3 +20,11 @@ target_include_directories(LmdFit
 	PUBLIC ${ROOT_INCLUDE_DIR})
 target_link_libraries(LmdFit
 	INTERFACE Model ROOT::Core)
+
+add_custom_command(
+        TARGET LmdFit POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_BINARY_DIR}/*.pcm
+                ${CMAKE_BINARY_DIR}/lib/.
+        COMMENT "copying LmdFit root pcm file..."
+)

@@ -65,6 +65,7 @@ parser.add_argument('--use_devel_queue', action='store_true', help='If flag is s
 
 parser.add_argument('--misalignment_matrices_path', metavar='misalignment_matrices_path', type=str, default='', help='')
 parser.add_argument('--alignment_matrices_path', metavar='alignment_matrices_path', type=str, default='', help='')
+parser.add_argument('--use_point_transform_misalignment', action='store_true', help='Instead of misaligning the geometry, the points are misaligned after the simulation.')
 
 parser.add_argument('--debug', action='store_true', help='If flag is set, the simulation runs locally for debug purposes')
 
@@ -171,6 +172,7 @@ job.add_exported_user_variable('CleanSig', str(args.use_m_cut).lower())
 job.add_exported_user_variable('track_search_algorithm', args.track_search_algo)
 job.add_exported_user_variable('lmd_geometry_filename', args.lmd_detector_geometry_filename)
 job.add_exported_user_variable('misalignment_matrices_path', args.misalignment_matrices_path)
+job.add_exported_user_variable('use_point_transform_misalignment', str(args.use_point_transform_misalignment).lower())
 job.add_exported_user_variable('alignment_matrices_path', args.alignment_matrices_path)
 job.add_exported_user_variable('force_level', args.force_level)
 if args.sim_type[0] == 'noise':

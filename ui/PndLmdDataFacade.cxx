@@ -666,8 +666,8 @@ void PndLmdDataFacade::createDataBundles(const std::string &data_types) {
 void PndLmdDataFacade::fillCreatedData() {
   PndLmdCombinedDataReader data_reader;
 
-// add input directory to data facade
-  if (boost::filesystem::is_empty(lmd_runtime_config.getRawDataFilelistPath()))
+  // add input directory to data facade
+  if (!boost::filesystem::exists(lmd_runtime_config.getRawDataFilelistPath()))
     data_reader.addFilePath(
         lmd_runtime_config.getRawDataDirectory().string()
             + "/Lumi_TrksQA*.root");

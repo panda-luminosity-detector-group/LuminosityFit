@@ -14,7 +14,7 @@
 #include "FairTrackParH.h"
 
 PndLmdSeperateDataReader::PndLmdSeperateDataReader() :
-		MC_tree("cbmsim"), track_tree("cbmsim"), geane_tree("cbmsim"), combined_track_params(
+		MC_tree("cbmsim"), track_tree("cbmsim"), geane_tree("pndsim"), combined_track_params(
 				"PndLmdTrackQ", 1) {
 }
 

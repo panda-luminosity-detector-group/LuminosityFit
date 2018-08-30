@@ -102,6 +102,7 @@ int PndLmdDataReader::getNextMinEventIndex(
 }
 
 void PndLmdDataReader::addFilePath(TString file_path) {
+  std::cout << "adding file path: " << file_path << std::endl;
   file_paths.push_back(file_path);
 }
 

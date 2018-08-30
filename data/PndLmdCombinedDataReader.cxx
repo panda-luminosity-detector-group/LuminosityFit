@@ -9,7 +9,7 @@
 #include "PndLmdTrackQ.h"
 
 PndLmdCombinedDataReader::PndLmdCombinedDataReader() :
-		rel_momentum_deviation_threshold(0.0003), data_tree("cbmsim"), filtered_track_array(
+		rel_momentum_deviation_threshold(0.0003), data_tree("pndsim"), filtered_track_array(
 				"PndLmdTrackQ", 100) {
 	track_array = 0;
 }

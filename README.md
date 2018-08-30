@@ -25,8 +25,8 @@ export DATA_HOME="path-to-himspecf-data-storage"`
 export LMDFIT_DATA_DIR=$DATA_HOME/paluma/"directory-name-of-your-choice"
 ```
 
-In order to avoid some ROOT cling errors related to .pcm files, export the location of the pcm files to the LD_LIBRARY_PATH.
+In order to have the full ROOT cling support, export the build library directory location to the LD_LIBRARY_PATH.
 
 ```bash
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LMDFIT_BUILD_PATH/data:$LMDFIT_BUILD_PATH:fit
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LMDFIT_BUILD_PATH/lib
 ``` 

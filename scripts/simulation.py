@@ -26,6 +26,7 @@ def generateSimulationParameters(args):
         'reco_ip_offset': args.reco_ip_offset,
         'lmd_geometry_filename': args.lmd_detector_geometry_filename,
         'misalignment_matrices_path': args.misalignment_matrices_path,
+        'use_point_transform_misalignment': args.use_point_transform_misalignment,
         'alignment_matrices_path': args.alignment_matrices_path
     }
     if args.debug and sim_params['num_samples'] > 1:
@@ -87,10 +88,14 @@ def generateDirectory(sim_params):
             +str(sim_params['ip_params']['beam_divergence_x'])+'_'+str(sim_params['ip_params']['beam_divergence_y'])
 
     #dirname += '/' + str(os.path.splitext(sim_params['lmd_geometry_filename'])[0])
-    if sim_params['misalignment_matrices_path'] == '':
-        dirname += '/aligned'
+    if sim_params['use_point_transform_misalignment']:
+        dirname += '/misalign_data'
     else:
-        dirname += '/' + str(os.path.basename(sim_params['misalignment_matrices_path']))
+        dirname += '/misalign_geometry'
+        if sim_params['misalignment_matrices_path'] == '' or sim_params['use_point_transform_misalignment']:
+            dirname += '/aligned'
+        else:
+            dirname += '/' + str(os.path.splitext(os.path.basename(sim_params['misalignment_matrices_path']))[0])
 
     dirname += '/' + str(sim_params['num_events_per_sample'])
   else:
@@ -113,5 +118,9 @@ def generateFilterSuffix(sim_params):
         or sim_params['reco_ip_offset'][1] != 0.0 
         or sim_params['reco_ip_offset'][2] != 0.0):
       dirname_filter_suffix += '_real'
-
+  if sim_params['use_point_transform_misalignment']: 
+    if sim_params['misalignment_matrices_path'] == '':
+      dirname_filter_suffix += '_aligned'
+    else:
+      dirname_filter_suffix += '_' + str(os.path.splitext(os.path.basename(sim_params['misalignment_matrices_path']))[0])
   return dirname_filter_suffix
