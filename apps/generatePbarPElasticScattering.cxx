@@ -6,6 +6,7 @@
  */
 
 #include "model/PndLmdModelFactory.h"
+#include "model/PndLmdDPMAngModel1D.h"
 #include "data/PndLmdAngularData.h"
 
 #include <utility>
@@ -13,6 +14,7 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
+#include <fstream>
 
 #include "TFile.h"
 #include "TDatabasePDG.h"
@@ -36,7 +38,7 @@ void calculateElasticCrossSection(double momentum, unsigned int num_events,
   base_model_opt.put("dpm_elastic_parts", "ALL");
 
   boost::property_tree::ptree correct_model_opt(base_model_opt);
-  correct_model_opt.put("theta_t_trafo_option", "CORRECT");
+  correct_model_opt.put("theta_t_trafo_option", "APPROX");
   PndLmdAngularData data;
   data.setLabMomentum(momentum);
 
@@ -52,6 +54,14 @@ void calculateElasticCrossSection(double momentum, unsigned int num_events,
       << theta_min_in_mrad << " - " << theta_max_in_mrad << "] is " << integral
       << " mb" << std::endl;
 
+  if(num_events == 0) {
+    std::ofstream myfile;
+    myfile.open ("elastic_cross_section.txt");
+    myfile << integral;
+    myfile.close();
+    return;
+  }
+
   TDatabasePDG *pdg = TDatabasePDG::Instance();
   double mass_proton = pdg->GetParticle(2212)->Mass();
   double fPhiMin = 0.0;
@@ -62,12 +72,10 @@ void calculateElasticCrossSection(double momentum, unsigned int num_events,
   double sqrts = std::sqrt(s);
   double Ecms = sqrts / 2.;
   double Pcms2 = std::pow(Ecms, 2) - std::pow(mass_proton, 2);
-  double Pcms = sqrt(Pcms2);
+  double Pcms = std::sqrt(Pcms2);
 
-  double t_min = -4.
-      * std::pow(Pcms * std::sin(theta_min_in_mrad / 1000.0 / 2.0), 2);
-  double t_max = -4.
-      * std::pow(Pcms * std::sin(theta_max_in_mrad / 1000.0 / 2.0), 2);
+  double t_min = ((PndLmdDPMAngModel1D*)correct_model.get())->getMomentumTransferFromTheta(theta_min_in_mrad / 1000.0);
+  double t_max = ((PndLmdDPMAngModel1D*)correct_model.get())->getMomentumTransferFromTheta(theta_max_in_mrad / 1000.0);
   //double t_max = -4. * std::pow(Pcms, 2);
 
   TClonesArray ca("TParticle", 2);
@@ -94,8 +102,7 @@ void calculateElasticCrossSection(double momentum, unsigned int num_events,
   func_max *= 1.1;
   std::cout << "function maximum was determined as: " << func_max << "\n";
   std::cout << "generating " << num_events << " ....\n";
-  TVector3 boost_vector = TLorentzVector(0, 0, plab, Elab).BoostVector();
-
+  TVector3 boost_vector = TLorentzVector(0, 0, Pcms, Ecms).BoostVector();
   using namespace std::chrono;
   duration<double> time_span_correct;
   high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -114,7 +121,7 @@ void calculateElasticCrossSection(double momentum, unsigned int num_events,
       --i;
       continue;
     }
-    double theta = 2.0 * std::asin(sqrt(-t / 4 / Pcms2));
+    double theta = std::acos(1.0 - 0.5 * (-t / Pcms2));
 
     double pz = Pcms * TMath::Cos(theta);
     double pt = Pcms * TMath::Sin(theta);

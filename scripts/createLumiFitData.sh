@@ -9,34 +9,20 @@ if [ $SLURM_ARRAY_TASK_ID ]; then
   batchjob=1
 fi
 
-# lab momentum of the beam antiprotons
-#pbeam=$var1
-#number of events used for the fitting procedure
-#numEv=$var2
 # directory of the data generated with dpm
 if [[ ${SLURM_ARRAY_TASK_ID} ]]; then
-  filelist_url=${filelist_path}/filelist_${PBS_ARRAYID}.txt
+  filelist_url=${filelist_path}/filelist_${SLURM_ARRAY_TASK_ID}.txt
 else
   filelist_url=${filelist_path}
 fi
 echo "data path: ${input_path}!"
-#type=$var4
 echo "data type: ${type}"
-#elastic_cross_section=$var5
+echo "config: ${config_path}"
 echo "elastic cross secion: ${elastic_cross_section}"
 if [ ! $numEv ]; then
   numEv=0
 fi
 
-if [[ $type == *a* ]]; then
-  if [ -z "${elastic_cross_section}" ]; then
-    dpm_logfile=${GEN_DATA}/`echo ${data_path} | sed -rn 's/^.*\/(.*)_pixel.*$/\1/p'`/*_1.log
-    elastic_cross_section=$(cat ${dpm_logfile} | sed -rn 's/elastic cross section[ ]*([0-9]*.[0-9]*).*/\1/p')
-    echo cross section is ${elastic_cross_section}
-  fi
-fi
-  
-echo "using elastic cross section of ${elastic_cross_section}"
 if [ -z ${filelist_url} ]; then
   echo ${LMDFIT_BUILD_PATH}/bin/createLmdFitData -m $pbeam -t $type -c ${config_path} -d ${input_path} -n ${numEv} -e ${elastic_cross_section}
   if [ $batchjob -eq "0" ]; then

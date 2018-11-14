@@ -27,8 +27,7 @@ PndLmdAbstractData::PndLmdAbstractData(const PndLmdAbstractData &lmd_abs_data_) 
         lmd_abs_data_.getLabMomentum()), name(lmd_abs_data_.getName()), primary_dimension(
         lmd_abs_data_.getPrimaryDimension()), secondary_dimension(
         lmd_abs_data_.getSecondaryDimension()), selection_dimensions(
-        lmd_abs_data_.getSelectorSet()), simulation_parameters(
-        lmd_abs_data_.simulation_parameters) {
+        lmd_abs_data_.getSelectorSet()) {
 }
 
 PndLmdAbstractData::~PndLmdAbstractData() {
@@ -66,49 +65,7 @@ const std::set<LumiFit::LmdDimension>& PndLmdAbstractData::getSelectorSet() cons
   return selection_dimensions;
 }
 
-boost::property_tree::ptree PndLmdAbstractData::getSimulationParametersPropertyTree() const {
-  boost::property_tree::ptree model_opt_ptree;
 
-  using boost::lexical_cast;
-  using boost::bad_lexical_cast;
-
-  std::map<std::string, std::string>::const_iterator simulation_parameter;
-  for (simulation_parameter = simulation_parameters.begin();
-      simulation_parameter != simulation_parameters.end();
-      ++simulation_parameter) {
-    bool success(false);
-    // check if its a bool
-    try {
-      bool value = lexical_cast<bool>(simulation_parameter->second);
-      model_opt_ptree.put(simulation_parameter->first, value);
-      success = true;
-    } catch (const bad_lexical_cast &) {
-    }
-    // check if its an int
-    try {
-      if (!success) {
-        int value = lexical_cast<int>(simulation_parameter->second);
-        model_opt_ptree.put(simulation_parameter->first, value);
-        success = true;
-      }
-    } catch (const bad_lexical_cast &) {
-    }
-    // check if its a double
-    try {
-      if (!success) {
-        double value = lexical_cast<double>(simulation_parameter->second);
-        model_opt_ptree.put(simulation_parameter->first, value);
-        success = true;
-      }
-    } catch (const bad_lexical_cast &) {
-    }
-    // otherwise just take it as a string
-    model_opt_ptree.put(simulation_parameter->first,
-        simulation_parameter->second);
-  }
-
-  return model_opt_ptree;
-}
 
 void PndLmdAbstractData::addSelectionDimension(
     const LumiFit::LmdDimension& lmd_dim) {
@@ -137,16 +94,6 @@ void PndLmdAbstractData::setSecondaryDimension(
     const LumiFit::LmdDimension& secondary_dimension_) {
   secondary_dimension = secondary_dimension_;
   init2DData();
-}
-
-void PndLmdAbstractData::setSimulationParameters(
-    const boost::property_tree::ptree &simulation_parameters_) {
-  boost::property_tree::ptree::const_iterator iter;
-  // convert the ptree to simple format...
-  for (iter = simulation_parameters_.begin();
-      iter != simulation_parameters_.end(); iter++) {
-    simulation_parameters[iter->first] = iter->second.data();
-  }
 }
 
 int PndLmdAbstractData::addFileToList(const std::string& filepath) {
@@ -180,11 +127,6 @@ bool PndLmdAbstractData::operator<(
     return false;
   }
 
-  if (simulation_parameters < rhs_lmd_data.simulation_parameters)
-    return true;
-  else if (simulation_parameters > rhs_lmd_data.simulation_parameters)
-    return false;
-
   return false;
 }
 
@@ -208,9 +150,6 @@ bool PndLmdAbstractData::operator==(
   }
 
   if (selection_dimensions != rhs_lmd_data.selection_dimensions)
-    return false;
-
-  if (simulation_parameters != rhs_lmd_data.simulation_parameters)
     return false;
 
   return true;

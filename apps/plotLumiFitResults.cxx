@@ -1,24 +1,3 @@
-/*
- * This is an app that produces plots from the luminosity fitting procedure
- * General information about the individual classes of the LmdFit framework can be
- * found in the doxygen manual
- * Run it like this:
- * 
- * ./makeLumiFitPlots dir_to_elastic_scattering_data
- *
- * note: the dir_to_elastic_scattering_data should contain the fit_result.root root
- * file that contains the data and fit result on which fit were performed...
- *
- * The usage of this macro is straight forward and uses primarily the
- * PndLmdResultPlotter class (which is a helper class for creating plots on luminosity
- * fits).
- * -First you read in a PndLmdAngularData object that was saved by the runLumi6Fit.C macro
- * -Then you create so graph bundles that contain all the information of the fit
- *  results and data in form of ROOT objects.
- * -Finally you can pass these bundles to functions of the plotter and generate
- *  different type of plots
- */
-
 #include "ui/PndLmdPlotter.h"
 #include "data/PndLmdAngularData.h"
 #include "data/PndLmdAcceptance.h"
@@ -43,21 +22,6 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
     const std::string &filter_string, const std::string &output_directory_path,
     TString filename_suffix) {
   std::cout << "Generating lumi plots for fit results....\n";
-
-// ================================ BEGIN CONFIG ================================ //
-// PndLmdResultPlotter sets default pad margins etc that should be fine for most cases
-// you can fine tune it and overwrite the default values
-  gStyle->SetPadRightMargin(0.165);
-  gStyle->SetPadLeftMargin(0.125);
-  gStyle->SetPadBottomMargin(0.127);
-  gStyle->SetPadTopMargin(0.03);
-  gStyle->SetPadColor(10);
-  gStyle->SetCanvasColor(10);
-  gStyle->SetStatColor(10);
-
-  TGaxis::SetMaxDigits(3);
-  gStyle->SetOptStat(0);
-  gStyle->SetOptFit(0);
 
 // overwrite the default theta plot range if possible
 //plotter.setThetaPlotRange(0.5, 16.0);
@@ -255,10 +219,9 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
 
         label.str("");
         label << "scenario_" << counter << ".generated";
-        boost::property_tree::ptree gen_values(
-            scenario.getSimulationParametersPropertyTree());
-        gen_values.put("lumi", scenario.getReferenceLuminosity());
-        all_scenario_tree.add_child(label.str(), gen_values);
+        // TODO: boost::property_tree::ptree gen_values(read from json file);
+        //gen_values.put("lumi", scenario.getReferenceLuminosity());
+        //all_scenario_tree.add_child(label.str(), gen_values);
 
         label.str("");
         label << "scenario_" << counter << ".momentum";
@@ -319,12 +282,12 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
     for (reco_data_object_iter = full_phi_reco_data_vec.begin();
         reco_data_object_iter != full_phi_reco_data_vec.end();
         reco_data_object_iter++) {
-      if (reco_data_object_iter->getSimulationParametersPropertyTree().get<
+      /*TODO: if (reco_data_object_iter->getSimulationParametersPropertyTree().get<
           double>("beam_tilt_x") < threshold
           && reco_data_object_iter->getSimulationParametersPropertyTree().get<
               double>("beam_tilt_y") < threshold) {
         filtered_reco_data_objects.push_back(*reco_data_object_iter);
-      }
+      }*/
     }
 
     TGraph2DErrors* graph = lmd_plotter.makeTiltXYOverviewGraph(
@@ -361,12 +324,12 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
     for (reco_data_object_iter = full_phi_reco_data_vec.begin();
         reco_data_object_iter != full_phi_reco_data_vec.end();
         reco_data_object_iter++) {
-      if (reco_data_object_iter->getSimulationParametersPropertyTree().get<
+      /*TODO: if (reco_data_object_iter->getSimulationParametersPropertyTree().get<
           double>("beam_divergence_x") < threshold
           && reco_data_object_iter->getSimulationParametersPropertyTree().get<
               double>("beam_divergence_y") < threshold) {
         filtered_reco_data_objects.push_back(*reco_data_object_iter);
-      }
+      }*/
     }
 
     TGraph2DErrors* graph = lmd_plotter.makeDivXYOverviewGraph(

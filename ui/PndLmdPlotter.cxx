@@ -92,8 +92,6 @@ namespace LumiFit {
 
   std::string PndLmdPlotter::makeDirName(
       const PndLmdAbstractData &elastic_bundle) const {
-    boost::property_tree::ptree sim_prop =
-        elastic_bundle.getSimulationParametersPropertyTree();
 
     std::stringstream ss;
     /*ss << "IP_pos_" << sim_prop.get<double>("ip_mean_x") << "_"
@@ -999,10 +997,8 @@ namespace LumiFit {
       if (vertex_data.getPrimaryDimension().dimension_options.track_type
           == LumiFit::RECO) {
 
-        boost::property_tree::ptree sim_params(
-            vertex_data.getSimulationParametersPropertyTree());
-        double ip_mean_x = sim_params.get<double>("ip_mean_x");
-        double ip_mean_y = sim_params.get<double>("ip_mean_y");
+        double ip_mean_x = 0.0; //TODO: this should be read from sim_params config file
+        double ip_mean_y = 0.0;
 
         current_graph_point.x = ip_mean_x * 10; // *10 from cm to mm
         current_graph_point.y = ip_mean_y * 10; // *10 from cm to mm
@@ -1074,11 +1070,8 @@ namespace LumiFit {
             fit_result.getLuminosityError(),
             ip_setting_case->getReferenceLuminosity());
 
-        boost::property_tree::ptree sim_params(
-            ip_setting_case->getSimulationParametersPropertyTree());
-
-        double ip_mean_x = sim_params.get<double>("ip_standard_deviation_x");
-        double ip_mean_y = sim_params.get<double>("ip_standard_deviation_y");
+        double ip_mean_x = 0.0; //TODO: this should be read from sim_params config file
+        double ip_mean_y = 0.0; //TODO: this should be read from sim_params config file
 
         std::cout << "lumi for " << ip_mean_x << " " << ip_mean_y
             << " beam spotsize case: " << lumi.first << " +- " << lumi.second
@@ -1197,11 +1190,8 @@ namespace LumiFit {
             fit_result.getLuminosityError(),
             ip_setting_case->getReferenceLuminosity());
 
-        boost::property_tree::ptree sim_params(
-            ip_setting_case->getSimulationParametersPropertyTree());
-
-        double ip_mean_x = sim_params.get<double>("ip_mean_x");
-        double ip_mean_y = sim_params.get<double>("ip_mean_y");
+        double ip_mean_x = 0.0; //TODO: this should be read from sim_params config file
+        double ip_mean_y = 0.0; //TODO: this should be read from sim_params config file
 
         std::cout << "lumi for " << ip_mean_x << " " << ip_mean_y
             << " beam offset case: " << lumi.first << " +- " << lumi.second
@@ -1235,10 +1225,8 @@ namespace LumiFit {
       if (elastic_data.getPrimaryDimension().dimension_options.track_type
           == LumiFit::RECO) {
 
-        boost::property_tree::ptree sim_params(
-            elastic_data.getSimulationParametersPropertyTree());
-        double ip_mean_x = sim_params.get<double>("beam_tilt_x");
-        double ip_mean_y = sim_params.get<double>("beam_tilt_y");
+        double ip_mean_x = 0.0; //TODO: this should be read from sim_params config file
+        double ip_mean_y = 0.0; //TODO: this should be read from sim_params config file
 
         current_graph_point.x = ip_mean_x * scale_factor;
         current_graph_point.y = ip_mean_y * scale_factor;
@@ -1312,11 +1300,8 @@ namespace LumiFit {
             fit_result.getLuminosityError(),
             ip_setting_case->getReferenceLuminosity());
 
-        boost::property_tree::ptree sim_params(
-            ip_setting_case->getSimulationParametersPropertyTree());
-
-        double tilt_x = sim_params.get<double>("beam_tilt_x");
-        double tilt_y = sim_params.get<double>("beam_tilt_y");
+        double tilt_x = 0.0; //TODO: this should be read from sim_params config file
+        double tilt_y = 0.0; //TODO: this should be read from sim_params config file
 
         std::cout << "lumi for " << tilt_x << " " << tilt_y
             << " beam offset case: " << lumi.first << " +- " << lumi.second
@@ -1351,10 +1336,8 @@ namespace LumiFit {
           == LumiFit::RECO) {
         if (ang_data.getPrimaryDimension().dimension_options.dimension_type
             == LumiFit::THETA_X) {
-          boost::property_tree::ptree sim_params(
-              ang_data.getSimulationParametersPropertyTree());
-          double ip_mean_x = sim_params.get<double>("beam_divergence_x");
-          double ip_mean_y = sim_params.get<double>("beam_divergence_y");
+          double ip_mean_x = 0.0; //TODO: this should be read from sim_params config file
+          double ip_mean_y = 0.0; //TODO: this should be read from sim_params config file
 
           current_graph_point.x = ip_mean_x * scale_factor;
           current_graph_point.y = ip_mean_y * scale_factor;
@@ -1435,11 +1418,8 @@ namespace LumiFit {
       if (ip_setting_case->getFitResults().size() > 0
           && ip_setting_case->getSelectorSet().size() == 0) {
 
-        boost::property_tree::ptree sim_params(
-            ip_setting_case->getSimulationParametersPropertyTree());
-
-        double div_x = sim_params.get<double>("beam_divergence_x");
-        double div_y = sim_params.get<double>("beam_divergence_y");
+        double div_x = 0.0; //TODO: this should be read from sim_params config file
+        double div_y = 0.0; //TODO: this should be read from sim_params config file
         cout << "divergence case: " << div_x << " " << div_y << std::endl;
 
         auto fit_results = ip_setting_case->getFitResults();

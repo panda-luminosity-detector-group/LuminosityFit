@@ -21,21 +21,6 @@ void plotIPDistribution(const std::vector<std::string>& paths,
     const std::string& filter_string) {
   std::cout << "Generating lumi plots for fit results....\n";
 
-// ================================ BEGIN CONFIG ================================ //
-// PndLmdResultPlotter sets default pad margins etc that should be fine for most cases
-// you can fine tune it and overwrite the default values
-  gStyle->SetPadRightMargin(0.165);
-  gStyle->SetPadLeftMargin(0.125);
-  gStyle->SetPadBottomMargin(0.127);
-  gStyle->SetPadTopMargin(0.03);
-  gStyle->SetPadColor(10);
-  gStyle->SetCanvasColor(10);
-  gStyle->SetStatColor(10);
-
-  TGaxis::SetMaxDigits(3);
-  gStyle->SetOptStat(0);
-  gStyle->SetOptFit(0);
-
 // ================================= END CONFIG ================================= //
 
 // A small helper class that helps to construct lmd data objects
@@ -128,14 +113,14 @@ void plotIPDistribution(const std::vector<std::string>& paths,
         }
       }
 
-      boost::property_tree::ptree sim_params(
+      /*TODO: boost::property_tree::ptree sim_params(
           reco_filtered_vertex_data_vec[0].getSimulationParametersPropertyTree());
 
       TVectorD v(2);
       v[0] = sim_params.get<double>("ip_mean_x");
       v[1] = sim_params.get<double>("ip_mean_y");
 
-      v.Write("true_values");
+      v.Write("true_values");*/
     }
   }
 

@@ -47,9 +47,6 @@ void PndLmdDataFacade::addFileList(PndLmdDataReader& data_reader,
 void PndLmdDataFacade::initializeData(PndLmdAbstractData & data) const {
   data.setNumEvents(lmd_runtime_config.getNumEvents());
   data.setLabMomentum(lmd_runtime_config.getMomentum());
-
-  data.setSimulationParameters(
-      PndLmdRuntimeConfiguration::Instance().getSimulationParameters());
 }
 
 void PndLmdDataFacade::addMultipleInstancesBasedOnSelections(

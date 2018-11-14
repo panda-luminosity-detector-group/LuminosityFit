@@ -105,7 +105,7 @@ public:
 	void setVertexDataName(const std::string& vertex_data_name_);
 
 	void readFitConfig(
-	    const std::string& fit_config_name);
+	    const std::string& fit_config_path);
 	void readAcceptanceOffsetTransformationParameters(
 	    const std::string& acceptance_offsets_tranformation_file_name);
 	void readDataConfig(

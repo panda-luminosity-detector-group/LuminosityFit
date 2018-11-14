@@ -22,7 +22,8 @@ def getListOfDirectories(path):
         if not args.force:
           match = re.search('bunches.*', dirpath)
           if match:
-            print 'skipping bunch creation for directory ' + path  + ' as it already was bunched. Please used the --force option to bunch this directory anyway!'
+            print('skipping bunch creation for directory', path,
+                  'as it already was bunched. Please used the --force option to bunch this directory anyway!')
             return
         getListOfDirectories(dirpath)
       else:
@@ -47,7 +48,7 @@ def makeFileListBunches(directory):
     bad_files = []
     found_files = glob.glob(directory + '/' + filename_prefix + '*')
     for file in found_files:
-        if os.stat(file).st_size > 20000:
+        if os.stat(file).st_size > 200:
             good_files.append(file)
         else:
             bad_files.append(file)
@@ -58,28 +59,29 @@ def makeFileListBunches(directory):
     #print str(1.0*len(found_files)) + ' < ' + str(0.8*num_sim_files)
     
     if 1.0*len(found_files) < 0.8*num_sim_files:
-        print 'WARNING: more than 20% of sim files missing... Something went wrong here...'
-        print directory
+        print('WARNING: more than 20% of sim files missing... Something went wrong here...')
+        print(directory)
         return
     
     if 0.2 < 1.0*len(bad_files)/(len(good_files) + len(bad_files)):
-        print 'WARNING: more than 20% are bad files... Something went wrong here...'
-        print directory
+        print('WARNING: more than 20% are bad files... Something went wrong here...')
+        print(directory)
         return
     
-    print 'detected ' + str(len(bad_files)) + '/' + str(len(good_files) + len(bad_files)) + ' bad files'
-    print 'creating file lists...'
+    print('detected ' + str(len(bad_files)) + '/' + str(len(good_files) + len(bad_files)) + ' bad files')
+    print('creating file lists...')
     
     max_bundles = len(good_files) / args.files_per_bunch
     if len(good_files) % args.files_per_bunch > 0:
         max_bundles += 1
+    max_bundles = int(max_bundles)
     output_bunch_dir = directory + '/bunches_' + str(max_bundles)
-    
+
     try:
       os.makedirs(output_bunch_dir)
     except OSError as exception:
       if exception.errno != errno.EEXIST:
-        print 'error: thought dir does not exists but it does...'
+        print('error: thought dir does not exists but it does...')
     
     file_list_index = 1
     while len(good_files) > 0:

@@ -6,7 +6,6 @@
 #include <iostream>
 
 #include "boost/property_tree/json_parser.hpp"
-#include "boost/property_tree/ini_parser.hpp"
 
 using boost::filesystem::path;
 using boost::property_tree::ptree;
@@ -27,7 +26,7 @@ void PndLmdRuntimeConfiguration::readSimulationParameters(
     const std::string& file_url) {
 // read the config file
   std::cout << "Trying to read config file: " << file_url << std::endl;
-  read_ini(file_url, simulation_parameter_tree);
+  read_json(file_url, simulation_parameter_tree);
 }
 
 unsigned int PndLmdRuntimeConfiguration::getNumberOfThreads() const {
@@ -142,10 +141,11 @@ void PndLmdRuntimeConfiguration::setVertexDataName(
 }
 
 void PndLmdRuntimeConfiguration::readFitConfig(
-    const std::string& fit_config_name) {
-  std::string file_url(
-      general_config_directory.string() + '/' + fit_config_name);
-  read_json(file_url, fit_config_tree);
+    const std::string& fit_config_path) {
+  path file_url(fit_config_path);
+  if(file_url.is_relative())
+    file_url = general_config_directory.string() + '/' + file_url.string();
+  read_json(file_url.string(), fit_config_tree);
 }
 
 void PndLmdRuntimeConfiguration::readAcceptanceOffsetTransformationParameters(

@@ -64,12 +64,12 @@ for bins in range(args.general_dimension_bins_low, args.general_dimension_bins_h
 
   for dir in dirs:
       path = dir+'/binning_'+str(bins)
-      print 'saving config to ' + path
+      print('saving config to', path)
       try:
         os.makedirs(path)
       except OSError as exception:
         if exception.errno != errno.EEXIST:
-          print 'error: thought dir does not exists but it does...'
+          print('error: thought dir does not exists but it does...')
       if os.path.isfile(path+'/dataconfig.json'):
           os.remove(path+'/dataconfig.json')
       config_modifier.writeConfigToPath(config, path+'/dataconfig.json')
@@ -88,18 +88,17 @@ for config_path in config_paths:
     resource_request.number_of_nodes = 1
     resource_request.processors_per_node = 1
     resource_request.memory_in_mb = 2500
-    resource_request.virtual_memory_in_mb = 2500
-    job = himster.Job(resource_request, './createLumiFitData.sh', 'createLumiFitData', config_path + '/createLumiFitData_pbs.log')
+    job = himster.Job(resource_request, './createLumiFitData.sh', 'createLumiFitData', config_path + '/createLumiFitData-%a.log')
     job.set_job_array_indices(list(range(1, num_filelists+1)))
     
-    job.addExportedUserVariable('numEv', args.num_events)
-    job.addExportedUserVariable('pbeam', args.lab_momentum[0])
-    job.addExportedUserVariable('input_path', input_path)
-    job.addExportedUserVariable('filelist_path', filelist_path)
-    job.addExportedUserVariable('output_path', config_path)
-    job.addExportedUserVariable('config_path', config_path+'/dataconfig.json')
-    job.addExportedUserVariable('type', args.type[0])
-    job.addExportedUserVariable('elastic_cross_section', args.elastic_cross_section)
+    job.add_exported_user_variable('numEv', args.num_events)
+    job.add_exported_user_variable('pbeam', args.lab_momentum[0])
+    job.add_exported_user_variable('input_path', input_path)
+    job.add_exported_user_variable('filelist_path', filelist_path)
+    job.add_exported_user_variable('output_path', config_path)
+    job.add_exported_user_variable('config_path', config_path+'/dataconfig.json')
+    job.add_exported_user_variable('type', args.type[0])
+    job.add_exported_user_variable('elastic_cross_section', args.elastic_cross_section)
     
     joblist.append(job)
    
@@ -107,5 +106,5 @@ for config_path in config_paths:
 # as quite a lot of data is read in from the storage...)
 job_manager = himster.HimsterJobManager(2000, 300)
 
-job_manager.submitJobsToHimster(joblist)
-job_manager.manageJobs()
+job_manager.submit_jobs_to_himster(joblist)
+job_manager.manage_jobs()

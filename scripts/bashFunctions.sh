@@ -22,11 +22,10 @@ user_agree () {
 }
 
 check_stage_success () {
-  file_url=$1
+  local file_url=$1
   echo "checking wether ${file_url} exists and is larger than 3kB... "
-  result=""
   if [ -e ${file_url} ] ; then
-    filesize=$(stat -c%s -L "${file_url}")
+    local filesize=$(stat -c%s -L "${file_url}")
     if [ "$filesize" -gt "3000" ]; then
       echo "found file and is larger than corrupted file size"
       return 1

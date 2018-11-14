@@ -58,11 +58,6 @@ protected:
 	 */
 	std::set<LumiFit::LmdDimension> selection_dimensions;
 
-	// usually we would just have the ptree here
-	// unfortunately root cint is not capable to parse the ptree header
-	// so this simpler option map was "developed"...
-	std::map<std::string, std::string> simulation_parameters;
-
 public:
 	PndLmdAbstractData();
 	PndLmdAbstractData(const PndLmdAbstractData &lmd_abs_data_);
@@ -80,10 +75,6 @@ public:
 
 	const std::set<LumiFit::LmdDimension>& getSelectorSet() const;
 
-#ifndef __CINT__
-	boost::property_tree::ptree getSimulationParametersPropertyTree() const;
-#endif /* __CINT __ */
-
 	// setter methods
 	void setNumEvents(int num_events_);
 	void setLabMomentum(double p_lab_);
@@ -93,11 +84,6 @@ public:
 	void setSecondaryDimension(const LumiFit::LmdDimension &secondary_dimension_);
 
 	void addSelectionDimension(const LumiFit::LmdDimension &lmd_dim);
-
-#ifndef __CINT__
-	void setSimulationParameters(
-			const boost::property_tree::ptree &simulation_parameters_);
-#endif /* __CINT __ */
 
 	virtual void saveToRootFile();
 	int addFileToList(const std::string &filepath);
@@ -109,7 +95,7 @@ public:
 	virtual bool operator==(const PndLmdAbstractData &rhs_lmd_data) const;
 	virtual bool operator!=(const PndLmdAbstractData &rhs_lmd_data) const;
 
-ClassDef(PndLmdAbstractData,4)
+ClassDef(PndLmdAbstractData,5)
 };
 
 #endif /* PNDLMDABSTRACTDATA_H_ */

@@ -79,8 +79,8 @@ void createSystematics(
     all_scenario_tree.add_child(fit_param_values.first, measured_values_tree);
   }
 
-  boost::property_tree::ptree gen_values(
-      example_data_obj.getSimulationParametersPropertyTree());
+  boost::property_tree::ptree gen_values;
+      //TODO fix this: example_data_obj.getSimulationParametersPropertyTree());
   gen_values.put("lumi", example_data_obj.getReferenceLuminosity());
   all_scenario_tree.add_child("generated", gen_values);
 

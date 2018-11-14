@@ -1,12 +1,6 @@
-import os, sys, re, errno, glob, time, glob
+import os
 import subprocess
-import multiprocessing
 import general
-
-cpu_cores = multiprocessing.cpu_count()
-
-lib_path = os.path.abspath('argparse-1.2.1/build/lib')
-sys.path.append(lib_path)
 
 import argparse
 
@@ -25,11 +19,11 @@ patterns=[]
 patterns.append(args.dir_pattern[0])
 dir_searcher = general.DirectorySearcher(patterns)
 
-print 'searching for directories...'
+print('searching for directories...')
 dir_searcher.searchListOfDirectories(args.dirname[0], 'lmd_vertex_data_*of1.root')
 dirs = dir_searcher.getListOfDirectories()    
 
 print dirs
 for dir in dirs:
-  bashcommand = default = os.getenv('LMDFIT_BUILD_PATH') + '/bin/determineBeamOffset -m 4 -p ' + dir + ' -c ' + args.config_url[0]
+  bashcommand = os.getenv('LMDFIT_BUILD_PATH') + '/bin/determineBeamOffset -m 4 -p ' + dir + ' -c ' + args.config_url[0]
   returnvalue = subprocess.call(bashcommand.split())

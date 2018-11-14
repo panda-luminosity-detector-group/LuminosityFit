@@ -117,9 +117,9 @@ template<class T> void mergeData(const vector<string>& found_files,
     ss << outfile_path << "/" << output_filename << "_" << i << "of"
         << data_file_samples.size() << ".root";
     // output file
-    TFile *fmergeddata = new TFile(ss.str().c_str(), "RECREATE");
+    TFile fmergeddata(ss.str().c_str(), "RECREATE");
 
-    mergeData<T>(data_file_samples[i], fmergeddata);
+    mergeData<T>(data_file_samples[i], &fmergeddata);
   }
 }
 
