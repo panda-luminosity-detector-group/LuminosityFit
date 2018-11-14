@@ -181,12 +181,16 @@ class DirectorySearcher:
         if os.path.split(path)[1] == 'mc_data':
             return
 
+        if os.path.split(path)[1] == 'Pairs':
+            return
+
         # check if this directory has MC files
         mc_files = glob.glob(path + '/Lumi_MC_*.root')
         param_files = glob.glob(path + '/Lumi_Params_*.root')
         # if that is the case, their parent folder has to be named mc_data
         if mc_files or param_files:
             if not os.path.split(path)[1] == 'mc_data':
+                import shutil
                 print('Found mc files in ' + path +
                       '. Since they are not inside a folder mc_data, proposing to create mc_data dir and moving files there.')
                 try:
