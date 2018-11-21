@@ -16,7 +16,7 @@ def addArgumentsToParser(parser):
 def createAlignmentParameters():
     return {
         'misalignment_matrices_path': '',
-        'use_point_transform_misalignment': True,
+        'use_point_transform_misalignment': False,
         'alignment_matrices_path': ''
     }
 

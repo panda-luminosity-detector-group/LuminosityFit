@@ -41,6 +41,7 @@ fi
 
 gen_filepath="$workpathname/gen_mc.root"
 echo "force level: ${force_level}"
+echo "debug: ${debug}"
 
 #simulation
 check_stage_success "${path_mc_data}/Lumi_MC_${start_evt}.root"
