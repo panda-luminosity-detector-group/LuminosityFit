@@ -165,7 +165,7 @@ class Job:
 
 
 class HimsterJobManager:
-    def __init__(self, himster_total_job_threshold=1600,
+    def __init__(self, himster_total_job_threshold=30000,
                  resubmit_wait_time_in_seconds=1800, debug=False):
         self.job_command_list = []
         # user total job threshold

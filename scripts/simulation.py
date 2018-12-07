@@ -337,7 +337,7 @@ def startSimulationAndReconstruction(sim_params, align_params, reco_params,
 
     # job threshold of this type (too many jobs could generate to much io load
     # as quite a lot of data is read in from the storage...)
-    job_manager = himster.HimsterJobManager(2000, 3600, debug=debug)
+    job_manager = himster.HimsterJobManager(30000, 3600, debug=debug)
 
     job_manager.submit_jobs_to_himster(joblist)
     job_manager.manage_jobs()
