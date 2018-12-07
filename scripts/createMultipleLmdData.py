@@ -31,7 +31,7 @@ failed_submit_commands = []
 
 dir_searcher = general.DirectorySearcher([args.dir_pattern])
 
-dir_searcher.searchListOfDirectories(args.dirname[0], '/filelist_*.txt')
+dir_searcher.searchListOfDirectories(args.dirname[0], ['/filelist_', '.txt'])
 dirs = dir_searcher.getListOfDirectories()
 
 config_modifier = general.ConfigModifier()

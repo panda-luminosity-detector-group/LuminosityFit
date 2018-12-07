@@ -13,8 +13,8 @@ import argparse
 dirs = []
 box_dirs = []
 
-box_res_glob_pattern = 'lmd_res_data_*of*.root'
-box_acc_glob_pattern = 'lmd_acc_data_*of*.root'
+box_res_glob_pattern = ['lmd_res_data_', 'of', '.root']
+box_acc_glob_pattern = ['lmd_acc_data_', 'of', '.root']
 
 top_level_box_directory = ''
 
@@ -123,7 +123,7 @@ if args.number_of_threads > 32:
 
 tail_dir_pattern = args.tail_dir_pattern
 
-dpm_glob_pattern = 'lmd_data_*of*.root'
+dpm_glob_pattern = ['lmd_data_', 'of', '.root']
 
 patterns = [args.dirname_pattern[0], args.tail_dir_pattern]
 dir_searcher = general.DirectorySearcher(patterns)

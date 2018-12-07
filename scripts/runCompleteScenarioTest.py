@@ -227,7 +227,8 @@ def simulateDataOnHimster(scenario):
                 os.chdir(lmd_fit_script_path)
                 # 1a bunch data
                 bashcommand = 'python makeMultipleFileListBunches.py '\
-                    '--files_per_bunch 10 ' + dir_path
+                    '--files_per_bunch 10 --maximum_number_of_files ' + \
+                    str(num_samples) + ' ' + dir_path
                 returnvalue = subprocess.call(bashcommand.split())
                 # 1b create data
                 if 'a' in sim_type:

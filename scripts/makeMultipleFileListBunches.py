@@ -3,13 +3,9 @@
 import os, sys, re, errno, glob, time
 import subprocess
 import multiprocessing
+import argparse
 
 cpu_cores = multiprocessing.cpu_count()
-
-lib_path = os.path.abspath('argparse-1.2.1/build/lib')
-sys.path.append(lib_path)
-
-import argparse
 
 dirs = []
 pattern = ''
@@ -70,6 +66,9 @@ def makeFileListBunches(directory):
     
     print('detected ' + str(len(bad_files)) + '/' + str(len(good_files) + len(bad_files)) + ' bad files')
     print('creating file lists...')
+
+    if args.maximum_number_of_files > 0 and args.maximum_number_of_files < len(good_files)
+    good_files = good_files[:args.maximum_number_of_files]
     
     max_bundles = len(good_files) / args.files_per_bunch
     if len(good_files) % args.files_per_bunch > 0:
@@ -103,6 +102,7 @@ parser = argparse.ArgumentParser(description='Script for going through whole dir
 parser.add_argument('dirname', metavar='dirname_to_scan', type=str, nargs=1,
                     help='Name of directory to scan recursively for qa files and create bunches')
 parser.add_argument('--files_per_bunch', metavar='files_per_bunch', type=int, default=4, help='number of root files used for a bunch')
+parser.add_argument('--maximum_number_of_files', metavar='maximum_number_of_files', type=int, default=-1, help='total number of root files to use')
 parser.add_argument('--directory_pattern', metavar='directory_pattern', type=str, default='.*', help='Only directories with according to this pattern will be used.')
 parser.add_argument('--force', action='store_true', help='force recreation')
 
