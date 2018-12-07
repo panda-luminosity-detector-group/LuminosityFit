@@ -21,6 +21,16 @@ def createAlignmentParameters():
     }
 
 
+def getAlignmentParameters(parameter_dict):
+    alignment_pars = {}
+
+    alignment_pars['misalignment_matrices_path'] = parameter_dict['misalignment_matrices_path']
+    alignment_pars['use_point_transform_misalignment'] = parameter_dict['use_point_transform_misalignment']
+    alignment_pars['alignment_matrices_path'] = parameter_dict['alignment_matrices_path']
+
+    return alignment_pars
+
+
 def addAlignmentParametersToConfig(params, args):
     alignment_params = createAlignmentParameters()
     if args.misalignment_matrices_path:

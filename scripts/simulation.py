@@ -175,14 +175,14 @@ def generateDirectory(sim_params, align_params, output_dir=''):
                 + str(sim_params['ip_params']['beam_divergence_x'])+'_'\
                 + str(sim_params['ip_params']['beam_divergence_y'])
 
-        #dirname += '/' + str(os.path.splitext(sim_params['lmd_geometry_filename'])[0])
-        if not align_params['use_point_transform_misalignment']:
-            if align_params['misalignment_matrices_path'] == '':
-                dirname += '/no_geo_misalignment'
-            else:
-                dirname += '/geo_misalignment' + \
-                    str(os.path.splitext(os.path.basename(
-                        align_params['misalignment_matrices_path']))[0])
+        # dirname += '/' + str(os.path.splitext(sim_params['lmd_geometry_filename'])[0])
+        if (align_params['use_point_transform_misalignment'] or
+                align_params['misalignment_matrices_path'] == ''):
+            dirname += '/no_geo_misalignment'
+        else:
+            dirname += '/geo_misalignment' + \
+                str(os.path.splitext(os.path.basename(
+                    align_params['misalignment_matrices_path']))[0])
 
         dirname += '/' + str(sim_params['num_events_per_sample'])
     else:

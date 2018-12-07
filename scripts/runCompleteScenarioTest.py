@@ -96,13 +96,13 @@ def simulateDataOnHimster(scenario):
         merge_keywords = ['merge_data', 'binning_300']
         if 'v' in sim_type:
             data_keywords = ['uncut', 'bunches', 'binning_300']
-            data_pattern = 'lmd_vertex_data_*.root'
+            data_pattern = 'lmd_vertex_data_'
         elif 'a' in sim_type:
             data_keywords = ['xy_m_cut_real', 'bunches', 'binning_300']
-            data_pattern = 'lmd_data_*.root'
+            data_pattern = 'lmd_data_'
         else:
             data_keywords = ['xy_m_cut_real', 'bunches', 'binning_300']
-            data_pattern = 'lmd_res_data_*.root'
+            data_pattern = 'lmd_res_data_'
 
         # 1. simulate data
         if state == 1:
@@ -114,7 +114,7 @@ def simulateDataOnHimster(scenario):
                     temp_dir_searcher = general.DirectorySearcher(
                         ['box', 'xy_m_cut'])
                     temp_dir_searcher.searchListOfDirectories(
-                        dir_path, 'Lumi_TrksQA_*.root')
+                        dir_path, 'Lumi_TrksQA_')
                     found_dirs = temp_dir_searcher.getListOfDirectories()
 
                 if found_dirs:
@@ -134,8 +134,8 @@ def simulateDataOnHimster(scenario):
                         round(float(max_xy_shift), 2)))
 
                     gen_par = general.createGeneralRunParameters(
-                        num_events_per_sample,
-                        num_samples, lab_momentum)
+                        box_num_events_per_sample,
+                        box_num_samples, lab_momentum)
                     sim_par = simulation.createSimulationParameters('box')
                     sim_par['theta_min_in_mrad'] -= max_xy_shift
                     sim_par['theta_max_in_mrad'] += max_xy_shift
@@ -163,7 +163,7 @@ def simulateDataOnHimster(scenario):
                     temp_dir_searcher = general.DirectorySearcher(
                         ['dpm_elastic', 'xy_m_cut'])
                     temp_dir_searcher.searchListOfDirectories(
-                        dir_path, 'Lumi_TrksQA_*.root')
+                        dir_path, 'Lumi_TrksQA_')
                     found_dirs = temp_dir_searcher.getListOfDirectories()
                 if found_dirs:
                     status_code = wasSimulationSuccessful(
@@ -184,9 +184,12 @@ def simulateDataOnHimster(scenario):
                     rec_par['reco_ip_offset'] = [ip_info_dict['ip_offset_x'],
                                                  ip_info_dict['ip_offset_y'],
                                                  ip_info_dict['ip_offset_z']]
+                    if (num_samples > 0 and
+                            rec_par['num_samples'] > num_samples):
+                        rec_par['num_samples'] = num_samples
                     dirname = os.path.dirname(scenario.dir_path)
                     (dir_path, is_finished) = reconstruction.startReconstruction(
-                        rec_par, alignment.createAlignmentParameters(),
+                        rec_par, alignment.getAlignmentParameters(rec_par),
                         dirname, use_devel_queue=args.use_devel_queue)
                     simulation_task[0] = dir_path
                     scen.filtered_dir_path = dir_path
@@ -323,7 +326,7 @@ def lumiDetermination(scen):
             temp_dir_searcher = general.DirectorySearcher(
                 ['merge_data', 'binning_300'])
             temp_dir_searcher.searchListOfDirectories(
-                dir_path, 'lmd_vertex_data_*of1.root')
+                dir_path, ['lmd_vertex_data_', 'of1.root'])
             found_dirs = temp_dir_searcher.getListOfDirectories()
             bashcommand = './determineBeamOffset -p ' + \
                 found_dirs[0] + ' -c ' + '../../vertex_fitconfig.json'
@@ -344,6 +347,8 @@ def lumiDetermination(scen):
 
         state += 1
         last_state += 1
+
+        print("Finished IP determination for this scenario!")
 
     if state == 3:
         # 3a. track filter the dpm data using the ip values and create ang
@@ -370,7 +375,7 @@ def lumiDetermination(scen):
         temp_dir_searcher = general.DirectorySearcher(
             ['merge_data', 'binning_300'])
         temp_dir_searcher.searchListOfDirectories(
-            scen.filtered_dir_path, 'lmd_fitted_data*.root')
+            scen.filtered_dir_path, 'lmd_fitted_data')
         found_dirs = temp_dir_searcher.getListOfDirectories()
         if not found_dirs:
             os.chdir(lmd_fit_script_path)
@@ -401,12 +406,16 @@ parser.add_argument('--base_output_data_dir', metavar='base_output_data_dir',
                     ' script.')
 parser.add_argument('--fit_config', metavar='fit_config',
                     type=str, default='fitconfig-fast.json')
-parser.add_argument('--num_events_per_sample', metavar='num_events_per_sample',
+parser.add_argument('--box_num_events_per_sample',
+                    metavar='box_num_events_per_sample',
                     type=int, default=500000,
                     help='number of events per sample to simulate')
-parser.add_argument('--num_samples', metavar='num_samples',
+parser.add_argument('--box_num_samples', metavar='box_num_samples',
                     type=int, default=100,
                     help='number of samples to simulate')
+parser.add_argument('--num_samples', metavar='num_samples',
+                    type=int, default=100,
+                    help='number of dpm data files to reconstruct. -1 means all. default: 100')
 parser.add_argument('--use_devel_queue', action='store_true',
                     help='If flag is set, the devel queue is used')
 
@@ -417,13 +426,14 @@ lmd_fit_path = os.path.dirname(lmd_fit_script_path)
 lmd_fit_bin_path = os.getenv('LMDFIT_BUILD_PATH')+'/bin'
 
 num_samples = args.num_samples
-num_events_per_sample = args.num_events_per_sample
+box_num_samples = args.box_num_samples
+box_num_events_per_sample = args.box_num_events_per_sample
 
 # first lets try to find all directories and their status/step
 dir_searcher = general.DirectorySearcher(['dpm_elastic', 'uncut'])
 
 dir_searcher.searchListOfDirectories(
-    args.base_output_data_dir, 'Lumi_TrksQA_*.root')
+    args.base_output_data_dir, 'Lumi_TrksQA_')
 dirs = dir_searcher.getListOfDirectories()
 
 print(dirs)

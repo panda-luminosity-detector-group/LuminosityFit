@@ -157,6 +157,32 @@ def fixLine(text, search_str):
     return text
 
 
+def fixMCData():
+            # check if this directory has MC files
+    mc_files = glob.glob(path + '/Lumi_MC_*.root')
+    param_files = glob.glob(path + '/Lumi_Params_*.root')
+    # if that is the case, their parent folder has to be named mc_data
+    if mc_files or param_files:
+        if not os.path.split(path)[1] == 'mc_data':
+            import shutil
+            print('Found mc files in ' + path +
+                  '. Since they are not inside a folder mc_data, proposing to create mc_data dir and moving files there.')
+            try:
+                os.mkdir(path + '/mc_data')
+            except OSError as exception:
+                if exception.errno != errno.EEXIST:
+                    print('dont need to create mc_data dir...')
+            for mc_file in mc_files:
+                mc_filename = os.path.split(mc_file)[1]
+                shutil.move(path + '/' + mc_filename,
+                            path + '/mc_data/' + mc_filename)
+            for param_file in param_files:
+                param_filename = os.path.split(param_file)[1]
+                shutil.move(path + '/' + param_filename,
+                            path + '/mc_data/' + param_filename)
+            print('successfully moved all mc files there!')
+
+
 class DirectorySearcher:
     def __init__(self, patterns_, not_contain_pattern_=''):
         self.patterns = patterns_
@@ -166,69 +192,49 @@ class DirectorySearcher:
     def getListOfDirectories(self):
         return self.dirs
 
-    def searchListOfDirectories(self, path, glob_pattern):
-        # if os.path.isdir(path):
-        #  print 'currently looking at directory ' + path
+    def searchListOfDirectories(self, path, glob_patterns):
+        #print("looking for files with pattern: ", glob_patterns)
+        #print("dirpath forbidden patterns:", self.not_contain_pattern)
+        #print("dirpath patterns:", self.patterns)
+        file_patterns = [glob_patterns]
+        if isinstance(glob_patterns, list):
+            file_patterns = glob_patterns
 
-        sim_params = glob.glob(path + '/sim_beam_prop.config')
-        if sim_params:
-            refactorSimulationParameters(path)
+        for dirpath, dirs, files in os.walk(path):
+            #print('currently looking at directory', dirpath)
+            if dirpath == 'mc_data' or dirpath == 'Pairs':
+                continue
 
-        sim_params = glob.glob(path + '/sim_params.config')
-        if sim_params:
-            refactor2SimulationParameters(path)
+            # first check if dirpath does not contain pattern
+            if self.not_contain_pattern is not '':
+                m = re.search(self.not_contain_pattern, dirpath)
+                if m:
+                    continue
 
-        if os.path.split(path)[1] == 'mc_data':
-            return
-
-        if os.path.split(path)[1] == 'Pairs':
-            return
-
-        # check if this directory has MC files
-        mc_files = glob.glob(path + '/Lumi_MC_*.root')
-        param_files = glob.glob(path + '/Lumi_Params_*.root')
-        # if that is the case, their parent folder has to be named mc_data
-        if mc_files or param_files:
-            if not os.path.split(path)[1] == 'mc_data':
-                import shutil
-                print('Found mc files in ' + path +
-                      '. Since they are not inside a folder mc_data, proposing to create mc_data dir and moving files there.')
-                try:
-                    os.mkdir(path + '/mc_data')
-                except OSError as exception:
-                    if exception.errno != errno.EEXIST:
-                        print('dont need to create mc_data dir...')
-                for mc_file in mc_files:
-                    mc_filename = os.path.split(mc_file)[1]
-                    shutil.move(path + '/' + mc_filename,
-                                path + '/mc_data/' + mc_filename)
-                for param_file in param_files:
-                    param_filename = os.path.split(param_file)[1]
-                    shutil.move(path + '/' + param_filename,
-                                path + '/mc_data/' + param_filename)
-                print('successfully moved all mc files there!')
-
-        if self.not_contain_pattern is not '':
-            m = re.search(self.not_contain_pattern, path)
-            if m:
-                return
-        files = glob.glob(path + '/' + glob_pattern)
-        if files:
             is_good = True
             # print path
             for pattern in self.patterns:
-                m = re.search(pattern, path)
+                m = re.search(pattern, dirpath)
                 if not m:
                     is_good = False
                     break
             if is_good:
-                self.dirs.append(path)
-
-        # if we did not get any exit criterium then change into subdirectories
-        for dir in next(os.walk(path))[1]:
-            dirpath = path + '/' + dir
-            if os.path.isdir(dirpath):
-                self.searchListOfDirectories(dirpath, glob_pattern)
+                # check if there are useful files here
+                if len(file_patterns) == 1:
+                    found_files = [x for x in files if glob_patterns in x]
+                else:
+                    for filename in files:
+                        found_file = True
+                        for pattern in file_patterns:
+                            if pattern not in filename:
+                                found_file = False
+                                break
+                        if found_file:
+                            found_files = True
+                            break
+                
+                if found_files:
+                    self.dirs.append(dirpath)
 
 
 class ConfigModifier:
