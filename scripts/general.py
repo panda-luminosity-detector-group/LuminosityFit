@@ -220,6 +220,7 @@ class DirectorySearcher:
                     break
             if is_good:
                 # check if there are useful files here
+                found_files = False
                 if len(file_patterns) == 1:
                     found_files = [x for x in files if glob_patterns in x]
                 else:
