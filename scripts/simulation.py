@@ -253,7 +253,7 @@ def startSimulationAndReconstruction(sim_params, align_params, reco_params,
         returnvalue = subprocess.call(bashcommand.split())
         import shutil
         shutil.move(os.getcwd()+"/elastic_cross_section.txt",
-                    pathname_full+"/elastic_cross_section.txt")
+                    pathname_base+"/elastic_cross_section.txt")
 
     print("creating config file: " + pathname_base + "/sim_params.config")
     with open(pathname_base + '/sim_params.config', 'w') as json_file:
@@ -295,6 +295,8 @@ def startSimulationAndReconstruction(sim_params, align_params, reco_params,
                       pathname_full + '/simreco-%a.log')
     job.set_job_array_indices(
         list(range(low_index_used, low_index_used+num_samples)))
+
+    job.add_exported_user_variable('force_level', force_level)
 
     if sim_params['sim_type'] == 'noise':
         job.add_exported_user_variable('simulate_noise', '1')

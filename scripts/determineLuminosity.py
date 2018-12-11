@@ -244,6 +244,7 @@ def simulateDataOnHimster(scenario):
                         + '--dir_pattern ' + data_keywords[0] + ' '\
                         + str(lab_momentum) + ' '\
                         + sim_type + ' ' + dir_path + ' ../dataconfig_xy.json'
+                    print(bashcommand)
                 returnvalue = subprocess.call(bashcommand.split())
                 last_state = last_state + 1
             else:
@@ -287,12 +288,13 @@ def lumiDetermination(scen):
     last_state = scen.last_state
 
     # open file
-    os.path.exists(dir_path+"/elastic_cross_section.txt")
-    with open(dir_path+"/elastic_cross_section.txt") as f:
-        content = f.readlines()
-        scen.elastic_pbarp_integrated_cross_secion_in_mb = float(
-            content[0])
-        f.close()
+    if os.path.exists(dir_path+"/../elastic_cross_section.txt"):
+        print("Found an elastic cross section file!")
+        with open(dir_path+"/../elastic_cross_section.txt") as f:
+            content = f.readlines()
+            scen.elastic_pbarp_integrated_cross_secion_in_mb = float(
+                content[0])
+            f.close()
 
     print('processing scenario ' + dir_path + ' at step ' + str(state))
 

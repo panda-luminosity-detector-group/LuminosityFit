@@ -73,7 +73,7 @@ if [ "${debug}" -eq 0 ]; then
   cp ${path_mc_data}/Lumi_Params_${start_evt}.root $workpathname/Lumi_Params_${start_evt}.root
 fi
 check_stage_success "$workpathname/Lumi_digi_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
+if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   if [ ${simulate_noise} ]; then
     root -l -b -q 'runLumiPixel1bDigiNoise.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl', '${random_seed}')'
   else 
@@ -83,13 +83,13 @@ fi
 
 #hit reco
 check_stage_success "$workpathname/Lumi_reco_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
+if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   root -l -b -q 'runLumiPixel2Reco.C('${num_evts}','${start_evt}',"'${workpathname}'", "'${alignment_matrices_path}'", "'${misalignment_matrices_path}'", '${use_point_transform_misalignment}', '$verbositylvl')'
 fi
 
 #find pairs
 check_stage_success "$workpathname/Lumi_Pairs_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
+if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   root -l -b -q 'runLumiPixel2ePairFinder.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl')'
   #copy pairs
   if [ "${debug}" -eq 0 ]; then
@@ -99,23 +99,23 @@ fi
 
 #merge hits
 check_stage_success "$workpathname/Lumi_recoMerged_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
+if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   root -l -b -q 'runLumiPixel2bHitMerge.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl')'
 fi
 
 ### change "CA" --> "Follow" if you want to use Trk-Following as trk-search algorithm
 ### NB: CA can use merged or single(not merged) hits, Trk-Following can't
 check_stage_success "$workpathname/Lumi_TCand_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
+if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   root -l -b -q 'runLumiPixel3Finder.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',"'${track_search_algorithm}'",'${misspl}','${mergedHits}','${trkcut}','${mom}')'
 fi
 
 #track fit:
 ### Possible options: "Minuit", "KalmanGeane", "KalmanRK"
 check_stage_success "$workpathname/Lumi_TrackNotFiltered_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
+if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
 	check_stage_success "$workpathname/Lumi_Track_${start_evt}.root"
-	if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
+	if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
 		root -l -b -q 'runLumiPixel4Fitter.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',"Minuit",'${mergedHits}')'
   		#this script output a Lumi_Track_... file. Rename that to the NotFiltered..
 
@@ -129,9 +129,9 @@ fi
 
 if [ "$prefilter" == "true" ]; then
 check_stage_success "$workpathname/Lumi_Track_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
+if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   check_stage_success "$workpathname/Lumi_TrackFiltered_${start_evt}.root"
-  if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
+  if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
     #this macro needs Lumi_Track_... file as input so we need to link the unfiltered file
     ln -sf ${workpathname}/Lumi_TrackNotFiltered_${start_evt}.root ${workpathname}/Lumi_Track_${start_evt}.root
 
@@ -147,7 +147,7 @@ fi
 # back-propgation GEANE
 ### Possible options: "Geane", "RK"
 check_stage_success "$workpathname/Lumi_Geane_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
+if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
 root -l -b -q 'runLumiPixel5BackProp.C('${num_evts}', '${start_evt}', "'${workpathname}'", '$verbositylvl', "Geane", '${mergedHits}', '${mom}', '${rec_ipx}', '${rec_ipy}', '${rec_ipz}', '$prefilter')'
 fi
 
@@ -163,7 +163,7 @@ fi
 # so that all mc events are written even if geometrically missing the sensors
 # this is required for the acceptance calculation
 check_stage_success "$workpathname/Lumi_TrksQA_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
+if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   root -l -b -q 'runLumiPixel7TrksQA.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl','${mom}', '$WrAllMC', '${CleanSig}')'
   if [ "${debug}" -eq 0 ]; then
     cp $workpathname/Lumi_TrksQA_${start_evt}.root $pathname/Lumi_TrksQA_${start_evt}.root

@@ -22,11 +22,9 @@ args = parser.parse_args()
 
 align_params = alignment.addAlignmentParametersToConfig({}, args)
 general_params = general.addGeneralRunParametersToConfig(align_params, args)
-align_params = alignment.addAlignmentParametersToConfig(general_params, args)
 sim_params = simulation.addSimulationParametersToConfig(general_params, args)
 reco_params = reconstruction.addReconstructionParametersToConfig(
     general_params, args)
-reco_params = alignment.addAlignmentParametersToConfig(reco_params, args)
 
 output_dir = ''
 if args.output_dir:
