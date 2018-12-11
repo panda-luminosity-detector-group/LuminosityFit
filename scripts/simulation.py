@@ -198,17 +198,16 @@ def startSimulationAndReconstruction(sim_params, align_params, reco_params,
           + str(sim_params['low_index']) + ' - '
           + str(sim_params['low_index']+sim_params['num_samples']-1))
 
-    if debug and sim_params['num_samples'] > 1:
-        print("Warning: number of samples in debug mode is limited to 1! "
-              "Setting to 1!")
-        sim_params['num_samples'] = 1
-
     dirname = generateDirectory(sim_params, align_params, output_dir)
     dirname_filter_suffix = rec.generateRecoDirSuffix(
         reco_params, align_params)
 
     low_index_used = sim_params['low_index']
     num_samples = sim_params['num_samples']
+    if debug and sim_params['num_samples'] > 1:
+        print("Warning: number of samples in debug mode is limited to 1! "
+              "Setting to 1!")
+        num_samples = 1
 
     pathname_base = os.getenv('LMDFIT_DATA_DIR') + '/' + dirname
     path_mc_data = pathname_base + '/mc_data'

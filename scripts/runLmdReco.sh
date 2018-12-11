@@ -30,7 +30,6 @@ if [ -z $scriptpath ] || [ -z $workpathname ]; then
   workpathname="/localscratch/${SLURM_JOB_ID}/${dirname}"
   if [ "${debug}" -eq 1 ]; then
     workpathname="${pathname}"
-    path_mc_data="${pathname}"
   fi
   if [ ! -d $workpathname ]; then
     mkdir -p $workpathname
@@ -62,23 +61,6 @@ echo "mcut: $CleanSig"
 prefilter="false"
 if [ "$XThetaCut" == "true" ] || [ "$YPhiCut" == "true" ]; then
 prefilter="true"
-fi
-
-# TODO: this macro/step is actually part of the simualtion, but appears here for debug reasons.
-# (Since the MC files are stored after the geant simulation, digi can be rerun with the reco,
-# to avoid costly resimulations with geant)
-#digitization
-if [ "${debug}" -eq 0 ]; then
-  cp ${path_mc_data}/Lumi_MC_${start_evt}.root $workpathname/Lumi_MC_${start_evt}.root
-  cp ${path_mc_data}/Lumi_Params_${start_evt}.root $workpathname/Lumi_Params_${start_evt}.root
-fi
-check_stage_success "$workpathname/Lumi_digi_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-  if [ ${simulate_noise} ]; then
-    root -l -b -q 'runLumiPixel1bDigiNoise.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl', '${random_seed}')'
-  else 
-    root -l -b -q 'runLumiPixel1Digi.C('${num_evts}','${start_evt}',"'${workpathname}'", "'${misalignment_matrices_path}'", '${use_point_transform_misalignment}', '$verbositylvl')'
-  fi
 fi
 
 #hit reco

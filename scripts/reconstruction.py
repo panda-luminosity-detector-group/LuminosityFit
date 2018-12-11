@@ -97,15 +97,14 @@ def startReconstruction(reco_params, align_params, dirname, force_level=0,
           + str(reco_params['low_index']) + ' - '
           + str(reco_params['low_index']+reco_params['num_samples']-1))
 
-    if debug and reco_params['num_samples'] > 1:
-        print("Warning: number of samples in debug mode is limited to 1!"
-              " Setting to 1!")
-        reco_params['num_samples'] = 1
-
     dirname_filter_suffix = generateRecoDirSuffix(reco_params, align_params)
 
     low_index_used = reco_params['low_index']
     num_samples = reco_params['num_samples']
+    if debug and reco_params['num_samples'] > 1:
+        print("Warning: number of samples in debug mode is limited to 1!"
+              " Setting to 1!")
+        num_samples = 1
 
     pathname_base = dirname
     path_mc_data = pathname_base + '/mc_data'
