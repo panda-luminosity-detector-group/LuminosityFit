@@ -17,7 +17,7 @@ Boost and the gsl library are two requirements, which are automatically included
 Simply create a build directory, change into that build directory, and run `cmake {PATH_TO_YOUR_LUMINOSITY_FIT_SOURCE}`
 
 ## Using
-The binaries in the ./bin subdirectory of the build path can be used directly. For more convenient use, especially for larger datasamples sizes it is recommended to use the python scripts in the ./scripts subdirectory. However, to use these scripts several environment variables have to be exported.
+The binaries in the `./bin` subdirectory of the build path can be used directly. For more convenient use, especially for larger datasamples sizes it is recommended to use the python scripts in the [./scripts](https://github.com/spflueger/LuminosityFit/tree/master/scripts) subdirectory. However, to use these scripts several environment variables have to be exported.
 
 ```bash
 export LMDFIT_BUILD_PATH="path-to-your-luminosityfit-build-directory"
