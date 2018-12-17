@@ -177,6 +177,9 @@ def simulateDataOnHimster(scenario):
                     # only the last reco steps are rerun of the track reco
                     ip_info_dict = scenario.rec_ip_info
 
+                    # TODO: save digi files instead of mc files!!
+                    with open(scenario.dir_path+'/../sim_params.config', 'r') as json_file:
+                        sim_par = json.load(json_file)
                     with open(scenario.dir_path+'/reco_params.config', 'r') as json_file:
                         rec_par = json.load(json_file)
                     rec_par['use_xy_cut'] = True
@@ -187,9 +190,11 @@ def simulateDataOnHimster(scenario):
                     if (num_samples > 0 and
                             rec_par['num_samples'] > num_samples):
                         rec_par['num_samples'] = num_samples
+                        sim_par['num_samples'] = num_samples
                     dirname = os.path.dirname(scenario.dir_path)
-                    (dir_path, is_finished) = reconstruction.startReconstruction(
-                        rec_par, alignment.getAlignmentParameters(rec_par),
+                    (dir_path, is_finished) = simulation.startSimulationAndReconstruction(
+                        sim_par, alignment.getAlignmentParameters(rec_par),
+                        rec_par,
                         dirname, use_devel_queue=args.use_devel_queue)
                     simulation_task[0] = dir_path
                     scen.filtered_dir_path = dir_path
