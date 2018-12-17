@@ -191,11 +191,13 @@ def simulateDataOnHimster(scenario):
                             rec_par['num_samples'] > num_samples):
                         rec_par['num_samples'] = num_samples
                         sim_par['num_samples'] = num_samples
-                    dirname = os.path.dirname(scenario.dir_path)
+                    #dirname = os.path.dirname(scenario.dir_path)
                     (dir_path, is_finished) = simulation.startSimulationAndReconstruction(
                         sim_par, alignment.getAlignmentParameters(rec_par),
-                        rec_par,
-                        dirname, use_devel_queue=args.use_devel_queue)
+                        rec_par, use_devel_queue=args.use_devel_queue)
+                    #(dir_path, is_finished) = reconstruction.startReconstruction(
+                    #    rec_par, alignment.getAlignmentParameters(rec_par),
+                    #    dirname, use_devel_queue=args.use_devel_queue)
                     simulation_task[0] = dir_path
                     scen.filtered_dir_path = dir_path
                     if is_finished:
