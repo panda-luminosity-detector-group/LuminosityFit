@@ -10,6 +10,7 @@ add_library(LmdUI SHARED ${SRCS})
 target_include_directories(LmdUI
 	PRIVATE ${ROOT_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 target_link_libraries(LmdUI 
-	PUBLIC LmdFitData LmdFit LmdModel Boost::filesystem
+	PUBLIC LmdFitData LmdFit Boost::filesystem
 	PRIVATE ${ROOT_LIBRARIES} Boost::regex
+	INTERFACE LmdModel
 )

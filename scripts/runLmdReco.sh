@@ -42,7 +42,7 @@ fi
 misspl=true
 #use cuts during trk seacrh with "CA". Should be 'false' if sensors missaligned!
 trkcut=true
-if [ "${alignment_matrices_path}" == "" ]; then
+if [ "${alignment_matrices_path}" = "" ]; then
   trkcut=false
 fi
 #merge hits on sensors from different sides. true=yes
@@ -59,24 +59,15 @@ echo "yphicut: $YPhiCut"
 echo "mcut: $CleanSig"
 
 prefilter="false"
-if [ "$XThetaCut" == "true" ] || [ "$YPhiCut" == "true" ]; then
+if [ "$XThetaCut" = "true" ] || [ "$YPhiCut" = "true" ]; then
 prefilter="true"
 fi
 
 #hit reco
 check_stage_success "$workpathname/Lumi_reco_${start_evt}.root"
 if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-  root -l -b -q 'runLumiPixel2Reco.C('${num_evts}','${start_evt}',"'${workpathname}'", "'${alignment_matrices_path}'", "'${misalignment_matrices_path}'", '${use_point_transform_misalignment}', '$verbositylvl')'
-fi
-
-#find pairs
-check_stage_success "$workpathname/Lumi_Pairs_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-  root -l -b -q 'runLumiPixel2ePairFinder.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl')'
-  #copy pairs
-  if [ "${debug}" -eq 0 ]; then
-    cp $workpathname/Lumi_Pairs_${start_evt}.root ${pathname}/Pairs/Lumi_Pairs_${start_evt}.root
-  fi
+  #root -l -b -q 'runLumiPixel2Reco.C('${num_evts}','${start_evt}',"'${workpathname}'", "'${alignment_matrices_path}'", "'${misalignment_matrices_path}'", '${use_point_transform_misalignment}', '$verbositylvl')'
+  root -l -b -q 'runLumiPixel2Reco.C('${num_evts}','${start_evt}',"'${workpathname}'", '$verbositylvl')'
 fi
 
 #merge hits
@@ -101,7 +92,7 @@ if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
 		root -l -b -q 'runLumiPixel4Fitter.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',"Minuit",'${mergedHits}')'
   		#this script output a Lumi_Track_... file. Rename that to the NotFiltered..
 
-		if [ "$prefilter" == "true" ]; then
+		if [ "$prefilter" = "true" ]; then
 			mv ${workpathname}/Lumi_Track_${start_evt}.root ${workpathname}/Lumi_TrackNotFiltered_${start_evt}.root
 		fi
 	fi
@@ -109,7 +100,7 @@ fi
 
 #track filter (on number of hits and chi2)
 
-if [ "$prefilter" == "true" ]; then
+if [ "$prefilter" = "true" ]; then
 check_stage_success "$workpathname/Lumi_Track_${start_evt}.root"
 if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   check_stage_success "$workpathname/Lumi_TrackFiltered_${start_evt}.root"
@@ -135,7 +126,7 @@ fi
 
 
 # filter back-propagated tracks (momentum cut)
-if [ $CleanSig == "true" ]; then 
+if [ $CleanSig = "true" ]; then 
   root -l -b -q 'runLumiPixel5bCleanSig.C('${num_evts}', '${start_evt}', "'${workpathname}'", '$verbositylvl', '${mom}', '${rec_ipx}', '${rec_ipy}')'
 fi
 

@@ -19,7 +19,8 @@ add_library(LmdFit SHARED ${SRCS} LmdFitDict.cxx)
 target_include_directories(LmdFit 
 	PUBLIC ${ROOT_INCLUDE_DIR})
 target_link_libraries(LmdFit
-	INTERFACE Model ROOT::Core)
+    PUBLIC ROOT::Core
+	INTERFACE Model)
 
 add_custom_command(
         TARGET LmdFit POST_BUILD

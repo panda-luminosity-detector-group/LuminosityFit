@@ -33,6 +33,7 @@ dirname=`echo $dirname | sed -e 's/\//_/g'`
 workpathname="/localscratch/${SLURM_JOB_ID}/${dirname}"
 if [ "${debug}" -eq 1 ]; then
   workpathname="${pathname}"
+  path_mc_data=$workpathname
 fi
 if [ ! -d $workpathname ]; then
   mkdir -p $workpathname
@@ -41,6 +42,7 @@ fi
 gen_filepath="$workpathname/gen_mc.root"
 echo "force level: ${force_level}"
 echo "debug: ${debug}"
+echo "reaction type: ${reaction_type}"
 
 #simulation
 check_stage_success "${path_mc_data}/Lumi_MC_${start_evt}.root"
@@ -60,7 +62,8 @@ if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
     #simulation with Box generator cheating with neutrons, since "no tracks" gave problems
     root -l -b -q 'runLumiPixel0SimBox.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',2112,'${mom}','${numTrks}','${random_seed}')' > /dev/null 2>&1
   else
-    root -l -b -q 'runLumiPixel0SimDPM.C('${num_evts}','${start_evt}','${mom}',"'${gen_filepath}'", "'${workpathname}'",'$beamX0', '$beamY0', '${targetZ0}', '${beam_widthX}', '${beam_widthY}', '${target_widthZ}', '${beam_gradX}', '${beam_gradY}', '${beam_grad_sigmaX}', '${beam_grad_sigmaY}', "'${lmd_geometry_filename}'", "'${misalignment_matrices_path}'", '${use_point_transform_misalignment}', '$verbositylvl')'
+    #root -l -b -q 'runLumiPixel0SimDPM.C('${num_evts}','${start_evt}','${mom}',"'${gen_filepath}'", "'${workpathname}'",'$beamX0', '$beamY0', '${targetZ0}', '${beam_widthX}', '${beam_widthY}', '${target_widthZ}', '${beam_gradX}', '${beam_gradY}', '${beam_grad_sigmaX}', '${beam_grad_sigmaY}', "'${lmd_geometry_filename}'", "'${misalignment_matrices_path}'", '${use_point_transform_misalignment}', '$verbositylvl')'
+    root -l -b -q 'runLumiPixel0SimDPM.C('${num_evts}','${start_evt}','${mom}',"'${gen_filepath}'", "'${workpathname}'",'$beamX0', '$beamY0', '${targetZ0}', '${beam_widthX}', '${beam_widthY}', '${target_widthZ}', '${beam_gradX}', '${beam_gradY}', '${beam_grad_sigmaX}', '${beam_grad_sigmaY}', "'${lmd_geometry_filename}'", '$verbositylvl')'
   fi
   if [ "${debug}" -eq 0 ]; then 
     cp $workpathname/Lumi_MC_${start_evt}.root ${path_mc_data}/Lumi_MC_${start_evt}.root
@@ -70,9 +73,6 @@ else
   if [ "${debug}" -eq 0 ]; then
     cp ${path_mc_data}/Lumi_MC_${start_evt}.root $workpathname/Lumi_MC_${start_evt}.root
     cp ${path_mc_data}/Lumi_Params_${start_evt}.root $workpathname/Lumi_Params_${start_evt}.root
-  else
-    ln -sf ${path_mc_data}/Lumi_MC_${start_evt}.root $workpathname/Lumi_MC_${start_evt}.root
-    ln -sf ${path_mc_data}/Lumi_Params_${start_evt}.root $workpathname/Lumi_Params_${start_evt}.root
   fi
 fi
 
@@ -81,7 +81,8 @@ if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   if [ ${simulate_noise} ]; then
     root -l -b -q 'runLumiPixel1bDigiNoise.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl', '${random_seed}')'
   else 
-    root -l -b -q 'runLumiPixel1Digi.C('${num_evts}','${start_evt}',"'${workpathname}'", "'${misalignment_matrices_path}'", '${use_point_transform_misalignment}', '$verbositylvl')'
+    #root -l -b -q 'runLumiPixel1Digi.C('${num_evts}','${start_evt}',"'${workpathname}'", "'${misalignment_matrices_path}'", '${use_point_transform_misalignment}', '$verbositylvl')'
+    root -l -b -q 'runLumiPixel1Digi.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl')'
   fi
 fi
 

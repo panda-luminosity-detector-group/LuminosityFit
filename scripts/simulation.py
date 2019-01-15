@@ -271,11 +271,11 @@ def startSimulationAndReconstruction(sim_params, align_params, reco_params,
     sim_type = sim_params['sim_type']
 
     reaction_type = 2
-    if sim_params == 'box':
+    if sim_type == 'box':
         reaction_type = -1
-    elif sim_params == 'dpm_elastic':
+    elif sim_type == 'dpm_elastic':
         reaction_type = 2
-    elif sim_params == 'dpm_elastic_inelastic':
+    elif sim_type == 'dpm_elastic_inelastic':
         reaction_type = 1
 
     joblist = []
