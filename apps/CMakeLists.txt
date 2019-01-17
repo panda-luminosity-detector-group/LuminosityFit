@@ -1,6 +1,7 @@
 set(INCLUDE_DIRECTORIES
   ${ROOT_INCLUDE_DIR}
   ${Boost_INCLUDE_DIRS}
+  $ENV{VMCWORKDIR}
 )
 include_directories(${INCLUDE_DIRECTORIES})
 
@@ -46,6 +47,8 @@ target_link_libraries(plotLumiFitResults LmdUI  ROOT::Hist ROOT::Gpad ROOT::RIO 
 add_executable(runLmdFit runLmdFit.cxx)
 target_link_libraries(runLmdFit LmdUI)
 
+add_executable(fitRawDPMElasticData fitRawDPMElasticData.cxx)
+target_link_libraries(fitRawDPMElasticData LmdUI ROOT::EG ROOT::Gpad ROOT::Hist ROOT::Tree ROOT::Physics ROOT::MathCore)
 
 
 
@@ -54,8 +57,6 @@ target_link_libraries(runLmdFit LmdUI)
 
 ########################### create fitRawDPMElasticData app ##################################
 
-#add_executable(fitRawDPMElasticData fitRawDPMElasticData.cxx)
-#target_link_libraries(fitRawDPMElasticData LmdUI)
 
 #add_executable(compareAcceptances compareAcceptances.cxx)
 #target_link_libraries(compareAcceptances LmdUI)
