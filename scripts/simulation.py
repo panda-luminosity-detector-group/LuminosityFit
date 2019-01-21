@@ -248,7 +248,10 @@ def startSimulationAndReconstruction(sim_params, align_params, reco_params,
         # determine the elastic cross section in the theta range
         bashcommand = os.getenv('LMDFIT_BUILD_PATH') + \
             '/bin/generatePbarPElasticScattering ' + \
-            str(sim_params['lab_momentum']) + ' 0'
+            str(sim_params['lab_momentum']) + ' 0 -l ' + \
+            str(sim_params['theta_min_in_mrad']) + ' -u ' + \
+            str(sim_params['theta_max_in_mrad'])
+        
         returnvalue = subprocess.call(bashcommand.split())
         import shutil
         shutil.move(os.getcwd()+"/elastic_cross_section.txt",
