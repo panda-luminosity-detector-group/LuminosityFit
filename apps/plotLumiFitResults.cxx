@@ -65,10 +65,10 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
   PndLmdRuntimeConfiguration& lmd_runtime_config =
       PndLmdRuntimeConfiguration::Instance();
 
-  lmd_runtime_config.setGeneralConfigDirectory("/home/pflueger/LuminosityFit/");
+  lmd_runtime_config.setGeneralConfigDirectory(std::string(std::getenv("HOME"))+"/LuminosityFit");
 
-  lmd_runtime_config.readAcceptanceOffsetTransformationParameters(
-      "offset_trafo_matrix.json");
+  //lmd_runtime_config.readAcceptanceOffsetTransformationParameters(
+  //    "offset_trafo_matrix.json");
 
   std::vector<std::string> ip_files;
 
@@ -76,7 +76,7 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
     // ------ get files -------------------------------------------------------
     std::vector<std::string> file_paths = lmd_data_facade.findFilesByName(
         paths[i], filter_string, "lmd_fitted_data.root");
-
+    std::cout<<"found "<<file_paths.size()<<" file paths!\n";
     for (unsigned int j = 0; j < file_paths.size(); j++) {
       // next lines are dirty... very unsafe
       std::string ip_path(file_paths[j]);

@@ -713,6 +713,21 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
            << hist->Interpolate(pos.first, pos.second) << std::endl;*/
         }
       }
+     
+      boost::optional<double> forced_lower_acc_bound = model_opt_ptree.get_optional<double>("override_lower_acceptance_bound");
+      if(forced_lower_acc_bound) {
+        double lowboundsquared(std::pow(forced_lower_acc_bound.get(), 2));
+        std::vector<std::pair<mydouble, mydouble> > keystoremove;
+        for(auto const& x : datamap) {
+          if((std::pow(x.first.first, 2) + std::pow(x.first.second, 2)) < lowboundsquared) {
+            keystoremove.push_back(x.first);
+          }
+        }
+        std::cout<<"WARNING: erasing "<<keystoremove.size()<<" acceptance entries, which are below the forced bound of "
+                 <<forced_lower_acc_bound.get()<<std::endl;
+        for(auto k : keystoremove)
+          datamap.erase(k);
+      }
 
       gPad = curpad;
 

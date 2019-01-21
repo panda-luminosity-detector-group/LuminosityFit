@@ -9,11 +9,11 @@
         
         "fit_range_x_active": false,
         "fit_range_x_low": 0.0025,
-        "fit_range_x_high": 0.008,
+        "fit_range_x_high": 0.01,
         
         "fit_range_y_active": false,
         "fit_range_y_low": 0.0025,
-        "fit_range_y_high": 0.008
+        "fit_range_y_high": 0.01
       },
       
       "fit_model_options":
@@ -36,10 +36,8 @@
 
 	     "acceptance_correction_active": true,
 	     "acceptance_interpolation": "CONSTANT",
-	     "automatic_acceptance_boundary_finding_active": true,
 	     "automatic_acceptance_shifting_active": false,
-	     "acceptance_bound_low": 0.002,
-	     "acceptance_bound_high": 0.01,
+	     "override_lower_acceptance_bound": 0.002,
 
 	     "resolution_smearing_active": true,
 	     

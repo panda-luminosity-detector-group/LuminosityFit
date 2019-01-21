@@ -3,7 +3,11 @@ import re
 import errno
 import glob
 import json
+from argparse import (ArgumentDefaultsHelpFormatter, RawTextHelpFormatter)
 
+class SmartFormatter(ArgumentDefaultsHelpFormatter):
+    def _split_lines(self, text, width):
+        return RawTextHelpFormatter._split_lines(self, text, width)
 
 def addGeneralArgumentsToParser(parser):
     parser.add_argument('num_events_per_sample',

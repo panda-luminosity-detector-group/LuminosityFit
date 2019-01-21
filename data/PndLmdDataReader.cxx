@@ -213,7 +213,7 @@ void PndLmdDataReader::read() {
 void PndLmdDataReader::fillData(PndLmdTrackQ *track_pars) {
   PndLmdTrackQ trackqref = *track_pars;
 
-  if (wasReconstructed(trackqref) && 0 == track_pars->GetTrkRecStatus()) {
+  if (wasReconstructed(trackqref)) {
     std::vector<double> data(4);
     TVector3 mom_mc;
     mom_mc.SetMagThetaPhi(track_pars->GetMCmom(), track_pars->GetMCtheta(),
@@ -268,10 +268,10 @@ void PndLmdDataReader::fillData(PndLmdTrackQ *track_pars) {
 }
 
 bool PndLmdDataReader::wasReconstructed(PndLmdTrackQ &track_pars) const {
-  if (0 > track_pars.GetTrkRecStatus()) {
-    return false;
+  if (0 == track_pars.GetTrkRecStatus()) {
+    return true;
   }
-  return true;
+  return false;
 }
 
 bool PndLmdDataReader::skipDataObject(const PndLmdAbstractData* data,
@@ -285,9 +285,7 @@ bool PndLmdDataReader::skipDataObject(const PndLmdAbstractData* data,
         == data->getPrimaryDimension().dimension_options.track_type
         || LumiFit::DIFF_RECO_MC
             == data->getPrimaryDimension().dimension_options.track_type) {
-      if (0 != track_pars.GetTrkRecStatus()) {
-        return true;
-      }
+      return true;
     }
     if (data->getSecondaryDimension().is_active) {
       if (LumiFit::RECO
@@ -297,9 +295,7 @@ bool PndLmdDataReader::skipDataObject(const PndLmdAbstractData* data,
           == data->getSecondaryDimension().dimension_options.track_type
           || LumiFit::DIFF_RECO_MC
               == data->getSecondaryDimension().dimension_options.track_type) {
-        if (0 != track_pars.GetTrkRecStatus()) {
-          return true;
-        }
+        return true;
       }
     }
   }

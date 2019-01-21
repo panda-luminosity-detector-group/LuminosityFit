@@ -408,12 +408,12 @@ def lumiDetermination(scen):
 
 
 parser = argparse.ArgumentParser(description='Lmd One Button Script',
-                                 formatter_class=argparse.RawTextHelpFormatter)
+                                 formatter_class=general.SmartFormatter)
 
 parser.add_argument('--base_output_data_dir', metavar='base_output_data_dir',
                     type=str, default=os.getenv('LMDFIT_DATA_DIR'),
                     help='Base directory for output files created by this'
-                    ' script.')
+                    ' script.\n')
 parser.add_argument('--fit_config', metavar='fit_config',
                     type=str, default='fitconfig-fast.json')
 parser.add_argument('--box_num_events_per_sample',
@@ -425,7 +425,7 @@ parser.add_argument('--box_num_samples', metavar='box_num_samples',
                     help='number of samples to simulate')
 parser.add_argument('--num_samples', metavar='num_samples',
                     type=int, default=100,
-                    help='number of dpm data files to reconstruct. -1 means all. default: 100')
+                    help='number of dpm data files to reconstruct (-1 means all)')
 parser.add_argument('--use_devel_queue', action='store_true',
                     help='If flag is set, the devel queue is used')
 
