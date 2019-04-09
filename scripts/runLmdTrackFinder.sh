@@ -37,6 +37,31 @@ if [ -z $scriptpath ] || [ -z $workpathname ]; then
   echo "force level: ${force_level}"
 fi
 
+#switch on "missing plane" search algorithm
+misspl=true
+#use cuts during trk seacrh with "CA". Should be 'false' if sensors missaligned!
+trkcut=true
+if [ "${alignment_matrices_path}" = "" ]; then
+  trkcut=false
+fi
+#merge hits on sensors from different sides. true=yes
+mergedHits=true
+## BOX cut before back-propagation
+BoxCut=false
+## Write all MC info in TrkQA array
+WrAllMC=true
+
+radLength=0.32
+
+echo "xthetacut: $XThetaCut"
+echo "yphicut: $YPhiCut"
+echo "mcut: $CleanSig"
+
+prefilter="false"
+if [ "$XThetaCut" = "true" ] || [ "$YPhiCut" = "true" ]; then
+prefilter="true"
+fi
+
 ### change "CA" --> "Follow" if you want to use Trk-Following as trk-search algorithm
 ### NB: CA can use merged or single(not merged) hits, Trk-Following can't
 check_stage_success "$workpathname/Lumi_TCand_${start_evt}.root"
