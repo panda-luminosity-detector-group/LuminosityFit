@@ -96,6 +96,10 @@ void extractLuminosityResults(std::vector<std::string> paths, const std::string 
       lumi_values.put("relative_deviation_in_percent", lumi.first);
       lumi_values.put("relative_deviation_error_in_percent", lumi.second);
 
+      std::stringstream filename;
+      filename << boost::filesystem::path(scenario.first).parent_path().string();
+
+      std::cout << filename.str() << ":\n====================\n";
       std::cout << "Luminosity Fit Result:\n";
       std::cout << "measured luminosity:" << fit_result.getLuminosity() << "\n";
       std::cout << "measured luminosity error:" << fit_result.getLuminosityError() << "\n";
@@ -103,9 +107,7 @@ void extractLuminosityResults(std::vector<std::string> paths, const std::string 
       std::cout << "relative deviation (%):" << lumi.first << "\n";
       std::cout << "relative deviation error (%):" << lumi.second << "\n";
 
-      std::stringstream filename;
-      filename << boost::filesystem::path(scenario.first).parent_path().string()
-          << "/lumi-values.json";
+      filename << "/lumi-values.json";
       write_json(filename.str(), lumi_values);
     }
   }
