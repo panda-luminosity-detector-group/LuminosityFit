@@ -41,6 +41,9 @@ target_link_libraries(mergeLmdData LmdUI ${ROOT_LIBRARIES})
 add_executable(plotIPDistribution plotIPDistribution.cxx)
 target_link_libraries(plotIPDistribution LmdUI ROOT::Graf ROOT::RIO)
 
+add_executable(extractLuminosity extractLuminosityValues.cxx)
+target_link_libraries(extractLuminosity LmdUI)
+
 add_executable(plotLumiFitResults plotLumiFitResults.cxx)
 target_link_libraries(plotLumiFitResults LmdUI  ROOT::Hist ROOT::Gpad ROOT::RIO ROOT::Graf)
 
