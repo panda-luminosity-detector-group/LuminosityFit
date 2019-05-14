@@ -42,7 +42,7 @@ def createReconstructionParameters():
         'use_xy_cut': False,
         'use_m_cut': False,
         'track_search_algo': 'CA',
-        'reco_ip_offset': [0.0, 0.0, 0.0]
+        'reco_ip_offset': None
     }
 
 
@@ -75,9 +75,7 @@ def generateRecoDirSuffix(reco_params, align_params):
         reco_dirname_suffix += 'un'
     reco_dirname_suffix += 'cut'
     if reco_params['use_xy_cut']:
-        if (reco_params['reco_ip_offset'][0] != 0.0
-            or reco_params['reco_ip_offset'][1] != 0.0
-                or reco_params['reco_ip_offset'][2] != 0.0):
+        if reco_params['reco_ip_offset']:
             reco_dirname_suffix += '_real'
     if align_params['use_point_transform_misalignment']:
         if align_params['misalignment_matrices_path'] == '':
@@ -205,11 +203,14 @@ def appendRecoInfoToJob(job, reco_params):
     job.add_exported_user_variable(
         'lmd_geometry_filename', reco_params['lmd_geometry_filename'])
 
+    reco_ip_offsets = [0.0, 0.0, 0.0]
+    if reco_params['reco_ip_offset']:
+        reco_ip_offsets = reco_params['reco_ip_offset']
     job.add_exported_user_variable(
-        'rec_ipx', str(reco_params['reco_ip_offset'][0]))
+        'rec_ipx', str(reco_ip_offsets[0]))
     job.add_exported_user_variable(
-        'rec_ipy', str(reco_params['reco_ip_offset'][1]))
+        'rec_ipy', str(reco_ip_offsets[1]))
     job.add_exported_user_variable(
-        'rec_ipz', str(reco_params['reco_ip_offset'][2]))
+        'rec_ipz', str(reco_ip_offsets[2]))
 
     return job
