@@ -226,10 +226,10 @@ def simulateDataOnHimster(scenario):
             temp_dir_searcher = general.DirectorySearcher(data_keywords)
             temp_dir_searcher.searchListOfDirectories(dir_path, data_pattern)
             found_dirs = temp_dir_searcher.getListOfDirectories()
+            status_code = 1
             if found_dirs:
-                print('skipping bunching and data object creation...')
-                state = 3
-                last_state = 2
+                status_code = wasSimulationSuccessful(
+                        found_dirs[0], data_pattern)        
             elif last_state < state:
                 os.chdir(lmd_fit_script_path)
                 # 1a bunch data
@@ -254,9 +254,22 @@ def simulateDataOnHimster(scenario):
                     print(bashcommand)
                 returnvalue = subprocess.call(bashcommand.split())
                 last_state = last_state + 1
-            else:
-                print('still waiting for himster data creation jobs for ' +
+            
+            
+            if status_code == 0:
+                print('skipping bunching and data object creation...')
+                state = 3
+                last_state = 2
+            elif status_code > 0:
+                print('still waiting for himster simulation jobs for ' +
                       sim_type + ' data to complete...')
+            else:
+                # ok something went wrong there, exit this scenario and
+                # push on bad scenario stack
+                print("ERROR: Something went wrong with the cluster jobs! "
+                      "This scenario will be pushed onto the dead stack, "
+                      "and is no longer processed.")
+                last_state = -1
 
         # 3. merge data
         if state == 3:
