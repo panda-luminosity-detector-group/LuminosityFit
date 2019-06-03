@@ -418,10 +418,10 @@ parser.add_argument('--fit_config', metavar='fit_config',
                     type=str, default='fitconfig-fast.json')
 parser.add_argument('--box_num_events_per_sample',
                     metavar='box_num_events_per_sample',
-                    type=int, default=500000,
+                    type=int, default=100000,
                     help='number of events per sample to simulate')
 parser.add_argument('--box_num_samples', metavar='box_num_samples',
-                    type=int, default=100,
+                    type=int, default=500,
                     help='number of samples to simulate')
 parser.add_argument('--num_samples', metavar='num_samples',
                     type=int, default=100,
