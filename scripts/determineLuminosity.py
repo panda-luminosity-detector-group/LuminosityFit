@@ -37,31 +37,23 @@ class Scenario:
         self.is_broken = False
 
 
-def wasSimulationSuccessful(directory, glob_pattern):
-    required_files_percentage = 0.8
+def wasSimulationSuccessful(directory, glob_pattern, is_bunches=False):
     # return values:
     # 0: everything is fine
     # >0: its not finished processing, just keep waiting
     # <0: something went wrong...
+    required_files_percentage = 0.8
     return_value = 0
 
-    found_files = glob.glob(directory + '/' + glob_pattern)
-    good_files = []
-    bad_files = []
-    for file in found_files:
-        if os.stat(file).st_size > 20000:
-            good_files.append(file)
-        else:
-            bad_files.append(file)
+    files_percentage = general.getGoodFiles(directory,
+                                            glob_pattern,
+                                            20000,
+                                            is_bunches=is_bunches)[1]
 
-    m = re.search('\/(\d+?)-(\d+?)_.+?cut', directory)
-    num_sim_files = int(m.group(2))-int(m.group(1)) + 1
-
-    if 1.0*len(good_files) < required_files_percentage*num_sim_files:
-        print('WARNING: more than 20% of sim files missing... '
-              'Something went wrong here...')
-        print(directory)
-        # (time.time()-os.path.getmtime('path'))/60/60/24
+    if files_percentage < required_files_percentage:
+        print('WARNING: ' + str((1-files_percentage)*100)
+              + '% of input files (' + str(glob_pattern)
+              + ') missing... Something went wrong here...')
         if himster.get_num_jobs_on_himster() > 0:
             return_value = 1
         else:
@@ -128,8 +120,8 @@ def simulateDataOnHimster(scenario):
                     # note: beam tilt and divergence are not necessary here,
                     # because that is handled completely by the model
                     ip_info_dict = scenario.rec_ip_info
-                    max_xy_shift = math.sqrt(ip_info_dict['ip_offset_x']**2 +
-                                             ip_info_dict['ip_offset_y']**2)
+                    max_xy_shift = math.sqrt(ip_info_dict['ip_offset_x'] ** 2 +
+                                             ip_info_dict['ip_offset_y'] ** 2)
                     max_xy_shift = float('{0:.2f}'.format(
                         round(float(max_xy_shift), 2)))
 
@@ -178,9 +170,9 @@ def simulateDataOnHimster(scenario):
                     ip_info_dict = scenario.rec_ip_info
 
                     # TODO: save digi files instead of mc files!!
-                    with open(scenario.dir_path+'/../sim_params.config', 'r') as json_file:
+                    with open(scenario.dir_path + '/../sim_params.config', 'r') as json_file:
                         sim_par = json.load(json_file)
-                    with open(scenario.dir_path+'/reco_params.config', 'r') as json_file:
+                    with open(scenario.dir_path + '/reco_params.config', 'r') as json_file:
                         rec_par = json.load(json_file)
                     rec_par['use_xy_cut'] = True
                     rec_par['use_m_cut'] = True
@@ -191,11 +183,11 @@ def simulateDataOnHimster(scenario):
                             rec_par['num_samples'] > num_samples):
                         rec_par['num_samples'] = num_samples
                         sim_par['num_samples'] = num_samples
-                    #dirname = os.path.dirname(scenario.dir_path)
+                    # dirname = os.path.dirname(scenario.dir_path)
                     (dir_path, is_finished) = simulation.startSimulationAndReconstruction(
                         sim_par, alignment.getAlignmentParameters(rec_par),
                         rec_par, use_devel_queue=args.use_devel_queue)
-                    #(dir_path, is_finished) = reconstruction.startReconstruction(
+                    # (dir_path, is_finished) = reconstruction.startReconstruction(
                     #    rec_par, alignment.getAlignmentParameters(rec_par),
                     #    dirname, use_devel_queue=args.use_devel_queue)
                     simulation_task[0] = dir_path
@@ -229,7 +221,7 @@ def simulateDataOnHimster(scenario):
             status_code = 1
             if found_dirs:
                 status_code = wasSimulationSuccessful(
-                        found_dirs[0], data_pattern)        
+                    found_dirs[0], data_pattern + "*", True)
             elif last_state < state:
                 os.chdir(lmd_fit_script_path)
                 # 1a bunch data
@@ -254,8 +246,7 @@ def simulateDataOnHimster(scenario):
                     print(bashcommand)
                 returnvalue = subprocess.call(bashcommand.split())
                 last_state = last_state + 1
-            
-            
+
             if status_code == 0:
                 print('skipping bunching and data object creation...')
                 state = 3
@@ -308,9 +299,9 @@ def lumiDetermination(scen):
     last_state = scen.last_state
 
     # open file
-    if os.path.exists(dir_path+"/../elastic_cross_section.txt"):
+    if os.path.exists(dir_path + "/../elastic_cross_section.txt"):
         print("Found an elastic cross section file!")
-        with open(dir_path+"/../elastic_cross_section.txt") as f:
+        with open(dir_path + "/../elastic_cross_section.txt") as f:
             content = f.readlines()
             scen.elastic_pbarp_integrated_cross_secion_in_mb = float(
                 content[0])
@@ -406,7 +397,7 @@ def lumiDetermination(scen):
             bashcommand = 'python doMultipleLuminosityFits.py '\
                 '--forced_box_gen_data ' + scen.acc_and_res_dir_path + \
                 ' ' + scen.filtered_dir_path + ' xy_m_cut_real ' + \
-                lmd_fit_path+'/'+args.fit_config
+                lmd_fit_path + '/' + args.fit_config
             returnvalue = subprocess.call(bashcommand.split())
 
         print('this scenario is fully processed!!!')
@@ -446,7 +437,7 @@ args = parser.parse_args()
 
 lmd_fit_script_path = os.path.dirname(os.path.realpath(__file__))
 lmd_fit_path = os.path.dirname(lmd_fit_script_path)
-lmd_fit_bin_path = os.getenv('LMDFIT_BUILD_PATH')+'/bin'
+lmd_fit_bin_path = os.getenv('LMDFIT_BUILD_PATH') + '/bin'
 
 num_samples = args.num_samples
 box_num_samples = args.box_num_samples
@@ -465,7 +456,6 @@ print(dirs)
 for dir in dirs:
     scen = Scenario(dir)
     active_scenario_stack.append(scen)
-
 
 # now just keep processing the active_stack
 while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
