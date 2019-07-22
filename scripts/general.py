@@ -5,9 +5,34 @@ import glob
 import json
 from argparse import (ArgumentDefaultsHelpFormatter, RawTextHelpFormatter)
 
+
+def getGoodFiles(directory, glob_pattern, min_filesize_in_byte=2000,
+                 is_bunches=False):
+    found_files = glob.glob(directory + '/' + glob_pattern)
+    good_files = []
+    bad_files = []
+    for file in found_files:
+        if os.stat(file).st_size > min_filesize_in_byte:
+            good_files.append(file)
+        else:
+            bad_files.append(file)
+
+    if is_bunches:
+        m = re.search('\/bunches_(\d+?)', directory)
+        num_sim_files = int(m.group(1))
+    else:
+        m = re.search('\/(\d+?)-(\d+?)_.+?cut', directory)
+        num_sim_files = int(m.group(2))-int(m.group(1)) + 1
+
+    files_percentage = len(good_files)/num_sim_files
+
+    return [good_files, files_percentage]
+
+
 class SmartFormatter(ArgumentDefaultsHelpFormatter):
     def _split_lines(self, text, width):
         return RawTextHelpFormatter._split_lines(self, text, width)
+
 
 def addGeneralArgumentsToParser(parser):
     parser.add_argument('num_events_per_sample',
@@ -237,7 +262,7 @@ class DirectorySearcher:
                         if found_file:
                             found_files = True
                             break
-                
+
                 if found_files:
                     self.dirs.append(dirpath)
 

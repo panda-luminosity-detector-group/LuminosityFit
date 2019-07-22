@@ -9,6 +9,7 @@ import time
 import subprocess
 import multiprocessing
 import argparse
+from general import getGoodFiles
 
 cpu_cores = multiprocessing.cpu_count()
 
@@ -49,32 +50,8 @@ def createFileListFile(output_url, list_of_files):
 
 
 def makeFileListBunches(directory):
-    good_files = []
-    bad_files = []
-    found_files = glob.glob(directory + '/' + filename_prefix + '*')
-    for file in found_files:
-        if os.stat(file).st_size > 200:
-            good_files.append(file)
-        else:
-            bad_files.append(file)
-
-    m = re.search('\/(\d+?)-(\d+?)_.+?cut', directory)
-    num_sim_files = int(m.group(2))-int(m.group(1)) + 1
-
-    # print str(1.0*len(found_files)) + ' < ' + str(0.8*num_sim_files)
-
-    if 1.0*len(found_files) < 0.8*num_sim_files:
-        print('WARNING: more than 20% of sim files missing... Something went wrong here...')
-        print(directory)
-        return
-
-    if 0.2 < 1.0*len(bad_files)/(len(good_files) + len(bad_files)):
-        print('WARNING: more than 20% are bad files... Something went wrong here...')
-        print(directory)
-        return
-
-    print('detected ' + str(len(bad_files)) + '/' +
-          str(len(good_files) + len(bad_files)) + ' bad files')
+    [good_files, percentage] = getGoodFiles(directory, filename_prefix + '*', 2000)
+    
     print('creating file lists...')
 
     if args.maximum_number_of_files > 0 and args.maximum_number_of_files < len(good_files):

@@ -41,6 +41,7 @@ boost::property_tree::ptree PndLmdFitOptions::getModelOptionsPropertyTree() cons
 			}
 		} catch (const bad_lexical_cast &) {
 		}
+		if(!success) {
 		// check if they are boolean values
 		if (model_option->second.compare("true") == 0) {
 			model_opt_ptree.put(model_option->first, true);
@@ -49,6 +50,7 @@ boost::property_tree::ptree PndLmdFitOptions::getModelOptionsPropertyTree() cons
 		} else {
 			// otherwise just take it as a string
 			model_opt_ptree.put(model_option->first, model_option->second);
+		}
 		}
 	}
 
