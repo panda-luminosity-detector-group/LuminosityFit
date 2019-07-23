@@ -230,6 +230,7 @@ int main(int argc, char* argv[])
   std::cout<<"-n flag: number of events to simulate: "<<ntot<<std::endl;
   std::cout<<"-f flag: output root file name: "<<rootfile_name<<std::endl;
 
+  std::cout<<"now we initialize the dpm generator...\n";
   init1_(&Plab,&seed,&Elasticf, &tetmin);  // installation of the DPM generator  
   
   TStopwatch timer;                        // time loop

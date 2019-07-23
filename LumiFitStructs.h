@@ -429,7 +429,7 @@ struct LmdDimension: public TObject {
 		if (dimension_options.track_type == MC) {
 			label << "^{MC}";
 		} else if (dimension_options.track_type == MC_ACC) {
-			label << "^{MC}";
+			label << "^{MC_ACC}";
 		} else if (dimension_options.track_type == RECO) {
 			label << "^{Rec}";
 		} else if (dimension_options.track_type == DIFF_RECO_MC) {

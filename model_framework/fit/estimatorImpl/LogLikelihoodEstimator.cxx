@@ -4,7 +4,8 @@
 
 #include <cmath>
 
-LogLikelihoodEstimator::LogLikelihoodEstimator() : ModelEstimator(true) {
+LogLikelihoodEstimator::LogLikelihoodEstimator() :
+    ModelEstimator(true) {
   // TODO Auto-generated constructor stub
 }
 
@@ -34,6 +35,7 @@ mydouble LogLikelihoodEstimator::eval(std::shared_ptr<Data> data) {
       // if model is zero at this point should be removed otherwise log(0)!!!
       if (model_value <= 0.0)
         continue;
+
       //delta = model_value - data_point->z * log(model_value);
       //loglikelihood += delta;
       deltas.push_back(model_value);
@@ -48,8 +50,7 @@ mydouble LogLikelihoodEstimator::eval(std::shared_ptr<Data> data) {
       for (unsigned int i = 0; i < deltas.size(); i = i + 2) {
         temp_sum.push_back(deltas[i] + deltas[i + 1]);
       }
-    }
-    else {
+    } else {
       for (unsigned int i = 0; i < deltas.size() - 1; i = i + 2) {
         temp_sum.push_back(deltas[i] + deltas[i + 1]);
       }

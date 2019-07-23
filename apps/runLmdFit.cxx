@@ -76,7 +76,7 @@ void runLmdFit(string input_file_dir, string fit_config_path, string acceptance_
   // filter out specific data
   LumiFit::LmdDimensionOptions lmd_dim_opt;
   lmd_dim_opt.dimension_type = LumiFit::THETA_X;
-  lmd_dim_opt.track_type = LumiFit::RECO;
+  lmd_dim_opt.track_type = LumiFit::MC;
 
   const boost::property_tree::ptree& fit_config_ptree = lmd_runtime_config.getFitConfigTree();
   if (fit_config_ptree.get<bool>("fit.fit_model_options.acceptance_correction_active") == true) {

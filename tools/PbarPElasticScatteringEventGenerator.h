@@ -43,22 +43,6 @@ std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_event
   double t_min = model_factory.getMomentumTransferFromTheta(momentum, theta_min_in_mrad / 1000.0);
   double t_max = model_factory.getMomentumTransferFromTheta(momentum, theta_max_in_mrad / 1000.0);
 
-  std::vector<DataStructs::DimensionRange> integral_ranges;
-  DataStructs::DimensionRange dr(t_min, t_max);
-  integral_ranges.push_back(dr);
-
-  double integral = correct_model->Integral(integral_ranges, 0.001);
-  std::cout << "Integrated total elastic cross section in theta range [" << theta_min_in_mrad
-      << " - " << theta_max_in_mrad << "] is " << integral << " mb" << std::endl;
-
-  if (num_events == 0) {
-    std::ofstream myfile;
-    myfile.open("elastic_cross_section.txt");
-    myfile << integral;
-    myfile.close();
-    return std::make_pair(nullptr, integral);
-  }
-
   TDatabasePDG *pdg = TDatabasePDG::Instance();
   double mass_proton = pdg->GetParticle(2212)->Mass();
   double fPhiMin = 0.0;
@@ -71,7 +55,28 @@ std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_event
   double Pcms2 = std::pow(Ecms, 2) - std::pow(mass_proton, 2);
   double Pcms = std::sqrt(Pcms2);
 
-  //double t_max = -4. * std::pow(Pcms, 2);
+  double temp_t_max = 4. * Pcms2;
+  if (temp_t_max < t_max) {
+    std::cout << "specified tmax=" << t_max << " above limit=" << temp_t_max << "\n";
+    t_max = temp_t_max;
+  }
+
+  std::vector<DataStructs::DimensionRange> integral_ranges;
+  DataStructs::DimensionRange dr(t_min, t_max);
+  integral_ranges.push_back(dr);
+
+  double integral = correct_model->Integral(integral_ranges, 0.0001);
+  std::cout << "Integrated total elastic cross section in theta range [" << theta_min_in_mrad
+      << " - " << theta_max_in_mrad << "] -> t [" << t_min << " - " << t_max << "] is " << integral
+      << " mb" << std::endl;
+
+  if (num_events == 0) {
+    std::ofstream myfile;
+    myfile.open("elastic_cross_section.txt");
+    myfile << integral;
+    myfile.close();
+    return std::make_pair(nullptr, integral);
+  }
 
   TClonesArray ca("TParticle", 2);
   TClonesArray *pars = &ca;

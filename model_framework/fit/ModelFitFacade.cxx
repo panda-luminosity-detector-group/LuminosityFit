@@ -7,6 +7,7 @@
 
 #include "ModelFitFacade.h"
 #include "fit/data/Data.h"
+#include <algorithm>
 #include <iostream>
 
 using std::cout;
@@ -60,8 +61,7 @@ void ModelFitFacade::setModel(std::shared_ptr<Model> model_) {
   model = model_;
 }
 
-Data ModelFitFacade::scanEstimatorSpace(
-    const std::vector<std::string>& variable_names) {
+Data ModelFitFacade::scanEstimatorSpace(const std::vector<std::string>& variable_names) {
   Data scan_data(2);
 
   // check that estimator is set
@@ -73,8 +73,8 @@ Data ModelFitFacade::scanEstimatorSpace(
   // check if data and model have the correct dimensions
   if (model->getDimension() != data->getDimension()) {
     std::cout << "The model has a dimension of " << model->getDimension()
-        << ", which does not match the data dimension of "
-        << data->getDimension() << "!" << std::endl;
+        << ", which does not match the data dimension of " << data->getDimension() << "!"
+        << std::endl;
     return scan_data;
   }
 
@@ -118,8 +118,7 @@ Data ModelFitFacade::scanEstimatorSpace(
   DataPointProxy dpp;
   for (int ix = -num_bins; ix < num_bins + 1; ++ix) {
     for (int iy = -num_bins; iy < num_bins + 1; ++iy) {
-      std::shared_ptr<DataStructs::binned_data_point> bdp(
-          new DataStructs::binned_data_point);
+      std::shared_ptr<DataStructs::binned_data_point> bdp(new DataStructs::binned_data_point);
       bdp->bin_widths[0] = stepsize_x;
       bdp->bin_widths[1] = stepsize_y;
       dpp.setBinnedDataPoint(bdp);
@@ -129,8 +128,8 @@ Data ModelFitFacade::scanEstimatorSpace(
       bdp->bin_center_value[1] = params[index_2];
       bdp->z = estimator->evaluate(params);
       scan_data.insertData(dpp);
-      std::cout << "adding: " << bdp->bin_center_value[0] << " : "
-          << bdp->bin_center_value[1] << " = " << bdp->z << std::endl;
+      std::cout << "adding: " << bdp->bin_center_value[0] << " : " << bdp->bin_center_value[1]
+          << " = " << bdp->z << std::endl;
     }
   }
 
@@ -138,23 +137,20 @@ Data ModelFitFacade::scanEstimatorSpace(
 }
 
 std::vector<mydouble> ModelFitFacade::findGoodStartParameters(
-    const std::vector<std::string>& variable_names,
-    const std::vector<double>& search_factors) {
+    const std::vector<std::string>& variable_names, const std::vector<double>& search_factors) {
   std::vector<mydouble> best_parameters(variable_names.size());
   // check that estimator is set
   if (!estimator) {
-    throw std::runtime_error(
-        "ModelFitFacade::findGoodStartParameters: Estimator not set...");
+    throw std::runtime_error("ModelFitFacade::findGoodStartParameters: Estimator not set...");
 
   }
 
   // check if data and model have the correct dimensions
   if (model->getDimension() != data->getDimension()) {
     std::cout << "The model has a dimension of " << model->getDimension()
-        << ", which does not match the data dimension of "
-        << data->getDimension() << "!" << std::endl;
-    throw std::runtime_error(
-        "ModelFitFacade::findGoodStartParameters: dimension missmatch!");
+        << ", which does not match the data dimension of " << data->getDimension() << "!"
+        << std::endl;
+    throw std::runtime_error("ModelFitFacade::findGoodStartParameters: dimension missmatch!");
 
   }
 
@@ -206,8 +202,7 @@ std::vector<mydouble> ModelFitFacade::findGoodStartParameters(
       temp_params[indices[i]] = params[indices[i]];
       temp_set.push_back(temp_params);
 
-    }
-    else {
+    } else {
       for (auto const& set : scan_grid) {
         std::vector<mydouble> temp_params(set);
         for (double search_factor : search_factors) {
@@ -234,12 +229,13 @@ std::vector<mydouble> ModelFitFacade::findGoodStartParameters(
 
   // normalize to mean and find best
   mydouble mean(0.0);
-  for(mydouble a : estimator_values)
+  for (mydouble a : estimator_values)
     mean += a;
   mean /= estimator_values.size();
-  for(mydouble& a : estimator_values)
-      a=a-mean;
-  unsigned int best_index = std::min_element(estimator_values.begin(), estimator_values.end()) - estimator_values.begin();
+  for (mydouble& a : estimator_values)
+    a = a - mean;
+  unsigned int best_index = std::min_element(estimator_values.begin(), estimator_values.end())
+      - estimator_values.begin();
 
   for (unsigned int i = 0; i < indices.size(); ++i)
     best_parameters[i] = scan_grid[best_index][indices[i]];
@@ -263,8 +259,8 @@ ModelFitResult ModelFitFacade::Fit() {
 // check if data and model have the correct dimensions
   if (model->getDimension() != data->getDimension()) {
     std::cout << "The model has a dimension of " << model->getDimension()
-        << ", which does not match the data dimension of "
-        << data->getDimension() << "!" << std::endl;
+        << ", which does not match the data dimension of " << data->getDimension() << "!"
+        << std::endl;
     return fit_result_dummy;
   }
 
@@ -286,8 +282,7 @@ ModelFitResult ModelFitFacade::Fit() {
 
   minimizer->setControlParameter(estimator);
 
-  auto const& free_params =
-      model->getModelParameterSet().getFreeModelParameters();
+  auto const& free_params = model->getModelParameterSet().getFreeModelParameters();
   std::cout << free_params.size() << " free parameters in fit\n";
   std::vector<mydouble> pars;
   for (auto const &param : free_params) {
@@ -302,8 +297,7 @@ ModelFitResult ModelFitFacade::Fit() {
     // call minimization procedure
     fit_status = minimizer->doMinimization();
 
-    std::cout << "try: " << trys << " finished with fit status: " << fit_status
-        << std::endl;
+    std::cout << "try: " << trys << " finished with fit status: " << fit_status << std::endl;
     // if fit was successful this try was successful
     if (fit_status == 0)
       break;
@@ -322,15 +316,13 @@ ModelFitResult ModelFitFacade::Fit() {
     //minimizer->increaseFunctionCallLimit();
   }
   if (fit_status) {
-    cout << "ERROR: Problem while performing fit. Using last parameters!"
-        << endl;
+    cout << "ERROR: Problem while performing fit. Using last parameters!" << endl;
   }
 
   ModelFitResult fit_result = minimizer->createModelFitResult();
   fit_result.setFitStatus(fit_status);
 
   fit_result.setFinalEstimatorValue(estimator->getLastEstimatorValue());
-  fit_result.setNumberOfDataPoints(
-      estimator->getData()->getNumberOfUsedDataPoints());
+  fit_result.setNumberOfDataPoints(estimator->getData()->getNumberOfUsedDataPoints());
   return fit_result;
 }
