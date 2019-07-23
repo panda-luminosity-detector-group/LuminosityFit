@@ -181,7 +181,7 @@ def simulateDataOnHimster(scenario):
                     # we are either in the base dir or an "aligned" subdirectory,
                     # apply dirty hack here:
                     simParamFile = scenario.dir_path+'/../sim_params.config'
-                    if not os.path(simParamFile).exists():
+                    if not os.path.exists(simParamFile):
                         simParamFile = scenario.dir_path+'/../../sim_params.config'
 
                     with open(simParamFile, 'r') as json_file:
