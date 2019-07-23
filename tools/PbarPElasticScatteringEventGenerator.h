@@ -10,7 +10,6 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
-#include <fstream>
 
 #include "TDatabasePDG.h"
 #include "TMath.h"
@@ -71,10 +70,6 @@ std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_event
       << " mb" << std::endl;
 
   if (num_events == 0) {
-    std::ofstream myfile;
-    myfile.open("elastic_cross_section.txt");
-    myfile << integral;
-    myfile.close();
     return std::make_pair(nullptr, integral);
   }
 
