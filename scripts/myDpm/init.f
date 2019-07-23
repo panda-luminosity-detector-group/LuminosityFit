@@ -217,6 +217,7 @@ C-------------------------------------------------------------
       endif
 
       If(Elastic .gt. 0.) then
+      PRINT *,'wtfisgoingon'
  
       Tetmin=tetmin*3.1416/180.
       Tantet2=(sin(Tetmin)/cos(Tetmin))**2       !9.06.09
@@ -271,7 +272,9 @@ c      df_col=DSIG_COL(T22)+DSIG_COL(T11)
 c      print *, T11, T22, df_col, dt, 0.5*df_col*abs(dt)
 c      SIG_COL=sig_col+(0.5*df_col*abs(dt))
       enddo
-      PRINT *,'sig_col',SIG_COL, Tmin, Tmax
+      PRINT *, 'sig_collll', SIG_COL
+      PRINT *,'tmin',Tmin
+      PRINT *,'tmax',Tmax
 
 * aida calculation of integral interfer
       SIG_INTER=0.

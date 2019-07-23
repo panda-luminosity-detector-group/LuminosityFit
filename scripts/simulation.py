@@ -256,9 +256,12 @@ def startSimulationAndReconstruction(sim_params, align_params, reco_params,
         shutil.move(os.getcwd()+"/elastic_cross_section.txt",
                     pathname_base+"/elastic_cross_section.txt")
 
-    print("creating config file: " + pathname_base + "/sim_params.config")
-    with open(pathname_base + '/sim_params.config', 'w') as json_file:
-        json.dump(sim_params, json_file, sort_keys=True, indent=4)
+    if not os.path.exists(pathname_base + "/sim_params.config"):
+        print("creating config file: " + pathname_base + "/sim_params.config")
+        with open(pathname_base + '/sim_params.config', 'w') as json_file:
+            json.dump(sim_params, json_file, sort_keys=True, indent=4)
+    else:
+      print("simulation config file already exists!")
 
     rec.writeRecoParamsToFile(reco_params, pathname_full)
 

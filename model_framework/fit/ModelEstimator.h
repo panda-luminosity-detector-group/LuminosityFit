@@ -17,8 +17,6 @@
 #include <map>
 #include <vector>
 
-#include <boost/thread.hpp>
-
 class Data;
 class Model;
 class ModelPar;
@@ -42,7 +40,6 @@ struct CostFunctor {
 
 class ModelEstimator: public ModelControlParameter {
 private:
-  boost::mutex mtx;    // lock variable for multi threading
   unsigned int nthreads;
   mydouble last_estimator_value;
   std::vector<mydouble> previous_values;
