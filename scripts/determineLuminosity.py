@@ -170,7 +170,13 @@ def simulateDataOnHimster(scenario):
                     ip_info_dict = scenario.rec_ip_info
 
                     # TODO: save digi files instead of mc files!!
-                    with open(scenario.dir_path + '/../sim_params.config', 'r') as json_file:
+                    # we are either in the base dir or an "aligned" subdirectory,
+                    # apply dirty hack here:
+                    simParamFile = scenario.dir_path+'/../sim_params.config'
+                    if not os.path.exists(simParamFile):
+                        simParamFile = scenario.dir_path+'/../../sim_params.config'
+
+                    with open(simParamFile, 'r') as json_file:
                         sim_par = json.load(json_file)
                     with open(scenario.dir_path + '/reco_params.config', 'r') as json_file:
                         rec_par = json.load(json_file)
