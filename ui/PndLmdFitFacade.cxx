@@ -364,6 +364,10 @@ PndLmdFitDataBundle PndLmdFitFacade::doLuminosityFits(
   cout << "Running LumiFit on " << lmd_data_vec.size() << " angular data sets...." << endl;
 
   for (auto& lmd_data : lmd_data_vec) {
+    cout << "Data dimensions: " << lmd_data.getPrimaryDimension().createDimensionLabel();
+    if (lmd_data.getSecondaryDimension().is_active)
+      cout << " vs. " << lmd_data.getSecondaryDimension().createDimensionLabel();
+    cout << "\n";
 
     PndLmdFitOptions fit_options(createFitOptions(lmd_data));
 

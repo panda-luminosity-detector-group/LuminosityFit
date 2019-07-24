@@ -12,7 +12,7 @@ add_executable(calculateElasticCrossSection calculateElasticCrossSection.cxx)
 target_link_libraries(calculateElasticCrossSection LmdUI ROOT::Hist ROOT::Gpad ROOT::RIO)
 
 add_executable(generatePbarPElasticScattering generatePbarPElasticScattering.cxx)
-target_link_libraries(generatePbarPElasticScattering LmdModel LmdFitData ROOT::Tree ROOT::MathCore ROOT::Physics ROOT::EG)
+target_link_libraries(generatePbarPElasticScattering LmdModel LmdFitData Boost::filesystem ROOT::Tree ROOT::MathCore ROOT::Physics ROOT::EG)
 	
 add_executable(checkFramework checkFramework.cxx)
 target_link_libraries(checkFramework Model ROOT::Core ROOT::MathCore ROOT::RIO ROOT::Hist Boost::system)

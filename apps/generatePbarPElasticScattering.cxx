@@ -7,6 +7,10 @@
 
 #include "TFile.h"
 
+#include "boost/filesystem.hpp"
+
+#include <fstream>
+
 #include "tools/PbarPElasticScatteringEventGenerator.h"
 
 void displayInfo() {
@@ -61,9 +65,23 @@ int main(int argc, char* argv[]) {
   if (argc - optind == 2) {
     double momentum = std::stod(argv[optind]);
     unsigned int num_events = std::stoul(argv[optind + 1]);
+    auto result = PbarPElasticScattering::generateEvents(momentum, num_events, lower_bound,
+        upper_bound, seed);
+
+    if (num_events == 0) {
+      boost::filesystem::path cs_filepath(output_filepath);
+      cs_filepath = cs_filepath.parent_path().string() + "/elastic_cross_section.txt";
+
+      std::ofstream myfile;
+      myfile.open(cs_filepath.string());
+      myfile << result.second;
+      myfile.close();
+      return 0;
+    }
+
     TFile f(output_filepath.c_str(), "RECREATE");
-    TTree *tree = PbarPElasticScattering::generateEvents(momentum, num_events, lower_bound,
-        upper_bound, seed).first;
+    auto tree = result.first;
+
     std::cout << "writing to file " << output_filepath << " ...\n";
     if (num_events > 0) {
       if (tree == nullptr) {

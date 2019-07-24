@@ -37,7 +37,7 @@
 	     "acceptance_correction_active": true,
 	     "acceptance_interpolation": "CONSTANT",
 	     "automatic_acceptance_shifting_active": false,
-	     "override_lower_acceptance_bound": 0.002,
+	     "clean_lower_acceptance": true,
 
 	     "resolution_smearing_active": true,
 	     

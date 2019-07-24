@@ -249,16 +249,17 @@ def startSimulationAndReconstruction(sim_params, align_params, reco_params,
             '/bin/generatePbarPElasticScattering ' + \
             str(sim_params['lab_momentum']) + ' 0 -l ' + \
             str(sim_params['theta_min_in_mrad']) + ' -u ' + \
-            str(sim_params['theta_max_in_mrad'])
+            str(sim_params['theta_max_in_mrad']) + ' -o ' + \
+            pathname_base+"/elastic_cross_section.txt"
         
         returnvalue = subprocess.call(bashcommand.split())
-        import shutil
-        shutil.move(os.getcwd()+"/elastic_cross_section.txt",
-                    pathname_base+"/elastic_cross_section.txt")
 
-    print("creating config file: " + pathname_base + "/sim_params.config")
-    with open(pathname_base + '/sim_params.config', 'w') as json_file:
-        json.dump(sim_params, json_file, sort_keys=True, indent=4)
+    if not os.path.exists(pathname_base + "/sim_params.config"):
+        print("creating config file: " + pathname_base + "/sim_params.config")
+        with open(pathname_base + '/sim_params.config', 'w') as json_file:
+            json.dump(sim_params, json_file, sort_keys=True, indent=4)
+    else:
+      print("simulation config file already exists!")
 
     rec.writeRecoParamsToFile(reco_params, pathname_full)
 
