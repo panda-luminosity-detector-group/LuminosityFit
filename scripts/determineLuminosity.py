@@ -29,6 +29,8 @@ class Scenario:
         self.rec_ip_info = {}
         self.elastic_pbarp_integrated_cross_secion_in_mb = None
 
+        self.alignment_parameters = {}
+
         self.state = 1
         self.last_state = 0
 
@@ -139,9 +141,20 @@ def simulateDataOnHimster(scenario):
                                                  ip_info_dict['ip_offset_y'],
                                                  ip_info_dict['ip_offset_z']]
                     rec_par.update(gen_par)
+
+                    # alignment part
+                    # if alignement matrices were specified, we used them as a mis-alignment
+                    # and alignment for the box simulations
+                    align_par = alignment.createAlignmentParameters()
+                    if 'alignment_matrices_path' in scen.alignment_parameters:
+                        align_par['misalignment_matrices_path'] = scen.alignment_parameters['alignment_matrices_path']
+                        align_par['alignment_matrices_path'] = scen.alignment_parameters['alignment_matrices_path']
+                    # update the sim and reco par dicts
+                    sim_par.update(align_par)
+                    rec_par.update(align_par)
+
                     (dir_path, is_finished) = simulation.startSimulationAndReconstruction(
-                        sim_par, alignment.createAlignmentParameters(),
-                        rec_par, use_devel_queue=args.use_devel_queue)
+                        sim_par, align_par, rec_par, use_devel_queue=args.use_devel_queue)
                     simulation_task[0] = dir_path
                     scenario.acc_and_res_dir_path = dir_path
                     if is_finished:
@@ -319,6 +332,10 @@ def lumiDetermination(scen):
     m = re.search('(\d*?\.\d*?)GeV', dir_path)
     momentum = float(m.group(1))
     scen.momentum = momentum
+
+    with open(scen.dir_path + '/reco_params.config', 'r') as json_file:
+        rec_par = json.load(json_file)
+        scen.alignment_parameters = alignment.getAlignmentParameters(rec_par)
 
     finished = False
     # 1. create vertex data (that means bunch data, create data objects and merge)
