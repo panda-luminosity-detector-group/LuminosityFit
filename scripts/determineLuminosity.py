@@ -53,12 +53,13 @@ def wasSimulationSuccessful(directory, glob_pattern, is_bunches=False):
                                             is_bunches=is_bunches)[1]
 
     if files_percentage < required_files_percentage:
-        print('WARNING: ' + str((1-files_percentage)*100)
-              + '% of input files (' + str(glob_pattern)
-              + ') missing... Something went wrong here...')
         if himster.get_num_jobs_on_himster() > 0:
             return_value = 1
         else:
+            print('WARNING: ' + str((1-files_percentage)*100)
+                  + '% of input files (' + str(glob_pattern)
+                  + ') missing and no jobs on himster remaining...'
+                  + ' Something went wrong here...')
             return_value = -1
 
     return return_value
