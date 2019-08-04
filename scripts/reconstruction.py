@@ -86,6 +86,8 @@ def generateRecoDirSuffix(reco_params, align_params):
                     align_params['misalignment_matrices_path']))[0])
     if align_params['alignment_matrices_path']:
         reco_dirname_suffix += '/aligned-' + str(os.path.splitext(os.path.basename(align_params['alignment_matrices_path']))[0])
+    else:
+        reco_dirname_suffix += '/no_alignment_correction'
     return reco_dirname_suffix
 
 
