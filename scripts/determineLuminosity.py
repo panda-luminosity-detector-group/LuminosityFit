@@ -11,6 +11,7 @@ import argparse
 import subprocess
 import json
 import math
+import sys
 
 import himster
 import general
@@ -318,13 +319,16 @@ def lumiDetermination(scen):
     last_state = scen.last_state
 
     # open file
-    if os.path.exists(dir_path + "/../elastic_cross_section.txt"):
+    if os.path.exists(dir_path + "/../../elastic_cross_section.txt"):
         print("Found an elastic cross section file!")
-        with open(dir_path + "/../elastic_cross_section.txt") as f:
+        with open(dir_path + "/../../elastic_cross_section.txt") as f:
             content = f.readlines()
             scen.elastic_pbarp_integrated_cross_secion_in_mb = float(
                 content[0])
             f.close()
+    else:
+        print(f'ERROR! Can not find elastic cross section file! The determined Luminosity will be wrong!\n')
+        sys.exit()
 
     print('processing scenario ' + dir_path + ' at step ' + str(state))
 
