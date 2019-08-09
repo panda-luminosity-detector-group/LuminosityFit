@@ -18,10 +18,10 @@ def getGoodFiles(directory, glob_pattern, min_filesize_in_byte=2000,
             bad_files.append(file)
 
     if is_bunches:
-        m = re.search('\/bunches_(\d+?)', directory)
+        m = re.search('\/bunches_(\d+)', directory)
         num_sim_files = int(m.group(1))
     else:
-        m = re.search('\/(\d+?)-(\d+?)_.+?cut', directory)
+        m = re.search('\/(\d+)-(\d+)_.+?cut', directory)
         num_sim_files = int(m.group(2))-int(m.group(1)) + 1
 
     files_percentage = len(good_files)/num_sim_files
