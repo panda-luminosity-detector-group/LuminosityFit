@@ -29,6 +29,8 @@ class Scenario:
         self.acc_and_res_dir_path = ''
         self.rec_ip_info = {}
         self.elastic_pbarp_integrated_cross_secion_in_mb = None
+        self.use_m_cut = True
+        self.use_xy_cut = True
 
         self.alignment_parameters = {}
 
@@ -50,7 +52,7 @@ def wasSimulationSuccessful(directory, glob_pattern, is_bunches=False):
 
     files_percentage = general.getGoodFiles(directory,
                                             glob_pattern,
-                                            20000,
+                                            10000,
                                             is_bunches=is_bunches)[1]
 
     if files_percentage < required_files_percentage:
@@ -89,15 +91,25 @@ def simulateDataOnHimster(scenario):
 
         data_keywords = []
         data_pattern = ''
+        
+        cut_keyword = ''
+        if scenario.use_xy_cut:
+            cut_keyword += 'xy_'
+        if scenario.use_m_cut:
+            cut_keyword += 'm_'
+        if cut_keyword == '':
+            cut_keyword += 'un'
+        cut_keyword += 'cut_real'
+            
         merge_keywords = ['merge_data', 'binning_300']
         if 'v' in sim_type:
             data_keywords = ['uncut', 'bunches', 'binning_300']
             data_pattern = 'lmd_vertex_data_'
         elif 'a' in sim_type:
-            data_keywords = ['xy_m_cut_real', 'bunches', 'binning_300']
+            data_keywords = [cut_keyword, 'bunches', 'binning_300']
             data_pattern = 'lmd_data_'
         else:
-            data_keywords = ['xy_m_cut_real', 'bunches', 'binning_300']
+            data_keywords = [cut_keyword, 'bunches', 'binning_300']
             data_pattern = 'lmd_res_data_'
 
         # 1. simulate data
@@ -108,7 +120,7 @@ def simulateDataOnHimster(scenario):
                 found_dirs = []
                 if dir_path != '':
                     temp_dir_searcher = general.DirectorySearcher(
-                        ['box', 'xy_m_cut'])
+                        ['box', data_keywords[0]])
                     temp_dir_searcher.searchListOfDirectories(
                         dir_path, 'Lumi_TrksQA_')
                     found_dirs = temp_dir_searcher.getListOfDirectories()
@@ -137,8 +149,8 @@ def simulateDataOnHimster(scenario):
                     sim_par['theta_max_in_mrad'] += max_xy_shift
                     sim_par.update(gen_par)
                     rec_par = reconstruction.createReconstructionParameters()
-                    rec_par['use_xy_cut'] = True
-                    rec_par['use_m_cut'] = True
+                    rec_par['use_xy_cut'] = scenario.use_xy_cut
+                    rec_par['use_m_cut'] = scenario.use_m_cut
                     rec_par['reco_ip_offset'] = [ip_info_dict['ip_offset_x'],
                                                  ip_info_dict['ip_offset_y'],
                                                  ip_info_dict['ip_offset_z']]
@@ -168,7 +180,7 @@ def simulateDataOnHimster(scenario):
                 status_code = 1
                 if dir_path != '':
                     temp_dir_searcher = general.DirectorySearcher(
-                        ['dpm_elastic', 'xy_m_cut'])
+                        ['dpm_elastic', data_keywords[0]])
                     temp_dir_searcher.searchListOfDirectories(
                         dir_path, 'Lumi_TrksQA_')
                     found_dirs = temp_dir_searcher.getListOfDirectories()
@@ -195,8 +207,8 @@ def simulateDataOnHimster(scenario):
                         sim_par = json.load(json_file)
                     with open(scenario.dir_path + '/reco_params.config', 'r') as json_file:
                         rec_par = json.load(json_file)
-                    rec_par['use_xy_cut'] = True
-                    rec_par['use_m_cut'] = True
+                    rec_par['use_xy_cut'] = scenario.use_xy_cut
+                    rec_par['use_m_cut'] = scenario.use_m_cut
                     rec_par['reco_ip_offset'] = [ip_info_dict['ip_offset_x'],
                                                  ip_info_dict['ip_offset_y'],
                                                  ip_info_dict['ip_offset_z']]
@@ -422,9 +434,17 @@ def lumiDetermination(scen):
         if not found_dirs:
             os.chdir(lmd_fit_script_path)
             print('running lmdfit!')
+            cut_keyword = ''
+            if scen.use_xy_cut:
+                cut_keyword += 'xy_'
+            if scen.use_m_cut:
+                cut_keyword += 'm_'
+            if cut_keyword == '':
+                cut_keyword += 'un'
+            cut_keyword += 'cut_real '
             bashcommand = 'python doMultipleLuminosityFits.py '\
                 '--forced_box_gen_data ' + scen.acc_and_res_dir_path + \
-                ' ' + scen.filtered_dir_path + ' xy_m_cut_real ' + \
+                ' ' + scen.filtered_dir_path + ' ' + cut_keyword + \
                 lmd_fit_path + '/' + args.fit_config
             returnvalue = subprocess.call(bashcommand.split())
 
@@ -483,6 +503,8 @@ print(dirs)
 # at first assign each scenario the first step and push on the active stack
 for dir in dirs:
     scen = Scenario(dir)
+    #scen.use_xy_cut = False # for testing purposes
+    scen.use_m_cut = False # for testing purposes
     active_scenario_stack.append(scen)
 
 # now just keep processing the active_stack

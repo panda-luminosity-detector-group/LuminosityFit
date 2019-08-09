@@ -123,7 +123,7 @@ fi
 # this is required for the acceptance calculation
 check_stage_success "$workpathname/Lumi_TrksQA_${start_evt}.root"
 if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-  root -l -b -q 'runLumiPixel7TrksQA.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl','${mom}', '$WrAllMC', '${CleanSig}')'
+  root -l -b -q 'runLumiPixel7TrksQA.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl','${mom}', '$WrAllMC', '${XThetaCut}', '${CleanSig}')'
   if [ "${debug}" -eq 0 ]; then
     cp $workpathname/Lumi_TrksQA_${start_evt}.root $pathname/Lumi_TrksQA_${start_evt}.root
   fi
