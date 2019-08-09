@@ -40,7 +40,7 @@ void extractLuminosityResults(std::vector<std::string> paths, const std::string 
   }
 
   // now get only the reco data bundle that are full phi
-  std::map<std::string, PndLmdElasticDataBundle> full_phi_reco_data_vec;
+  std::map<std::string, std::vector<PndLmdElasticDataBundle>> full_phi_reco_data_vec;
 
   LumiFit::LmdDimensionOptions phi_slice_dim_opt;
   phi_slice_dim_opt.dimension_type = LumiFit::PHI;
@@ -60,56 +60,84 @@ void extractLuminosityResults(std::vector<std::string> paths, const std::string 
 
       temp_full_phi_vec = lmd_data_facade.filterData(temp_full_phi_vec, dim_filter);
 
-      if (temp_full_phi_vec.size() == 1)
-        full_phi_reco_data_vec[datavec.first] = temp_full_phi_vec[0];
+      full_phi_reco_data_vec[datavec.first] = temp_full_phi_vec;
     }
   }
 
   LumiFit::PndLmdPlotter lmd_plotter;
   for (auto const &scenario : full_phi_reco_data_vec) {
-    if (scenario.second.getFitResults().size() > 0
-        && scenario.second.getSelectorSet().size() == 0) {
-      PndLmdLumiFitResult fit_result;
-      for (auto const& fit_res_pair : scenario.second.getFitResults()) {
-        if (fit_res_pair.second.size() > 0) {
-          bool div_smeared = fit_res_pair.first.getModelOptionsPropertyTree().get<bool>(
-              "divergence_smearing_active");
-          if (div_smeared) {
-            if (fit_res_pair.second[0].getFitStatus() == 0) {
-              fit_result.setModelFitResult(fit_res_pair.second[0]);
-              break;
+    // try to open ip measurement file... this is quite dirty but no time to do
+    // it nice...
+    boost::property_tree::ptree lumi_values;
+    boost::property_tree::ptree measured_lumi;
+    boost::property_tree::ptree measured_lumi_error;
+    boost::property_tree::ptree generated_lumi;
+    boost::property_tree::ptree relative_deviation_in_percent;
+    boost::property_tree::ptree relative_deviation_error_in_percent;
+
+    std::stringstream filename;
+    filename << boost::filesystem::path(scenario.first).parent_path().string();
+
+    std::cout << filename.str() << ":\n====================\n";
+
+    for (auto const &data_sample : scenario.second) {
+      if (data_sample.getFitResults().size() > 0 &&
+          data_sample.getSelectorSet().size() == 0) {
+        PndLmdLumiFitResult fit_result;
+        for (auto const &fit_res_pair : data_sample.getFitResults()) {
+          bool div_smeared =
+              fit_res_pair.first.getModelOptionsPropertyTree().get<bool>(
+                  "divergence_smearing_active");
+          for (auto const &fit_res : fit_res_pair.second) {
+            // usually there is just a single fit result
+            if (div_smeared) {
+              if (fit_res.getFitStatus() == 0) {
+                fit_result.setModelFitResult(fit_res);
+                break;
+              }
+            } else {
+              fit_result.setModelFitResult(fit_res);
             }
-          } else {
-            fit_result.setModelFitResult(fit_res_pair.second[0]);
+
+            boost::property_tree::ptree temp1, temp2, temp3, temp4, temp5;
+            temp1.put("", fit_result.getLuminosity());
+            measured_lumi.push_back(std::make_pair("", temp1));
+            temp2.put("", fit_result.getLuminosityError());
+            measured_lumi_error.push_back(std::make_pair("", temp2));
+            temp3.put("", data_sample.getReferenceLuminosity());
+            generated_lumi.push_back(std::make_pair("", temp3));
+            std::pair<double, double> lumi = lmd_plotter.calulateRelDiff(
+                fit_result.getLuminosity(), fit_result.getLuminosityError(),
+                data_sample.getReferenceLuminosity());
+            temp4.put("", lumi.first);
+            temp5.put("", lumi.second); 
+            relative_deviation_in_percent.push_back(std::make_pair("", temp4));
+            relative_deviation_error_in_percent.push_back(std::make_pair("", temp5));
+
+            std::cout << "Luminosity Fit Result:\n";
+            std::cout << "measured luminosity:" << fit_result.getLuminosity()
+                      << "\n";
+            std::cout << "measured luminosity error:"
+                      << fit_result.getLuminosityError() << "\n";
+            std::cout << "generated luminosity:"
+                      << data_sample.getReferenceLuminosity() << "\n";
+            std::cout << "relative deviation (%):" << lumi.first << "\n";
+            std::cout << "relative deviation error (%):" << lumi.second << "\n";
           }
         }
       }
-
-      // try to open ip measurement file... this is quite dirty but no time to do it nice...
-      boost::property_tree::ptree lumi_values;
-
-      lumi_values.put("measured_lumi", fit_result.getLuminosity());
-      lumi_values.put("measured_lumi_error", fit_result.getLuminosityError());
-      lumi_values.put("generated_lumi", scenario.second.getReferenceLuminosity());
-      std::pair<double, double> lumi = lmd_plotter.calulateRelDiff(fit_result.getLuminosity(),
-          fit_result.getLuminosityError(), scenario.second.getReferenceLuminosity());
-      lumi_values.put("relative_deviation_in_percent", lumi.first);
-      lumi_values.put("relative_deviation_error_in_percent", lumi.second);
-
-      std::stringstream filename;
-      filename << boost::filesystem::path(scenario.first).parent_path().string();
-
-      std::cout << filename.str() << ":\n====================\n";
-      std::cout << "Luminosity Fit Result:\n";
-      std::cout << "measured luminosity:" << fit_result.getLuminosity() << "\n";
-      std::cout << "measured luminosity error:" << fit_result.getLuminosityError() << "\n";
-      std::cout << "generated luminosity:" << scenario.second.getReferenceLuminosity() << "\n";
-      std::cout << "relative deviation (%):" << lumi.first << "\n";
-      std::cout << "relative deviation error (%):" << lumi.second << "\n";
-
-      filename << "/lumi-values.json";
-      write_json(filename.str(), lumi_values);
     }
+
+    lumi_values.add_child("measured_lumi", measured_lumi);
+    lumi_values.add_child("measured_lumi_error",
+                            measured_lumi_error);
+    lumi_values.add_child("generated_lumi",
+                            generated_lumi);
+    lumi_values.add_child("relative_deviation_in_percent", relative_deviation_in_percent);
+    lumi_values.add_child("relative_deviation_error_in_percent", relative_deviation_error_in_percent);
+            
+    filename << "/lumi-values.json";
+    write_json(filename.str(), lumi_values);
   }
 }
 

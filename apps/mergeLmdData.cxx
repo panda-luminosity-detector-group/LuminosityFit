@@ -79,7 +79,7 @@ vector<vector<string> > bootstrapData(vector<string> found_files,
   unsigned int max_trys(10000);
   unsigned int trys(0);
 
-  while (sample_lists.size() < samples.first && trys < max_trys) {
+  while (sample_lists.size() <= samples.first && trys < max_trys) {
     ++trys;
     vector<unsigned int> temp_vec;
     for (unsigned int i = 0; i < samples.second; ++i) {
@@ -112,6 +112,8 @@ template<class T> void mergeData(const vector<string>& found_files,
   boost::filesystem::path outdir(outfile_path);
   boost::filesystem::create_directory(outdir);
 
+  std::cout << "Merging data for " << data_file_samples.size() << " samples!\n";
+  std::cout << "Each sample contains " << data_file_samples[0].size() << " files\n";
   for (unsigned int i = 0; i < data_file_samples.size(); ++i) {
     std::stringstream ss;
     ss << outfile_path << "/" << output_filename << "_" << i << "of"
@@ -121,6 +123,8 @@ template<class T> void mergeData(const vector<string>& found_files,
 
     mergeData<T>(data_file_samples[i], &fmergeddata);
   }
+
+  std::cout << "Finished merging!" << std::endl;
 }
 
 template<class T> void mergeData(vector<string> found_files,
@@ -155,9 +159,6 @@ template<class T> void mergeData(vector<string> found_files,
   }
 
   output_file->cd();
-
-  std::cout << "Merged " << merged_files.size() << " objects from "
-      << found_files.size() << " files!" << std::endl;
 
   for (iter = merged_files.begin(); iter != merged_files.end(); iter++) {
     ((PndLmdAbstractData*) &(*iter))->saveToRootFile();
@@ -278,21 +279,34 @@ int main(int argc, char* argv[]) {
     }
 
     std::pair<unsigned int, unsigned int> samples;
+    if (num_samples == 0)
+      num_samples = 1; // default is one sample
     samples.first = num_samples;
     samples.second = sample_size;
-    // if sample size its the default value and we will do create one sample with with full size
-    // (for all types of data) and for the dpm elastic data additionally many smaller samples
-    if (sample_size == 0)
-      samples.second = found_files.size();
+    // automatic setting of sample size
+    if (sample_size == 0) {
+      if (num_samples == 1) {
+        // create one sample with with full size
+        samples.second = found_files.size();
+      }
+      else {
+        // user wants more than one sample. Use bootstrapping with a samples
+        // size of half the found files for each bootstrapped sample
+        samples.second =  found_files.size()/2;
+      }
+    }
+    size_t max_bootstrap_samples = binominalCoefficient(found_files.size(), samples.second);
+    if(max_bootstrap_samples < num_samples) {
+      std::cout << "WARNING: requested number of bootstraped samples is higher"
+                << " than the maximum possible from combinatorics!"
+                << " Using maximum of " << max_bootstrap_samples << " instead!"
+                << std::endl;
+    }
 
     std::string outpath = data_path + "/merge_data";
 
     if (data_type.find("a") != std::string::npos) {
       mergeData<PndLmdAngularData>(found_files, outpath, data_type, samples);
-      //samples.first = 50;
-      //binominalCoefficient(found_files.size(), found_files.size()/2);
-      //samples.second = found_files.size()/2;
-      //mergeData<PndLmdAngularData>(found_files, outpath, data_type, samples);
     } else if (data_type.find("e") != std::string::npos) {
       mergeData<PndLmdAcceptance>(found_files, outpath, data_type, samples);
     } else if (data_type.find("r") != std::string::npos) {

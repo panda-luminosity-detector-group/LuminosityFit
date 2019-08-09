@@ -91,7 +91,7 @@ def simulateDataOnHimster(scenario):
 
         data_keywords = []
         data_pattern = ''
-        
+
         cut_keyword = ''
         if scenario.use_xy_cut:
             cut_keyword += 'xy_'
@@ -100,7 +100,7 @@ def simulateDataOnHimster(scenario):
         if cut_keyword == '':
             cut_keyword += 'un'
         cut_keyword += 'cut_real'
-            
+
         merge_keywords = ['merge_data', 'binning_300']
         if 'v' in sim_type:
             data_keywords = ['uncut', 'bunches', 'binning_300']
@@ -257,12 +257,12 @@ def simulateDataOnHimster(scenario):
                     found_dirs[0], data_pattern + "*", True)
             elif last_state < state:
                 os.chdir(lmd_fit_script_path)
-                # 1a bunch data
+                # bunch data
                 bashcommand = 'python makeMultipleFileListBunches.py '\
                     '--files_per_bunch 10 --maximum_number_of_files ' + \
                     str(num_samples) + ' ' + dir_path
                 returnvalue = subprocess.call(bashcommand.split())
-                # 1b create data
+                # create data
                 if 'a' in sim_type:
                     el_cs = scenario.elastic_pbarp_integrated_cross_secion_in_mb
                     bashcommand = 'python createMultipleLmdData.py '\
@@ -303,9 +303,16 @@ def simulateDataOnHimster(scenario):
             found_dirs = temp_dir_searcher.getListOfDirectories()
             if not found_dirs:
                 os.chdir(lmd_fit_script_path)
-                # 1c merge vertex data
-                bashcommand = 'python mergeMultipleLmdData.py --dir_pattern '\
-                    + data_keywords[0] + ' ' + sim_type + ' ' + dir_path
+                # merge data
+                if 'a' in sim_type:
+                    bashcommand = 'python mergeMultipleLmdData.py'\
+                        + ' --dir_pattern ' + data_keywords[0]\
+                        + ' --num_samples ' + str(bootstrapped_num_samples)\
+                        + ' ' + sim_type + ' ' + dir_path
+                else:
+                    bashcommand = 'python mergeMultipleLmdData.py'\
+                        + ' --dir_pattern '+data_keywords[0]\
+                        + ' ' + sim_type + ' ' + dir_path
                 returnvalue = subprocess.call(bashcommand.split())
             state = 4
 
@@ -477,7 +484,11 @@ parser.add_argument('--box_num_samples', metavar='box_num_samples',
                     help='number of samples to simulate')
 parser.add_argument('--num_samples', metavar='num_samples',
                     type=int, default=100,
-                    help='number of dpm data files to reconstruct (-1 means all)')
+                    help='number of elastic data files to reconstruct'
+                    ' (-1 means all)')
+parser.add_argument('--bootstrapped_num_samples', type=int, default=1,
+                    help='number of elastic data samples to create via'
+                    ' bootstrapping (for statistical analysis)')
 parser.add_argument('--use_devel_queue', action='store_true',
                     help='If flag is set, the devel queue is used')
 
@@ -488,6 +499,7 @@ lmd_fit_path = os.path.dirname(lmd_fit_script_path)
 lmd_fit_bin_path = os.getenv('LMDFIT_BUILD_PATH') + '/bin'
 
 num_samples = args.num_samples
+bootstrapped_num_samples = args.bootstrapped_num_samples
 box_num_samples = args.box_num_samples
 box_num_events_per_sample = args.box_num_events_per_sample
 
@@ -503,8 +515,8 @@ print(dirs)
 # at first assign each scenario the first step and push on the active stack
 for dir in dirs:
     scen = Scenario(dir)
-    #scen.use_xy_cut = False # for testing purposes
-    scen.use_m_cut = False # for testing purposes
+    # scen.use_xy_cut = False # for testing purposes
+    scen.use_m_cut = False  # for testing purposes
     active_scenario_stack.append(scen)
 
 # now just keep processing the active_stack

@@ -31,7 +31,7 @@ void runLmdFit(string input_file_dir, string fit_config_path, string acceptance_
   lmd_runtime_config.setAcceptanceResolutionInputDirectory(acceptance_file_dir);
   lmd_runtime_config.setReferenceAcceptanceResolutionInputDirectory(reference_acceptance_file_dir);
 
-  lmd_runtime_config.setElasticDataName("lmd_data_.*of1.root");
+  lmd_runtime_config.setElasticDataName("lmd_data_.*of.*.root");
   lmd_runtime_config.setAccDataName("lmd_acc_data_.*of1.root");
   lmd_runtime_config.setResDataName("lmd_res_data_.*of1.root");
   lmd_runtime_config.setVertexDataName("lmd_vertex_data_.*of1.root");
