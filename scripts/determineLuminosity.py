@@ -489,6 +489,12 @@ parser.add_argument('--num_samples', metavar='num_samples',
 parser.add_argument('--bootstrapped_num_samples', type=int, default=1,
                     help='number of elastic data samples to create via'
                     ' bootstrapping (for statistical analysis)')
+parser.add_argument('--disable_xy_cut', action='store_true',
+                    help='Disable the x-theta & y-phi filter after the '
+                    'tracking stage to remove background.')
+parser.add_argument('--disable_m_cut', action='store_true',
+                    help='Disable the tmva based momentum cut filter after the'
+                    ' backtracking stage to remove background.')
 parser.add_argument('--use_devel_queue', action='store_true',
                     help='If flag is set, the devel queue is used')
 
@@ -515,8 +521,12 @@ print(dirs)
 # at first assign each scenario the first step and push on the active stack
 for dir in dirs:
     scen = Scenario(dir)
-    # scen.use_xy_cut = False # for testing purposes
-    scen.use_m_cut = False  # for testing purposes
+    if args.disable_xy_cut:
+        print("Disabling xy cut!")
+        scen.use_xy_cut = False  # for testing purposes
+    if args.disable_m_cut:
+        print("Disabling m cut!")
+        scen.use_m_cut = False  # for testing purposes
     active_scenario_stack.append(scen)
 
 # now just keep processing the active_stack
