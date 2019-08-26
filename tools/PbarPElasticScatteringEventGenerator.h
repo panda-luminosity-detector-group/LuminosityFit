@@ -14,7 +14,7 @@
 #include "TDatabasePDG.h"
 #include "TMath.h"
 #include "TParticle.h"
-#include "TRandom.h"
+#include "TRandom3.h"
 #include "TClonesArray.h"
 
 #include "boost/property_tree/ptree.hpp"
@@ -51,7 +51,7 @@ std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_event
   double s = 2.0 * std::pow(mass_proton, 2) + 2.0 * mass_proton * Elab;
   double sqrts = std::sqrt(s);
   double Ecms = sqrts / 2.;
-  double Pcms2 = std::pow(Ecms, 2) - std::pow(mass_proton, 2);
+  double Pcms2 = s / 4.0 - std::pow(mass_proton, 2);
   double Pcms = std::sqrt(Pcms2);
 
   double temp_t_max = 4. * Pcms2;
@@ -64,7 +64,7 @@ std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_event
   DataStructs::DimensionRange dr(t_min, t_max);
   integral_ranges.push_back(dr);
 
-  double integral = correct_model->Integral(integral_ranges, 0.0001);
+  double integral = correct_model->Integral(integral_ranges, 1e-5);
   std::cout << "Integrated total elastic cross section in theta range [" << theta_min_in_mrad
       << " - " << theta_max_in_mrad << "] -> t [" << t_min << " - " << t_max << "] is " << integral
       << " mb" << std::endl;
@@ -80,13 +80,16 @@ std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_event
   tree->Branch("Particles", &pars);
 
   std::cout << "using seed: " << seed << "\n";
-  gRandom->SetSeed(seed);
+  TRandom3 RandomGen(seed);
+  TRandom3 RandomGen2(seed + 123456);
+  TRandom3 RandomGen3(seed + 1234);
 
   double func_max(0.0);
   std::cout << "t_min: " << t_min << "\n";
   std::cout << "t_max: " << t_max << "\n";
+
   for (unsigned int i = 0; i < 100000; ++i) {
-    mydouble t = gRandom->Uniform(t_min, t_max);
+    mydouble t = RandomGen.Uniform(t_min, t_max);
     double funcval = correct_model->eval(&t);
     if (funcval > func_max) {
       func_max = funcval;
@@ -95,16 +98,15 @@ std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_event
   func_max *= 1.1;
   std::cout << "function maximum was determined as: " << func_max << "\n";
   std::cout << "generating " << num_events << " ....\n";
-  //TVector3 boost_vector = TLorentzVector(0, 0, Pcms, Ecms).BoostVector();
-  TVector3 boost_vector(0.0, 0.0, plab / (Elab + mass_proton));
+
+  TVector3 boost_vector(0.0, 0.0, Pcms / Ecms);
   using namespace std::chrono;
   duration<double> time_span_correct;
   high_resolution_clock::time_point t1 = high_resolution_clock::now();
   for (unsigned int i = 0; i < num_events; ++i) {
-    double phi = gRandom->Uniform(fPhiMin, fPhiMax);
-    mydouble t = gRandom->Uniform(t_min, t_max);
-    double funcval = correct_model->eval(&t);
-    double randval = gRandom->Uniform(0.0, func_max);
+    mydouble t = RandomGen.Uniform(t_min, t_max);
+    mydouble funcval = correct_model->eval(&t);
+    double randval = RandomGen2.Uniform(0.0, func_max);
     if (funcval > func_max) {
       std::cout << "Error: function maximum was determined not large enough...\n";
       std::cout << "function evaluation: " << funcval << "\n";
@@ -114,18 +116,21 @@ std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_event
       --i;
       continue;
     }
-    double costheta = 1.0 + 0.5 * t / Pcms2;
+
+    double phi = RandomGen3.Uniform(fPhiMin, fPhiMax);
+    double costheta = 1.0 - 0.5 * t / Pcms2;
     double sintheta = std::sqrt(std::abs(1.0 - std::pow(costheta, 2)));
 
     double pz = Pcms * costheta;
     double pt = Pcms * sintheta;
-    double px = pt * TMath::Cos(phi);
-    double py = pt * TMath::Sin(phi);
+    double px = pt * std::cos(phi);
+    double py = pt * std::sin(phi);
 
     TLorentzVector vertex(0, 0, 0, 0);
 
-    TLorentzVector mom_pbar(px, py, pz, Ecms);
-    TLorentzVector mom_p(-px, -py, -pz, Ecms);
+    double E(std::sqrt(mass_proton * mass_proton + px * px + py * py + pz * pz));
+    TLorentzVector mom_pbar(px, py, pz, E);
+    TLorentzVector mom_p(-px, -py, -pz, E);
     // boost to lab
     mom_pbar.Boost(boost_vector);
     mom_p.Boost(boost_vector);

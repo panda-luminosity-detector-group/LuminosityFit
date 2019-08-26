@@ -79,7 +79,7 @@ vector<vector<string> > bootstrapData(vector<string> found_files,
   unsigned int max_trys(10000);
   unsigned int trys(0);
 
-  while (sample_lists.size() <= samples.first && trys < max_trys) {
+  while (sample_lists.size() < samples.first && trys < max_trys) {
     ++trys;
     vector<unsigned int> temp_vec;
     for (unsigned int i = 0; i < samples.second; ++i) {
@@ -113,10 +113,11 @@ template<class T> void mergeData(const vector<string>& found_files,
   boost::filesystem::create_directory(outdir);
 
   std::cout << "Merging data for " << data_file_samples.size() << " samples!\n";
-  std::cout << "Each sample contains " << data_file_samples[0].size() << " files\n";
+  std::cout << "Each sample contains " << data_file_samples[0].size()
+      << " files\n";
   for (unsigned int i = 0; i < data_file_samples.size(); ++i) {
     std::stringstream ss;
-    ss << outfile_path << "/" << output_filename << "_" << i << "of"
+    ss << outfile_path << "/" << output_filename << "_" << i + 1 << "of"
         << data_file_samples.size() << ".root";
     // output file
     TFile fmergeddata(ss.str().c_str(), "RECREATE");
@@ -217,42 +218,42 @@ int main(int argc, char* argv[]) {
 
   while ((c = getopt(argc, argv, "hf:p:d:t:s:n:")) != -1) {
     switch (c) {
-    case 'f':
-      filename_pattern = optarg;
-      is_filename_pattern_set = true;
-      break;
-    case 'p':
-      data_path = optarg;
-      is_data_path_set = true;
-      break;
-    case 'd':
-      dir_pattern = optarg;
-      break;
-    case 'n':
-      num_samples = std::stoi(optarg);
-      break;
-    case 's':
-      sample_size = std::stoi(optarg);
-      break;
-    case 't':
-      data_type = optarg;
-      is_type_set = true;
-      break;
-    case '?':
-      if (optopt == 'f' || optopt == 'p' || optopt == 'd' || optopt == 's'
-          || optopt == 't')
-        std::cerr << "Option -" << optopt << " requires an argument."
-            << std::endl;
-      else if (isprint(optopt))
-        std::cerr << "Unknown option -" << optopt << "." << std::endl;
-      else
-        std::cerr << "Unknown option character" << optopt << "." << std::endl;
-      return 1;
-    case 'h':
-      displayInfo();
-      return 1;
-    default:
-      return 1;
+      case 'f':
+        filename_pattern = optarg;
+        is_filename_pattern_set = true;
+        break;
+      case 'p':
+        data_path = optarg;
+        is_data_path_set = true;
+        break;
+      case 'd':
+        dir_pattern = optarg;
+        break;
+      case 'n':
+        num_samples = std::stoi(optarg);
+        break;
+      case 's':
+        sample_size = std::stoi(optarg);
+        break;
+      case 't':
+        data_type = optarg;
+        is_type_set = true;
+        break;
+      case '?':
+        if (optopt == 'f' || optopt == 'p' || optopt == 'd' || optopt == 's'
+            || optopt == 't')
+          std::cerr << "Option -" << optopt << " requires an argument."
+              << std::endl;
+        else if (isprint(optopt))
+          std::cerr << "Unknown option -" << optopt << "." << std::endl;
+        else
+          std::cerr << "Unknown option character" << optopt << "." << std::endl;
+        return 1;
+      case 'h':
+        displayInfo();
+        return 1;
+      default:
+        return 1;
     }
   }
 
@@ -288,19 +289,19 @@ int main(int argc, char* argv[]) {
       if (num_samples == 1) {
         // create one sample with with full size
         samples.second = found_files.size();
-      }
-      else {
+      } else {
         // user wants more than one sample. Use bootstrapping with a samples
         // size of half the found files for each bootstrapped sample
-        samples.second =  found_files.size()/2;
+        samples.second = found_files.size() / 2;
       }
     }
-    size_t max_bootstrap_samples = binominalCoefficient(found_files.size(), samples.second);
-    if(max_bootstrap_samples < num_samples) {
+    size_t max_bootstrap_samples = binominalCoefficient(found_files.size(),
+        samples.second);
+    if (max_bootstrap_samples < num_samples) {
       std::cout << "WARNING: requested number of bootstraped samples is higher"
-                << " than the maximum possible from combinatorics!"
-                << " Using maximum of " << max_bootstrap_samples << " instead!"
-                << std::endl;
+          << " than the maximum possible from combinatorics!"
+          << " Using maximum of " << max_bootstrap_samples << " instead!"
+          << std::endl;
     }
 
     std::string outpath = data_path + "/merge_data";

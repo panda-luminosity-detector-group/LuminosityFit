@@ -30,65 +30,66 @@ class TClonesArray;
 class PndLmdDataReader {
 private:
   std::vector<PndLmdMapData*> registered_map_data;
-	std::vector<PndLmdHistogramData*> registered_data;
-	std::vector<PndLmdAcceptance*> registered_acceptances;
+  std::vector<PndLmdHistogramData*> registered_data;
+  std::vector<PndLmdAcceptance*> registered_acceptances;
 
-	void clearRegisters();
+  void clearRegisters();
 
-	std::vector<PndLmdAbstractData*> combineAllRegisteredDataObjects();
+  std::vector<PndLmdAbstractData*> combineAllRegisteredDataObjects();
 
-	void removeFinished(std::vector<PndLmdAbstractData*> &lmd_vec,
-			int num_events);
-	int getNextMinEventIndex(std::vector<PndLmdAbstractData*> &lmd_vec);
+  void removeFinished(std::vector<PndLmdAbstractData*> &lmd_vec,
+      int num_events);
+  int getNextMinEventIndex(std::vector<PndLmdAbstractData*> &lmd_vec);
 
-	double getSingleTrackParameterValue(PndLmdTrackQ &track_pars,
-			const LumiFit::LmdDimension &lmd_dim) const;
-	double getTrackParameterValue(PndLmdTrackQ &track_pars,
-			const LumiFit::LmdDimension &lmd_dim) const;
+  double getSingleTrackParameterValue(PndLmdTrackQ &track_pars,
+      const LumiFit::LmdDimension &lmd_dim) const;
+  double getTrackParameterValue(PndLmdTrackQ &track_pars,
+      const LumiFit::LmdDimension &lmd_dim) const;
 
-	bool wasReconstructed(PndLmdTrackQ &track_pars) const;
-	bool skipDataObject(const PndLmdAbstractData* data,
-			PndLmdTrackQ &track_pars) const;
-	bool successfullyPassedFilters(const PndLmdAbstractData* data,
-			PndLmdTrackQ &track_pars) const;
+  bool wasReconstructed(PndLmdTrackQ &track_pars) const;
+  bool isGoodTrack(PndLmdTrackQ &track_pars) const;
+  bool skipDataObject(const PndLmdAbstractData* data,
+      PndLmdTrackQ &track_pars) const;
+  bool successfullyPassedFilters(const PndLmdAbstractData* data,
+      PndLmdTrackQ &track_pars) const;
 
-	void fillData(PndLmdTrackQ *track_pars);
+  void fillData(PndLmdTrackQ *track_pars);
 
-	void cleanup();
+  void cleanup();
 
-	virtual unsigned int getEntries() const =0;
-	virtual void initDataStream() =0;
-	virtual void clearDataStream() =0;
+  virtual unsigned int getEntries() const =0;
+  virtual void initDataStream() =0;
+  virtual void clearDataStream() =0;
 
-	virtual TClonesArray* getEntry(unsigned int i) =0;
+  virtual TClonesArray* getEntry(unsigned int i) =0;
 
-	TLorentzVector beam;
+  TLorentzVector beam;
 
 protected:
-	TDatabasePDG *pdg;
+  TDatabasePDG *pdg;
 
-	std::vector<TString> file_paths;
+  std::vector<TString> file_paths;
 
 public:
-	PndLmdDataReader();
-	virtual ~PndLmdDataReader();
+  PndLmdDataReader();
+  virtual ~PndLmdDataReader();
 
-	void setBeam(double lab_momentum);
+  void setBeam(double lab_momentum);
 
-	void addFilePath(TString file_path);
+  void addFilePath(TString file_path);
 
-	void registerMapData(std::vector<PndLmdMapData> &data_vec);
-	int registerData(PndLmdHistogramData* data);
-	int registerData(std::vector<PndLmdAngularData> &data_vec);
-	int registerData(std::vector<PndLmdHistogramData> &data_vec);
+  void registerMapData(std::vector<PndLmdMapData> &data_vec);
+  int registerData(PndLmdHistogramData* data);
+  int registerData(std::vector<PndLmdAngularData> &data_vec);
+  int registerData(std::vector<PndLmdHistogramData> &data_vec);
 
-	int registerAcceptance(PndLmdAcceptance* acc);
-	int registerAcceptances(std::vector<PndLmdAcceptance> &acc_vec);
+  int registerAcceptance(PndLmdAcceptance* acc);
+  int registerAcceptances(std::vector<PndLmdAcceptance> &acc_vec);
 
-	int registerResolution(PndLmdResolution* res);
-	int registerResolutions(std::vector<PndLmdResolution> &res_vec);
+  int registerResolution(PndLmdResolution* res);
+  int registerResolutions(std::vector<PndLmdResolution> &res_vec);
 
-	void read();
+  void read();
 };
 
 #endif /* PNDLMDDATAREADER_H_ */

@@ -586,6 +586,7 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
       angular_offsets[1] = 0.0;
 
       if (model_opt_ptree.get<bool>("automatic_acceptance_shifting_active")) {
+        std::cout<<"Applying automatic acceptance shifting!\n";
         // get offset values as measured by the offset determination (user should have specified that)
         std::pair<double, double> ip_offsets = data.getIPOffsets();
         // then read transformation json file
@@ -635,12 +636,7 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
               || eval_pos.first > data_secondary_dimension.dimension_range.getRangeHigh()) {
             datamap[pos] = 0.0;
           } else {
-            int bin = eff2->FindFixBin(eval_pos.first, eval_pos.second);
-            if (eff2->GetEfficiencyErrorLow(bin) > 0.6 || eff2->GetEfficiencyErrorUp(bin) > 0.6) {
-              datamap[pos] = 0.0;
-            } else {
               datamap[pos] = hist->Interpolate(eval_pos.first, eval_pos.second);
-            }
           }
 
           acceptance_masscenter.first += datamap[pos] * eval_pos.first;
@@ -653,7 +649,7 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
 
       boost::optional<bool> clean_lower_acceptance = model_opt_ptree.get_optional<bool>(
           "clean_lower_acceptance");
-      if (clean_lower_acceptance) {
+      if(clean_lower_acceptance.is_initialized() && clean_lower_acceptance.get()) {
         // clean the acceptance! Non-zero efficiency values inside the acceptance hole can lead
         // to systematic errors due to the divergence of the model in this domain. These
         // efficiency values have to be set to zero!

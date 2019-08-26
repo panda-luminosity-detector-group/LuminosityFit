@@ -51,7 +51,7 @@ add_executable(runLmdFit runLmdFit.cxx)
 target_link_libraries(runLmdFit LmdUI)
 
 add_executable(fitRawDPMElasticData fitRawDPMElasticData.cxx)
-target_link_libraries(fitRawDPMElasticData LmdUI ROOT::EG ROOT::Gpad ROOT::Hist ROOT::Tree ROOT::Physics ROOT::MathCore)
+target_link_libraries(fitRawDPMElasticData LmdUI ROOT::EG ROOT::Gpad ROOT::Hist ROOT::Tree ROOT::Physics ROOT::MathCore ROOT::Graf)
 
 
 
