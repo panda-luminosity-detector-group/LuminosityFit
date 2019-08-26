@@ -213,7 +213,7 @@ void PndLmdDataReader::read() {
 void PndLmdDataReader::fillData(PndLmdTrackQ *track_pars) {
   PndLmdTrackQ trackqref = *track_pars;
 
-  if (wasReconstructed(trackqref)) {
+  if (isGoodTrack(trackqref)) {
     std::vector<double> data(4);
     TVector3 mom_mc;
     mom_mc.SetMagThetaPhi(track_pars->GetMCmom(), track_pars->GetMCtheta(),
@@ -250,6 +250,10 @@ void PndLmdDataReader::fillData(PndLmdTrackQ *track_pars) {
   }
   for (unsigned int i = 0; i < registered_acceptances.size(); i++) {
     bool track_accepted = wasReconstructed(trackqref);
+    if (0 <= trackqref.GetSecondary()) { // if its secondary (<0 is primary)
+      if (!track_accepted)
+        continue;
+    }
     // skip tracks that do not pass the filters
     if (successfullyPassedFilters(registered_acceptances[i], trackqref)) {
       if (registered_acceptances[i]->getSecondaryDimension().is_active) {
@@ -267,16 +271,17 @@ void PndLmdDataReader::fillData(PndLmdTrackQ *track_pars) {
   }
 }
 
+bool PndLmdDataReader::isGoodTrack(PndLmdTrackQ &track_pars) const {
+  return (0 == track_pars.GetTrkRecStatus());
+}
+
 bool PndLmdDataReader::wasReconstructed(PndLmdTrackQ &track_pars) const {
-  if (0 == track_pars.GetTrkRecStatus()) {
-    return true;
-  }
-  return false;
+  return (0 <= track_pars.GetTrkRecStatus());
 }
 
 bool PndLmdDataReader::skipDataObject(const PndLmdAbstractData* data,
     PndLmdTrackQ &track_pars) const {
-  // if it was not reconstructed and this information is required
+// if it was not reconstructed and this information is required
   if (!wasReconstructed(track_pars)) {
     if (LumiFit::RECO
         == data->getPrimaryDimension().dimension_options.track_type) {
@@ -299,12 +304,16 @@ bool PndLmdDataReader::skipDataObject(const PndLmdAbstractData* data,
       }
     }
   }
+  if (LumiFit::MC == data->getPrimaryDimension().dimension_options.track_type) {
+    if (0 <= track_pars.GetSecondary())
+      return true;
+  }
   return false;
 }
 
 bool PndLmdDataReader::successfullyPassedFilters(const PndLmdAbstractData* data,
     PndLmdTrackQ &track_pars) const {
-  // if it fails to pass a filter
+// if it fails to pass a filter
   const std::set<LumiFit::LmdDimension> &selection_dimensions(
       data->getSelectorSet());
   std::set<LumiFit::LmdDimension>::iterator selection_dimension_iterator =

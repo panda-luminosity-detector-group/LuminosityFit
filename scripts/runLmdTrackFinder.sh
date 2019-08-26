@@ -46,19 +46,16 @@ if [ "${alignment_matrices_path}" = "" ]; then
 fi
 #merge hits on sensors from different sides. true=yes
 mergedHits=true
-## BOX cut before back-propagation
-BoxCut=false
 ## Write all MC info in TrkQA array
 WrAllMC=true
 
 radLength=0.32
 
-echo "xthetacut: $XThetaCut"
-echo "yphicut: $YPhiCut"
-echo "mcut: $CleanSig"
+echo "Kinematics cut (@LMD): $KinematicsCut"
+echo "Momentum cut (after backpropagation): $CleanSig"
 
 prefilter="false"
-if [ "$XThetaCut" = "true" ] || [ "$YPhiCut" = "true" ]; then
+if [ "$KinematicsCut" = "true" ]; then
 prefilter="true"
 fi
 
@@ -84,7 +81,7 @@ if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
 	fi
 fi
 
-#track filter (on number of hits and chi2)
+#track filter (on number of hits and chi2 and optionally on track kinematics)
 
 if [ "$prefilter" = "true" ]; then
 check_stage_success "$workpathname/Lumi_Track_${start_evt}.root"
@@ -94,7 +91,7 @@ if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
     #this macro needs Lumi_Track_... file as input so we need to link the unfiltered file
     ln -sf ${workpathname}/Lumi_TrackNotFiltered_${start_evt}.root ${workpathname}/Lumi_Track_${start_evt}.root
 
-    root -l -b -q 'runLumiPixel4aFilter.C('${num_evts}', '${start_evt}', "'${workpathname}'", '$verbositylvl', '${mergedHits}', '${SkipFilt}', '${XThetaCut}', '${YPhiCut}', '${BoxCut}', '${rec_ipx}', '${rec_ipy}')'
+    root -l -b -q 'runLumiPixel4aFilter.C('${num_evts}', '${start_evt}', "'${workpathname}'", '$verbositylvl', '${mergedHits}', '${mom}', '${KinematicsCut}', '${rec_ipx}', '${rec_ipy}')'
    
     #now overwrite the Lumi_Track_ sym link with the filtered version
     ln -sf ${workpathname}/Lumi_TrackFiltered_${start_evt}.root ${workpathname}/Lumi_Track_${start_evt}.root
@@ -123,7 +120,7 @@ fi
 # this is required for the acceptance calculation
 check_stage_success "$workpathname/Lumi_TrksQA_${start_evt}.root"
 if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-  root -l -b -q 'runLumiPixel7TrksQA.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl','${mom}', '$WrAllMC', '${XThetaCut}', '${CleanSig}')'
+  root -l -b -q 'runLumiPixel7TrksQA.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl','${mom}', '$WrAllMC', '${KinematicsCut}', '${CleanSig}')'
   if [ "${debug}" -eq 0 ]; then
     cp $workpathname/Lumi_TrksQA_${start_evt}.root $pathname/Lumi_TrksQA_${start_evt}.root
   fi

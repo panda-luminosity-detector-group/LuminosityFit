@@ -141,8 +141,8 @@ hist_bunch createHistogramsFromRawDPMData(data_options &data_opt, unsigned int n
           measured_direction.Rotate(gamma, zprime);
         }
         // if data should be rotated like in pandaroot
-        if (true)
-          measured_direction.RotateUz(zprime);
+        //if (true)
+        //  measured_direction.RotateUz(zprime);
 
         return_histgrams.t_hist->Fill(-1.0 * (outgoing - ingoing).M2());
         return_histgrams.th_hist->Fill(measured_direction.Theta());
@@ -351,20 +351,15 @@ void fit1D(const hist_bunch &histograms, data_options &data_opt, std::string fil
       100.0 * lumi_err / lumi_ref);
 
   std::cout << "lumi: " << lumi << " lumi_ref: " << lumi_ref << std::endl;
+  std::cout << "accuracy: " << (lumi - lumi_ref) / lumi_ref << std::endl;
 
-  TCanvas c;
+  NeatPlotting::GraphAndHistogramHelper neat_plot_helper;
+  NeatPlotting::PlotBundle residual_plot_bundle;
+  TGraphAsymmErrors *residual = neat_plot_helper.makeDifferenceGraph(hist, graph);
 
-  hist->Draw("E1");
-  hist->GetXaxis()->SetTitle("#theta / rad");
-  hist->GetYaxis()->SetTitle("#entries");
-  std::stringstream titletext;
-
-  titletext << "reldiff = " << lumi_reldiff.first << " #pm " << lumi_reldiff.second << " %";
-  hist->SetTitle(titletext.str().c_str());
-  graph->SetLineColor(2);
-  graph->Draw("CSAME");
-  c.SetLogy(true);
-  c.SaveAs(filename.c_str());
+  TFile file("fitresult.root", "RECREATE");
+  residual->Write("residual");
+  file.Close();
 }
 
 void fit2D(hist_bunch histograms, data_options &data_opt, bool binned = true) {
@@ -515,8 +510,8 @@ void fitRawDPMElasticData(double momentum, unsigned int num_events) {
 
   data_options data_opt;
   data_opt.momentum = momentum;
-  data_opt.theta_bound_low_in_mrad = 3;
-  data_opt.theta_bound_high_in_mrad = 10;
+  data_opt.theta_bound_low_in_mrad = 2.7;
+  data_opt.theta_bound_high_in_mrad = 13.0;
   data_opt.theta_fit_range_low_in_mrad = data_opt.theta_bound_low_in_mrad + 0.1;
   data_opt.theta_fit_range_high_in_mrad = data_opt.theta_bound_high_in_mrad - 0.1;
   data_opt.phi_bound_low = -TMath::Pi();

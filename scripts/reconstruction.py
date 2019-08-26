@@ -192,12 +192,8 @@ def writeRecoParamsToFile(reco_params, pathname):
 
 
 def appendRecoInfoToJob(job, reco_params):
-    job.add_exported_user_variable('SkipFilt', str(
-        not reco_params['use_xy_cut']).lower())
     job.add_exported_user_variable(
-        'XThetaCut', str(reco_params['use_xy_cut']).lower())
-    job.add_exported_user_variable(
-        'YPhiCut', str(reco_params['use_xy_cut']).lower())
+        'KinematicsCut', str(reco_params['use_xy_cut']).lower())
     job.add_exported_user_variable(
         'CleanSig', str(reco_params['use_m_cut']).lower())
     job.add_exported_user_variable(

@@ -58,7 +58,7 @@ void extractLuminosityResults(std::vector<std::string> paths, const std::string 
       std::vector<PndLmdElasticDataBundle> temp_full_phi_vec = lmd_data_facade.filterData(
           x.getElasticDataBundles(), filter);
 
-      temp_full_phi_vec = lmd_data_facade.filterData(temp_full_phi_vec, dim_filter);
+//      temp_full_phi_vec = lmd_data_facade.filterData(temp_full_phi_vec, dim_filter);
 
       full_phi_reco_data_vec[datavec.first] = temp_full_phi_vec;
     }

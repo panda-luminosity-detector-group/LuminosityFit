@@ -10,7 +10,7 @@ def get_num_jobs_on_himster():
     check number of jobs currently running or in queue on himster
     (only this user, so you!)
     '''
-    bashcommand = 'squeue -u $USER -t RUNNING -o %C | sed \'s/CPUS/0/\' | awk \'{s+=$1} END {print s}\''
+    bashcommand = 'squeue -u $USER -o %C | sed \'s/CPUS/0/\' | awk \'{s+=$1} END {print s}\''
     returnvalue = subprocess.Popen(
         bashcommand, shell=True, stdout=subprocess.PIPE)
     out, err = returnvalue.communicate()
