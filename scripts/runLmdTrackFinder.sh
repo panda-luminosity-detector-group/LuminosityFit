@@ -95,6 +95,12 @@ if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
    
     #now overwrite the Lumi_Track_ sym link with the filtered version
     ln -sf ${workpathname}/Lumi_TrackFiltered_${start_evt}.root ${workpathname}/Lumi_Track_${start_evt}.root
+
+    # copy track file for module alignment
+    if [ "${debug}" -eq 0 ]; then
+      cp $workpathname/Lumi_Track_${start_evt}.root $pathname/Lumi_Track_${start_evt}.root
+    fi
+
   fi
 fi
 fi
