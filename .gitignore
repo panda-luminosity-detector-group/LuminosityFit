@@ -4,3 +4,4 @@
 *.a
 *.pyc
 *.root
+.vscode/
