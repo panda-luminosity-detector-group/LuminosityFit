@@ -64,6 +64,9 @@ fi
 check_stage_success "$workpathname/Lumi_TCand_${start_evt}.root"
 if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   root -l -b -q 'runLumiPixel3Finder.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',"'${track_search_algorithm}'",'${misspl}','${mergedHits}','${trkcut}','${mom}')'
+
+  # copy track candidates, although maybe we don't actually need them
+  cp ${workpathname}/Lumi_TCand_${start_evt}.root $pathname/Lumi_TCand_${start_evt}.root
 fi
 
 #track fit:
