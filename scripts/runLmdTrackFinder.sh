@@ -73,9 +73,12 @@ if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
 	check_stage_success "$workpathname/Lumi_Track_${start_evt}.root"
 	if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
 		root -l -b -q 'runLumiPixel4Fitter.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',"Minuit",'${mergedHits}')'
-  		#this script output a Lumi_Track_... file. Rename that to the NotFiltered..
-
-		if [ "$prefilter" = "true" ]; then
+    #this script outputs a Lumi_Track_... file. Rename that to the NotFiltered..
+    
+    # copy track file for module alignment
+    cp $workpathname/Lumi_Track_${start_evt}.root $pathname/Lumi_Track_${start_evt}.root
+		
+    if [ "$prefilter" = "true" ]; then
 			mv ${workpathname}/Lumi_Track_${start_evt}.root ${workpathname}/Lumi_TrackNotFiltered_${start_evt}.root
 		fi
 	fi
@@ -95,12 +98,6 @@ if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
    
     #now overwrite the Lumi_Track_ sym link with the filtered version
     ln -sf ${workpathname}/Lumi_TrackFiltered_${start_evt}.root ${workpathname}/Lumi_Track_${start_evt}.root
-
-    # copy track file for module alignment
-    if [ "${debug}" -eq 0 ]; then
-      cp $workpathname/Lumi_Track_${start_evt}.root $pathname/Lumi_Track_${start_evt}.root
-    fi
-
   fi
 fi
 fi
