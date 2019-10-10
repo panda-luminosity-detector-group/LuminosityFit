@@ -67,7 +67,7 @@ fi
 check_stage_success "$workpathname/Lumi_reco_${start_evt}.root"
 if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   root -l -b -q 'runLumiPixel2Reco.C('${num_evts}','${start_evt}',"'${workpathname}'", "'${alignment_matrices_path}'", "'${misalignment_matrices_path}'", '${use_point_transform_misalignment}', '$verbositylvl')'
-  cp $workpathname/Lumi_reco_${start_evt}.root $pathname/Lumi_reco_${start_evt}.root
+  #cp $workpathname/Lumi_reco_${start_evt}.root $pathname/Lumi_reco_${start_evt}.root
 fi
 
 #merge hits
