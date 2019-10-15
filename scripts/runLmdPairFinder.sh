@@ -21,11 +21,10 @@ if [ -z $scriptpath ] || [ -z $workpathname ]; then
   fi
 
   verbositylvl=0
-  start_evt=$((${num_evts}*${filename_index})) #number of events * filename index is startevt
-
+  start_evt=$((${num_evts} * ${filename_index})) #number of events * filename index is startevt
 
   #ok we want to simulate only on the node so also the output files of the simulation so change the pathname to /local/scratch/dirname
-  dirname=`echo $dirname | sed -e 's/\//_/g'`
+  dirname=$(echo $dirname | sed -e 's/\//_/g')
 
   workpathname="/localscratch/${SLURM_JOB_ID}/${dirname}"
   if [ "${debug}" -eq 1 ]; then
