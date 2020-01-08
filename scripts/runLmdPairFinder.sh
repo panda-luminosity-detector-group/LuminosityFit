@@ -43,5 +43,5 @@ if [ 1 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   root -l -b -q 'runLumiPixel2ePairFinder.C('${num_evts}','${start_evt}',"'${workpathname}'", '$verbositylvl')'
   cp $workpathname/Lumi_Pairs_${start_evt}.root $pathname/Lumi_Pairs_${start_evt}.root
 else
-  echo "Warning! Cannot run pair finder, no reco files are found!\n"
+  echo "Warning! Cannot run pair finder, no reco files are found!"
 fi
