@@ -21,11 +21,10 @@ if [ -z $scriptpath ] || [ -z $workpathname ]; then
   fi
 
   verbositylvl=0
-  start_evt=$((${num_evts}*${filename_index})) #number of events * filename index is startevt
-
+  start_evt=$((${num_evts} * ${filename_index})) #number of events * filename index is startevt
 
   #ok we want to simulate only on the node so also the output files of the simulation so change the pathname to /local/scratch/dirname
-  dirname=`echo $dirname | sed -e 's/\//_/g'`
+  dirname=$(echo $dirname | sed -e 's/\//_/g')
 
   workpathname="/localscratch/${SLURM_JOB_ID}/${dirname}"
   if [ "${debug}" -eq 1 ]; then
@@ -56,7 +55,7 @@ echo "Momentum cut (after backpropagation): $CleanSig"
 
 prefilter="false"
 if [ "$KinematicsCut" = "true" ]; then
-prefilter="true"
+  prefilter="true"
 fi
 
 ### change "CA" --> "Follow" if you want to use Trk-Following as trk-search algorithm
@@ -64,52 +63,57 @@ fi
 check_stage_success "$workpathname/Lumi_TCand_${start_evt}.root"
 if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   root -l -b -q 'runLumiPixel3Finder.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',"'${track_search_algorithm}'",'${misspl}','${mergedHits}','${trkcut}','${mom}')'
+
+  # copy track candidates, although maybe we don't actually need them
+  # cp ${workpathname}/Lumi_TCand_${start_evt}.root ${pathname}/Lumi_TCand_${start_evt}.root
 fi
 
 #track fit:
 ### Possible options: "Minuit", "KalmanGeane", "KalmanRK"
 check_stage_success "$workpathname/Lumi_TrackNotFiltered_${start_evt}.root"
 if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-	check_stage_success "$workpathname/Lumi_Track_${start_evt}.root"
-	if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-		root -l -b -q 'runLumiPixel4Fitter.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',"Minuit",'${mergedHits}')'
-  		#this script output a Lumi_Track_... file. Rename that to the NotFiltered..
+  check_stage_success "$workpathname/Lumi_Track_${start_evt}.root"
+  if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
+    root -l -b -q 'runLumiPixel4Fitter.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',"Minuit",'${mergedHits}')'
+    #this script outputs a Lumi_Track_... file. Rename that to the NotFiltered..
 
-		if [ "$prefilter" = "true" ]; then
-			mv ${workpathname}/Lumi_Track_${start_evt}.root ${workpathname}/Lumi_TrackNotFiltered_${start_evt}.root
-		fi
-	fi
+    # copy track file for module alignment
+    cp ${workpathname}/Lumi_Track_${start_evt}.root ${pathname}/Lumi_Track_${start_evt}.root
+
+    if [ "$prefilter" = "true" ]; then
+      mv ${workpathname}/Lumi_Track_${start_evt}.root ${workpathname}/Lumi_TrackNotFiltered_${start_evt}.root
+    fi
+  fi
 fi
 
 #track filter (on number of hits and chi2 and optionally on track kinematics)
 
 if [ "$prefilter" = "true" ]; then
-check_stage_success "$workpathname/Lumi_Track_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-  check_stage_success "$workpathname/Lumi_TrackFiltered_${start_evt}.root"
+  check_stage_success "$workpathname/Lumi_Track_${start_evt}.root"
   if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-    #this macro needs Lumi_Track_... file as input so we need to link the unfiltered file
-    ln -sf ${workpathname}/Lumi_TrackNotFiltered_${start_evt}.root ${workpathname}/Lumi_Track_${start_evt}.root
+    check_stage_success "$workpathname/Lumi_TrackFiltered_${start_evt}.root"
+    if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
+      #this macro needs Lumi_Track_... file as input so we need to link the unfiltered file
+      ln -sf ${workpathname}/Lumi_TrackNotFiltered_${start_evt}.root ${workpathname}/Lumi_Track_${start_evt}.root
 
-    root -l -b -q 'runLumiPixel4aFilter.C('${num_evts}', '${start_evt}', "'${workpathname}'", '$verbositylvl', '${mergedHits}', '${mom}', '${KinematicsCut}', '${rec_ipx}', '${rec_ipy}')'
-   
-    #now overwrite the Lumi_Track_ sym link with the filtered version
-    ln -sf ${workpathname}/Lumi_TrackFiltered_${start_evt}.root ${workpathname}/Lumi_Track_${start_evt}.root
+      root -l -b -q 'runLumiPixel4aFilter.C('${num_evts}', '${start_evt}', "'${workpathname}'", '$verbositylvl', '${mergedHits}', '${mom}', '${KinematicsCut}', '${rec_ipx}', '${rec_ipy}')'
+
+      #now overwrite the Lumi_Track_ sym link with the filtered version
+      ln -sf ${workpathname}/Lumi_TrackFiltered_${start_evt}.root ${workpathname}/Lumi_Track_${start_evt}.root
+      cp ${workpathname}/Lumi_Track_${start_evt}.root ${pathname}/Lumi_TrackFiltered_${start_evt}.root
+    fi
   fi
 fi
-fi
-
 
 # back-propgation GEANE
 ### Possible options: "Geane", "RK"
 check_stage_success "$workpathname/Lumi_Geane_${start_evt}.root"
 if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-root -l -b -q 'runLumiPixel5BackProp.C('${num_evts}', '${start_evt}', "'${workpathname}'", '$verbositylvl', "Geane", '${mergedHits}', '${mom}', '${rec_ipx}', '${rec_ipy}', '${rec_ipz}', '$prefilter')'
+  root -l -b -q 'runLumiPixel5BackProp.C('${num_evts}', '${start_evt}', "'${workpathname}'", '$verbositylvl', "Geane", '${mergedHits}', '${mom}', '${rec_ipx}', '${rec_ipy}', '${rec_ipz}', '$prefilter')'
 fi
 
-
 # filter back-propagated tracks (momentum cut)
-if [ $CleanSig = "true" ]; then 
+if [ $CleanSig = "true" ]; then
   root -l -b -q 'runLumiPixel5bCleanSig.C('${num_evts}', '${start_evt}', "'${workpathname}'", '$verbositylvl', '${mom}', '${rec_ipx}', '${rec_ipy}')'
 fi
 

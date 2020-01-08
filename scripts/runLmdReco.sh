@@ -21,11 +21,10 @@ if [ -z $scriptpath ] || [ -z $workpathname ]; then
   fi
 
   verbositylvl=0
-  start_evt=$((${num_evts}*${filename_index})) #number of events * filename index is startevt
-
+  start_evt=$((${num_evts} * ${filename_index})) #number of events * filename index is startevt
 
   #ok we want to simulate only on the node so also the output files of the simulation so change the pathname to /local/scratch/dirname
-  dirname=`echo $dirname | sed -e 's/\//_/g'`
+  dirname=$(echo $dirname | sed -e 's/\//_/g')
 
   workpathname="/localscratch/${SLURM_JOB_ID}/${dirname}"
   if [ "${debug}" -eq 1 ]; then
@@ -36,7 +35,6 @@ if [ -z $scriptpath ] || [ -z $workpathname ]; then
   fi
   echo "force level: ${force_level}"
 fi
-
 
 #switch on "missing plane" search algorithm
 misspl=true
@@ -60,20 +58,23 @@ echo "mcut: $CleanSig"
 
 prefilter="false"
 if [ "$XThetaCut" = "true" ] || [ "$YPhiCut" = "true" ]; then
-prefilter="true"
+  prefilter="true"
 fi
 
 #hit reco
 check_stage_success "$workpathname/Lumi_reco_${start_evt}.root"
 if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   root -l -b -q 'runLumiPixel2Reco.C('${num_evts}','${start_evt}',"'${workpathname}'", "'${alignment_matrices_path}'", "'${misalignment_matrices_path}'", '${use_point_transform_misalignment}', '$verbositylvl')'
-  cp $workpathname/Lumi_reco_${start_evt}.root $pathname/Lumi_reco_${start_evt}.root
+  # cp $workpathname/Lumi_reco_${start_evt}.root $pathname/Lumi_reco_${start_evt}.root
 fi
 
 #merge hits
 check_stage_success "$workpathname/Lumi_recoMerged_${start_evt}.root"
 if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
   root -l -b -q 'runLumiPixel2bHitMerge.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl')'
+
+  # copy Lumi_recoMerged_ for module aligner
+  cp $workpathname/Lumi_recoMerged_${start_evt}.root $pathname/Lumi_recoMerged_${start_evt}.root
 fi
 
 cd $scriptpath
