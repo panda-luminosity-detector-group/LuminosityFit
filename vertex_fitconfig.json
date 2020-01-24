@@ -1,7 +1,7 @@
 {
    "fit":
    {	
-      "estimator_type": "CHI2",
+      "estimator_type": "LOG_LIKELIHOOD",
       
       "estimator_options":
       {

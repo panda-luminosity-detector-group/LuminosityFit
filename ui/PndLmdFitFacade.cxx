@@ -23,8 +23,8 @@
 
 using std::cout;
 using std::endl;
-using std::vector;
 using std::pair;
+using std::vector;
 
 using boost::property_tree::ptree;
 
@@ -108,7 +108,7 @@ std::vector<DataStructs::DimensionRange> PndLmdFitFacade::calcRange(
   return ranges;
 }
 
-double PndLmdFitFacade::calcHistIntegral(const TH1D* hist,
+double PndLmdFitFacade::calcHistIntegral(const TH1D *hist,
     std::vector<DataStructs::DimensionRange> range) const {
   // just determine the bin range over which we have to calculate
   if (range.size() < 1)
@@ -128,7 +128,7 @@ double PndLmdFitFacade::calcHistIntegral(const TH1D* hist,
   return hist->Integral(bin_low, bin_high, "width");
 }
 
-double PndLmdFitFacade::calcHistIntegral(const TH2D* hist,
+double PndLmdFitFacade::calcHistIntegral(const TH2D *hist,
     std::vector<DataStructs::DimensionRange> range) const {
   // just determine the bin range over which we have to calculate
   if (range.size() < 2)
@@ -181,7 +181,7 @@ std::shared_ptr<Data> PndLmdFitFacade::createData2D(
   return data;
 }
 
-void PndLmdFitFacade::saveFittedObjectsToFile(std::vector<PndLmdAngularData>& lmd_data_vec) const {
+void PndLmdFitFacade::saveFittedObjectsToFile(std::vector<PndLmdAngularData> &lmd_data_vec) const {
   for (unsigned int i = 0; i < lmd_data_vec.size(); ++i) {
     if (lmd_data_vec[i].getFitResults().size() > 0) {
       lmd_data_vec[i].saveToRootFile();
@@ -191,7 +191,7 @@ void PndLmdFitFacade::saveFittedObjectsToFile(std::vector<PndLmdAngularData>& lm
 
 // estimator options
 
-EstimatorOptions PndLmdFitFacade::constructEstimatorOptionsFromConfig(const ptree& pt) const {
+EstimatorOptions PndLmdFitFacade::constructEstimatorOptionsFromConfig(const ptree &pt) const {
   EstimatorOptions est_opt;
 
   est_opt.setWithIntegralScaling(pt.get<bool>("with_integral_scaling"));
@@ -211,11 +211,11 @@ EstimatorOptions PndLmdFitFacade::constructEstimatorOptionsFromConfig(const ptre
 }
 
 std::set<std::string, ModelStructs::string_comp> PndLmdFitFacade::constructFreeFitParameterListFromConfig(
-    const ptree& pt) const {
+    const ptree &pt) const {
   std::set<std::string, ModelStructs::string_comp> free_params;
-  BOOST_FOREACH(const ptree::value_type & free_param_name, pt){
-  free_params.insert(free_param_name.first);
-}
+  BOOST_FOREACH (const ptree::value_type &free_param_name, pt) {
+    free_params.insert(free_param_name.first);
+  }
   return free_params;
 }
 
@@ -231,7 +231,7 @@ void PndLmdFitFacade::freeParametersForModel(std::shared_ptr<Model> current_mode
 }
 
 void PndLmdFitFacade::initBeamParametersForModel(std::shared_ptr<Model> current_model,
-    const ptree& model_opt_ptree) const {
+    const ptree &model_opt_ptree) const {
   current_model->getModelParameterSet().setModelParameterValue("luminosity", 1.0);
 
   current_model->getModelParameterSet().getModelParameter("tilt_x")->setValue(
@@ -302,7 +302,7 @@ void PndLmdFitFacade::addBeamParametersToFreeParameterList(PndLmdFitOptions &fit
 PndLmdFitOptions PndLmdFitFacade::createFitOptions(const PndLmdAbstractData &lmd_data) const {
   std::cout << "creating fit options..." << std::endl;
 
-  const ptree& fit_config_ptree = lmd_runtime_config.getFitConfigTree();
+  const ptree &fit_config_ptree = lmd_runtime_config.getFitConfigTree();
 
   PndLmdFitOptions fit_opts;
 
@@ -314,7 +314,7 @@ PndLmdFitOptions PndLmdFitFacade::createFitOptions(const PndLmdAbstractData &lmd
   fit_opts.free_parameter_names = constructFreeFitParameterListFromConfig(
       fit_config_ptree.get_child("fit.free_parameter_names"));
 
-// switch range to momentum transfer as user usually specifies that in mrad
+  // switch range to momentum transfer as user usually specifies that in mrad
   if (LumiFit::T == lmd_data.getPrimaryDimension().dimension_options.dimension_type) {
     model_option_ptree.put("momentum_transfer_active", true);
     model_option_ptree.put("acceptance_correction_active", false);
@@ -346,7 +346,7 @@ PndLmdFitOptions PndLmdFitFacade::createFitOptions(const PndLmdAbstractData &lmd
   }
 
   ptree::iterator iter;
-// convert the ptree to simple format...
+  // convert the ptree to simple format...
   for (iter = model_option_ptree.begin(); iter != model_option_ptree.end(); iter++) {
     fit_opts.model_opt_map[iter->first] = iter->second.data();
   }
@@ -355,7 +355,7 @@ PndLmdFitOptions PndLmdFitFacade::createFitOptions(const PndLmdAbstractData &lmd
 }
 
 PndLmdFitDataBundle PndLmdFitFacade::doLuminosityFits(
-    std::vector<PndLmdAngularData>& lmd_data_vec) {
+    std::vector<PndLmdAngularData> &lmd_data_vec) {
   PndLmdDataFacade lmd_data_facade;
   PndLmdFitDataBundle data_bundle;
 
@@ -363,7 +363,7 @@ PndLmdFitDataBundle PndLmdFitFacade::doLuminosityFits(
 
   cout << "Running LumiFit on " << lmd_data_vec.size() << " angular data sets...." << endl;
 
-  for (auto& lmd_data : lmd_data_vec) {
+  for (auto &lmd_data : lmd_data_vec) {
     cout << "Data dimensions: " << lmd_data.getPrimaryDimension().createDimensionLabel();
     if (lmd_data.getSecondaryDimension().is_active)
       cout << " vs. " << lmd_data.getSecondaryDimension().createDimensionLabel();
@@ -394,7 +394,7 @@ PndLmdFitDataBundle PndLmdFitFacade::doLuminosityFits(
     if (fit_options.getModelOptionsPropertyTree().get<bool>("acceptance_correction_active")) {
       matching_acc = lmd_data_facade.getMatchingAcceptances(acceptance_pool, lmd_data);
 
-      for (auto const& acc : matching_acc) {
+      for (auto const &acc : matching_acc) {
         // set acc in factory
         model_factory.setAcceptance(acc);
 
@@ -418,7 +418,7 @@ PndLmdFitDataBundle PndLmdFitFacade::doLuminosityFits(
 }
 
 void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
-// generate model
+  // generate model
 
   PndLmdFitOptions fit_options(createFitOptions(lmd_data));
 
@@ -489,7 +489,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     else
       estimator.reset(new LogLikelihoodEstimator());
 
-    PndLmdRuntimeConfiguration& lmd_runtime_config = PndLmdRuntimeConfiguration::Instance();
+    PndLmdRuntimeConfiguration &lmd_runtime_config = PndLmdRuntimeConfiguration::Instance();
 
     estimator->setNumberOfThreads(lmd_runtime_config.getNumberOfThreads());
 
@@ -514,10 +514,10 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
 
     std::vector<std::string> var_names = { "tilt_x", "tilt_y" };
 
-    auto const& no_div_fit_res_params =
+    auto const &no_div_fit_res_params =
         lmd_data.getFitResults(fit_options_no_div).back().getFitParameters();
     // overwrite the start values
-    for (auto const& var : var_names) {
+    for (auto const &var : var_names) {
       for (auto const param : no_div_fit_res_params) {
         if (param.name.second == var) {
           model->getModelParameterSet().getModelParameter(var)->setValue(param.value);
@@ -541,7 +541,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     model_fit_facade.setModel(model);
 
     std::vector<std::string> scan_var_names = { "gauss_sigma_var1", "gauss_sigma_var2" };
-    std::vector<std::shared_ptr<ModelPar> > pars;
+    std::vector<std::shared_ptr<ModelPar>> pars;
     bool has_divergence_parameters(true);
     for (unsigned int i = 0; i < scan_var_names.size(); ++i) {
       std::shared_ptr<ModelPar> temp_par = model->getModelParameterSet().getModelParameter(
@@ -568,7 +568,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
   else {
     std::shared_ptr<Model> model = generateModel(lmd_data, fit_options);
 
-// init beam parameters in model
+    // init beam parameters in model
     initBeamParametersForModel(model, fit_options.getModelOptionsPropertyTree());
 
     if (model->init()) {
@@ -577,16 +577,16 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
       model->getModelParameterSet().printInfo();
     }
 
-// free parameters
+    // free parameters
     freeParametersForModel(model, fit_options);
 
-// set model
+    // set model
     model_fit_facade.setModel(model);
 
     unsigned int fit_dimension = fit_options.getModelOptionsPropertyTree().get<unsigned int>(
         "fit_dimension");
 
-// create and set data
+    // create and set data
     if (fit_dimension == 2) {
       std::cout << "creating 2D data..." << std::endl;
       model_fit_facade.setData(createData2D(lmd_data));
@@ -595,7 +595,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
       model_fit_facade.setData(createData1D(lmd_data));
     }
 
-// now set better starting amplitude value
+    // now set better starting amplitude value
     std::vector<DataStructs::DimensionRange> range = calcRange(lmd_data,
         fit_options.getEstimatorOptions());
     double integral_data = 0.0;
@@ -614,7 +614,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     cout << "Using start luminosity: " << lumi_start << endl;
     model->getModelParameterSet().setModelParameterValue("luminosity", lumi_start);
 
-// create minimizer instance with control parameter
+    // create minimizer instance with control parameter
     std::shared_ptr<ROOTMinimizer> minuit_minimizer(new ROOTMinimizer());
     //std::shared_ptr<CeresMinimizer> ceres_minimizer(new CeresMinimizer());
 
@@ -626,7 +626,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     else
       estimator.reset(new LogLikelihoodEstimator());
 
-    PndLmdRuntimeConfiguration& lmd_runtime_config = PndLmdRuntimeConfiguration::Instance();
+    PndLmdRuntimeConfiguration &lmd_runtime_config = PndLmdRuntimeConfiguration::Instance();
 
     estimator->setNumberOfThreads(lmd_runtime_config.getNumberOfThreads());
 
@@ -648,7 +648,7 @@ std::shared_ptr<Model> PndLmdFitFacade::generateModel(const PndLmdAngularData &l
   std::shared_ptr<Model> model = model_factory.generateModel(
       fit_options.getModelOptionsPropertyTree(), lmd_data);
 
-// init beam parameters in model
+  // init beam parameters in model
   initBeamParametersForModel(model, fit_options.getModelOptionsPropertyTree());
 
   if (model->init()) {
@@ -657,7 +657,7 @@ std::shared_ptr<Model> PndLmdFitFacade::generateModel(const PndLmdAngularData &l
     model->getModelParameterSet().printInfo();
   }
 
-// free parameters
+  // free parameters
   freeParametersForModel(model, fit_options);
 
   return model;
@@ -669,14 +669,14 @@ void PndLmdFitFacade::scanEstimatorSpace(PndLmdHistogramData &lmd_hist_data,
   cout << "Scanning estimator space with following fit options:" << endl;
   cout << fit_options << endl;
 
-// create estimator
+  // create estimator
   std::shared_ptr<ModelEstimator> estimator;
   if (fit_options.estimator_type == LumiFit::CHI2)
     estimator.reset(new Chi2Estimator());
   else
     estimator.reset(new LogLikelihoodEstimator());
 
-  PndLmdRuntimeConfiguration& lmd_runtime_config = PndLmdRuntimeConfiguration::Instance();
+  PndLmdRuntimeConfiguration &lmd_runtime_config = PndLmdRuntimeConfiguration::Instance();
 
   estimator->setNumberOfThreads(lmd_runtime_config.getNumberOfThreads());
 
@@ -693,7 +693,7 @@ void PndLmdFitFacade::scanEstimatorSpace(PndLmdHistogramData &lmd_hist_data,
   TVectorD datax(bins);
   TVectorD datay(bins);
   TVectorD dataz(bins);
-  auto& datapoints = scanned_data.getData();
+  auto &datapoints = scanned_data.getData();
   for (unsigned int i = 0; i < scanned_data.getData().size(); ++i) {
     datax[i] = datapoints[i].getBinnedDataPoint()->bin_center_value[0];
     datay[i] = datapoints[i].getBinnedDataPoint()->bin_center_value[1];
@@ -711,21 +711,21 @@ void PndLmdFitFacade::doFit(PndLmdHistogramData &lmd_hist_data,
   cout << fit_options << endl;
 
   ModelFitResult fit_result;
-//first check if this model with the fit options have already been fitted
+  //first check if this model with the fit options have already been fitted
   /*ModelFitResult fit_result = lmd_hist_data.getFitResult(fit_options);
    if (fit_result.getFitParameters().size() > 0) {
    cout << "Fit was already performed! Skipping..." << endl;
    return;
    }*/
 
-// create estimator
+  // create estimator
   std::shared_ptr<ModelEstimator> estimator;
   if (fit_options.estimator_type == LumiFit::CHI2)
     estimator.reset(new Chi2Estimator());
   else
     estimator.reset(new LogLikelihoodEstimator());
 
-  PndLmdRuntimeConfiguration& lmd_runtime_config = PndLmdRuntimeConfiguration::Instance();
+  PndLmdRuntimeConfiguration &lmd_runtime_config = PndLmdRuntimeConfiguration::Instance();
 
   estimator->setNumberOfThreads(lmd_runtime_config.getNumberOfThreads());
 
@@ -735,7 +735,7 @@ void PndLmdFitFacade::doFit(PndLmdHistogramData &lmd_hist_data,
 
   fit_result = model_fit_facade.Fit();
 
-// store fit results
+  // store fit results
   cout << "Adding fit result to storage..." << endl;
 
   lmd_hist_data.addFitResult(fit_options, fit_result);
@@ -756,34 +756,49 @@ void PndLmdFitFacade::fitVertexData(std::vector<PndLmdHistogramData> &lmd_data) 
     }
 
     // get histogram
-    const TH1D* hist = lmd_data[i].get1DHistogram();
+    const TH1D *hist = lmd_data[i].get1DHistogram();
     if (hist->Integral() < 400) {
       std::cout
           << "WARNING: not performing fit due to low statistics of the vertex distribution (below 400 events)\n";
       continue;
     }
 
-    double sigma_range(1.0);
+    double sigma_range(3.0);
 
     double hist_mean(hist->GetMean(1));
     double hist_rms(hist->GetRMS(1));
 
-    DataStructs::DimensionRange old_range = fit_options.est_opt.getFitRangeX();
-    if (lmd_data[i].getPrimaryDimension().dimension_options.track_type == LumiFit::MC) {
+    DataStructs::DimensionRange user_range = fit_options.est_opt.getFitRangeX();
+    if (!user_range.is_active) {
       DataStructs::DimensionRange fit_range;
-      fit_range.range_low = hist_mean - sigma_range * hist_rms;
-      fit_range.range_high = hist_mean + sigma_range * hist_rms;
+      if (lmd_data[i].getPrimaryDimension().dimension_options.track_type == LumiFit::MC) {
 
-      fit_range.is_active = true;
-      fit_options.est_opt.setFitRangeX(fit_range);
-    } else if (lmd_data[i].getPrimaryDimension().dimension_options.track_type == LumiFit::RECO) {
-      DataStructs::DimensionRange fit_range;
+        fit_range.range_low = hist_mean - sigma_range * hist_rms;
+        fit_range.range_high = hist_mean + sigma_range * hist_rms;
 
-      fit_range.range_low = hist_mean - sigma_range * hist_rms;
-      fit_range.range_high = hist_mean + sigma_range * hist_rms;
+        fit_range.is_active = true;
+      } else if (lmd_data[i].getPrimaryDimension().dimension_options.track_type == LumiFit::RECO) {
+        fit_range.range_low = hist_mean - sigma_range * hist_rms;
+        fit_range.range_high = hist_mean + sigma_range * hist_rms;
 
-      //fit_range.is_active = true;
-      //fit_options.est_opt.setFitRangeX(fit_range);
+        fit_range.is_active = true;
+      }
+
+      if (fit_range.is_active) {
+        if (fit_range.range_low < hist->GetXaxis()->GetXmin()) {
+          fit_range.range_low = hist->GetXaxis()->GetXmin();
+          std::cout
+              << "WARNING: Data is underflowing the histogram! Something in track reco went wrong"
+              << ", you should check this. Proceeding, but be aware that this can lead to incorrect results! \n";
+        }
+        if (fit_range.range_high > hist->GetXaxis()->GetXmax()) {
+          fit_range.range_high = hist->GetXaxis()->GetXmax();
+          std::cout
+              << "WARNING: Data is overflowing the histogram! Something in track reco went wrong"
+              << ", you should check this. Proceeding, but be aware that this can lead to incorrect results! \n";
+        }
+        fit_options.est_opt.setFitRangeX(fit_range);
+      }
     }
 
     model_fit_facade.setData(createData1D(lmd_data[i]));
@@ -797,7 +812,7 @@ void PndLmdFitFacade::fitVertexData(std::vector<PndLmdHistogramData> &lmd_data) 
 
     // now we have to set good starting values and free parameters
     if (model_type == LumiFit::GAUSSIAN) { // simple gaussian
-      // amplitude of gauss is equal to number of events in the histogram
+                                           // amplitude of gauss is equal to number of events in the histogram
       vertex_model->getModelParameterSet().getModelParameter("gauss_amplitude")->setParameterFixed(
           false);
       vertex_model->getModelParameterSet().getModelParameter("gauss_amplitude")->setValue(
