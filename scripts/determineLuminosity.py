@@ -522,10 +522,10 @@ print(dirs)
 for dir in dirs:
     scen = Scenario(dir)
     print("creating scenario:", dir)
-    if args.disable_xy_cut or "/no_alignment_correction" in dir:
+    if args.disable_xy_cut or ("/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir):
         print("Disabling xy cut!")
         scen.use_xy_cut = False  # for testing purposes
-    if args.disable_m_cut or "/no_alignment_correction" in dir:
+    if args.disable_m_cut or ("/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir):
         print("Disabling m cut!")
         scen.use_m_cut = False  # for testing purposes
     active_scenario_stack.append(scen)
