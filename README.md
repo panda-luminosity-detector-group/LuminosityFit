@@ -1,5 +1,7 @@
 # LuminosityFit
 
+Note: For future development I would recommend to port the necessary code python and perform all needed operations in tensorflow, numpy and pandas. This will reduce the repo size and improve the UX and DX dramatically. Also when using tensorflow many features like running on gpus ship out of the box. Performance improvements can also be expected.
+
 ## Installation
 
 ### Prerequisites
