@@ -43,6 +43,13 @@ trkcut=true
 if [ "${alignment_matrices_path}" = "" ]; then
   trkcut=false
 fi
+
+# new: check if cuts are force disabled
+if ["${force_cut_disable}" = "True"]; then
+  echo "ATTENTION! Force-disabling track cut!"
+  trkcut=false
+fi
+
 #merge hits on sensors from different sides. true=yes
 mergedHits=true
 ## Write all MC info in TrkQA array
@@ -100,6 +107,8 @@ if [ "$prefilter" = "true" ]; then
 
       #now overwrite the Lumi_Track_ sym link with the filtered version
       ln -sf ${workpathname}/Lumi_TrackFiltered_${start_evt}.root ${workpathname}/Lumi_Track_${start_evt}.root
+
+      # don't copy to permanent storage, but don't delete this comment just yet
       cp ${workpathname}/Lumi_Track_${start_evt}.root ${pathname}/Lumi_TrackFiltered_${start_evt}.root
     fi
   fi
