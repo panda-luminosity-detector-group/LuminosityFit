@@ -45,7 +45,7 @@ if [ "${alignment_matrices_path}" = "" ]; then
 fi
 
 # new: check if cuts are force disabled
-if ["${force_cut_disable}" = "True"]; then
+if [ "${force_cut_disable}" = "True" ]; then
   echo "ATTENTION! Force-disabling track cut!"
   trkcut=false
 fi
