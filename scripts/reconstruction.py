@@ -166,8 +166,10 @@ def startReconstruction(reco_params, align_params, dirname, force_level=0,
     job.add_exported_user_variable('dirname', dirname_full)
     job.add_exported_user_variable('path_mc_data', path_mc_data)
     job.add_exported_user_variable('pathname', pathname_full)
-
     job.add_exported_user_variable('force_level', force_level)
+    
+    if os.environ['force_cut_disable'] == 'True':
+        job.add_exported_user_variable('force_cut_disable', 'True')
 
     job = alignment.appendAlignmentInfoToJob(job, align_params)
     job = appendRecoInfoToJob(job, reco_params)
