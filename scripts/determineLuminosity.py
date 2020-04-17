@@ -31,6 +31,7 @@ class Scenario:
         self.elastic_pbarp_integrated_cross_secion_in_mb = None
         self.use_m_cut = True
         self.use_xy_cut = True
+        self.use_ip_determination = True
 
         self.alignment_parameters = {}
 
@@ -377,39 +378,45 @@ def lumiDetermination(scen):
 
     if state == 2:
         # check if ip was already determined
-        temp_dir_searcher = general.DirectorySearcher(
-            ['merge_data', 'binning_300'])
-        temp_dir_searcher.searchListOfDirectories(dir_path, 'reco_ip.json')
-        found_dirs = temp_dir_searcher.getListOfDirectories()
-        if not found_dirs:
-            # 2. determine offset on the vertex data sample
-            os.chdir(lmd_fit_bin_path)
+        if scen.use_ip_determination:
             temp_dir_searcher = general.DirectorySearcher(
                 ['merge_data', 'binning_300'])
-            temp_dir_searcher.searchListOfDirectories(
-                dir_path, ['lmd_vertex_data_', 'of1.root'])
+            temp_dir_searcher.searchListOfDirectories(dir_path, 'reco_ip.json')
             found_dirs = temp_dir_searcher.getListOfDirectories()
-            bashcommand = './determineBeamOffset -p ' + \
-                found_dirs[0] + ' -c ' + '../../vertex_fitconfig.json'
-            returnvalue = subprocess.call(bashcommand.split())
-            ip_rec_file = found_dirs[0] + '/reco_ip.json'
+            if not found_dirs:
+                # 2. determine offset on the vertex data sample
+                os.chdir(lmd_fit_bin_path)
+                temp_dir_searcher = general.DirectorySearcher(
+                    ['merge_data', 'binning_300'])
+                temp_dir_searcher.searchListOfDirectories(
+                    dir_path, ['lmd_vertex_data_', 'of1.root'])
+                found_dirs = temp_dir_searcher.getListOfDirectories()
+                bashcommand = './determineBeamOffset -p ' + \
+                    found_dirs[0] + ' -c ' + '../../vertex_fitconfig.json'
+                returnvalue = subprocess.call(bashcommand.split())
+                ip_rec_file = found_dirs[0] + '/reco_ip.json'
+            else:
+                ip_rec_file = found_dirs[0] + '/reco_ip.json'
+
+            file_content = open(ip_rec_file)
+            ip_rec_data = json.load(file_content)
+
+            scen.rec_ip_info['ip_offset_x'] = float('{0:.3f}'.format(
+                round(float(ip_rec_data["ip_x"]), 3)))  # in cm
+            scen.rec_ip_info['ip_offset_y'] = float(
+                '{0:.3f}'.format(round(float(ip_rec_data["ip_y"]), 3)))
+            scen.rec_ip_info['ip_offset_z'] = float(
+                '{0:.3f}'.format(round(float(ip_rec_data["ip_z"]), 3)))
+
+            print("Finished IP determination for this scenario!")
         else:
-            ip_rec_file = found_dirs[0] + '/reco_ip.json'
-
-        file_content = open(ip_rec_file)
-        ip_rec_data = json.load(file_content)
-
-        scen.rec_ip_info['ip_offset_x'] = float('{0:.3f}'.format(
-            round(float(ip_rec_data["ip_x"]), 3)))  # in cm
-        scen.rec_ip_info['ip_offset_y'] = float(
-            '{0:.3f}'.format(round(float(ip_rec_data["ip_y"]), 3)))
-        scen.rec_ip_info['ip_offset_z'] = float(
-            '{0:.3f}'.format(round(float(ip_rec_data["ip_z"]), 3)))
+            scen.rec_ip_info['ip_offset_x'] = 0.0
+            scen.rec_ip_info['ip_offset_y'] = 0.0
+            scen.rec_ip_info['ip_offset_z'] = 0.0
+            print("Skipped IP determination for this scenario!")
 
         state += 1
         last_state += 1
-
-        print("Finished IP determination for this scenario!")
 
     if state == 3:
         # 3a. track filter the dpm data using the ip values and create ang
@@ -495,6 +502,8 @@ parser.add_argument('--disable_xy_cut', action='store_true',
 parser.add_argument('--disable_m_cut', action='store_true',
                     help='Disable the tmva based momentum cut filter after the'
                     ' backtracking stage to remove background.')
+parser.add_argument('--disable_ip_determination', action='store_true',
+                    help='Disable the determination of the IP. Instead (0,0,0) is assumed')
 parser.add_argument('--use_devel_queue', action='store_true',
                     help='If flag is set, the devel queue is used')
 
@@ -528,7 +537,11 @@ for dir in dirs:
     if args.disable_m_cut or ("/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir):
         print("Disabling m cut!")
         scen.use_m_cut = False  # for testing purposes
+    if args.disable_ip_determination or ("/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir):
+        print("Disabling IP determination!")
+        scen.use_ip_determination = False
     active_scenario_stack.append(scen)
+
 
 # now just keep processing the active_stack
 while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
