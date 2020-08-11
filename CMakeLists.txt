@@ -43,6 +43,7 @@ find_package(Boost COMPONENTS
     filesystem
     REQUIRED)
 find_package(ROOT REQUIRED)
+find_package(PANDAROOT)
 
 include_directories(./)
 include_directories(./model_framework)
