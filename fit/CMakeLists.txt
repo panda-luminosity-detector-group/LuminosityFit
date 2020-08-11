@@ -17,7 +17,7 @@ PndLmdFitStorage.cxx
 add_library(LmdFit SHARED ${SRCS} LmdFitDict.cxx)
 
 target_include_directories(LmdFit 
-	PUBLIC ${ROOT_INCLUDE_DIR})
+	PUBLIC ${ROOT_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 target_link_libraries(LmdFit
     PUBLIC ROOT::Core
 	INTERFACE Model)
