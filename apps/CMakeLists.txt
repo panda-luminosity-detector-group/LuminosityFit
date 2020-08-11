@@ -8,14 +8,9 @@ include_directories(${INCLUDE_DIRECTORIES})
 
 ########################### active apps ##################################
 
+if (PANDAROOT_FOUND)
 add_executable(calculateElasticCrossSection calculateElasticCrossSection.cxx)
 target_link_libraries(calculateElasticCrossSection LmdUI ROOT::Hist ROOT::Gpad ROOT::RIO)
-
-add_executable(generatePbarPElasticScattering generatePbarPElasticScattering.cxx)
-target_link_libraries(generatePbarPElasticScattering LmdModel LmdFitData Boost::filesystem ROOT::Tree ROOT::MathCore ROOT::Physics ROOT::EG)
-	
-add_executable(checkFramework checkFramework.cxx)
-target_link_libraries(checkFramework Model ROOT::Core ROOT::MathCore ROOT::RIO ROOT::Hist Boost::system)
 
 add_executable(checkDivergenceSmearing checkDivergenceSmearing.cxx)
 target_link_libraries(checkDivergenceSmearing LmdUI ROOT::Hist ROOT::RIO)
@@ -53,7 +48,24 @@ target_link_libraries(runLmdFit LmdUI)
 add_executable(fitRawDPMElasticData fitRawDPMElasticData.cxx)
 target_link_libraries(fitRawDPMElasticData LmdUI ROOT::EG ROOT::Gpad ROOT::Hist ROOT::Tree ROOT::Physics ROOT::MathCore ROOT::Graf)
 
+add_executable(plot2DDPMModel plot2DDPMModel.cxx)
+target_link_libraries(plot2DDPMModel LmdUI ROOT::Hist ROOT::RIO)
 
+add_executable(generatePbarPElasticScattering generatePbarPElasticScattering.cxx)
+target_link_libraries(generatePbarPElasticScattering LmdModel LmdFitData Boost::filesystem ROOT::Tree ROOT::MathCore ROOT::Physics ROOT::EG)
+	
+add_executable(checkFramework checkFramework.cxx)
+target_link_libraries(checkFramework Model ROOT::Core ROOT::MathCore ROOT::RIO ROOT::Hist Boost::system)
+
+else()
+
+add_executable(generatePbarPElasticScattering generatePbarPElasticScattering.cxx)
+target_link_libraries(generatePbarPElasticScattering LmdModel LmdFitData Boost::filesystem ROOT::Tree ROOT::MathCore ROOT::Physics ROOT::EG)
+	
+add_executable(checkFramework checkFramework.cxx)
+target_link_libraries(checkFramework Model ROOT::Core ROOT::MathCore ROOT::RIO ROOT::Hist Boost::system)
+
+endif()
 
 
 ########################### inactive apps ##################################
@@ -96,5 +108,3 @@ target_link_libraries(fitRawDPMElasticData LmdUI ROOT::EG ROOT::Gpad ROOT::Hist 
 
 ########################### create DPMModel2D plotter app ##################################
 
-add_executable(plot2DDPMModel plot2DDPMModel.cxx)
-target_link_libraries(plot2DDPMModel LmdUI ROOT::Hist ROOT::RIO)

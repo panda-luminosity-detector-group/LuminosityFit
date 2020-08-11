@@ -1,8 +1,5 @@
 #include "PndLmdRuntimeConfiguration.h"
 
-#include "PndLmdDataFacade.h"
-#include "PndLmdFitFacade.h"
-
 #include <iostream>
 
 #include "boost/property_tree/json_parser.hpp"

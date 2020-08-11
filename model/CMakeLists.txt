@@ -28,7 +28,7 @@ add_library(LmdModel SHARED ${SRCS})
 target_include_directories(LmdModel
 	PRIVATE ${ROOT_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 target_link_libraries(LmdModel 
-	PUBLIC Model
-	PRIVATE LmdUI Boost::thread ${ROOT_LIBRARIES} pthread
+	PUBLIC Model LmdRuntimeConfig
+	PRIVATE Boost::thread ${ROOT_LIBRARIES} pthread
 	INTERFACE LmdFitData
 )

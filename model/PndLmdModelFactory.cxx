@@ -36,7 +36,6 @@
 #include "model/PndLmdDifferentialSmearingConvolutionModel2D.h"
 #include "PndLmdDPMModelParametrization.h"
 
-#include "ui/PndLmdDataFacade.h"
 #include "data/PndLmdAngularData.h"
 
 #include <iostream>
