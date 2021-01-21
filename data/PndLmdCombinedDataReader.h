@@ -1,14 +1,8 @@
-/*
- * PndLmdCombinedDataReader.h
- *
- *  Created on: Aug 26, 2013
- *      Author: steve
- */
-
 #ifndef PNDLMDCOMBINEDDATAREADER_H_
 #define PNDLMDCOMBINEDDATAREADER_H_
 
 #include "PndLmdDataReader.h"
+#include "data/TrackData.h"
 
 #include "TChain.h"
 #include "TClonesArray.h"
@@ -27,7 +21,7 @@ class PndLmdCombinedDataReader: public PndLmdDataReader {
     void initDataStream();
     void clearDataStream();
 
-    TClonesArray* getEntry(unsigned int i);
+    std::vector<Lmd::Data::TrackPairInfo> getEntry(unsigned int i);
   public:
     PndLmdCombinedDataReader();
     virtual ~PndLmdCombinedDataReader();

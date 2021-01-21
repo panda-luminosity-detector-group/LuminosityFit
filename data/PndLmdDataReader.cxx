@@ -1,10 +1,3 @@
-/*
- * PndLmdDataReader.cxx
- *
- *  Created on: Aug 24, 2013
- *      Author: steve
- */
-
 #include "PndLmdDataReader.h"
 #include "PndLmdAbstractData.h"
 #include "PndLmdHistogramData.h"
@@ -16,7 +9,7 @@
 
 #include "boost/progress.hpp"
 
-#include "PndLmdTrackQ.h"
+#include "TrackData.h"
 
 #include "TDatabasePDG.h"
 #include "TClonesArray.h"
@@ -197,11 +190,10 @@ void PndLmdDataReader::read() {
       // adjust the minimum number of events to the remaining data objects
       min_num_events = getNextMinEventIndex(lmd_vec);
     }
-
-    TClonesArray* tracks = getEntry(j);
-    for (unsigned int track_index = 0; track_index < tracks->GetEntries();
-        track_index++) {
-      fillData((PndLmdTrackQ*) tracks->At(track_index));
+    
+    std::vector<Lmd::Data::TrackPairInfo> track_pair_infos = getEntry(j);
+    for (auto const& trk_pair_info : track_pair_infos) {
+      fillData(trk_pair_info);
     }
 
     ++show_progress;
@@ -210,21 +202,15 @@ void PndLmdDataReader::read() {
   cleanup();
 }
 
-void PndLmdDataReader::fillData(PndLmdTrackQ *track_pars) {
-  PndLmdTrackQ trackqref = *track_pars;
-
-  if (isGoodTrack(trackqref)) {
+void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
+  if (isGoodTrack(track_info)) {
     std::vector<double> data(4);
-    TVector3 mom_mc;
-    mom_mc.SetMagThetaPhi(track_pars->GetMCmom(), track_pars->GetMCtheta(),
-        track_pars->GetMCphi());
-    TVector3 mom_rec;
-    mom_rec.SetMagThetaPhi(track_pars->GetIPmom(), track_pars->GetIPtheta(),
-        track_pars->GetIPphi());
-    data[0] = mom_rec.X() / mom_rec.Z();
-    data[1] = mom_rec.Y() / mom_rec.Z();
-    data[2] = mom_mc.X() / mom_mc.Z();
-    data[3] = mom_mc.Y() / mom_mc.Z();
+    auto const& mom_mc = track_info.MCIP.Momentum;
+    auto const& mom_rec = track_info.RecoIP.Momentum;
+    data[0] = mom_rec[0] / mom_rec[2];
+    data[1] = mom_rec[1] / mom_rec[2];
+    data[2] = mom_mc[0] / mom_mc[2];
+    data[3] = mom_mc[1] / mom_mc[2];
 
     for (unsigned int i = 0; i < registered_map_data.size(); ++i) {
       registered_map_data[i]->addData(data);
@@ -232,57 +218,57 @@ void PndLmdDataReader::fillData(PndLmdTrackQ *track_pars) {
   }
 
   for (unsigned int i = 0; i < registered_data.size(); i++) {
-    if (!skipDataObject(registered_data[i], trackqref)) {
-      if (successfullyPassedFilters(registered_data[i], trackqref)) {
+    if (!skipDataObject(registered_data[i], track_info)) {
+      if (successfullyPassedFilters(registered_data[i], track_info)) {
         if (registered_data[i]->getSecondaryDimension().is_active) {
           registered_data[i]->addData(
-              getTrackParameterValue(trackqref,
+              getTrackParameterValue(track_info,
                   registered_data[i]->getPrimaryDimension()),
-              getTrackParameterValue(trackqref,
+              getTrackParameterValue(track_info,
                   registered_data[i]->getSecondaryDimension()));
         } else {
           registered_data[i]->addData(
-              getTrackParameterValue(trackqref,
+              getTrackParameterValue(track_info,
                   registered_data[i]->getPrimaryDimension()));
         }
       }
     }
   }
   for (unsigned int i = 0; i < registered_acceptances.size(); i++) {
-    bool track_accepted = wasReconstructed(trackqref);
-    if (0 <= trackqref.GetSecondary()) { // if its secondary (<0 is primary)
+    bool track_accepted = wasReconstructed(track_info);
+    if (track_info.IsSecondary) {
       if (!track_accepted)
         continue;
     }
     // skip tracks that do not pass the filters
-    if (successfullyPassedFilters(registered_acceptances[i], trackqref)) {
+    if (successfullyPassedFilters(registered_acceptances[i], track_info)) {
       if (registered_acceptances[i]->getSecondaryDimension().is_active) {
         registered_acceptances[i]->addData(track_accepted,
-            getTrackParameterValue(trackqref,
+            getTrackParameterValue(track_info,
                 registered_acceptances[i]->getPrimaryDimension()),
-            getTrackParameterValue(trackqref,
+            getTrackParameterValue(track_info,
                 registered_acceptances[i]->getSecondaryDimension()));
       } else {
         registered_acceptances[i]->addData(track_accepted,
-            getTrackParameterValue(trackqref,
+            getTrackParameterValue(track_info,
                 registered_acceptances[i]->getPrimaryDimension()));
       }
     }
   }
 }
 
-bool PndLmdDataReader::isGoodTrack(PndLmdTrackQ &track_pars) const {
-  return (0 == track_pars.GetTrkRecStatus());
+bool PndLmdDataReader::isGoodTrack(const Lmd::Data::TrackPairInfo &track_info) const {
+  return (track_info.IsReconstructedAtIP);
 }
 
-bool PndLmdDataReader::wasReconstructed(PndLmdTrackQ &track_pars) const {
-  return (0 <= track_pars.GetTrkRecStatus());
+bool PndLmdDataReader::wasReconstructed(const Lmd::Data::TrackPairInfo &track_info) const {
+  return (track_info.IsReconstructedAtIP);
 }
 
 bool PndLmdDataReader::skipDataObject(const PndLmdAbstractData* data,
-    PndLmdTrackQ &track_pars) const {
+    const Lmd::Data::TrackPairInfo &track_info) const {
 // if it was not reconstructed and this information is required
-  if (!wasReconstructed(track_pars)) {
+  if (!wasReconstructed(track_info)) {
     if (LumiFit::RECO
         == data->getPrimaryDimension().dimension_options.track_type) {
       return true;
@@ -305,14 +291,14 @@ bool PndLmdDataReader::skipDataObject(const PndLmdAbstractData* data,
     }
   }
   if (LumiFit::MC == data->getPrimaryDimension().dimension_options.track_type) {
-    if (0 <= track_pars.GetSecondary())
+    if (track_info.IsSecondary)
       return true;
   }
   return false;
 }
 
 bool PndLmdDataReader::successfullyPassedFilters(const PndLmdAbstractData* data,
-    PndLmdTrackQ &track_pars) const {
+    const Lmd::Data::TrackPairInfo &track_info) const {
 // if it fails to pass a filter
   const std::set<LumiFit::LmdDimension> &selection_dimensions(
       data->getSelectorSet());
@@ -321,7 +307,7 @@ bool PndLmdDataReader::successfullyPassedFilters(const PndLmdAbstractData* data,
   while (selection_dimension_iterator != selection_dimensions.end()) {
     if (false
         == selection_dimension_iterator->dimension_range.isDataWithinRange(
-            getTrackParameterValue(track_pars,
+            getTrackParameterValue(track_info,
                 *selection_dimension_iterator))) {
       return false;
     }
@@ -330,7 +316,7 @@ bool PndLmdDataReader::successfullyPassedFilters(const PndLmdAbstractData* data,
   return true;
 }
 
-double PndLmdDataReader::getTrackParameterValue(PndLmdTrackQ &track_pars,
+double PndLmdDataReader::getTrackParameterValue(const Lmd::Data::TrackPairInfo &track_info,
     const LumiFit::LmdDimension &lmd_dim) const {
   TVector3 pos(0.0, 0.0, 0.0);
   TVector3 mom(0.0, 0.0, 1.0);
@@ -340,23 +326,25 @@ double PndLmdDataReader::getTrackParameterValue(PndLmdTrackQ &track_pars,
   double theta_y(0.0);
 
   if (lmd_dim.dimension_options.dimension_type == LumiFit::PARTICLE_ID) {
-    return 1.0 * track_pars.GetPDGcode();
+    return 1.0 * track_info.PDGCode;
   }
 
   if (lmd_dim.dimension_options.dimension_type == LumiFit::SECONDARY) {
-    return 1.0 * track_pars.GetSecondary();
+    return 1.0 * track_info.IsSecondary;
   }
 
   if (lmd_dim.dimension_options.track_type == LumiFit::MC
       || lmd_dim.dimension_options.track_type == LumiFit::MC_ACC) {
     if (lmd_dim.dimension_options.track_param_type == LumiFit::IP) {
-      track_pars.GetMCpoint(pos);
-      mom.SetMagThetaPhi(track_pars.GetMCmom(), track_pars.GetMCtheta(),
-          track_pars.GetMCphi());
+      auto mc_pos = track_info.MCIP.Position;
+      pos.SetXYZ(mc_pos[0], mc_pos[1], mc_pos[2]);
+      auto mc_mom = track_info.MCIP.Position;
+      mom.SetXYZ(mc_mom[0], mc_mom[1], mc_mom[2]);
     } else if (lmd_dim.dimension_options.track_param_type == LumiFit::LMD) {
-      track_pars.GetMCpointLMD(pos);
-      mom.SetMagThetaPhi(track_pars.GetMCmomLMD(), track_pars.GetMCthetaLMD(),
-          track_pars.GetMCphiLMD());
+      auto mc_pos = track_info.MCLMD.Position;
+      pos.SetXYZ(mc_pos[0], mc_pos[1], mc_pos[2]);
+      auto mc_mom = track_info.MCLMD.Position;
+      mom.SetXYZ(mc_mom[0], mc_mom[1], mc_mom[2]);
     }
     theta = mom.Theta();
     phi = mom.Phi();
@@ -364,14 +352,15 @@ double PndLmdDataReader::getTrackParameterValue(PndLmdTrackQ &track_pars,
     theta_y = mom.Y() / mom.Z();
   } else if (lmd_dim.dimension_options.track_type == LumiFit::RECO) {
     if (lmd_dim.dimension_options.track_param_type == LumiFit::IP) {
-      track_pars.GetIPpoint(pos);
-      mom.SetMagThetaPhi(track_pars.GetIPmom(), track_pars.GetIPtheta(),
-          track_pars.GetIPphi());
+      auto reco_pos = track_info.RecoIP.Position;
+      pos.SetXYZ(reco_pos[0], reco_pos[1], reco_pos[2]);
+      auto reco_mom = track_info.RecoIP.Position;
+      mom.SetXYZ(reco_mom[0], reco_mom[1], reco_mom[2]);
     } else if (lmd_dim.dimension_options.track_param_type == LumiFit::LMD) {
-      track_pars.GetLMDpoint(pos);
-      mom.SetMagThetaPhi(beam.Vect().Mag(), track_pars.GetLMDtheta(),
-          track_pars.GetLMDphi());
-
+      auto reco_pos = track_info.RecoLMD.Position;
+      pos.SetXYZ(reco_pos[0], reco_pos[1], reco_pos[2]);
+      auto reco_mom = track_info.RecoLMD.Position;
+      mom.SetXYZ(reco_mom[0], reco_mom[1], reco_mom[2]);
     }
     theta = mom.Theta();
     phi = mom.Phi();
@@ -383,16 +372,23 @@ double PndLmdDataReader::getTrackParameterValue(PndLmdTrackQ &track_pars,
     TVector3 mcpos(0.0, 0.0, 0.0);
     TVector3 mcmom(0.0, 0.0, 0.0);
     if (lmd_dim.dimension_options.track_param_type == LumiFit::IP) {
-      track_pars.GetMCpoint(mcpos);
-      mcmom.SetMagThetaPhi(1.0, track_pars.GetMCtheta(), track_pars.GetMCphi());
-      track_pars.GetIPpoint(pos);
-      mom.SetMagThetaPhi(1.0, track_pars.GetIPtheta(), track_pars.GetIPphi());
+      auto mc_pos = track_info.MCIP.Position;
+      mcpos.SetXYZ(mc_pos[0], mc_pos[1], mc_pos[2]);
+      auto mc_mom = track_info.MCIP.Position;
+      mcmom.SetXYZ(mc_mom[0], mc_mom[1], mc_mom[2]);
+      auto reco_pos = track_info.RecoIP.Position;
+      pos.SetXYZ(reco_pos[0], reco_pos[1], reco_pos[2]);
+      auto reco_mom = track_info.RecoIP.Position;
+      mom.SetXYZ(reco_mom[0], reco_mom[1], reco_mom[2]);
     } else if (lmd_dim.dimension_options.track_param_type == LumiFit::LMD) {
-      track_pars.GetMCpointLMD(mcpos);
-      mcmom.SetMagThetaPhi(1.0, track_pars.GetMCthetaLMD(),
-          track_pars.GetMCphiLMD());
-      track_pars.GetLMDpoint(pos);
-      mom.SetMagThetaPhi(1.0, track_pars.GetLMDtheta(), track_pars.GetLMDphi());
+      auto mc_pos = track_info.MCLMD.Position;
+      mcpos.SetXYZ(mc_pos[0], mc_pos[1], mc_pos[2]);
+      auto mc_mom = track_info.MCLMD.Position;
+      mcmom.SetXYZ(mc_mom[0], mc_mom[1], mc_mom[2]);
+      auto reco_pos = track_info.RecoLMD.Position;
+      pos.SetXYZ(reco_pos[0], reco_pos[1], reco_pos[2]);
+      auto reco_mom = track_info.RecoLMD.Position;
+      mom.SetXYZ(reco_mom[0], reco_mom[1], reco_mom[2]);
     }
 
     pos.SetXYZ(pos.X() - mcpos.X(), pos.Y() - mcpos.Y(), pos.Z() - mcpos.Z());

@@ -1,10 +1,3 @@
-/*
- * PndLmdDataReader.h
- *
- *  Created on: Aug 24, 2013
- *      Author: steve
- */
-
 #ifndef PNDLMDDATAREADER_H_
 #define PNDLMDDATAREADER_H_
 
@@ -21,10 +14,15 @@ class PndLmdAngularData;
 class PndLmdAcceptance;
 class PndLmdResolution;
 class PndLmdMapData;
+namespace Lmd {
+    namespace Data {
+      class TrackPairInfo;
+  }
+}
+
 
 class TDatabasePDG;
 class PndLmdDim;
-class PndLmdTrackQ;
 class TClonesArray;
 
 class PndLmdDataReader {
@@ -41,19 +39,19 @@ private:
       int num_events);
   int getNextMinEventIndex(std::vector<PndLmdAbstractData*> &lmd_vec);
 
-  double getSingleTrackParameterValue(PndLmdTrackQ &track_pars,
+  double getSingleTrackParameterValue(const Lmd::Data::TrackPairInfo &track_info,
       const LumiFit::LmdDimension &lmd_dim) const;
-  double getTrackParameterValue(PndLmdTrackQ &track_pars,
+  double getTrackParameterValue(const Lmd::Data::TrackPairInfo &track_info,
       const LumiFit::LmdDimension &lmd_dim) const;
 
-  bool wasReconstructed(PndLmdTrackQ &track_pars) const;
-  bool isGoodTrack(PndLmdTrackQ &track_pars) const;
+  bool wasReconstructed(const Lmd::Data::TrackPairInfo &track_info) const;
+  bool isGoodTrack(const Lmd::Data::TrackPairInfo &track_info) const;
   bool skipDataObject(const PndLmdAbstractData* data,
-      PndLmdTrackQ &track_pars) const;
+      const Lmd::Data::TrackPairInfo &track_info) const;
   bool successfullyPassedFilters(const PndLmdAbstractData* data,
-      PndLmdTrackQ &track_pars) const;
+      const Lmd::Data::TrackPairInfo &track_info) const;
 
-  void fillData(PndLmdTrackQ *track_pars);
+  void fillData(const Lmd::Data::TrackPairInfo &track_pars);
 
   void cleanup();
 
@@ -61,7 +59,7 @@ private:
   virtual void initDataStream() =0;
   virtual void clearDataStream() =0;
 
-  virtual TClonesArray* getEntry(unsigned int i) =0;
+  virtual std::vector<Lmd::Data::TrackPairInfo> getEntry(unsigned int i) =0;
 
   TLorentzVector beam;
 

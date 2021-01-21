@@ -32,6 +32,7 @@ message( STATUS "MINSIZEREL is ${CMAKE_CXX_FLAGS_MINSIZEREL}")
 message( STATUS "Use this CMake flag to select build type: -DCMAKE_BUILD_TYPE=BUILD_TYPE")
 message( STATUS "Using build type: " ${CMAKE_BUILD_TYPE} )
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Enable -fPIC flag
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)

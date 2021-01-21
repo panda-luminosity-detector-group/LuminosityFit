@@ -1,23 +1,23 @@
 set(ROOT_DICT_HEADERS
-data/PndLmdFitDataBundle.h
-data/PndLmdAbstractData.h
-data/PndLmdHistogramData.h
-data/PndLmdAngularData.h
-data/PndLmdAcceptance.h
-data/PndLmdMapData.h
-LumiFitStructs.h
+	data/PndLmdFitDataBundle.h
+	data/PndLmdAbstractData.h
+	data/PndLmdHistogramData.h
+	data/PndLmdAngularData.h
+	data/PndLmdAcceptance.h
+	data/PndLmdMapData.h
+	LumiFitStructs.h
 )
 
 set(INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/model_framework ${CMAKE_SOURCE_DIR})
 ROOT_GENERATE_DICTIONARY(LmdFitDataDict ${ROOT_DICT_HEADERS} LINKDEF LinkDef.h)
 
 set(SRCS
-PndLmdAbstractData.cxx
-PndLmdAcceptance.cxx
-PndLmdAngularData.cxx
-PndLmdMapData.cxx
-PndLmdFitDataBundle.cxx
-PndLmdHistogramData.cxx
+	PndLmdAbstractData.cxx
+	PndLmdAcceptance.cxx
+	PndLmdAngularData.cxx
+	PndLmdMapData.cxx
+	PndLmdFitDataBundle.cxx
+	PndLmdHistogramData.cxx
 )
 
 add_library(LmdFitData SHARED ${SRCS} LmdFitDataDict.cxx)
@@ -41,15 +41,24 @@ add_custom_command(TARGET LmdFitData
  		   COMMENT "Generating root map..."
 )
 
+add_library(LmdFitDataReader SHARED PndLmdDataReader.cxx)
+
+target_include_directories(LmdFitDataReader
+	PUBLIC ${ROOT_INCLUDE_DIR}
+)
+target_link_libraries(LmdFitDataReader
+	PUBLIC LmdFitData
+)
+
+
 if (PANDAROOT_FOUND)
 	set(SRCS
-		PndLmdDataReader.cxx
 		PndLmdCombinedDataReader.cxx
 		PndLmdSeperateDataReader.cxx
 	)
 	add_library(LmdFitPandaDataIO SHARED ${SRCS})
 	target_link_libraries(LmdFitPandaDataIO
-		PUBLIC ROOT::RIO
+		PUBLIC ROOT::RIO LmdFitDataReader
 		PRIVATE PndData LmdTool 
 	)
 else()
