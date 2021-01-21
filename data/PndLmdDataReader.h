@@ -75,6 +75,7 @@ public:
   void setBeam(double lab_momentum);
 
   void addFilePath(TString file_path);
+  void addFileList(const std::string &filelist);
 
   void registerMapData(std::vector<PndLmdMapData> &data_vec);
   int registerData(PndLmdHistogramData* data);

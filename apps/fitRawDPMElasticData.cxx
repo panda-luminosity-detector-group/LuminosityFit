@@ -43,9 +43,6 @@
 #include "TCanvas.h"
 #include "TLatex.h"
 
-#include "pnddata/PndMCTrack.h"
-#include "detectors/lmd/LmdQA/PndLmdTrackQ.h"
-
 struct data_options {
   double momentum;
   double theta_bound_low_in_mrad;
@@ -152,109 +149,6 @@ hist_bunch createHistogramsFromRawDPMData(data_options &data_opt, unsigned int n
   }
   return return_histgrams;
 }
-
-/*
- hist_bunch createHistogramsFromPandarootMCData(std::string data_path, data_options &data_opt,
- bool is_filelist_path, int index, int num_events) {
- hist_bunch return_histgrams;
-
- TChain tree("pndsim");
-
- if (is_filelist_path) {
- std::stringstream ss;
- ss << data_path << "/filelist_" << index << ".txt";
- std::cout << "Opening " << ss.str() << std::endl;
- std::ifstream infile(ss.str().c_str());
- std::string line;
- while (std::getline(infile, line)) {
- std::istringstream iss(line);
-
- std::cout << "Adding " << line.c_str() << std::endl;
- tree.Add(line.c_str());
- }
- } else {
- std::stringstream ss;
- if (index != -1) {
- ss << data_path << "/*_" << index << ".root";
- tree.Add(ss.str().c_str());
- } else {
- ss << data_path << "/*.root";
- tree.Add(ss.str().c_str());
- }
- }
-
- TClonesArray* fEvt = new TClonesArray("PndLmdTrackQ", 100);
- tree.SetBranchAddress("LMDTrackQ", &fEvt);
-
- std::cout << "tree has " << tree.GetEntries() << " entries" << std::endl;
- unsigned int num_events_to_process = tree.GetEntries();
- if (num_events != -1 && num_events < num_events_to_process)
- num_events_to_process = num_events;
-
- PndLmdModelFactory model_factory;
- double t_bound_low = model_factory.getMomentumTransferFromTheta(data_opt.momentum,
- data_opt.theta_bound_low);
- double t_bound_high = model_factory.getMomentumTransferFromTheta(data_opt.momentum,
- data_opt.theta_bound_high);
-
- // create histograms from raw dpm files
- return_histgrams.th_hist = new TH1D("hist_dpm_theta", "", data_opt.theta_binning,
- data_opt.theta_bound_low, data_opt.theta_bound_high);
- return_histgrams.t_hist = new TH1D("hist_dpm_t", "", data_opt.theta_binning, t_bound_low,
- t_bound_high);
- return_histgrams.th_phi_hist = new TH2D("hist_dpm_theta_phi", "", data_opt.theta_binning,
- data_opt.theta_bound_low, data_opt.theta_bound_high, data_opt.phi_binning,
- data_opt.phi_bound_low, data_opt.phi_bound_high);
-
- std::cout << "Processing " << num_events_to_process << " events!" << std::endl;
-
- return_histgrams.gen_lumi = num_events_to_process / data_opt.elastic_cross_section;
-
- TDatabasePDG *pdg = TDatabasePDG::Instance();
- TLorentzVector ingoing(0, 0, data_opt.momentum,
- TMath::Sqrt(
- TMath::Power(data_opt.momentum, 2.0)
- + TMath::Power(pdg->GetParticle(-2212)->Mass(), 2.0)));
-
- TVector3 tilt(tan(data_opt.tilt_x), tan(data_opt.tilt_y), 1.0);
- TVector3 zprime = tilt.Unit();
- TVector3 yprime(-zprime.Y(), zprime.X(), 0.0);
- TVector3 xprime = yprime.Cross(zprime);
- double beta = acos(zprime.Z());
- double alpha = atan2(zprime.X(), -zprime.Y());
- double gamma = atan2(xprime.Z(), yprime.Z());
-
- DataPointProxy dpp;
-
- for (unsigned int i = 0; i < num_events_to_process; i++) {
- tree.GetEntry(i);
- for (unsigned int np = 0; np < fEvt->GetEntries(); np++) {
- PndLmdTrackQ *particle = (PndLmdTrackQ*) fEvt->At(np);
- if (particle->GetPDGcode() == -2212) {
- TVector3 measured_direction(0.0, 0.0, 1.0);
- measured_direction.SetMagThetaPhi(particle->GetMCmom(), particle->GetMCtheta(),
- particle->GetMCphi());
- if (false) {
- measured_direction.Rotate(-gamma, zprime);
- measured_direction.Rotate(-beta, yprime);
- measured_direction.RotateZ(-alpha);
- }
- //return_histgrams.t_hist->Fill(-1.0 * (outgoing - ingoing).M2());
- return_histgrams.th_hist->Fill(measured_direction.Theta());
- return_histgrams.th_phi_hist->Fill(measured_direction.Theta(), measured_direction.Phi());
-
- if (measured_direction.Theta() > data_opt.theta_bound_low
- && measured_direction.Theta() < data_opt.theta_bound_high) {
- std::shared_ptr<DataStructs::binned_data_point> bdp(new DataStructs::binned_data_point);
- dpp.setBinnedDataPoint(bdp);
- dpp.setPointUsed(true);
- return_histgrams.unbinned_data->insertData(dpp);
- }
- }
- }
- }
- return return_histgrams;
- }*/
 
 void fit1D(const hist_bunch &histograms, data_options &data_opt, std::string filename) {
   DataStructs::DimensionRange fit_range_th(data_opt.theta_fit_range_low_in_mrad / 1000.0,

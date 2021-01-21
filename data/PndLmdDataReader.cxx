@@ -6,6 +6,8 @@
 #include "PndLmdMapData.h"
 
 #include <set>
+#include <fstream>
+#include <iostream>
 
 #include "boost/progress.hpp"
 
@@ -97,6 +99,17 @@ int PndLmdDataReader::getNextMinEventIndex(
 void PndLmdDataReader::addFilePath(TString file_path) {
   std::cout << "adding file path: " << file_path << std::endl;
   file_paths.push_back(file_path);
+}
+
+void PndLmdDataReader::addFileList(const std::string &filelist) {
+  // scan which data reader has to create this object
+  std::ifstream input(filelist.c_str());
+  std::string line;
+
+  while (std::getline(input, line)) {
+    std::cout << line << std::endl;
+    addFilePath(line);
+  }
 }
 
 std::vector<PndLmdAbstractData*> PndLmdDataReader::combineAllRegisteredDataObjects() {

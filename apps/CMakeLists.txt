@@ -8,7 +8,6 @@ include_directories(${INCLUDE_DIRECTORIES})
 
 ########################### active apps ##################################
 
-if (PANDAROOT_FOUND)
 add_executable(calculateElasticCrossSection calculateElasticCrossSection.cxx)
 target_link_libraries(calculateElasticCrossSection LmdUI ROOT::Hist ROOT::Gpad ROOT::RIO)
 
@@ -18,8 +17,10 @@ target_link_libraries(checkDivergenceSmearing LmdUI ROOT::Hist ROOT::RIO)
 add_executable(analyzeResolutionMapData analyzeResolutionMapData.cxx)
 target_link_libraries(analyzeResolutionMapData LmdUI ROOT::Hist ROOT::Gpad ROOT::RIO ROOT::Graf)
 
-add_executable(createLmdFitData createLmdFitData.cxx)
-target_link_libraries(createLmdFitData LmdUI ${BOOST_LIBRARIES})
+if(PANDAROOT_FOUND)
+  add_executable(createLmdFitData createLmdFitData.cxx)
+  target_link_libraries(createLmdFitData LmdUI LmdFitPandaDataIO ${BOOST_LIBRARIES})
+endif()
 
 add_executable(determineBeamOffset determineBeamOffset.cxx)
 target_link_libraries(determineBeamOffset PRIVATE LmdUI ${ROOT_LIBRARIES})
@@ -56,16 +57,6 @@ target_link_libraries(generatePbarPElasticScattering LmdModel LmdFitData Boost::
 	
 add_executable(checkFramework checkFramework.cxx)
 target_link_libraries(checkFramework Model ROOT::Core ROOT::MathCore ROOT::RIO ROOT::Hist Boost::system)
-
-else()
-
-add_executable(generatePbarPElasticScattering generatePbarPElasticScattering.cxx)
-target_link_libraries(generatePbarPElasticScattering LmdModel LmdFitData Boost::filesystem ROOT::Tree ROOT::MathCore ROOT::Physics ROOT::EG)
-	
-add_executable(checkFramework checkFramework.cxx)
-target_link_libraries(checkFramework Model ROOT::Core ROOT::MathCore ROOT::RIO ROOT::Hist Boost::system)
-
-endif()
 
 
 ########################### inactive apps ##################################

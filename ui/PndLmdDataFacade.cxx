@@ -1,19 +1,11 @@
-/*
- * PndLmdDataFacade.cxx
- *
- *  Created on: Aug 26, 2013
- *      Author: steve
- */
-
 #include "PndLmdDataFacade.h"
 #include "data/PndLmdAngularData.h"
 #include "data/PndLmdAcceptance.h"
 #include "data/PndLmdMapData.h"
 #include "fit/data/DataStructs.h"
+#include "data/PndLmdDataReader.h"
 
 #include <sstream>
-#include <fstream>
-#include <iostream>
 
 #include "boost/regex.hpp"
 #include "boost/foreach.hpp"
@@ -30,18 +22,6 @@ PndLmdDataFacade::PndLmdDataFacade() :
 
 PndLmdDataFacade::~PndLmdDataFacade() {
   // TODO Auto-generated destructor stub
-}
-
-void PndLmdDataFacade::addFileList(PndLmdDataReader& data_reader,
-    const std::string filelist) {
-  // scan which data reader has to create this object
-  std::ifstream input(filelist.c_str());
-  std::string line;
-
-  while (std::getline(input, line)) {
-    std::cout << line << std::endl;
-    data_reader.addFilePath(line);
-  }
 }
 
 void PndLmdDataFacade::initializeData(PndLmdAbstractData & data) const {
@@ -627,12 +607,12 @@ PndLmdDataFacade::LmdDimensionCombinations PndLmdDataFacade::extendSelectionsMap
   return new_selections_combinations;
 }
 
-void PndLmdDataFacade::createAndFillDataBundles(const std::string &data_types) {
+void PndLmdDataFacade::createAndFillDataBundles(const std::string &data_types, PndLmdDataReader& data_reader) {
   // create data
   createDataBundles(data_types);
 
 // fill data
-  fillCreatedData();
+  fillCreatedData(data_reader);
 
 // write to file
   saveDataToFiles();
@@ -660,19 +640,7 @@ void PndLmdDataFacade::createDataBundles(const std::string &data_types) {
   }
 }
 
-void PndLmdDataFacade::fillCreatedData() {
-  PndLmdCombinedDataReader data_reader;
-
-  // add input directory to data facade
-  if (!boost::filesystem::exists(lmd_runtime_config.getRawDataFilelistPath()))
-    data_reader.addFilePath(
-        lmd_runtime_config.getRawDataDirectory().string()
-            + "/Lumi_TrksQA*.root");
-  else {
-    addFileList(data_reader,
-        lmd_runtime_config.getRawDataFilelistPath().string());
-  }
-
+void PndLmdDataFacade::fillCreatedData(PndLmdDataReader &data_reader) {
 // register created data objects with the data reader
   data_reader.registerAcceptances(lmd_acceptances);
   data_reader.registerData(lmd_angular_data);
@@ -1078,60 +1046,3 @@ template<> std::vector<PndLmdMapData> PndLmdDataFacade::getDataFromFile(
   //std::cout << "Found " << counter << " objects!" << std::endl;
   return lmd_data_vec;
 }
-
-/*std::map<LumiFit::LmdSimIPParameters,
- std::map<LumiFit::LmdSimIPParameters,
- std::map<LumiFit::LmdDimensionType, std::vector<PndLmdHistogramData> > > > PndLmdDataFacade::clusterVertexData(
- std::vector<PndLmdHistogramData> &lmd_vertex_vec) {
- std::map<LumiFit::LmdSimIPParameters,
- std::map<LumiFit::LmdSimIPParameters,
- std::map<LumiFit::LmdDimensionType, std::vector<PndLmdHistogramData> > > > return_map;
-
- for (unsigned int i = 0; i < lmd_vertex_vec.size(); i++) {
- LumiFit::LmdSimIPParameters sim_ip_params =
- lmd_vertex_vec[i].getSimulationIPParameters();
-
- sim_ip_params.offset_x_mean = 0.0; // set the insensitive value to 0.0
- LumiFit::LmdSimIPParameters dependency_ip_params;
- dependency_ip_params.offset_x_mean = 1.0; // set the dependency value to 1.0
- return_map[dependency_ip_params][sim_ip_params][lmd_vertex_vec[i].getPrimaryDimension().dimension_options.dimension_type].push_back(
- lmd_vertex_vec[i]);
-
- sim_ip_params = lmd_vertex_vec[i].getSimulationIPParameters();
- sim_ip_params.offset_y_mean = 0.0; // set the insensitive value to 0.0
- dependency_ip_params.reset();
- dependency_ip_params.offset_y_mean = 1.0; // set the dependency value to 1.0
- return_map[dependency_ip_params][sim_ip_params][lmd_vertex_vec[i].getPrimaryDimension().dimension_options.dimension_type].push_back(
- lmd_vertex_vec[i]);
-
- sim_ip_params = lmd_vertex_vec[i].getSimulationIPParameters();
- sim_ip_params.offset_z_mean = 0.0; // set the insensitive value to 0.0
- dependency_ip_params.reset();
- dependency_ip_params.offset_z_mean = 1.0; // set the dependency value to 1.0
- return_map[dependency_ip_params][sim_ip_params][lmd_vertex_vec[i].getPrimaryDimension().dimension_options.dimension_type].push_back(
- lmd_vertex_vec[i]);
-
- sim_ip_params = lmd_vertex_vec[i].getSimulationIPParameters();
- sim_ip_params.offset_x_width = 0.0; // set the insensitive value to 0.0
- dependency_ip_params.reset();
- dependency_ip_params.offset_x_width = 1.0; // set the dependency value to 1.0
- return_map[dependency_ip_params][sim_ip_params][lmd_vertex_vec[i].getPrimaryDimension().dimension_options.dimension_type].push_back(
- lmd_vertex_vec[i]);
-
- sim_ip_params = lmd_vertex_vec[i].getSimulationIPParameters();
- sim_ip_params.offset_y_width = 0.0; // set the insensitive value to 0.0
- dependency_ip_params.reset();
- dependency_ip_params.offset_y_width = 1.0; // set the dependency value to 1.0
- return_map[dependency_ip_params][sim_ip_params][lmd_vertex_vec[i].getPrimaryDimension().dimension_options.dimension_type].push_back(
- lmd_vertex_vec[i]);
-
- sim_ip_params = lmd_vertex_vec[i].getSimulationIPParameters();
- sim_ip_params.offset_z_width = 0.0; // set the insensitive value to 0.0
- dependency_ip_params.reset();
- dependency_ip_params.offset_z_width = 1.0; // set the dependency value to 1.0
- return_map[dependency_ip_params][sim_ip_params][lmd_vertex_vec[i].getPrimaryDimension().dimension_options.dimension_type].push_back(
- lmd_vertex_vec[i]);
- }
-
- return return_map;
- }*/
