@@ -42,9 +42,11 @@ find_package(Boost COMPONENTS
 	system
 	regex
     filesystem
+   serialization 
     REQUIRED)
 find_package(ROOT REQUIRED)
 find_package(PANDAROOT)
+find_package(KOALASOFT)
 
 include_directories(./)
 include_directories(./model_framework)

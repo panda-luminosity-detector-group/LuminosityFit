@@ -51,6 +51,8 @@ target_link_libraries(LmdFitDataReader
 )
 
 
+
+
 if (PANDAROOT_FOUND)
 	set(SRCS
 		PndLmdCombinedDataReader.cxx
@@ -65,6 +67,18 @@ else()
 	message(STATUS "No PANDAROOT environment found! Not building PANDA Data reader library.")
 endif()
 
-
+if (KOALASOFT_FOUND)
+	set(SRCS
+		KoaSeperateDataReader.cxx
+	)
+	add_library(LmdFitKoaDataIO SHARED ${SRCS})
+	target_link_libraries(LmdFitKoaDataIO
+		PUBLIC ROOT::RIO LmdFitDataReader Boost::serialization
+		 KoaData KoaTools SdsData 
+	)
+	
+else()
+	message(STATUS "No KOALASOFT environment found! Not building KOALA Data reader library.")
+endif()
 
 

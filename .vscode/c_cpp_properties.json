@@ -17,7 +17,8 @@
                 "path": []
             },
             "configurationProvider": "ms-vscode.cmake-tools",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+            "includePath": []
         }
     ],
     "version": 4

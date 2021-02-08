@@ -50,8 +50,8 @@ std::pair<TTree *, double> generateEvents(double momentum,
 
   TDatabasePDG *pdg = TDatabasePDG::Instance();
   double mass_proton = pdg->GetParticle(2212)->Mass();
-  double fPhiMin = 0.0;
-  double fPhiMax = 2.0 * TMath::Pi();
+  double fPhiMin = 0.94 * TMath::Pi();
+  double fPhiMax = 1.06 * TMath::Pi();
   double plab = momentum;
   double Elab = std::sqrt(std::pow(mass_proton, 2) + std::pow(plab, 2));
   double s = 2.0 * std::pow(mass_proton, 2) + 2.0 * mass_proton * Elab;

@@ -10,8 +10,7 @@
  */
 
 #include "ui/PndLmdDataFacade.h"
-#include "ui/PndLmdRuntimeConfiguration.h"
-
+#include "data/KoaSeperateDataReader.h"
 #include <iostream>
 #include <string>
 
@@ -50,10 +49,10 @@ void createLmdFitData(const std::string &input_dir_path,
 
   PndLmdDataFacade data_facade;
 
-  PndLmdCombinedDataReader data_reader;
+  KoaSeperateDataReader data_reader;
   if (!boost::filesystem::exists(lmd_runtime_config.getRawDataFilelistPath()))
-    data_reader.addFilePath(lmd_runtime_config.getRawDataDirectory().string() +
-                            "/Lumi_TrksQA*.root");
+    data_reader.addFilePath(
+        lmd_runtime_config.getRawDataDirectory().string());
   else {
     data_reader.addFileList(
         lmd_runtime_config.getRawDataFilelistPath().string());
