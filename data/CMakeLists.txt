@@ -26,7 +26,7 @@ target_include_directories(LmdFitData
 	PUBLIC ${ROOT_INCLUDE_DIR}
 )
 target_link_libraries(LmdFitData
-	PUBLIC LmdFit ROOT::Core ROOT::RIO ROOT::Tree
+	PUBLIC LmdFit ROOT::Core ROOT::RIO ROOT::Tree ROOT::Hist ROOT::Physics ROOT::EG
 )
 
 add_custom_command(TARGET LmdFitData
