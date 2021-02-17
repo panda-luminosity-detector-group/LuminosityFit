@@ -13,6 +13,7 @@ KoaSeperateDataReader::~KoaSeperateDataReader() {
 }
 
 unsigned int KoaSeperateDataReader::getEntries() const {
+
 	if (MC_tree.GetEntries() > 0
 			&& MC_tree.GetEntries() < geane_tree.GetEntries())
 		return MC_tree.GetEntries();
