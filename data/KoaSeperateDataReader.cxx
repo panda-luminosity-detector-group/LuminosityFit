@@ -24,7 +24,7 @@ void KoaSeperateDataReader::initDataStream() {
 	for (unsigned int i = 0; i < file_paths.size(); i++) {
 		MC_tree.Add(file_paths[i] + "/Koala_MC*.root");
 		track_tree.Add(file_paths[i] + "/Koala_Track*.root");
-		geane_tree.Add(file_paths[i] + "/Koala_comb*.root");
+		geane_tree.Add(file_paths[i] + "/Koala_comp*.root");
 	}
 
 	MC_tree.SetBranchStatus("*", 0);
@@ -161,7 +161,6 @@ std::vector<Lmd::Data::TrackPairInfo> KoaSeperateDataReader::getEntry(unsigned i
 			track_info.RecoIP.Momentum = {MomRec.X(), MomRec.Phi(), MomRec.Z()};
 		
 	}
-
 	return {track_info};
 }
 
