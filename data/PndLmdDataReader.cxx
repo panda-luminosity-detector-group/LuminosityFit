@@ -351,12 +351,12 @@ double PndLmdDataReader::getTrackParameterValue(const Lmd::Data::TrackPairInfo &
     if (lmd_dim.dimension_options.track_param_type == LumiFit::IP) {
       auto mc_pos = track_info.MCIP.Position;
       pos.SetXYZ(mc_pos[0], mc_pos[1], mc_pos[2]);
-      auto mc_mom = track_info.MCIP.Position;
+      auto mc_mom = track_info.MCIP.Momentum;
       mom.SetXYZ(mc_mom[0], mc_mom[1], mc_mom[2]);
     } else if (lmd_dim.dimension_options.track_param_type == LumiFit::LMD) {
       auto mc_pos = track_info.MCLMD.Position;
       pos.SetXYZ(mc_pos[0], mc_pos[1], mc_pos[2]);
-      auto mc_mom = track_info.MCLMD.Position;
+      auto mc_mom = track_info.MCLMD.Momentum;
       mom.SetXYZ(mc_mom[0], mc_mom[1], mc_mom[2]);
     }
     theta = mom.Theta();
@@ -367,12 +367,12 @@ double PndLmdDataReader::getTrackParameterValue(const Lmd::Data::TrackPairInfo &
     if (lmd_dim.dimension_options.track_param_type == LumiFit::IP) {
       auto reco_pos = track_info.RecoIP.Position;
       pos.SetXYZ(reco_pos[0], reco_pos[1], reco_pos[2]);
-      auto reco_mom = track_info.RecoIP.Position;
+      auto reco_mom = track_info.RecoIP.Momentum;
       mom.SetXYZ(reco_mom[0], reco_mom[1], reco_mom[2]);
     } else if (lmd_dim.dimension_options.track_param_type == LumiFit::LMD) {
       auto reco_pos = track_info.RecoLMD.Position;
       pos.SetXYZ(reco_pos[0], reco_pos[1], reco_pos[2]);
-      auto reco_mom = track_info.RecoLMD.Position;
+      auto reco_mom = track_info.RecoLMD.Momentum;
       mom.SetXYZ(reco_mom[0], reco_mom[1], reco_mom[2]);
     }
     theta = mom.Theta();
@@ -387,20 +387,20 @@ double PndLmdDataReader::getTrackParameterValue(const Lmd::Data::TrackPairInfo &
     if (lmd_dim.dimension_options.track_param_type == LumiFit::IP) {
       auto mc_pos = track_info.MCIP.Position;
       mcpos.SetXYZ(mc_pos[0], mc_pos[1], mc_pos[2]);
-      auto mc_mom = track_info.MCIP.Position;
+      auto mc_mom = track_info.MCIP.Momentum;
       mcmom.SetXYZ(mc_mom[0], mc_mom[1], mc_mom[2]);
       auto reco_pos = track_info.RecoIP.Position;
       pos.SetXYZ(reco_pos[0], reco_pos[1], reco_pos[2]);
-      auto reco_mom = track_info.RecoIP.Position;
+      auto reco_mom = track_info.RecoIP.Momentum;
       mom.SetXYZ(reco_mom[0], reco_mom[1], reco_mom[2]);
     } else if (lmd_dim.dimension_options.track_param_type == LumiFit::LMD) {
       auto mc_pos = track_info.MCLMD.Position;
       mcpos.SetXYZ(mc_pos[0], mc_pos[1], mc_pos[2]);
-      auto mc_mom = track_info.MCLMD.Position;
+      auto mc_mom = track_info.MCLMD.Momentum;
       mcmom.SetXYZ(mc_mom[0], mc_mom[1], mc_mom[2]);
       auto reco_pos = track_info.RecoLMD.Position;
       pos.SetXYZ(reco_pos[0], reco_pos[1], reco_pos[2]);
-      auto reco_mom = track_info.RecoLMD.Position;
+      auto reco_mom = track_info.RecoLMD.Momentum;
       mom.SetXYZ(reco_mom[0], reco_mom[1], reco_mom[2]);
     }
 
