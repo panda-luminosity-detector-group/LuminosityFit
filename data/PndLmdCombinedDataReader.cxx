@@ -39,7 +39,7 @@ std::vector<Lmd::Data::TrackPairInfo> PndLmdCombinedDataReader::getEntry(unsigne
 		TVector3 temp_vec;
 
 		Lmd::Data::TrackPairInfo track_info;
-		if(0 == track->GetTrkRecStatus()) {
+		if(0 <= track->GetTrkRecStatus()) {
 			track_info.IsReconstructedAtLmd = true;
 			track_info.IsReconstructedAtIP = true;
 		}
