@@ -82,7 +82,7 @@ std::vector<Lmd::Data::TrackPairInfo> KoaSeperateDataReader::getEntry(unsigned i
 		TVector3 MomMC;
 		TVector3 Pos(lmd_point->GetPosition());
 		lmd_point->Momentum(MomMC);
-		MomMC.RotateY(-0.040);
+	
 
 		if (-2212
 				== ((KoaMCTrack*) true_tracks->At(lmd_point->GetTrackID()))->GetPdgCode()) {
@@ -98,8 +98,8 @@ std::vector<Lmd::Data::TrackPairInfo> KoaSeperateDataReader::getEntry(unsigned i
 		TVector3 Pos(mctrk->GetStartVertex());
 
 		if (mcID == -2212 && mctrk->GetMotherId() == -1) {
-			track_info.MCLMD.Position = {Pos.X(), Pos.Y(), Pos.Z()};
-			track_info.MCLMD.Momentum = {MomMC_all.X(), MomMC_all.Y(), MomMC_all.Z()};
+			track_info.MCIP.Position = {Pos.X(), Pos.Y(), Pos.Z()};
+			track_info.MCIP.Momentum = {MomMC_all.X(), MomMC_all.Y(), MomMC_all.Z()};
 		}
 	}
 
@@ -158,7 +158,7 @@ std::vector<Lmd::Data::TrackPairInfo> KoaSeperateDataReader::getEntry(unsigned i
 
 			track_info.IsReconstructedAtIP = true;
 			track_info.RecoIP.Position = {Xo, Yo, Zo};
-			track_info.RecoIP.Momentum = {MomRec.X(), MomRec.Phi(), MomRec.Z()};
+			track_info.RecoIP.Momentum = {MomRec.X(), MomRec.Y(), MomRec.Z()};
 		
 	}
 	return {track_info};
