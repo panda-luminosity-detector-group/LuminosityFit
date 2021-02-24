@@ -27,6 +27,7 @@
 
 class PndLmdAngularData;
 class PndLmdAcceptance;
+class PndLmdDataReader;
 
 /**
  * Class providing a simplified UI for constructing, reading and filling lmd
@@ -50,8 +51,6 @@ class PndLmdDataFacade {
       const LumiFit::LmdDimension &selection_dimension_bundle) const;
 
   void initializeData(PndLmdAbstractData &data) const;
-
-  void addFileList(PndLmdDataReader& data_reader, std::string filelist);
 
   LumiFit::LmdDimension constructDimensionFromConfig(
       const boost::property_tree::ptree &pt) const;
@@ -100,9 +99,9 @@ public:
   void clearSelectionDimensionMap();
 
   // standard user functions
-  void createAndFillDataBundles(const std::string &data_types);
+  void createAndFillDataBundles(const std::string &data_types, PndLmdDataReader &data_reader);
   void createDataBundles(const std::string &data_types);
-  void fillCreatedData();
+  void fillCreatedData(PndLmdDataReader &data_reader);
   void saveDataToFiles();
   void cleanup();
 

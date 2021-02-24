@@ -43,23 +43,23 @@ void createLmdFitData(const std::string &input_dir_path,
   // set general config path
   lmd_runtime_config.setGeneralConfigDirectory(config_file_url);
 
-  // read simulation parameter config
-  boost::filesystem::path sim_config_path(
-      lmd_runtime_config.getRawDataDirectory().parent_path().string()
-          + "/sim_params.config");
-  // if one directory up does not contain it just go up one more
-  if (!boost::filesystem::is_regular_file(sim_config_path))
-    sim_config_path =
-        boost::filesystem::path(
-            lmd_runtime_config.getRawDataDirectory().parent_path().parent_path().string()
-                + "/sim_params.config");
-  lmd_runtime_config.readSimulationParameters(sim_config_path.string());
   // read data parameter config
   boost::filesystem::path data_config_path(config_file_url);
   lmd_runtime_config.readDataConfig(data_config_path.filename().string());
 
+
   PndLmdDataFacade data_facade;
-  data_facade.createAndFillDataBundles(data_types);
+
+  PndLmdCombinedDataReader data_reader;
+  if (!boost::filesystem::exists(lmd_runtime_config.getRawDataFilelistPath()))
+    data_reader.addFilePath(
+        lmd_runtime_config.getRawDataDirectory().string()
+            + "/Lumi_TrksQA*.root");
+  else {
+    data_reader.addFileList(lmd_runtime_config.getRawDataFilelistPath().string());
+  }
+  
+  data_facade.createAndFillDataBundles(data_types, data_reader);
 
   std::cout << std::endl << std::endl;
   std::cout << "Application finished successfully." << std::endl;

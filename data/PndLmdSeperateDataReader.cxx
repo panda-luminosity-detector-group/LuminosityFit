@@ -1,10 +1,3 @@
-/*
- * PndLmdSeperateDataReader.cxx
- *
- *  Created on: Aug 26, 2013
- *      Author: steve
- */
-
 #include "PndLmdSeperateDataReader.h"
 
 #include "PndLmdTrackQ.h"
@@ -14,8 +7,7 @@
 #include "FairTrackParH.h"
 
 PndLmdSeperateDataReader::PndLmdSeperateDataReader() :
-		MC_tree("cbmsim"), track_tree("cbmsim"), geane_tree("pndsim"), combined_track_params(
-				"PndLmdTrackQ", 1) {
+		MC_tree("cbmsim"), track_tree("cbmsim"), geane_tree("pndsim") {
 }
 
 PndLmdSeperateDataReader::~PndLmdSeperateDataReader() {
@@ -73,17 +65,17 @@ void PndLmdSeperateDataReader::initDataStream() {
 void PndLmdSeperateDataReader::clearDataStream() {
 }
 
-TClonesArray* PndLmdSeperateDataReader::getEntry(unsigned int i) {
+std::vector<Lmd::Data::TrackPairInfo> PndLmdSeperateDataReader::getEntry(unsigned int i) {
 	if (mc_entries > 0)
 		MC_tree.GetEntry(i);
 	if (lmd_track_entries > 0)
 		track_tree.GetEntry(i);
 	geane_tree.GetEntry(i);
 
-	PndLmdTrackQ *trackq = (PndLmdTrackQ*) combined_track_params.ConstructedAt(
-			0);
+	Lmd::Data::TrackPairInfo track_info;
 
-	trackq->SetTrkRecStatus(-1);
+	track_info.IsReconstructedAtIP = false;
+	track_info.IsReconstructedAtLmd = false;
 
 	for (int ik = 0; ik < true_points->GetEntriesFast(); ik++) {
 		PndSdsMCPoint *lmd_point = (PndSdsMCPoint*) true_points->At(ik);
@@ -94,8 +86,8 @@ TClonesArray* PndLmdSeperateDataReader::getEntry(unsigned int i) {
 
 		if (-2212
 				== ((PndMCTrack*) true_tracks->At(lmd_point->GetTrackID()))->GetPdgCode()) {
-			trackq->SetMCpointLMD(Pos.X(), Pos.Y(), Pos.Z());
-			trackq->SetMCmomLMD(MomMC.Theta(), MomMC.Phi(), MomMC.Mag());
+			track_info.MCLMD.Position = {Pos.X(), Pos.Y(), Pos.Z()};
+			track_info.MCLMD.Momentum = {MomMC.X(), MomMC.Y(), MomMC.Z()};
 		}
 	}
 	for (int ik = 0; ik < true_tracks->GetEntries(); ik++) {
@@ -106,9 +98,8 @@ TClonesArray* PndLmdSeperateDataReader::getEntry(unsigned int i) {
 		TVector3 Pos(mctrk->GetStartVertex());
 
 		if (mcID == -2212 && mctrk->IsGeneratorCreated()) {
-			trackq->SetMCpoint(Pos.X(), Pos.Y(), Pos.Z());
-			trackq->SetMCmom(MomMC_all.Theta(), MomMC_all.Phi(),
-					MomMC_all.Mag());
+			track_info.MCLMD.Position = {Pos.X(), Pos.Y(), Pos.Z()};
+			track_info.MCLMD.Momentum = {MomMC_all.X(), MomMC_all.Y(), MomMC_all.Z()};
 		}
 	}
 
@@ -117,9 +108,10 @@ TClonesArray* PndLmdSeperateDataReader::getEntry(unsigned int i) {
 		FairTrackParP trackpar = track->GetParamFirst();
 		TVector3 MomRec = trackpar.GetMomentum();
 
-		trackq->SetLMDpoint(trackpar.GetOrigin().X(), trackpar.GetOrigin().Y(),
-				trackpar.GetOrigin().Z());
-		trackq->SetLMDdir(MomRec.Theta(), MomRec.Phi());
+		track_info.IsReconstructedAtLmd = true;
+		track_info.RecoLMD.Position = {trackpar.GetOrigin().X(), trackpar.GetOrigin().Y(),
+				trackpar.GetOrigin().Z()};
+		track_info.RecoLMD.Momentum = {MomRec.X(), MomRec.Phi(), MomRec.Z()};
 	}
 
 	// loop over geane tracks
@@ -127,15 +119,15 @@ TClonesArray* PndLmdSeperateDataReader::getEntry(unsigned int i) {
 		///-- Read info about GEANE(reconstructed) tracks--------------------------
 		FairTrackParH *fRes = (FairTrackParH*) geane_tracks->At(iN);
 		if (fRes->GetLambda() != 0) {
-			trackq->SetTrkRecStatus(0);
 			TVector3 MomRec = fRes->GetMomentum();
 
-			trackq->SetIPpoint(fRes->GetPosition().X(), fRes->GetPosition().Y(),
-					fRes->GetPosition().Z());
-			trackq->SetIPmom(MomRec.Theta(), MomRec.Phi(), MomRec.Mag());
+			track_info.IsReconstructedAtIP = true;
+			track_info.RecoIP.Position = {fRes->GetPosition().X(), fRes->GetPosition().Y(),
+				fRes->GetPosition().Z()};
+			track_info.RecoIP.Momentum = {MomRec.X(), MomRec.Phi(), MomRec.Z()};
 		}
 	}
 
-	return &combined_track_params;
+	return {track_info};
 }
 

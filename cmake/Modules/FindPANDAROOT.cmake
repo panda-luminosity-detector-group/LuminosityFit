@@ -5,8 +5,8 @@
 # LmdTool library
 #
 
-if(EXISTS "$ENV{FAIRLIBDIR}/libPndData.so" 
-   AND EXISTS "$ENV{VMCWORKDIR}/detectors/lmd/LmdQA/PndLmdTrackQ.h" 
+if(EXISTS $ENV{FAIRLIBDIR}/libPndData.so
+   AND EXISTS $ENV{VMCWORKDIR}/detectors/lmd/LmdQA/PndLmdTrackQ.h
    AND EXISTS $ENV{FAIRROOTPATH}/include)
   SET(PANDAROOT_FOUND TRUE)
 

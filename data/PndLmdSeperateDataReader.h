@@ -1,14 +1,8 @@
-/*
- * PndLmdSeperateDataReader.h
- *
- *  Created on: Aug 26, 2013
- *      Author: steve
- */
-
 #ifndef PNDLMDSEPERATEDATAREADER_H_
 #define PNDLMDSEPERATEDATAREADER_H_
 
 #include "PndLmdDataReader.h"
+#include "data/TrackData.h"
 
 #include "TChain.h"
 #include "TClonesArray.h"
@@ -31,13 +25,11 @@ class PndLmdSeperateDataReader: public PndLmdDataReader {
     //--- Geane info -----------------------------------------------------------------
     TClonesArray* geane_tracks;
 
-    TClonesArray combined_track_params;
-
     unsigned int getEntries() const;
     void initDataStream();
     void clearDataStream();
 
-    TClonesArray* getEntry(unsigned int i);
+    std::vector<Lmd::Data::TrackPairInfo> getEntry(unsigned int i);
   public:
     PndLmdSeperateDataReader();
     virtual ~PndLmdSeperateDataReader();
