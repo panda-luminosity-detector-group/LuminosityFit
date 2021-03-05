@@ -22,6 +22,11 @@ if(PANDAROOT_FOUND)
   target_link_libraries(createLmdFitData LmdUI LmdFitPandaDataIO ${BOOST_LIBRARIES})
 endif()
 
+if(KOALASOFT_FOUND)
+  add_executable(createKoaFitData createKoaFitData.cxx)
+  target_link_libraries(createKoaFitData LmdUI LmdFitKoaDataIO ${BOOST_LIBRARIES})
+endif()
+
 add_executable(determineBeamOffset determineBeamOffset.cxx)
 target_link_libraries(determineBeamOffset PRIVATE LmdUI ${ROOT_LIBRARIES})
 

@@ -2,15 +2,6 @@
     "configurations": [
         {
             "name": "Linux",
-            // "includePath": [
-            //     "${workspaceFolder}",
-            //     "${workspaceFolder}/data",
-            //     "${workspaceFolder}/model",
-            //     "${workspaceFolder}/fit",
-            //     "${workspaceFolder}/ui",
-            //     "${workspaceFolder}/model_framework",
-            //     "${env:ROOTSYS}/include"
-            // ],
             "cppStandard": "c++11",
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
