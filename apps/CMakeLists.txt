@@ -23,8 +23,8 @@ if(PANDAROOT_FOUND)
 endif()
 
 
-  add_executable(createLmdFitData createLmdFitData.cxx)
-  target_link_libraries(createLmdFitData LmdUI LmdFitKoaDataIO ${BOOST_LIBRARIES})
+  add_executable(createKoaFitData createKoaFitData.cxx)
+  target_link_libraries(createKoaFitData LmdUI LmdFitKoaDataIO ${BOOST_LIBRARIES})
 
 
 add_executable(determineBeamOffset determineBeamOffset.cxx)
