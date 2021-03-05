@@ -28,7 +28,7 @@
 	     "beam_div_y": 0.0001,
 	     "elastic_data_input_directory": "",
 
-	     "fix_beam_tilts": true,
+	     "fix_beam_tilts": false,
 	     "beam_tilt_x": 0.0,
 	     "beam_tilt_y": 0.0,
 	     

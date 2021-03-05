@@ -29,7 +29,7 @@ void displayInfo() {
 
 int main(int argc, char *argv[]) {
   double lower_bound = 2.0;
-  double upper_bound = 24.0;
+  double upper_bound = 12.0;
   std::string output_filepath = "dpmgen.root";
   unsigned int seed = 12345;
   int c;
