@@ -8,11 +8,11 @@
 #ifndef MODELPAR_H_
 #define MODELPAR_H_
 
-#include <string>
 #include <set>
+#include <string>
 
-#include <memory>
 #include "ProjectWideSettings.h"
+#include <memory>
 
 class ModelPar {
 private:
@@ -30,13 +30,13 @@ private:
    * connection to itself to update parameters that are used directly within a
    * model.
    */
-  std::set<std::shared_ptr<ModelPar> > connections;
+  std::set<std::shared_ptr<ModelPar>> connections;
 
 public:
   ModelPar();
   ModelPar(std::string name_, mydouble value_, bool fixed_);
 
-  const std::string& getName() const;
+  const std::string &getName() const;
 
   void setLocked(bool locked_);
 
@@ -46,12 +46,12 @@ public:
   void setParameterBounds(mydouble lower_bound_, mydouble upper_bound_);
 
   /**
-   * Sets the value of this model parameter. Note that only by using this function
-   * the set flag will be switched to true, which is a requirement for the fit.
-   * Hence this method has to be used by the model parametrizations.
+   * Sets the value of this model parameter. Note that only by using this
+   * function the set flag will be switched to true, which is a requirement for
+   * the fit. Hence this method has to be used by the model parametrizations.
    */
   void setValue(mydouble value_);
-  const mydouble& getValue() const;
+  const mydouble &getValue() const;
 
   bool isSet() const;
   bool isConnected() const;
@@ -68,8 +68,7 @@ public:
    */
   void setConnectionTo(const std::shared_ptr<ModelPar> &model_par);
 
-  std::set<std::shared_ptr<ModelPar> >& getParameterConnections();
-
+  std::set<std::shared_ptr<ModelPar>> &getParameterConnections();
 };
 
 #endif /* MODELPAR_H_ */

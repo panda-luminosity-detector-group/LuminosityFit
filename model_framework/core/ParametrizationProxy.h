@@ -11,13 +11,11 @@
 #include "Parametrization.h"
 #include "ParametrizationModel.h"
 
-enum parametrization_state {
-  NONE, PARAMETRIZATION, PARAMETRIZATION_MODEL
-};
+enum parametrization_state { NONE, PARAMETRIZATION, PARAMETRIZATION_MODEL };
 
 class ParametrizationProxy {
 private:
-	parametrization_state state;
+  parametrization_state state;
 
   std::shared_ptr<ParametrizationModel> parametrization_model;
   std::shared_ptr<Parametrization> parametrization;
@@ -30,10 +28,11 @@ public:
   bool hasParametrizationModel() const;
 
   void setParametrization(std::shared_ptr<Parametrization> parametrization_);
-  void setParametrizationModel(std::shared_ptr<ParametrizationModel> parametrization_model_);
+  void setParametrizationModel(
+      std::shared_ptr<ParametrizationModel> parametrization_model_);
 
-  const std::shared_ptr<Parametrization>& getParametrization() const;
-  const std::shared_ptr<ParametrizationModel>& getParametrizationModel() const;
+  const std::shared_ptr<Parametrization> &getParametrization() const;
+  const std::shared_ptr<ParametrizationModel> &getParametrizationModel() const;
 };
 
 #endif /* PARAMETRIZATIONPROXY_H_ */

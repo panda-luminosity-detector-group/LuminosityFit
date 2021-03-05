@@ -1,46 +1,50 @@
-#include "ui/PndLmdPlotter.h"
-#include "data/PndLmdAngularData.h"
 #include "data/PndLmdAcceptance.h"
-#include "ui/PndLmdDataFacade.h"
+#include "data/PndLmdAngularData.h"
 #include "data/PndLmdFitDataBundle.h"
+#include "ui/PndLmdDataFacade.h"
+#include "ui/PndLmdPlotter.h"
 
-#include <vector>
-#include <map>
 #include <iostream>
 #include <iterator>
+#include <map>
 #include <sstream>
+#include <vector>
 
 #include "boost/filesystem.hpp"
-#include "boost/regex.hpp"
 #include "boost/property_tree/json_parser.hpp"
+#include "boost/regex.hpp"
 #include <boost/algorithm/string.hpp>
 
-void extractLuminosityResults(std::vector<std::string> paths, const std::string &filter_string) {
+void extractLuminosityResults(std::vector<std::string> paths,
+                              const std::string &filter_string) {
   std::cout << "Generating lumi plots for fit results....\n";
 
   PndLmdDataFacade lmd_data_facade;
 
   // get all data first
-  std::map<std::string, std::vector<PndLmdFitDataBundle> > all_data;
+  std::map<std::string, std::vector<PndLmdFitDataBundle>> all_data;
 
   std::vector<std::string> ip_files;
 
   for (unsigned int i = 0; i < paths.size(); i++) {
     // ------ get files -------------------------------------------------------
-    std::vector<std::string> file_paths = lmd_data_facade.findFilesByName(paths[i], filter_string,
-        "lmd_fitted_data.root");
+    std::vector<std::string> file_paths = lmd_data_facade.findFilesByName(
+        paths[i], filter_string, "lmd_fitted_data.root");
     std::cout << "found " << file_paths.size() << " file paths!\n";
     for (auto file_path : file_paths) {
       std::string fullpath = file_path;
       TFile fdata(fullpath.c_str(), "READ");
 
-      // read in data from a root file which will return a map of PndLmdAngularData objects
-      all_data[file_path] = lmd_data_facade.getDataFromFile<PndLmdFitDataBundle>(fdata);
+      // read in data from a root file which will return a map of
+      // PndLmdAngularData objects
+      all_data[file_path] =
+          lmd_data_facade.getDataFromFile<PndLmdFitDataBundle>(fdata);
     }
   }
 
   // now get only the reco data bundle that are full phi
-  std::map<std::string, std::vector<PndLmdElasticDataBundle>> full_phi_reco_data_vec;
+  std::map<std::string, std::vector<PndLmdElasticDataBundle>>
+      full_phi_reco_data_vec;
 
   LumiFit::LmdDimensionOptions phi_slice_dim_opt;
   phi_slice_dim_opt.dimension_type = LumiFit::PHI;
@@ -50,15 +54,18 @@ void extractLuminosityResults(std::vector<std::string> paths, const std::string 
   LumiFit::LmdDimensionOptions lmd_dim_opt;
   lmd_dim_opt.dimension_type = LumiFit::THETA_X;
 
-  LumiFit::Comparisons::NegatedSelectionDimensionFilter filter(phi_slice_dim_opt);
-  LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter dim_filter(lmd_dim_opt);
+  LumiFit::Comparisons::NegatedSelectionDimensionFilter filter(
+      phi_slice_dim_opt);
+  LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter dim_filter(
+      lmd_dim_opt);
 
-  for (auto const& datavec : all_data) {
-    for (auto const& x : datavec.second) {
-      std::vector<PndLmdElasticDataBundle> temp_full_phi_vec = lmd_data_facade.filterData(
-          x.getElasticDataBundles(), filter);
+  for (auto const &datavec : all_data) {
+    for (auto const &x : datavec.second) {
+      std::vector<PndLmdElasticDataBundle> temp_full_phi_vec =
+          lmd_data_facade.filterData(x.getElasticDataBundles(), filter);
 
-//      temp_full_phi_vec = lmd_data_facade.filterData(temp_full_phi_vec, dim_filter);
+      //      temp_full_phi_vec = lmd_data_facade.filterData(temp_full_phi_vec,
+      //      dim_filter);
 
       full_phi_reco_data_vec[datavec.first] = temp_full_phi_vec;
     }
@@ -110,9 +117,10 @@ void extractLuminosityResults(std::vector<std::string> paths, const std::string 
                 fit_result.getLuminosity(), fit_result.getLuminosityError(),
                 data_sample.getReferenceLuminosity());
             temp4.put("", lumi.first);
-            temp5.put("", lumi.second); 
+            temp5.put("", lumi.second);
             relative_deviation_in_percent.push_back(std::make_pair("", temp4));
-            relative_deviation_error_in_percent.push_back(std::make_pair("", temp5));
+            relative_deviation_error_in_percent.push_back(
+                std::make_pair("", temp5));
 
             std::cout << "Luminosity Fit Result:\n";
             std::cout << "measured luminosity:" << fit_result.getLuminosity()
@@ -129,48 +137,49 @@ void extractLuminosityResults(std::vector<std::string> paths, const std::string 
     }
 
     lumi_values.add_child("measured_lumi", measured_lumi);
-    lumi_values.add_child("measured_lumi_error",
-                            measured_lumi_error);
-    lumi_values.add_child("generated_lumi",
-                            generated_lumi);
-    lumi_values.add_child("relative_deviation_in_percent", relative_deviation_in_percent);
-    lumi_values.add_child("relative_deviation_error_in_percent", relative_deviation_error_in_percent);
-            
+    lumi_values.add_child("measured_lumi_error", measured_lumi_error);
+    lumi_values.add_child("generated_lumi", generated_lumi);
+    lumi_values.add_child("relative_deviation_in_percent",
+                          relative_deviation_in_percent);
+    lumi_values.add_child("relative_deviation_error_in_percent",
+                          relative_deviation_error_in_percent);
+
     filename << "/lumi-values.json";
     write_json(filename.str(), lumi_values);
   }
 }
 
 void displayInfo() {
-// display info
+  // display info
   std::cout << "Required arguments are: " << std::endl;
   std::cout << "list of directories to be scanned for fitted data" << std::endl;
-  std::cout
-      << "-s [filtering string, which has to appear in the full directory path for all found paths]"
-      << std::endl;
+  std::cout << "-s [filtering string, which has to appear in the full "
+               "directory path for all found paths]"
+            << std::endl;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   std::string filter_string("");
   int c;
   while ((c = getopt(argc, argv, "hs:")) != -1) {
     switch (c) {
-      case 's':
-        filter_string = optarg;
-        break;
-      case '?':
-        if (optopt == 's')
-          std::cerr << "Option -" << optopt << " requires an argument." << std::endl;
-        else if (isprint(optopt))
-          std::cerr << "Unknown option -" << optopt << "." << std::endl;
-        else
-          std::cerr << "Unknown option character" << optopt << "." << std::endl;
-        return 1;
-      case 'h':
-        displayInfo();
-        return 1;
-      default:
-        return 1;
+    case 's':
+      filter_string = optarg;
+      break;
+    case '?':
+      if (optopt == 's')
+        std::cerr << "Option -" << optopt << " requires an argument."
+                  << std::endl;
+      else if (isprint(optopt))
+        std::cerr << "Unknown option -" << optopt << "." << std::endl;
+      else
+        std::cerr << "Unknown option character" << optopt << "." << std::endl;
+      return 1;
+    case 'h':
+      displayInfo();
+      return 1;
+    default:
+      return 1;
     }
   }
 

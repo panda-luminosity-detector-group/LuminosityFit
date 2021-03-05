@@ -12,15 +12,12 @@
 #define _USE_MATH_DEFINES
 #include "math.h"
 
-GaussianModel1D::GaussianModel1D(std::string name_) :
-    Model1D(name_) {
+GaussianModel1D::GaussianModel1D(std::string name_) : Model1D(name_) {
   initModelParameters();
   num_sigmas = 5.0;
 }
 
-GaussianModel1D::~GaussianModel1D() {
-
-}
+GaussianModel1D::~GaussianModel1D() {}
 
 void GaussianModel1D::initModelParameters() {
   gauss_sigma = getModelParameterSet().addModelParameter("gauss_sigma");
@@ -36,12 +33,11 @@ mydouble GaussianModel1D::eval(const mydouble *x) const {
   // single gauss smearing function
   /*std::cout << "x = " << x[0] << " -> " << gauss_mean->getValue() << " "
    << gauss_sigma->getValue() << std::endl;*/
-  return gauss_amplitude->getValue()
-      * std::exp(
-          -0.5
-              * std::pow(
-                  (x[0] - gauss_mean->getValue()) / gauss_sigma->getValue(), 2))
-      / (gauss_sigma->getValue() * std::sqrt(2.0 * M_PI));
+  return gauss_amplitude->getValue() *
+         std::exp(-0.5 * std::pow((x[0] - gauss_mean->getValue()) /
+                                      gauss_sigma->getValue(),
+                                  2)) /
+         (gauss_sigma->getValue() * std::sqrt(2.0 * M_PI));
 }
 
 void GaussianModel1D::updateDomain() {

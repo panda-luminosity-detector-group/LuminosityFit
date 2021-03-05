@@ -8,8 +8,8 @@
 #ifndef PARAMETRIZATIONMODEL_H_
 #define PARAMETRIZATIONMODEL_H_
 
-#include <memory>
 #include "ProjectWideSettings.h"
+#include <memory>
 
 class Model;
 class ModelPar;
@@ -26,6 +26,7 @@ class ParametrizationModel {
 private:
   std::shared_ptr<Model> model;
   std::shared_ptr<ModelPar> model_par;
+
 public:
   ParametrizationModel(std::shared_ptr<Model> model_);
   virtual ~ParametrizationModel();

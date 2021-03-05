@@ -8,11 +8,9 @@
 #include "IntegralStrategy1D.h"
 
 IntegralStrategy1D::IntegralStrategy1D() {
-	// TODO Auto-generated constructor stub
-
+  // TODO Auto-generated constructor stub
 }
 
 IntegralStrategy1D::~IntegralStrategy1D() {
-	// TODO Auto-generated destructor stub
+  // TODO Auto-generated destructor stub
 }
-

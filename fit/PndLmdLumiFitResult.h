@@ -13,37 +13,37 @@
 #include "TObject.h"
 
 /**
- * \brief This class contains the fit result information and most importantly the luminosity and its errors!!
+ * \brief This class contains the fit result information and most importantly
+ * the luminosity and its errors!!
  *
- * This class contains all of the information of the fit including the final parameter values
- * that were obtained by the fitting procedure.
+ * This class contains all of the information of the fit including the final
+ * parameter values that were obtained by the fitting procedure.
  *
  */
-class PndLmdLumiFitResult: public TObject {
+class PndLmdLumiFitResult : public TObject {
 private:
-	double luminosity_sys_err;
+  double luminosity_sys_err;
 
-	ModelFitResult model_fit_result;
-
+  ModelFitResult model_fit_result;
 
 public:
-	PndLmdLumiFitResult();
-	~PndLmdLumiFitResult();
+  PndLmdLumiFitResult();
+  ~PndLmdLumiFitResult();
 
-	double getLuminosity() const;
-	double getLuminositySysError() const;
-	double getLuminosityStatError() const;
-	double getLuminosityError() const;
+  double getLuminosity() const;
+  double getLuminositySysError() const;
+  double getLuminosityStatError() const;
+  double getLuminosityError() const;
 
-	const ModelFitResult& getModelFitResult() const;
+  const ModelFitResult &getModelFitResult() const;
 
-	double getRedChiSquare() const;
+  double getRedChiSquare() const;
 
-	void setLuminositySysError(double luminosity_sys_err_);
+  void setLuminositySysError(double luminosity_sys_err_);
 
-	void setModelFitResult(const ModelFitResult &fit_result);
+  void setModelFitResult(const ModelFitResult &fit_result);
 
-ClassDef(PndLmdLumiFitResult,1)
+  ClassDef(PndLmdLumiFitResult, 1)
 };
 
 #endif /* PNDLMDLUMIFITRESULT_H_ */

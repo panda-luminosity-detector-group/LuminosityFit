@@ -5,8 +5,8 @@
 
 #include <vector>
 
-#include "TString.h"
 #include "TLorentzVector.h"
+#include "TString.h"
 
 class PndLmdAbstractData;
 class PndLmdHistogramData;
@@ -15,11 +15,10 @@ class PndLmdAcceptance;
 class PndLmdResolution;
 class PndLmdMapData;
 namespace Lmd {
-    namespace Data {
-      class TrackPairInfo;
-  }
+namespace Data {
+class TrackPairInfo;
 }
-
+} // namespace Lmd
 
 class TDatabasePDG;
 class PndLmdDim;
@@ -27,39 +26,41 @@ class TClonesArray;
 
 class PndLmdDataReader {
 private:
-  std::vector<PndLmdMapData*> registered_map_data;
-  std::vector<PndLmdHistogramData*> registered_data;
-  std::vector<PndLmdAcceptance*> registered_acceptances;
+  std::vector<PndLmdMapData *> registered_map_data;
+  std::vector<PndLmdHistogramData *> registered_data;
+  std::vector<PndLmdAcceptance *> registered_acceptances;
 
   void clearRegisters();
 
-  std::vector<PndLmdAbstractData*> combineAllRegisteredDataObjects();
+  std::vector<PndLmdAbstractData *> combineAllRegisteredDataObjects();
 
-  void removeFinished(std::vector<PndLmdAbstractData*> &lmd_vec,
-      int num_events);
-  int getNextMinEventIndex(std::vector<PndLmdAbstractData*> &lmd_vec);
+  void removeFinished(std::vector<PndLmdAbstractData *> &lmd_vec,
+                      int num_events);
+  int getNextMinEventIndex(std::vector<PndLmdAbstractData *> &lmd_vec);
 
-  double getSingleTrackParameterValue(const Lmd::Data::TrackPairInfo &track_info,
-      const LumiFit::LmdDimension &lmd_dim) const;
+  double
+  getSingleTrackParameterValue(const Lmd::Data::TrackPairInfo &track_info,
+                               const LumiFit::LmdDimension &lmd_dim) const;
   double getTrackParameterValue(const Lmd::Data::TrackPairInfo &track_info,
-      const LumiFit::LmdDimension &lmd_dim) const;
+                                const LumiFit::LmdDimension &lmd_dim) const;
 
   bool wasReconstructed(const Lmd::Data::TrackPairInfo &track_info) const;
   bool isGoodTrack(const Lmd::Data::TrackPairInfo &track_info) const;
-  bool skipDataObject(const PndLmdAbstractData* data,
-      const Lmd::Data::TrackPairInfo &track_info) const;
-  bool successfullyPassedFilters(const PndLmdAbstractData* data,
-      const Lmd::Data::TrackPairInfo &track_info) const;
+  bool skipDataObject(const PndLmdAbstractData *data,
+                      const Lmd::Data::TrackPairInfo &track_info) const;
+  bool
+  successfullyPassedFilters(const PndLmdAbstractData *data,
+                            const Lmd::Data::TrackPairInfo &track_info) const;
 
   void fillData(const Lmd::Data::TrackPairInfo &track_pars);
 
   void cleanup();
 
-  virtual unsigned int getEntries() const =0;
-  virtual void initDataStream() =0;
-  virtual void clearDataStream() =0;
+  virtual unsigned int getEntries() const = 0;
+  virtual void initDataStream() = 0;
+  virtual void clearDataStream() = 0;
 
-  virtual std::vector<Lmd::Data::TrackPairInfo> getEntry(unsigned int i) =0;
+  virtual std::vector<Lmd::Data::TrackPairInfo> getEntry(unsigned int i) = 0;
 
   TLorentzVector beam;
 
@@ -78,14 +79,14 @@ public:
   void addFileList(const std::string &filelist);
 
   void registerMapData(std::vector<PndLmdMapData> &data_vec);
-  int registerData(PndLmdHistogramData* data);
+  int registerData(PndLmdHistogramData *data);
   int registerData(std::vector<PndLmdAngularData> &data_vec);
   int registerData(std::vector<PndLmdHistogramData> &data_vec);
 
-  int registerAcceptance(PndLmdAcceptance* acc);
+  int registerAcceptance(PndLmdAcceptance *acc);
   int registerAcceptances(std::vector<PndLmdAcceptance> &acc_vec);
 
-  int registerResolution(PndLmdResolution* res);
+  int registerResolution(PndLmdResolution *res);
   int registerResolutions(std::vector<PndLmdResolution> &res_vec);
 
   void read();

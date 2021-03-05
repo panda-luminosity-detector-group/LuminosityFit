@@ -7,9 +7,8 @@
 
 #include "Parametrization.h"
 
-Parametrization::Parametrization(ModelParSet &model_par_set_) :
-    model_par_set(model_par_set_), dependency_parameters() {
-}
+Parametrization::Parametrization(ModelParSet &model_par_set_)
+    : model_par_set(model_par_set_), dependency_parameters() {}
 
 Parametrization::~Parametrization() {
   // TODO Auto-generated destructor stub

@@ -8,20 +8,18 @@
 
 ClassImp(PndLmdAngularData)
 
-PndLmdAngularData::PndLmdAngularData() :
-    reference_luminosity_per_event(1.0), ip_offset_x(0.0), ip_offset_y(0.0) {
-}
+    PndLmdAngularData::PndLmdAngularData()
+    : reference_luminosity_per_event(1.0), ip_offset_x(0.0), ip_offset_y(0.0) {}
 
-PndLmdAngularData::PndLmdAngularData(const PndLmdAngularData &lmd_ang_data_) :
-    PndLmdHistogramData(lmd_ang_data_) {
+PndLmdAngularData::PndLmdAngularData(const PndLmdAngularData &lmd_ang_data_)
+    : PndLmdHistogramData(lmd_ang_data_) {
   reference_luminosity_per_event =
       lmd_ang_data_.getReferenceLuminosityPerEvent();
   ip_offset_x = lmd_ang_data_.ip_offset_x;
   ip_offset_y = lmd_ang_data_.ip_offset_y;
 }
 
-PndLmdAngularData::~PndLmdAngularData() {
-}
+PndLmdAngularData::~PndLmdAngularData() {}
 
 double PndLmdAngularData::getReferenceLuminosity() const {
   return reference_luminosity_per_event * getNumEvents();
@@ -47,11 +45,11 @@ void PndLmdAngularData::setIPOffsets(
 }
 
 bool PndLmdAngularData::operator<(const PndLmdAngularData &lmd_data) const {
-  if (reference_luminosity_per_event
-      < lmd_data.getReferenceLuminosityPerEvent()) {
+  if (reference_luminosity_per_event <
+      lmd_data.getReferenceLuminosityPerEvent()) {
     return true;
-  } else if (reference_luminosity_per_event
-      > lmd_data.getReferenceLuminosityPerEvent())
+  } else if (reference_luminosity_per_event >
+             lmd_data.getReferenceLuminosityPerEvent())
     return false;
   if (ip_offset_x < lmd_data.ip_offset_x) {
     return true;
@@ -67,8 +65,8 @@ bool PndLmdAngularData::operator>(const PndLmdAngularData &lmd_data) const {
   return (lmd_data < *this);
 }
 bool PndLmdAngularData::operator==(const PndLmdAngularData &lmd_data) const {
-  if (reference_luminosity_per_event
-      != lmd_data.getReferenceLuminosityPerEvent())
+  if (reference_luminosity_per_event !=
+      lmd_data.getReferenceLuminosityPerEvent())
     return false;
   if (ip_offset_x != lmd_data.ip_offset_x)
     return false;

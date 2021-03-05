@@ -14,11 +14,11 @@ class Model1D;
 
 class IntegralStrategy1D {
 public:
-	IntegralStrategy1D();
-	virtual ~IntegralStrategy1D();
+  IntegralStrategy1D();
+  virtual ~IntegralStrategy1D();
 
-	virtual mydouble Integral(Model1D *model1d, mydouble xlow, mydouble xhigh,
-			mydouble precision) =0;
+  virtual mydouble Integral(Model1D *model1d, mydouble xlow, mydouble xhigh,
+                            mydouble precision) = 0;
 };
 
 #endif /* INTEGRALSTRATEGY1D_H_ */

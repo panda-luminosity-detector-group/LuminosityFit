@@ -11,7 +11,7 @@
 
 extern thread_local Model2D *current_model;
 
-class IntegralStrategyGSL2D: public IntegralStrategy2D {
+class IntegralStrategyGSL2D : public IntegralStrategy2D {
 private:
   const gsl_rng_type *T;
   size_t start_calls;
@@ -29,16 +29,18 @@ private:
 
 public:
   IntegralStrategyGSL2D(unsigned int start_calls_ = 500,
-      unsigned int max_calls_ = 100000);
+                        unsigned int max_calls_ = 100000);
   virtual ~IntegralStrategyGSL2D();
 
   void setStartNumberOfFunctionEvaluations(unsigned int start_calls_);
   void setMaximumNumberOfFunctionEvaluations(unsigned int max_calls_);
 
-  unsigned int determineOptimalCallNumber(Model2D *model2d,
-      const std::vector<DataStructs::DimensionRange> &ranges, mydouble precision);
+  unsigned int determineOptimalCallNumber(
+      Model2D *model2d, const std::vector<DataStructs::DimensionRange> &ranges,
+      mydouble precision);
 
   mydouble Integral(Model2D *model2d,
-      const std::vector<DataStructs::DimensionRange> &ranges, mydouble precision);
+                    const std::vector<DataStructs::DimensionRange> &ranges,
+                    mydouble precision);
 };
 #endif /* INTEGRALSTRATEGYGSL2D_H_ */

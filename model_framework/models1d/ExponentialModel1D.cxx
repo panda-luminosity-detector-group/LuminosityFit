@@ -31,8 +31,8 @@ mydouble ExponentialModel1D::eval(const mydouble *x) const {
 void ExponentialModel1D::updateDomain() {
   if (exp_factor->getValue() > 0.0)
     setDomain(std::log(1e-06 / amplitude->getValue()) / exp_factor->getValue(),
-        std::numeric_limits<mydouble>::max());
+              std::numeric_limits<mydouble>::max());
   else
     setDomain(std::numeric_limits<mydouble>::min(),
-        std::log(1e-06 / amplitude->getValue()) / exp_factor->getValue());
+              std::log(1e-06 / amplitude->getValue()) / exp_factor->getValue());
 }

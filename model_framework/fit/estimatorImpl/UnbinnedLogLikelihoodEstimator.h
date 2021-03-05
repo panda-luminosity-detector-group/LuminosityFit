@@ -3,19 +3,20 @@
 
 #include "fit/ModelEstimator.h"
 
-class UnbinnedLogLikelihoodEstimator: public ModelEstimator {
+class UnbinnedLogLikelihoodEstimator : public ModelEstimator {
 private:
-	mydouble last_integral;
-	bool skip_integral;
+  mydouble last_integral;
+  bool skip_integral;
 
-	int integral_skip_counter;
-	int integral_skip_amount;
+  int integral_skip_counter;
+  int integral_skip_amount;
+
 public:
-	UnbinnedLogLikelihoodEstimator();
-	virtual ~UnbinnedLogLikelihoodEstimator();
+  UnbinnedLogLikelihoodEstimator();
+  virtual ~UnbinnedLogLikelihoodEstimator();
 
-	// the likelihood function
-	mydouble eval(std::shared_ptr<Data> data);
+  // the likelihood function
+  mydouble eval(std::shared_ptr<Data> data);
 };
 
 #endif /* UNBINNEDLOGLIKELIHOODESTIMATOR_H_ */

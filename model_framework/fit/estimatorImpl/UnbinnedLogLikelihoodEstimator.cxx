@@ -5,9 +5,9 @@
 #include <cmath>
 #include <iostream>
 
-UnbinnedLogLikelihoodEstimator::UnbinnedLogLikelihoodEstimator() :
-    ModelEstimator(true), last_integral(0.0), skip_integral(false), integral_skip_counter(
-        0), integral_skip_amount(5) {
+UnbinnedLogLikelihoodEstimator::UnbinnedLogLikelihoodEstimator()
+    : ModelEstimator(true), last_integral(0.0), skip_integral(false),
+      integral_skip_counter(0), integral_skip_amount(5) {
   // TODO Auto-generated constructor stub
 }
 
@@ -16,7 +16,7 @@ UnbinnedLogLikelihoodEstimator::~UnbinnedLogLikelihoodEstimator() {
 }
 
 mydouble UnbinnedLogLikelihoodEstimator::eval(std::shared_ptr<Data> data) {
-  //calculate loglikelihood
+  // calculate loglikelihood
   // poisson sum_i(y_i * ln (f(x_i)) - f(x_i))
 
   mydouble loglikelihood = 0.0;

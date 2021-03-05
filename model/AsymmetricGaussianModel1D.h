@@ -10,28 +10,29 @@
 
 #include "core/Model1D.h"
 
-class AsymmetricGaussianModel1D: public Model1D {
+class AsymmetricGaussianModel1D : public Model1D {
 private:
-	double num_sigmas;
-	std::shared_ptr<ModelPar> asymm_gauss_sigma_left;
-	std::shared_ptr<ModelPar> asymm_gauss_sigma_right;
-	std::shared_ptr<ModelPar> asymm_gauss_mean;
-	std::shared_ptr<ModelPar> asymm_gauss_amplitude;
+  double num_sigmas;
+  std::shared_ptr<ModelPar> asymm_gauss_sigma_left;
+  std::shared_ptr<ModelPar> asymm_gauss_sigma_right;
+  std::shared_ptr<ModelPar> asymm_gauss_mean;
+  std::shared_ptr<ModelPar> asymm_gauss_amplitude;
 
 public:
-	/**
-	 * The constructor for creating an asymmetric gaussian model in 1D
-	 * @params name_ will be set as the name of this model. Make sure this will be unique!
-	 */
-	AsymmetricGaussianModel1D(std::string name_);
+  /**
+   * The constructor for creating an asymmetric gaussian model in 1D
+   * @params name_ will be set as the name of this model. Make sure this will be
+   * unique!
+   */
+  AsymmetricGaussianModel1D(std::string name_);
 
-	virtual ~AsymmetricGaussianModel1D();
+  virtual ~AsymmetricGaussianModel1D();
 
-	void initModelParameters();
+  void initModelParameters();
 
-	mydouble eval(const double *x) const;
+  mydouble eval(const double *x) const;
 
-	void updateDomain();
+  void updateDomain();
 };
 
 #endif /* ASYMMETRICGAUSSIANMODEL1D_H_ */

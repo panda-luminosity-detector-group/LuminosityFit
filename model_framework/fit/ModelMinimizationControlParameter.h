@@ -13,12 +13,13 @@
 
 class Model;
 
-class ModelMinimizationControlParameter: public ModelControlParameter {
-	private:
-	std::shared_ptr<Model> model;
+class ModelMinimizationControlParameter : public ModelControlParameter {
+private:
+  std::shared_ptr<Model> model;
+
 public:
-	ModelMinimizationControlParameter();
-	virtual ~ModelMinimizationControlParameter();
+  ModelMinimizationControlParameter();
+  virtual ~ModelMinimizationControlParameter();
 
   mydouble evaluate(const mydouble *pars);
 };

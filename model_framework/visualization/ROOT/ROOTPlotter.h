@@ -20,14 +20,17 @@ class TH2D;
 class ROOTPlotter {
 private:
 public:
-	ROOTPlotter();
-	virtual ~ROOTPlotter();
+  ROOTPlotter();
+  virtual ~ROOTPlotter();
 
-	TGraphAsymmErrors* createGraphFromModel1D(std::shared_ptr<Model> model,
-			ModelVisualizationProperties1D &visualization_properties) const;
+  TGraphAsymmErrors *createGraphFromModel1D(
+      std::shared_ptr<Model> model,
+      ModelVisualizationProperties1D &visualization_properties) const;
 
-	TH2D* createHistogramFromModel2D(std::shared_ptr<Model> model,
-			std::pair<ModelVisualizationProperties1D, ModelVisualizationProperties1D> &visualization_properties) const;
+  TH2D *createHistogramFromModel2D(
+      std::shared_ptr<Model> model,
+      std::pair<ModelVisualizationProperties1D, ModelVisualizationProperties1D>
+          &visualization_properties) const;
 };
 
 #endif /* ROOTPLOTTER_H_ */

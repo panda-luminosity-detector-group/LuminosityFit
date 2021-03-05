@@ -1,30 +1,30 @@
+#include "LumiFitStructs.h"
 #include "ui/PndLmdDataFacade.h"
 #include "ui/PndLmdFitFacade.h"
-#include "LumiFitStructs.h"
 
 #include <iostream>
 #include <sstream>
 #include <string>
 
 #define BOOST_CHRONO_HEADER_ONLY
-#include <boost/chrono/thread_clock.hpp>
 #include "boost/property_tree/json_parser.hpp"
+#include <boost/chrono/thread_clock.hpp>
 
 #include "TFile.h"
 
-using std::string;
-using std::cerr;
-using std::endl;
-using std::cout;
 using boost::property_tree::ptree;
+using std::cerr;
+using std::cout;
+using std::endl;
+using std::string;
 
 void determineBeamOffset(string input_file_dir, string config_file_url,
-    unsigned int nthreads) {
+                         unsigned int nthreads) {
 
   boost::chrono::thread_clock::time_point start =
       boost::chrono::thread_clock::now();
 
-  PndLmdRuntimeConfiguration& lmd_runtime_config =
+  PndLmdRuntimeConfiguration &lmd_runtime_config =
       PndLmdRuntimeConfiguration::Instance();
   lmd_runtime_config.setNumberOfThreads(nthreads);
 
@@ -50,10 +50,11 @@ void determineBeamOffset(string input_file_dir, string config_file_url,
 
    const boost::property_tree::ptree& fit_config_ptree =
    lmd_runtime_config.getFitConfigTree();
-   if (fit_config_ptree.get<bool>("fit.fit_model_options.acceptance_correction_active") == true) {
-   lmd_dim_opt.track_type = LumiFit::MC_ACC;
-   if (fit_config_ptree.get<bool>("fit.fit_model_options.resolution_smearing_active") == true)
-   lmd_dim_opt.track_type = LumiFit::RECO;
+   if
+   (fit_config_ptree.get<bool>("fit.fit_model_options.acceptance_correction_active")
+   == true) { lmd_dim_opt.track_type = LumiFit::MC_ACC; if
+   (fit_config_ptree.get<bool>("fit.fit_model_options.resolution_smearing_active")
+   == true) lmd_dim_opt.track_type = LumiFit::RECO;
    }
 
    LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter filter(lmd_dim_opt);
@@ -73,21 +74,21 @@ void determineBeamOffset(string input_file_dir, string config_file_url,
   hs << input_file_dir << "/reco_ip.json";
 
   ptree fit_result_ptree;
-  for (auto const& vertex_data : my_vertex_vec) {
-    if (vertex_data.getPrimaryDimension().dimension_options.track_type
-        == LumiFit::RECO) {
+  for (auto const &vertex_data : my_vertex_vec) {
+    if (vertex_data.getPrimaryDimension().dimension_options.track_type ==
+        LumiFit::RECO) {
       string label("");
-      if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
-          == LumiFit::X)
+      if (vertex_data.getPrimaryDimension().dimension_options.dimension_type ==
+          LumiFit::X)
         label = "ip_x";
-      else if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
-          == LumiFit::Y)
+      else if (vertex_data.getPrimaryDimension()
+                   .dimension_options.dimension_type == LumiFit::Y)
         label = "ip_y";
 
       if (label != "") {
         if (vertex_data.getFitResults().size() > 0) {
-          std::cout<<label<<std::endl;
-          auto const& fit_res = vertex_data.getFitResults().begin()->second[0];
+          std::cout << label << std::endl;
+          auto const &fit_res = vertex_data.getFitResults().begin()->second[0];
           double value = fit_res.getFitParameter("gauss_mean").value;
           fit_result_ptree.add(label, value);
         }
@@ -104,10 +105,10 @@ void determineBeamOffset(string input_file_dir, string config_file_url,
   TFile *ffitteddata = new TFile(hs.str().c_str(), "RECREATE");
 
   for (std::vector<PndLmdHistogramData>::iterator lmd_data_iter =
-      my_vertex_vec.begin(); lmd_data_iter != my_vertex_vec.end();
-      lmd_data_iter++) {
+           my_vertex_vec.begin();
+       lmd_data_iter != my_vertex_vec.end(); lmd_data_iter++) {
     std::cout << lmd_data_iter->getName() << ": "
-        << lmd_data_iter->getFitResults().size() << std::endl;
+              << lmd_data_iter->getFitResults().size() << std::endl;
     if (lmd_data_iter->getFitResults().size() > 0)
       lmd_data_iter->saveToRootFile();
   }
@@ -124,7 +125,7 @@ void displayInfo() {
   cout << "-m [number of threads]" << endl;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   string data_path;
   string config_path("");
   unsigned int nthreads(1);

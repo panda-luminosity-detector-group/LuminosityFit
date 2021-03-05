@@ -1,11 +1,11 @@
 #ifndef MODEL_CACHEDMODEL2D_H_
 #define MODEL_CACHEDMODEL2D_H_
 
-#include <core/Model2D.h>
 #include "LumiFitStructs.h"
 #include "operators2d/integration/IntegralStrategyGSL2D.h"
+#include <core/Model2D.h>
 
-class CachedModel2D: public Model2D {
+class CachedModel2D : public Model2D {
   struct IntRange2D {
     std::vector<DataStructs::DimensionRange> int_range;
 
@@ -24,18 +24,18 @@ class CachedModel2D: public Model2D {
 
   mydouble **model_grid;
 
-  std::vector<std::vector<IntRange2D> > int_ranges_lists;
+  std::vector<std::vector<IntRange2D>> int_ranges_lists;
 
   void initializeModelGrid();
 
   void generateModelGrid2D();
   void optimizeNumericalIntegration();
-  void generateModelGrid2D(const std::vector<IntRange2D>& int_ranges);
+  void generateModelGrid2D(const std::vector<IntRange2D> &int_ranges);
 
 public:
-  CachedModel2D(const std::string& name, std::shared_ptr<Model2D> model_,
-      const LumiFit::LmdDimension& data_dim_x_,
-      const LumiFit::LmdDimension& data_dim_y_);
+  CachedModel2D(const std::string &name, std::shared_ptr<Model2D> model_,
+                const LumiFit::LmdDimension &data_dim_x_,
+                const LumiFit::LmdDimension &data_dim_y_);
   virtual ~CachedModel2D();
 
   void initModelParameters();

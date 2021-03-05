@@ -14,32 +14,32 @@
 
 class Data {
 private:
-	// this is the vector that stores the information
-	std::vector<DataPointProxy> data_points;
+  // this is the vector that stores the information
+  std::vector<DataPointProxy> data_points;
 
-	// binning factor
-	double binning_factor;
-	bool is_binning_factor_set;
+  // binning factor
+  double binning_factor;
+  bool is_binning_factor_set;
 
-	// dimension of the data
-	unsigned int dimension;
+  // dimension of the data
+  unsigned int dimension;
 
 public:
-	Data(unsigned int dimension_);
-	virtual ~Data();
+  Data(unsigned int dimension_);
+  virtual ~Data();
 
-	unsigned int getDimension() const;
-	unsigned int getNumberOfDataPoints() const;
-	unsigned int getNumberOfUsedDataPoints() const;
+  unsigned int getDimension() const;
+  unsigned int getNumberOfDataPoints() const;
+  unsigned int getNumberOfUsedDataPoints() const;
 
-	double getBinningFactor() const;
-	bool isBinningFactorSet() const;
+  double getBinningFactor() const;
+  bool isBinningFactorSet() const;
 
-	void clearData();
+  void clearData();
 
-	void insertData(std::vector<DataPointProxy> & data_points_);
-	void insertData(DataPointProxy & data_point_);
-	std::vector<DataPointProxy> & getData();
+  void insertData(std::vector<DataPointProxy> &data_points_);
+  void insertData(DataPointProxy &data_point_);
+  std::vector<DataPointProxy> &getData();
 };
 
 #endif /* BINNEDDATA_H_ */

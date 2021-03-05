@@ -8,13 +8,13 @@
 #include "ModelMinimizationControlParameter.h"
 #include "core/Model.h"
 
-ModelMinimizationControlParameter::ModelMinimizationControlParameter() : model() {
-}
+ModelMinimizationControlParameter::ModelMinimizationControlParameter()
+    : model() {}
 
 ModelMinimizationControlParameter::~ModelMinimizationControlParameter() {
-	// TODO Auto-generated destructor stub
+  // TODO Auto-generated destructor stub
 }
 
 mydouble ModelMinimizationControlParameter::evaluate(const mydouble *pars) {
-	return model->eval(pars);
+  return model->eval(pars);
 }

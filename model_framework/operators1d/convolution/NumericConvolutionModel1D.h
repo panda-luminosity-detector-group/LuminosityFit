@@ -10,20 +10,21 @@
 
 #include "core/Model1D.h"
 
-class NumericConvolutionModel1D: public Model1D {
+class NumericConvolutionModel1D : public Model1D {
 private:
-	unsigned int divisions;
+  unsigned int divisions;
 
-	std::shared_ptr<Model1D> first, second;
+  std::shared_ptr<Model1D> first, second;
+
 public:
-	NumericConvolutionModel1D(std::string name_, std::shared_ptr<Model1D> first_,
-			std::shared_ptr<Model1D> second_);
+  NumericConvolutionModel1D(std::string name_, std::shared_ptr<Model1D> first_,
+                            std::shared_ptr<Model1D> second_);
 
-	void initModelParameters();
+  void initModelParameters();
 
-	mydouble eval(const mydouble *x) const;
+  mydouble eval(const mydouble *x) const;
 
-	void updateDomain();
+  void updateDomain();
 };
 
 #endif /* NUMERICCONVOLUTIONMODEL1D_H_ */

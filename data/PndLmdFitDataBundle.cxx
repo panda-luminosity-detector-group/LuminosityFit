@@ -13,31 +13,34 @@
 
 ClassImp(PndLmdFitDataBundle)
 
-PndLmdFitDataBundle::PndLmdFitDataBundle() {
+    PndLmdFitDataBundle::PndLmdFitDataBundle() {
   // TODO Auto-generated constructor stub
-
 }
 
 PndLmdFitDataBundle::~PndLmdFitDataBundle() {
   // TODO Auto-generated destructor stub
 }
 
-const std::vector<PndLmdElasticDataBundle>& PndLmdFitDataBundle::getElasticDataBundles() const {
+const std::vector<PndLmdElasticDataBundle> &
+PndLmdFitDataBundle::getElasticDataBundles() const {
   return elastic_data_bundles;
 }
 
-const std::vector<PndLmdAcceptance>& PndLmdFitDataBundle::getUsedAcceptancesPool() const {
+const std::vector<PndLmdAcceptance> &
+PndLmdFitDataBundle::getUsedAcceptancesPool() const {
   return used_acceptances_pool;
 }
 
-const std::vector<PndLmdMapData>& PndLmdFitDataBundle::getUsedResolutionsPool() const {
+const std::vector<PndLmdMapData> &
+PndLmdFitDataBundle::getUsedResolutionsPool() const {
   return used_resolutions_pool;
 }
 
-std::vector<std::pair<unsigned int, unsigned int> > PndLmdFitDataBundle::convertToIndexRanges(
+std::vector<std::pair<unsigned int, unsigned int>>
+PndLmdFitDataBundle::convertToIndexRanges(
     const std::vector<unsigned int> &single_positions) const {
 
-  std::vector<std::pair<unsigned int, unsigned int> > position_ranges;
+  std::vector<std::pair<unsigned int, unsigned int>> position_ranges;
 
   unsigned int last_position(0);
   std::pair<unsigned int, unsigned int> current_range;
@@ -69,9 +72,9 @@ unsigned int PndLmdFitDataBundle::addAcceptanceToPool(
     const PndLmdAcceptance &new_acceptance) {
 
   // first check if this acceptance already exists
-  std::vector<PndLmdAcceptance>::iterator search_result_iter = std::find(
-      used_acceptances_pool.begin(), used_acceptances_pool.end(),
-      new_acceptance);
+  std::vector<PndLmdAcceptance>::iterator search_result_iter =
+      std::find(used_acceptances_pool.begin(), used_acceptances_pool.end(),
+                new_acceptance);
   unsigned int position(used_acceptances_pool.size());
   if (search_result_iter == used_acceptances_pool.end()) {
     // if not add and return position is the last element
@@ -85,19 +88,19 @@ unsigned int PndLmdFitDataBundle::addAcceptanceToPool(
   return position;
 }
 
-unsigned int PndLmdFitDataBundle::addResolutionToPool(
-    const PndLmdMapData& new_resolution) {
+unsigned int
+PndLmdFitDataBundle::addResolutionToPool(const PndLmdMapData &new_resolution) {
 
   // first check if this acceptance already exists
-  std::vector<PndLmdMapData>::iterator search_result_iter = std::find(
-      used_resolutions_pool.begin(), used_resolutions_pool.end(),
-      new_resolution);
+  std::vector<PndLmdMapData>::iterator search_result_iter =
+      std::find(used_resolutions_pool.begin(), used_resolutions_pool.end(),
+                new_resolution);
   unsigned int position(used_resolutions_pool.size());
   if (search_result_iter == used_resolutions_pool.end()) {
     // if not add and return position is the last element
     used_resolutions_pool.push_back(new_resolution);
     std::cout << "adding resolution to pool...\n";
-    //used_resolutions_pool[used_resolutions_pool.size()-1].clearMap();
+    // used_resolutions_pool[used_resolutions_pool.size()-1].clearMap();
   } else {
     // if so just return the found position index
     position = search_result_iter - used_resolutions_pool.begin();
@@ -105,8 +108,8 @@ unsigned int PndLmdFitDataBundle::addResolutionToPool(
 
   return position;
   // sort the vector
-  //std::sort(single_positions.begin(), single_positions.end());
-  //return convertToIndexRanges(single_positions);
+  // std::sort(single_positions.begin(), single_positions.end());
+  // return convertToIndexRanges(single_positions);
 }
 
 void PndLmdFitDataBundle::addFittedElasticData(
@@ -142,16 +145,16 @@ void PndLmdFitDataBundle::saveDataBundleToRootFile(
 
 void PndLmdFitDataBundle::printInfo() const {
   std::cout << "available acceptances: " << getUsedAcceptancesPool().size()
-      << std::endl;
+            << std::endl;
   std::cout << "available resolutions: " << getUsedResolutionsPool().size()
-      << std::endl;
-  for (auto const& elastic_data : getElasticDataBundles()) {
+            << std::endl;
+  for (auto const &elastic_data : getElasticDataBundles()) {
     std::cout << "elastic data bundle: "
-        << elastic_data.getPrimaryDimension().createDimensionLabel()
-        << std::endl;
+              << elastic_data.getPrimaryDimension().createDimensionLabel()
+              << std::endl;
     std::cout << "used acceptances: "
-        << elastic_data.getUsedAcceptanceIndices().size() << std::endl;
+              << elastic_data.getUsedAcceptanceIndices().size() << std::endl;
     std::cout << "used resolutions: "
-        << elastic_data.getUsedResolutionIndices().size() << std::endl;
+              << elastic_data.getUsedResolutionIndices().size() << std::endl;
   }
 }

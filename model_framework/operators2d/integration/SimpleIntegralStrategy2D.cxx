@@ -5,14 +5,13 @@
  *      Author: steve
  */
 
-#include <operators2d/integration/SimpleIntegralStrategy2D.h>
+#include <cmath>
 #include <core/Model2D.h>
 #include <iostream>
-#include <cmath>
+#include <operators2d/integration/SimpleIntegralStrategy2D.h>
 
 SimpleIntegralStrategy2D::SimpleIntegralStrategy2D() {
   // TODO Auto-generated constructor stub
-
 }
 
 SimpleIntegralStrategy2D::~SimpleIntegralStrategy2D() {
@@ -28,8 +27,9 @@ void SimpleIntegralStrategy2D::setMaximumEvaluationGridConstant(
   max_grid_constant = max_grid_constant_;
 }
 
-unsigned int SimpleIntegralStrategy2D::determineOptimalCallNumber(Model2D *model2d,
-    const std::vector<DataStructs::DimensionRange> &ranges, double precision) {
+unsigned int SimpleIntegralStrategy2D::determineOptimalCallNumber(
+    Model2D *model2d, const std::vector<DataStructs::DimensionRange> &ranges,
+    double precision) {
   used_grid_constant = 1;
 
   mydouble result, result_higher;
@@ -37,20 +37,22 @@ unsigned int SimpleIntegralStrategy2D::determineOptimalCallNumber(Model2D *model
     result = Integral(model2d, ranges, precision);
     used_grid_constant *= 2;
     result_higher = Integral(model2d, ranges, precision);
-    //std::cout<<result<< " and "<<result_higher<<std::endl;
-  }
-  while(std::fabs(result-result_higher)/result_higher > precision);
+    // std::cout<<result<< " and "<<result_higher<<std::endl;
+  } while (std::fabs(result - result_higher) / result_higher > precision);
 
-  return used_grid_constant/2;
+  return used_grid_constant / 2;
 }
 
-mydouble SimpleIntegralStrategy2D::Integral(Model2D *model2d,
-    const std::vector<DataStructs::DimensionRange> &ranges, mydouble precision) {
+mydouble SimpleIntegralStrategy2D::Integral(
+    Model2D *model2d, const std::vector<DataStructs::DimensionRange> &ranges,
+    mydouble precision) {
   mydouble result = 0.0;
   mydouble x[2];
 
-  mydouble wx = (ranges[0].range_high - ranges[0].range_low) / used_grid_constant;
-  mydouble wy = (ranges[1].range_high - ranges[1].range_low) / used_grid_constant;
+  mydouble wx =
+      (ranges[0].range_high - ranges[0].range_low) / used_grid_constant;
+  mydouble wy =
+      (ranges[1].range_high - ranges[1].range_low) / used_grid_constant;
 
   mydouble half(0.5);
   for (unsigned int ix = 0; ix < used_grid_constant; ++ix) {

@@ -4,8 +4,7 @@
 
 #include <cmath>
 
-LogLikelihoodEstimator::LogLikelihoodEstimator() :
-    ModelEstimator(true) {
+LogLikelihoodEstimator::LogLikelihoodEstimator() : ModelEstimator(true) {
   // TODO Auto-generated constructor stub
 }
 
@@ -14,13 +13,13 @@ LogLikelihoodEstimator::~LogLikelihoodEstimator() {
 }
 
 mydouble LogLikelihoodEstimator::eval(std::shared_ptr<Data> data) {
-  //calculate loglikelihood
+  // calculate loglikelihood
   // poisson sum_i(y_i * ln (f(x_i)) - f(x_i))
 
   std::vector<DataPointProxy> &data_points = data->getData();
 
-  //mydouble loglikelihood(0.0);
-  //mydouble delta;
+  // mydouble loglikelihood(0.0);
+  // mydouble delta;
 
   std::vector<mydouble> deltas;
   deltas.reserve(data_points.size());
@@ -30,14 +29,14 @@ mydouble LogLikelihoodEstimator::eval(std::shared_ptr<Data> data) {
     std::shared_ptr<DataStructs::binned_data_point> data_point;
     if (data_points[i].isPointUsed()) {
       data_point = data_points[i].getBinnedDataPoint();
-      mydouble model_value = fit_model->evaluate(data_point->bin_center_value)
-          * data->getBinningFactor();
+      mydouble model_value = fit_model->evaluate(data_point->bin_center_value) *
+                             data->getBinningFactor();
       // if model is zero at this point should be removed otherwise log(0)!!!
       if (model_value <= 0.0)
         continue;
 
-      //delta = model_value - data_point->z * log(model_value);
-      //loglikelihood += delta;
+      // delta = model_value - data_point->z * log(model_value);
+      // loglikelihood += delta;
       deltas.push_back(model_value);
       deltas.push_back(-data_point->z * std::log(model_value));
     }
@@ -67,4 +66,3 @@ mydouble LogLikelihoodEstimator::eval(std::shared_ptr<Data> data) {
 
   return sum_value;
 }
-

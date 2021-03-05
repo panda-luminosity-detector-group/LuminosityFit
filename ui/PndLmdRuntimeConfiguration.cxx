@@ -7,21 +7,21 @@
 using boost::filesystem::path;
 using boost::property_tree::ptree;
 
-PndLmdRuntimeConfiguration::PndLmdRuntimeConfiguration() :
-    number_of_threads(1), elastic_data_name("lmd_data.root"), acc_data_name(
-        "lmd_acc_data.root"), res_data_name("lmd_res_data.root"), res_param_data_name(
-        "resolution_params_1.root"), fitted_elastic_data_name(
-        "lmd_fitted_data.root"), vertex_data_name("lmd_vertex_data.root") {
-  //selection_dimensions.first = "";
-  //selection_dimensions.second = std::vector<LumiFit::LmdDimension>();
+PndLmdRuntimeConfiguration::PndLmdRuntimeConfiguration()
+    : number_of_threads(1), elastic_data_name("lmd_data.root"),
+      acc_data_name("lmd_acc_data.root"), res_data_name("lmd_res_data.root"),
+      res_param_data_name("resolution_params_1.root"),
+      fitted_elastic_data_name("lmd_fitted_data.root"),
+      vertex_data_name("lmd_vertex_data.root") {
+  // selection_dimensions.first = "";
+  // selection_dimensions.second = std::vector<LumiFit::LmdDimension>();
 }
 
-PndLmdRuntimeConfiguration::~PndLmdRuntimeConfiguration() {
-}
+PndLmdRuntimeConfiguration::~PndLmdRuntimeConfiguration() {}
 
 void PndLmdRuntimeConfiguration::readSimulationParameters(
-    const std::string& file_url) {
-// read the config file
+    const std::string &file_url) {
+  // read the config file
   std::cout << "Trying to read config file: " << file_url << std::endl;
   read_json(file_url, simulation_parameter_tree);
 }
@@ -29,9 +29,7 @@ void PndLmdRuntimeConfiguration::readSimulationParameters(
 unsigned int PndLmdRuntimeConfiguration::getNumberOfThreads() const {
   return number_of_threads;
 }
-double PndLmdRuntimeConfiguration::getMomentum() const {
-  return momentum;
-}
+double PndLmdRuntimeConfiguration::getMomentum() const { return momentum; }
 unsigned int PndLmdRuntimeConfiguration::getNumEvents() const {
   return num_events;
 }
@@ -39,55 +37,61 @@ double PndLmdRuntimeConfiguration::getTotalElasticCrossSection() const {
   return total_elastic_cross_section;
 }
 
-const std::string& PndLmdRuntimeConfiguration::getElasticDataName() const {
+const std::string &PndLmdRuntimeConfiguration::getElasticDataName() const {
   return elastic_data_name;
 }
-const std::string& PndLmdRuntimeConfiguration::getAccDataName() const {
+const std::string &PndLmdRuntimeConfiguration::getAccDataName() const {
   return acc_data_name;
 }
-const std::string& PndLmdRuntimeConfiguration::getFittedElasticDataName() const {
+const std::string &
+PndLmdRuntimeConfiguration::getFittedElasticDataName() const {
   return fitted_elastic_data_name;
 }
-const std::string& PndLmdRuntimeConfiguration::getResDataName() const {
+const std::string &PndLmdRuntimeConfiguration::getResDataName() const {
   return res_data_name;
 }
-const std::string& PndLmdRuntimeConfiguration::getResParamDataName() const {
+const std::string &PndLmdRuntimeConfiguration::getResParamDataName() const {
   return res_param_data_name;
 }
-const std::string& PndLmdRuntimeConfiguration::getVertexDataName() const {
+const std::string &PndLmdRuntimeConfiguration::getVertexDataName() const {
   return vertex_data_name;
 }
 
-const path& PndLmdRuntimeConfiguration::getElasticDataInputDirectory() const {
+const path &PndLmdRuntimeConfiguration::getElasticDataInputDirectory() const {
   return elastic_data_input_directory;
 }
-const path& PndLmdRuntimeConfiguration::getAcceptanceResolutionInputDirectory() const {
+const path &
+PndLmdRuntimeConfiguration::getAcceptanceResolutionInputDirectory() const {
   return acceptance_resolution_input_directory;
 }
-const path& PndLmdRuntimeConfiguration::getReferenceAcceptanceResolutionInputDirectory() const {
+const path &
+PndLmdRuntimeConfiguration::getReferenceAcceptanceResolutionInputDirectory()
+    const {
   return reference_acceptance_resolution_input_directory;
 }
 
-const path& PndLmdRuntimeConfiguration::getRawDataDirectory() const {
+const path &PndLmdRuntimeConfiguration::getRawDataDirectory() const {
   return raw_data_directory;
 }
-const path& PndLmdRuntimeConfiguration::getRawDataFilelistPath() const {
+const path &PndLmdRuntimeConfiguration::getRawDataFilelistPath() const {
   return raw_data_filelist_path;
 }
-const path& PndLmdRuntimeConfiguration::getDataOutputDirectory() const {
+const path &PndLmdRuntimeConfiguration::getDataOutputDirectory() const {
   return data_output_directory;
 }
 
-const ptree& PndLmdRuntimeConfiguration::getSimulationParameters() const {
+const ptree &PndLmdRuntimeConfiguration::getSimulationParameters() const {
   return simulation_parameter_tree;
 }
-const ptree& PndLmdRuntimeConfiguration::getAcceptanceOffsetsTranformationParameters() const {
+const ptree &
+PndLmdRuntimeConfiguration::getAcceptanceOffsetsTranformationParameters()
+    const {
   return acceptance_offsets_transformation_tree;
 }
-const ptree& PndLmdRuntimeConfiguration::getDataConfigTree() const {
+const ptree &PndLmdRuntimeConfiguration::getDataConfigTree() const {
   return data_config_tree;
 }
-const ptree& PndLmdRuntimeConfiguration::getFitConfigTree() const {
+const ptree &PndLmdRuntimeConfiguration::getFitConfigTree() const {
   return fit_config_tree;
 }
 
@@ -107,124 +111,128 @@ void PndLmdRuntimeConfiguration::setTotalElasticCrossSection(
 }
 
 void PndLmdRuntimeConfiguration::setGeneralConfigDirectory(
-    const std::string& general_config_directory_) {
+    const std::string &general_config_directory_) {
   general_config_directory = general_config_directory_;
   general_config_directory.remove_filename();
 }
 
 void PndLmdRuntimeConfiguration::setElasticDataName(
-    const std::string& elastic_data_name_) {
+    const std::string &elastic_data_name_) {
   elastic_data_name = elastic_data_name_;
 }
 void PndLmdRuntimeConfiguration::setAccDataName(
-    const std::string& acc_data_name_) {
+    const std::string &acc_data_name_) {
   acc_data_name = acc_data_name_;
 }
 void PndLmdRuntimeConfiguration::setFittedElasticDataName(
-    const std::string& fitted_elastic_data_name_) {
+    const std::string &fitted_elastic_data_name_) {
   fitted_elastic_data_name = fitted_elastic_data_name_;
 }
 void PndLmdRuntimeConfiguration::setResDataName(
-    const std::string& res_data_name_) {
+    const std::string &res_data_name_) {
   res_data_name = res_data_name_;
 }
 void PndLmdRuntimeConfiguration::setResParamDataName(
-    const std::string& res_param_data_name_) {
+    const std::string &res_param_data_name_) {
   res_param_data_name = res_param_data_name_;
 }
 void PndLmdRuntimeConfiguration::setVertexDataName(
-    const std::string& vertex_data_name_) {
+    const std::string &vertex_data_name_) {
   vertex_data_name = vertex_data_name_;
 }
 
 void PndLmdRuntimeConfiguration::readFitConfig(
-    const std::string& fit_config_path) {
+    const std::string &fit_config_path) {
   path file_url(fit_config_path);
-  if(file_url.is_relative())
+  if (file_url.is_relative())
     file_url = general_config_directory.string() + '/' + file_url.string();
   read_json(file_url.string(), fit_config_tree);
 }
 
 void PndLmdRuntimeConfiguration::readAcceptanceOffsetTransformationParameters(
-    const std::string& acceptance_offsets_tranformation_file_name) {
-  std::string file_url(
-      general_config_directory.string() + '/'
-          + acceptance_offsets_tranformation_file_name);
+    const std::string &acceptance_offsets_tranformation_file_name) {
+  std::string file_url(general_config_directory.string() + '/' +
+                       acceptance_offsets_tranformation_file_name);
   read_json(file_url, acceptance_offsets_transformation_tree);
 }
 
 void PndLmdRuntimeConfiguration::readDataConfig(
-    const std::string& data_config_name) {
-  std::string file_url(
-      general_config_directory.string() + '/' + data_config_name);
+    const std::string &data_config_name) {
+  std::string file_url(general_config_directory.string() + '/' +
+                       data_config_name);
   read_json(file_url, data_config_tree);
 }
 
 void PndLmdRuntimeConfiguration::setElasticDataInputDirectory(
-    const std::string& elastic_data_input_directory_) {
+    const std::string &elastic_data_input_directory_) {
   path pathname(elastic_data_input_directory_);
-  if (boost::filesystem::exists(pathname)
-      && boost::filesystem::is_directory(pathname)) {
+  if (boost::filesystem::exists(pathname) &&
+      boost::filesystem::is_directory(pathname)) {
     elastic_data_input_directory = pathname;
   } else {
     std::runtime_error(
-        "PndLmdRuntimeConfiguration: elastic data directory containing a PndLmdAngularData data does not exist! Please set correctly!");
+        "PndLmdRuntimeConfiguration: elastic data directory containing a "
+        "PndLmdAngularData data does not exist! Please set correctly!");
   }
 }
 void PndLmdRuntimeConfiguration::setAcceptanceResolutionInputDirectory(
-    const std::string& acceptance_resolution_input_directory_) {
+    const std::string &acceptance_resolution_input_directory_) {
   path pathname(acceptance_resolution_input_directory_);
-  if (boost::filesystem::exists(pathname)
-      && boost::filesystem::is_directory(pathname)) {
+  if (boost::filesystem::exists(pathname) &&
+      boost::filesystem::is_directory(pathname)) {
     acceptance_resolution_input_directory = pathname;
   } else {
     std::runtime_error(
-        "PndLmdRuntimeConfiguration: acceptance data directory containing a PndLmdAcceptance data does not exist! Please set correctly!");
+        "PndLmdRuntimeConfiguration: acceptance data directory containing a "
+        "PndLmdAcceptance data does not exist! Please set correctly!");
   }
 }
 void PndLmdRuntimeConfiguration::setReferenceAcceptanceResolutionInputDirectory(
-    const std::string& reference_acceptance_resolution_input_directory_) {
+    const std::string &reference_acceptance_resolution_input_directory_) {
   path pathname(reference_acceptance_resolution_input_directory_);
-  if (boost::filesystem::exists(pathname)
-      && boost::filesystem::is_directory(pathname)) {
+  if (boost::filesystem::exists(pathname) &&
+      boost::filesystem::is_directory(pathname)) {
     reference_acceptance_resolution_input_directory = pathname;
   } else {
-    std::runtime_error(
-        "PndLmdRuntimeConfiguration: reference acceptance data directory containing a PndLmdAcceptance data does not exist! Please set correctly!");
+    std::runtime_error("PndLmdRuntimeConfiguration: reference acceptance data "
+                       "directory containing a PndLmdAcceptance data does not "
+                       "exist! Please set correctly!");
   }
 }
 
 void PndLmdRuntimeConfiguration::setRawDataDirectory(
-    const std::string& raw_data_directory_) {
+    const std::string &raw_data_directory_) {
   path pathname(raw_data_directory_);
-  if (boost::filesystem::exists(pathname)
-      && boost::filesystem::is_directory(pathname)) {
+  if (boost::filesystem::exists(pathname) &&
+      boost::filesystem::is_directory(pathname)) {
     raw_data_directory = pathname;
   } else {
     std::runtime_error(
-        "PndLmdRuntimeConfiguration: raw data directory containing pnd lmd track info does not exist! Please set correctly!");
+        "PndLmdRuntimeConfiguration: raw data directory containing pnd lmd "
+        "track info does not exist! Please set correctly!");
   }
 }
 void PndLmdRuntimeConfiguration::setRawDataFilelistPath(
-    const std::string& raw_data_filelist_path_) {
+    const std::string &raw_data_filelist_path_) {
   path pathname(raw_data_filelist_path_);
-  if (boost::filesystem::exists(pathname)
-      && boost::filesystem::is_regular_file(pathname)) {
+  if (boost::filesystem::exists(pathname) &&
+      boost::filesystem::is_regular_file(pathname)) {
     raw_data_filelist_path = pathname;
   } else {
     std::runtime_error(
-        "PndLmdRuntimeConfiguration: raw data filelist directory containing pnd lmd track info URLs does not exist! Please set correctly!");
+        "PndLmdRuntimeConfiguration: raw data filelist directory containing "
+        "pnd lmd track info URLs does not exist! Please set correctly!");
   }
 }
 void PndLmdRuntimeConfiguration::setDataOutputDirectory(
-    const std::string& data_output_directory_) {
+    const std::string &data_output_directory_) {
   path pathname(data_output_directory_);
-  if (boost::filesystem::exists(pathname)
-      && boost::filesystem::is_directory(pathname)) {
+  if (boost::filesystem::exists(pathname) &&
+      boost::filesystem::is_directory(pathname)) {
     data_output_directory = pathname;
   } else {
     std::runtime_error(
-        "PndLmdRuntimeConfiguration: lmd data output directory containing PndLmdData objects does not exist! Please set correctly!");
+        "PndLmdRuntimeConfiguration: lmd data output directory containing "
+        "PndLmdData objects does not exist! Please set correctly!");
   }
 }
-

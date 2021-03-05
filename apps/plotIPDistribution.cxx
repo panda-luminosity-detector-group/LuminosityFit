@@ -1,37 +1,38 @@
-#include "ui/PndLmdPlotter.h"
 #include "ui/PndLmdDataFacade.h"
+#include "ui/PndLmdPlotter.h"
 
-#include <vector>
-#include <map>
 #include <iostream>
+#include <map>
+#include <vector>
 
 #include "TFile.h"
-#include "TStyle.h"
 #include "TGaxis.h"
+#include "TStyle.h"
 #include "TVectorD.h"
 
 #include <boost/filesystem.hpp>
 
-using std::cout;
 using std::cerr;
+using std::cout;
 using std::endl;
 
-void plotIPDistribution(const std::vector<std::string>& paths,
-    const std::string& output_directory_path,
-    const std::string& filter_string) {
+void plotIPDistribution(const std::vector<std::string> &paths,
+                        const std::string &output_directory_path,
+                        const std::string &filter_string) {
   std::cout << "Generating lumi plots for fit results....\n";
 
-// ================================= END CONFIG ================================= //
+  // ================================= END CONFIG
+  // ================================= //
 
-// A small helper class that helps to construct lmd data objects
+  // A small helper class that helps to construct lmd data objects
   PndLmdDataFacade lmd_data_facade;
 
   LumiFit::PndLmdPlotter lmd_plotter;
 
-// get all data first
+  // get all data first
   std::vector<PndLmdHistogramData> all_data;
 
-  PndLmdRuntimeConfiguration& lmd_runtime_config =
+  PndLmdRuntimeConfiguration &lmd_runtime_config =
       PndLmdRuntimeConfiguration::Instance();
 
   for (unsigned int i = 0; i < paths.size(); i++) {
@@ -43,24 +44,27 @@ void plotIPDistribution(const std::vector<std::string>& paths,
       std::string fullpath = file_paths[j];
       TFile fdata(fullpath.c_str(), "READ");
 
-      // read in data from a root file which will return a map of PndLmdAngularData objects
+      // read in data from a root file which will return a map of
+      // PndLmdAngularData objects
       std::vector<PndLmdHistogramData> data_vec =
           lmd_data_facade.getDataFromFile<PndLmdHistogramData>(fdata);
 
-      // append all data objects to the end of the corresponding data map vectors
+      // append all data objects to the end of the corresponding data map
+      // vectors
       all_data.insert(all_data.end(), data_vec.begin(), data_vec.end());
     }
   }
 
-// =============================== BEGIN PLOTTING =============================== //
+  // =============================== BEGIN PLOTTING
+  // =============================== //
 
   std::stringstream basepath;
   basepath << output_directory_path;
 
   if (!boost::filesystem::exists(output_directory_path)) {
-    std::cout
-        << "The output directory path you specified does not exist! Please make sure you are pointing to an existing directory."
-        << std::endl;
+    std::cout << "The output directory path you specified does not exist! "
+                 "Please make sure you are pointing to an existing directory."
+              << std::endl;
     return;
   }
 
@@ -76,10 +80,10 @@ void plotIPDistribution(const std::vector<std::string>& paths,
     std::stringstream filename;
     filename << basepath.str() << "/";
     filename << "plab_"
-        << reco_filtered_vertex_data_vec.begin()->getLabMomentum()
-        << "/lumifit_result_ip_xy_overview.root";
+             << reco_filtered_vertex_data_vec.begin()->getLabMomentum()
+             << "/lumifit_result_ip_xy_overview.root";
 
-    std::pair<TGraphAsymmErrors*, TGraphAsymmErrors*> graphs =
+    std::pair<TGraphAsymmErrors *, TGraphAsymmErrors *> graphs =
         lmd_plotter.makeIPXYOverviewGraphs(reco_filtered_vertex_data_vec);
 
     TFile newfile(filename.str().c_str(), "RECREATE");
@@ -94,21 +98,22 @@ void plotIPDistribution(const std::vector<std::string>& paths,
       filepath << "plab_" << reco_filtered_vertex_data_vec[0].getLabMomentum();
 
       filepath << "/"
-          << lmd_plotter.makeDirName(reco_filtered_vertex_data_vec[0]);
+               << lmd_plotter.makeDirName(reco_filtered_vertex_data_vec[0]);
       boost::filesystem::create_directories(filepath.str());
-      filepath << "/" << "ip_xy_fit_results_1d.root";
+      filepath << "/"
+               << "ip_xy_fit_results_1d.root";
 
       TFile newfile(filepath.str().c_str(), "RECREATE");
 
-      for (auto const& vertex_data : reco_filtered_vertex_data_vec) {
-        if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
-            == LumiFit::X) {
+      for (auto const &vertex_data : reco_filtered_vertex_data_vec) {
+        if (vertex_data.getPrimaryDimension()
+                .dimension_options.dimension_type == LumiFit::X) {
           lmd_plotter.makeVertexFitBundle(vertex_data, "x");
-        } else if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
-            == LumiFit::Y) {
+        } else if (vertex_data.getPrimaryDimension()
+                       .dimension_options.dimension_type == LumiFit::Y) {
           lmd_plotter.makeVertexFitBundle(vertex_data, "y");
-        } else if (vertex_data.getPrimaryDimension().dimension_options.dimension_type
-            == LumiFit::Z) {
+        } else if (vertex_data.getPrimaryDimension()
+                       .dimension_options.dimension_type == LumiFit::Z) {
           lmd_plotter.makeVertexFitBundle(vertex_data, "z");
         }
       }
@@ -124,7 +129,8 @@ void plotIPDistribution(const std::vector<std::string>& paths,
     }
   }
 
-  // ================================ END PLOTTING ================================ //
+  // ================================ END PLOTTING
+  // ================================ //
 }
 
 void displayInfo() {
@@ -133,7 +139,7 @@ void displayInfo() {
   cout << "list of directories to be scanned for vertex data" << endl;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   bool is_data_ref_set = false;
   TString data_ref_path("");
 

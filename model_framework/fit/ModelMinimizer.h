@@ -13,7 +13,6 @@
 
 #include <memory>
 
-
 /**
  * Abstract class for constructing minimizer objects. Concrete implementations
  * (for example ROOTMinimizer using ROOT's Minuit Minimizer) need to derive
@@ -22,24 +21,24 @@
  */
 class ModelMinimizer {
 protected:
-	// control parameter used for the minimization
-	std::shared_ptr<ModelControlParameter> control_parameter;
+  // control parameter used for the minimization
+  std::shared_ptr<ModelControlParameter> control_parameter;
 
 public:
-	ModelMinimizer();
-	virtual ~ModelMinimizer();
+  ModelMinimizer();
+  virtual ~ModelMinimizer();
 
-	std::shared_ptr<ModelControlParameter> getControlParameter() const;
-	void setControlParameter(
-			std::shared_ptr<ModelControlParameter> control_parameter_);
+  std::shared_ptr<ModelControlParameter> getControlParameter() const;
+  void setControlParameter(
+      std::shared_ptr<ModelControlParameter> control_parameter_);
 
-	virtual void increaseFunctionCallLimit();
+  virtual void increaseFunctionCallLimit();
 
-	virtual int minimize() =0;
+  virtual int minimize() = 0;
 
-	int doMinimization();
+  int doMinimization();
 
-	virtual ModelFitResult createModelFitResult() const =0;
+  virtual ModelFitResult createModelFitResult() const = 0;
 };
 
 #endif /* MODELMINIMIZER_H_ */

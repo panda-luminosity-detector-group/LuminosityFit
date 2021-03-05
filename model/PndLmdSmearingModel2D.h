@@ -34,24 +34,28 @@ class PndLmdSmearingModel2D {
     unsigned int y_bin_high;
   };
 
-  std::vector<std::vector<RecoBinSmearingContributions> > smearing_parameterization_lists;
+  std::vector<std::vector<RecoBinSmearingContributions>>
+      smearing_parameterization_lists;
 
   const LumiFit::LmdDimension dim_x;
   const LumiFit::LmdDimension dim_y;
 
   std::vector<RecoBinSmearingContributions> createSmearingParameterizationPart(
-      const std::vector<RecoBinSmearingContributions>& smearing_parameterization_,
+      const std::vector<RecoBinSmearingContributions>
+          &smearing_parameterization_,
       const binrange &br) const;
 
 public:
   PndLmdSmearingModel2D(const LumiFit::LmdDimension &dimx_,
-      const LumiFit::LmdDimension &dimy_);
+                        const LumiFit::LmdDimension &dimy_);
   virtual ~PndLmdSmearingModel2D();
 
-  void setSmearingParameterization(
-      const std::vector<RecoBinSmearingContributions>& smearing_parameterization_);
+  void
+  setSmearingParameterization(const std::vector<RecoBinSmearingContributions>
+                                  &smearing_parameterization_);
 
-  virtual const std::vector<RecoBinSmearingContributions>& getListOfContributors(unsigned int index) const;
+  virtual const std::vector<RecoBinSmearingContributions> &
+  getListOfContributors(unsigned int index) const;
 
   virtual void updateSmearingModel();
 };

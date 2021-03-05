@@ -5,29 +5,30 @@
  * with data. General information about the individual classes of the LmdFit
  * framework can be found in the doxygen manual.
  * Run it with argument -h to get running help:
- * 
+ *
  * ./createLumiFitData -h
  */
 
-#include "ui/PndLmdRuntimeConfiguration.h"
 #include "ui/PndLmdDataFacade.h"
+#include "ui/PndLmdRuntimeConfiguration.h"
 
 #include <iostream>
 #include <string>
 
-using std::string;
-using std::cout;
 using std::cerr;
+using std::cout;
 using std::endl;
+using std::string;
 
 void createLmdFitData(const std::string &input_dir_path,
-    const std::string &filelist_path, const std::string &output_dir_path,
-    const std::string &config_file_url, const double mom,
-    std::string& data_types, int num_events,
-    const double total_elastic_cross_section) {
+                      const std::string &filelist_path,
+                      const std::string &output_dir_path,
+                      const std::string &config_file_url, const double mom,
+                      std::string &data_types, int num_events,
+                      const double total_elastic_cross_section) {
   std::cout << "Running LmdFit data reader....\n";
 
-  PndLmdRuntimeConfiguration& lmd_runtime_config =
+  PndLmdRuntimeConfiguration &lmd_runtime_config =
       PndLmdRuntimeConfiguration::Instance();
 
   // set paths and general infos first
@@ -36,7 +37,7 @@ void createLmdFitData(const std::string &input_dir_path,
   lmd_runtime_config.setTotalElasticCrossSection(total_elastic_cross_section);
 
   lmd_runtime_config.setRawDataDirectory(input_dir_path);
-  if(filelist_path != "")
+  if (filelist_path != "")
     lmd_runtime_config.setRawDataFilelistPath(filelist_path);
   lmd_runtime_config.setDataOutputDirectory(output_dir_path);
 
@@ -47,18 +48,17 @@ void createLmdFitData(const std::string &input_dir_path,
   boost::filesystem::path data_config_path(config_file_url);
   lmd_runtime_config.readDataConfig(data_config_path.filename().string());
 
-
   PndLmdDataFacade data_facade;
 
   PndLmdCombinedDataReader data_reader;
   if (!boost::filesystem::exists(lmd_runtime_config.getRawDataFilelistPath()))
-    data_reader.addFilePath(
-        lmd_runtime_config.getRawDataDirectory().string()
-            + "/Lumi_TrksQA*.root");
+    data_reader.addFilePath(lmd_runtime_config.getRawDataDirectory().string() +
+                            "/Lumi_TrksQA*.root");
   else {
-    data_reader.addFileList(lmd_runtime_config.getRawDataFilelistPath().string());
+    data_reader.addFileList(
+        lmd_runtime_config.getRawDataFilelistPath().string());
   }
-  
+
   data_facade.createAndFillDataBundles(data_types, data_reader);
 
   std::cout << std::endl << std::endl;
@@ -72,33 +72,37 @@ void displayInfo() {
   // display info
   std::cout << "Required arguments are: " << std::endl;
   std::cout << "-m [pbar momentum]" << std::endl;
-  std::cout
-      << "-t [type of data to create] (a = angular, e = efficiency, r = resolution, v = vertex)"
-      << std::endl;
+  std::cout << "-t [type of data to create] (a = angular, e = efficiency, r = "
+               "resolution, v = vertex)"
+            << std::endl;
   std::cout << "-d [input directory path]" << std::endl;
   std::cout << "-c [data config file path]" << std::endl;
   std::cout << "Optional arguments are: " << std::endl;
   std::cout << "-f [filelist path]" << std::endl;
   std::cout << "-o [output directory path]" << std::endl;
   std::cout << "-n [number of events to process] "
-      "(default 0: all data found will be processed)" << std::endl;
+               "(default 0: all data found will be processed)"
+            << std::endl;
   std::cout << "-e [total elastic cross section]" << std::endl;
   std::cout << std::endl;
   std::cout
-      << "Note: The type value is specified as a string, in which the 4 letters\n"
-          "a, e, r, v can be concatenated freely. For just a single data type\n"
-          "the values should be a, e, r, v. For a combination i.e\n"
-          "angular vertex data, one should use av or va. Other additional\n"
-          "characters will be ignored, so can be specified without any effect!\n"
-          "\n"
-          "the parameter -e is the total elastic cross section to estimate\n"
-          "the generated luminosity. In case you do NOT specify this value it\n"
-          "will be set to -1.0 and there is no performance validation possible,\n"
-          "but only luminosity determination. This should be the case only for\n"
-          "real data!" << std::endl;
+      << "Note: The type value is specified as a string, in which the 4 "
+         "letters\n"
+         "a, e, r, v can be concatenated freely. For just a single data type\n"
+         "the values should be a, e, r, v. For a combination i.e\n"
+         "angular vertex data, one should use av or va. Other additional\n"
+         "characters will be ignored, so can be specified without any effect!\n"
+         "\n"
+         "the parameter -e is the total elastic cross section to estimate\n"
+         "the generated luminosity. In case you do NOT specify this value it\n"
+         "will be set to -1.0 and there is no performance validation "
+         "possible,\n"
+         "but only luminosity determination. This should be the case only for\n"
+         "real data!"
+      << std::endl;
 }
 
-bool checkDataType(std::string& data_type) {
+bool checkDataType(std::string &data_type) {
   bool is_valid = false;
   if (data_type.find("a") != std::string::npos) {
     is_valid = true;
@@ -112,10 +116,10 @@ bool checkDataType(std::string& data_type) {
   return is_valid;
 }
 
-int main(int argc, char* argv[]) {
-  bool is_mom_set = false, is_cross_section_set = false, is_data_path_set =
-      false, is_filelist_path_set = false, is_output_data_path_set = false,
-      is_config_file_path_set = false;
+int main(int argc, char *argv[]) {
+  bool is_mom_set = false, is_cross_section_set = false,
+       is_data_path_set = false, is_filelist_path_set = false,
+       is_output_data_path_set = false, is_config_file_path_set = false;
   double momentum = -1.0;
   std::string data_type = "";
   unsigned int num_events = 0;
@@ -159,10 +163,10 @@ int main(int argc, char* argv[]) {
       is_config_file_path_set = true;
       break;
     case '?':
-      if (optopt == 't' || optopt == 'd' || optopt == 'm' || optopt == 'n'
-          || optopt == 'c' || optopt == 'e')
+      if (optopt == 't' || optopt == 'd' || optopt == 'm' || optopt == 'n' ||
+          optopt == 'c' || optopt == 'e')
         std::cerr << "Option -" << optopt << " requires an argument."
-            << std::endl;
+                  << std::endl;
       else if (isprint(optopt))
         std::cerr << "Unknown option -" << optopt << "." << std::endl;
       else
@@ -178,9 +182,9 @@ int main(int argc, char* argv[]) {
 
   bool skip_program = false;
   if (!is_output_data_path_set && is_filelist_path_set) {
-    std::cerr
-        << "Please specify an output directory via the -o option when using a filelist path as input!"
-        << std::endl;
+    std::cerr << "Please specify an output directory via the -o option when "
+                 "using a filelist path as input!"
+              << std::endl;
     skip_program = true;
   }
   if (!(checkDataType(data_type) && is_mom_set && is_data_path_set))
@@ -192,7 +196,8 @@ int main(int argc, char* argv[]) {
     if (!is_output_data_path_set)
       output_dir_path = data_path;
     createLmdFitData(data_path, filelist_path, output_dir_path,
-        config_file_path, momentum, data_type, num_events, cross_section);
+                     config_file_path, momentum, data_type, num_events,
+                     cross_section);
 
     return 0;
   }

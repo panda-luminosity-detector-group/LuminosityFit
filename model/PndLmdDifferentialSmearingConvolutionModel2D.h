@@ -1,10 +1,10 @@
 #ifndef PNDLMDDIFFERENTIALSMEARINGCONVOLUTIONMODEL2D_H_
 #define PNDLMDDIFFERENTIALSMEARINGCONVOLUTIONMODEL2D_H_
 
-#include "core/Model2D.h"
 #include "PndLmdDivergenceSmearingModel2D.h"
+#include "core/Model2D.h"
 
-class PndLmdDifferentialSmearingConvolutionModel2D: public Model2D {
+class PndLmdDifferentialSmearingConvolutionModel2D : public Model2D {
   struct binrange {
     unsigned int x_bin_low;
     unsigned int x_bin_high;
@@ -38,11 +38,11 @@ class PndLmdDifferentialSmearingConvolutionModel2D: public Model2D {
   void generateModelGrid2D(const binrange &br);
 
 public:
-  PndLmdDifferentialSmearingConvolutionModel2D(std::string name_,
-      std::shared_ptr<Model2D> unsmeared_model_,
+  PndLmdDifferentialSmearingConvolutionModel2D(
+      std::string name_, std::shared_ptr<Model2D> unsmeared_model_,
       std::shared_ptr<PndLmdDivergenceSmearingModel2D> smearing_model_,
-      const LumiFit::LmdDimension& data_dim_x_,
-      const LumiFit::LmdDimension& data_dim_y_,
+      const LumiFit::LmdDimension &data_dim_x_,
+      const LumiFit::LmdDimension &data_dim_y_,
       unsigned int combine_grid_factor_);
   virtual ~PndLmdDifferentialSmearingConvolutionModel2D();
 

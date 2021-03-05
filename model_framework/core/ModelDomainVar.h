@@ -11,18 +11,19 @@
 #include <utility>
 
 class ModelDomainVar {
-	private:
+private:
   std::pair<double, double> domain_bounds;
+
 public:
-	ModelDomainVar();
-	virtual ~ModelDomainVar();
+  ModelDomainVar();
+  virtual ~ModelDomainVar();
 
   /**
    * Returns a vector of value pairs representing the domain of the model. The
    * first value of each pair is the lower, the second the upper bound of the
    * domain. Each entry in the vector represents one dimension.
    */
-  const std::pair<double, double>& getDomain() const;
+  const std::pair<double, double> &getDomain() const;
 
   /**
    * Sets the domain of the model. The domain is defined to be non-zero within

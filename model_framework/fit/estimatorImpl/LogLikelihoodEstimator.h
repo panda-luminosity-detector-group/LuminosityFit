@@ -3,14 +3,14 @@
 
 #include "fit/ModelEstimator.h"
 
-class LogLikelihoodEstimator: public ModelEstimator {
+class LogLikelihoodEstimator : public ModelEstimator {
 private:
 public:
-		LogLikelihoodEstimator();
-	virtual ~LogLikelihoodEstimator();
+  LogLikelihoodEstimator();
+  virtual ~LogLikelihoodEstimator();
 
-	// the likelihood function
-	mydouble eval(std::shared_ptr<Data> data);
+  // the likelihood function
+  mydouble eval(std::shared_ptr<Data> data);
 };
 
 #endif /* LOGLIKELIHOODESTIMATOR_H_ */

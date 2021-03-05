@@ -7,24 +7,24 @@
 #include "TChain.h"
 #include "TClonesArray.h"
 
-class PndLmdCombinedDataReader: public PndLmdDataReader {
-  private:
-	double rel_momentum_deviation_threshold;
+class PndLmdCombinedDataReader : public PndLmdDataReader {
+private:
+  double rel_momentum_deviation_threshold;
 
-    TChain data_tree;
+  TChain data_tree;
 
-    TClonesArray* track_array;
-    TClonesArray filtered_track_array;
+  TClonesArray *track_array;
+  TClonesArray filtered_track_array;
 
+  unsigned int getEntries() const;
+  void initDataStream();
+  void clearDataStream();
 
-    unsigned int getEntries() const;
-    void initDataStream();
-    void clearDataStream();
+  std::vector<Lmd::Data::TrackPairInfo> getEntry(unsigned int i);
 
-    std::vector<Lmd::Data::TrackPairInfo> getEntry(unsigned int i);
-  public:
-    PndLmdCombinedDataReader();
-    virtual ~PndLmdCombinedDataReader();
+public:
+  PndLmdCombinedDataReader();
+  virtual ~PndLmdCombinedDataReader();
 };
 
 #endif /* PNDLMDCOMBINEDDATAREADER_H_ */

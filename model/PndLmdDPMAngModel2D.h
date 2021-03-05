@@ -8,31 +8,32 @@
 #ifndef PNDLMDDPMANGMODEL2D_H_
 #define PNDLMDDPMANGMODEL2D_H_
 
-#include "core/Model2D.h"
 #include "PndLmdDPMAngModel1D.h"
+#include "core/Model2D.h"
 
-class PndLmdDPMAngModel2D: public Model2D {
-	std::shared_ptr<Model> dpm_model_1d;
+class PndLmdDPMAngModel2D : public Model2D {
+  std::shared_ptr<Model> dpm_model_1d;
 
-	std::shared_ptr<ModelPar> tilt_x;
-	std::shared_ptr<ModelPar> tilt_y;
+  std::shared_ptr<ModelPar> tilt_x;
+  std::shared_ptr<ModelPar> tilt_y;
 
-	std::pair<mydouble, mydouble> calculateThetaFromTiltedSystem(const mydouble theta,
-			const mydouble phi) const;
+  std::pair<mydouble, mydouble>
+  calculateThetaFromTiltedSystem(const mydouble theta,
+                                 const mydouble phi) const;
 
-	mydouble calculateJacobianDeterminant(const mydouble theta,
-			const mydouble phi) const;
+  mydouble calculateJacobianDeterminant(const mydouble theta,
+                                        const mydouble phi) const;
 
 public:
-	PndLmdDPMAngModel2D(std::string name_,
-			std::shared_ptr<PndLmdDPMAngModel1D> dpm_model_1d_);
-	virtual ~PndLmdDPMAngModel2D();
+  PndLmdDPMAngModel2D(std::string name_,
+                      std::shared_ptr<PndLmdDPMAngModel1D> dpm_model_1d_);
+  virtual ~PndLmdDPMAngModel2D();
 
-	virtual void initModelParameters();
+  virtual void initModelParameters();
 
-	mydouble eval(const mydouble *x) const;
+  mydouble eval(const mydouble *x) const;
 
-	virtual void updateDomain();
+  virtual void updateDomain();
 };
 
 #endif /* PNDLMDDPMANGMODEL2D_H_ */

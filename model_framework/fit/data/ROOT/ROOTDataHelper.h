@@ -18,13 +18,14 @@ class Data;
 
 class ROOTDataHelper {
 public:
-	ROOTDataHelper();
-	virtual ~ROOTDataHelper();
+  ROOTDataHelper();
+  virtual ~ROOTDataHelper();
 
-	void fillBinnedData(std::shared_ptr<Data> data, const TH1D* hist_1d) const;
-	void fillBinnedData(std::shared_ptr<Data> data, const TH2D* hist_2d) const;
+  void fillBinnedData(std::shared_ptr<Data> data, const TH1D *hist_1d) const;
+  void fillBinnedData(std::shared_ptr<Data> data, const TH2D *hist_2d) const;
 
-	void fillBinnedData(std::shared_ptr<Data> data, const TGraphErrors* graph_1d) const;
+  void fillBinnedData(std::shared_ptr<Data> data,
+                      const TGraphErrors *graph_1d) const;
 };
 
 #endif /* ROOTDATAHELPER_H_ */

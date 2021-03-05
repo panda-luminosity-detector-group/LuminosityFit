@@ -2,8 +2,8 @@
 #define PNDLMDMAPDATA_H_
 
 #include "PndLmdAbstractData.h"
-#include "fit/PndLmdFitStorage.h"
 #include "TTree.h"
+#include "fit/PndLmdFitStorage.h"
 
 struct Point2D {
   double x;
@@ -13,13 +13,13 @@ struct Point2D {
   Point2D(double x_, double y_) : x(x_), y(y_) {}
 
   bool operator<(const Point2D &rhs) const {
-    if(x < rhs.x)
+    if (x < rhs.x)
       return true;
-    else if(x > rhs.x)
+    else if (x > rhs.x)
       return false;
-    if(y < rhs.y)
+    if (y < rhs.y)
       return true;
-    else if(y > rhs.y)
+    else if (y > rhs.y)
       return false;
     return false;
   }
@@ -30,7 +30,7 @@ struct Point2DCloud {
   unsigned long total_count;
 };
 
-class PndLmdMapData: public PndLmdAbstractData  {
+class PndLmdMapData : public PndLmdAbstractData {
 #ifndef __CINT__
   std::map<Point2D, Point2DCloud> hit_map_2d;
 #endif
@@ -38,31 +38,31 @@ class PndLmdMapData: public PndLmdAbstractData  {
   std::vector<std::string> data_tree_names;
   std::string data_tree_file_url;
 
-	void init1DData();
-	void init2DData();
+  void init1DData();
+  void init2DData();
 
 public:
-	PndLmdMapData();
-	PndLmdMapData(const PndLmdMapData &lmd_hist_data_);
-	virtual ~PndLmdMapData();
+  PndLmdMapData();
+  PndLmdMapData(const PndLmdMapData &lmd_hist_data_);
+  virtual ~PndLmdMapData();
 
 #ifndef __CINT__
-	const std::map<Point2D, Point2DCloud>& getHitMap() const;
+  const std::map<Point2D, Point2DCloud> &getHitMap() const;
 #endif
 
-	void add(const PndLmdAbstractData &lmd_abs_data_addition);
+  void add(const PndLmdAbstractData &lmd_abs_data_addition);
 
-	// histogram filling methods
-	virtual void addData(const std::vector<double> &values);
+  // histogram filling methods
+  virtual void addData(const std::vector<double> &values);
 
-	PndLmdMapData& operator=(const PndLmdMapData &lmd_hist_data);
+  PndLmdMapData &operator=(const PndLmdMapData &lmd_hist_data);
 
-	void saveToRootFile();
+  void saveToRootFile();
 
-	void saveToRootTrees();
-	void readFromRootTrees();
+  void saveToRootTrees();
+  void readFromRootTrees();
 
-	ClassDef(PndLmdMapData, 2);
+  ClassDef(PndLmdMapData, 2);
 };
 
 #endif /* PNDLMDMAPDATA_H_ */

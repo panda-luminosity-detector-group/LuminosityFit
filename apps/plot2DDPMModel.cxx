@@ -1,6 +1,6 @@
-#include "ui/PndLmdPlotter.h"
-#include "ui/PndLmdFitFacade.h"
 #include "ui/PndLmdDataFacade.h"
+#include "ui/PndLmdFitFacade.h"
+#include "ui/PndLmdPlotter.h"
 
 #include "ui/PndLmdRuntimeConfiguration.h"
 
@@ -10,18 +10,18 @@
 #define BOOST_CHRONO_HEADER_ONLY
 #include <boost/chrono/thread_clock.hpp>
 
-using std::string;
-using std::cout;
 using std::cerr;
+using std::cout;
 using std::endl;
+using std::string;
 
 void plot2DModel(string input_file_dir, string config_file_url,
-    string acceptance_file_dir, unsigned int nthreads) {
+                 string acceptance_file_dir, unsigned int nthreads) {
 
   boost::chrono::thread_clock::time_point start =
       boost::chrono::thread_clock::now();
 
-  PndLmdRuntimeConfiguration& lmd_runtime_config =
+  PndLmdRuntimeConfiguration &lmd_runtime_config =
       PndLmdRuntimeConfiguration::Instance();
   lmd_runtime_config.setNumberOfThreads(nthreads);
 
@@ -46,8 +46,8 @@ void plot2DModel(string input_file_dir, string config_file_url,
   vector<PndLmdAngularData> my_lmd_data_vec = lmd_data_facade.getElasticData();
 
   LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter filter(data_dim_opt);
-  my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
-      my_lmd_data_vec, filter);
+  my_lmd_data_vec =
+      lmd_data_facade.filterData<PndLmdAngularData>(my_lmd_data_vec, filter);
 
   vector<PndLmdAcceptance> my_lmd_acc_vec = lmd_data_facade.getAcceptanceData();
   vector<PndLmdHistogramData> all_lmd_res = lmd_data_facade.getResolutionData();
@@ -64,7 +64,7 @@ void plot2DModel(string input_file_dir, string config_file_url,
   lmd_fit_facade.addResolutionMapsToPool(all_lmd_res_map);
 
   std::cout << "number of data objects: " << my_lmd_data_vec.size()
-      << std::endl;
+            << std::endl;
   auto model = lmd_fit_facade.generateModel(my_lmd_data_vec[0]);
 
   const double theta_min = -0.013;
@@ -82,7 +82,7 @@ void plot2DModel(string input_file_dir, string config_file_url,
    double integral_value = model->Integral(int_range, 1e-3);
    std::cout << "integral: " << integral_value << std::endl;*/
 
-  //plot result
+  // plot result
   std::stringstream filepath;
   filepath << std::getenv("HOME") << "/plots/model_mc_2d.root";
   TFile f(filepath.str().c_str(), "RECREATE");
@@ -97,25 +97,26 @@ void plot2DModel(string input_file_dir, string config_file_url,
   vis_prop_phi.setPlotRange(plot_range_thy);
   vis_prop_phi.setEvaluations(200);
 
-  std::pair<ModelVisualizationProperties1D, ModelVisualizationProperties1D> vis_prop_pair =
-      std::make_pair(vis_prop_th, vis_prop_phi);
+  std::pair<ModelVisualizationProperties1D, ModelVisualizationProperties1D>
+      vis_prop_pair = std::make_pair(vis_prop_th, vis_prop_phi);
 
-  TH2D* model_hist = root_plotter.createHistogramFromModel2D(model,
-      vis_prop_pair);
+  TH2D *model_hist =
+      root_plotter.createHistogramFromModel2D(model, vis_prop_pair);
 
   NeatPlotting::GraphAndHistogramHelper hist_helper;
   model_hist = hist_helper.rescaleAxis(model_hist, 1000.0, 1000.0);
   model_hist->GetXaxis()->SetTitle("\theta_{x} /mrad");
   model_hist->GetYaxis()->SetTitle("\theta_{y} /mrad");
 
-
   model_hist->Write("model");
 
   boost::chrono::thread_clock::time_point stop =
       boost::chrono::thread_clock::now();
   std::cout << "duration: "
-      << boost::chrono::duration_cast<boost::chrono::milliseconds>(stop - start).count()
-      << " ms\n";
+            << boost::chrono::duration_cast<boost::chrono::milliseconds>(stop -
+                                                                         start)
+                   .count()
+            << " ms\n";
 }
 
 void displayInfo() {
@@ -128,7 +129,7 @@ void displayInfo() {
   cout << "-a [path to box gen data] (acceptance)" << endl;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   string data_path;
   string acc_path("");
   string config_path("");
@@ -178,4 +179,3 @@ int main(int argc, char* argv[]) {
     displayInfo();
   return 0;
 }
-

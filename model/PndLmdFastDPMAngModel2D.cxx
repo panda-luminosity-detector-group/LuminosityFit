@@ -5,9 +5,9 @@
 #include "TMath.h"
 #include "TVector3.h"
 
-PndLmdFastDPMAngModel2D::PndLmdFastDPMAngModel2D(std::string name_,
-    std::shared_ptr<PndLmdDPMAngModel1D> dpm_model_1d_) :
-    Model2D(name_), dpm_model_1d(dpm_model_1d_) {
+PndLmdFastDPMAngModel2D::PndLmdFastDPMAngModel2D(
+    std::string name_, std::shared_ptr<PndLmdDPMAngModel1D> dpm_model_1d_)
+    : Model2D(name_), dpm_model_1d(dpm_model_1d_) {
   one_over_two_pi = 0.5 / TMath::Pi();
   initModelParameters();
   this->addModelToList(dpm_model_1d);
@@ -16,8 +16,7 @@ PndLmdFastDPMAngModel2D::PndLmdFastDPMAngModel2D(std::string name_,
   setVar2Domain(-TMath::Pi(), TMath::Pi());
 }
 
-PndLmdFastDPMAngModel2D::~PndLmdFastDPMAngModel2D() {
-}
+PndLmdFastDPMAngModel2D::~PndLmdFastDPMAngModel2D() {}
 
 void PndLmdFastDPMAngModel2D::initModelParameters() {
   tilt_x = getModelParameterSet().addModelParameter("tilt_x");
@@ -38,13 +37,15 @@ mydouble PndLmdFastDPMAngModel2D::calculateThetaFromTiltedSystem(
    TVector3 measured_direction(sin(theta) * cos(phi), sin(theta) * sin(phi),
    cos(theta));
    measured_direction.Rotate(tilt.Theta(), rotate_axis);
-   return std::make_pair(measured_direction.Theta(), measured_direction.Phi());*/
+   return std::make_pair(measured_direction.Theta(),
+   measured_direction.Phi());*/
 
   mydouble tilted_thetax = thetax - tilt_x->getValue();
   mydouble tilted_thetay = thetay - tilt_y->getValue();
-  return std::sqrt(tilted_thetax*tilted_thetax + tilted_thetay*tilted_thetay);
-  /*return std::make_pair(sqrt(pow(tilted_thetax, 2.0) + pow(tilted_thetay, 2.0)),
-   atan2(tilted_thetay, tilted_thetax));*/
+  return std::sqrt(tilted_thetax * tilted_thetax +
+                   tilted_thetay * tilted_thetay);
+  /*return std::make_pair(sqrt(pow(tilted_thetax, 2.0) +
+   pow(tilted_thetay, 2.0)), atan2(tilted_thetay, tilted_thetax));*/
 }
 
 mydouble PndLmdFastDPMAngModel2D::calculateJacobianDeterminant(
@@ -72,10 +73,9 @@ mydouble PndLmdFastDPMAngModel2D::calculateJacobianDeterminant(
   // analytic formula
   mydouble diff_theta_x(thetax - tilt_x->getValue());
   mydouble diff_theta_y(thetay - tilt_y->getValue());
-  mydouble xypowsum = diff_theta_x*diff_theta_x
-      + diff_theta_y*diff_theta_y;
+  mydouble xypowsum = diff_theta_x * diff_theta_x + diff_theta_y * diff_theta_y;
 
-  //return 1.0L / (std::sqrt(xypowsum) * (1 + xypowsum));
+  // return 1.0L / (std::sqrt(xypowsum) * (1 + xypowsum));
   return 1.0L / std::sqrt(xypowsum);
 }
 
@@ -93,5 +93,4 @@ mydouble PndLmdFastDPMAngModel2D::eval(const mydouble *x) const {
   return jaco * dpm_model_1d->eval(&theta_tilted) * one_over_two_pi;
 }
 
-void PndLmdFastDPMAngModel2D::updateDomain() {
-}
+void PndLmdFastDPMAngModel2D::updateDomain() {}

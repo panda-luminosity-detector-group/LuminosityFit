@@ -1,28 +1,31 @@
 #ifndef TOOLS_PBARPELASTICSCATTERINGEVENTGENERATOR_H_
 #define TOOLS_PBARPELASTICSCATTERINGEVENTGENERATOR_H_
 
-#include "model/PndLmdModelFactory.h"
-#include "model/PndLmdDPMAngModel1D.h"
 #include "data/PndLmdAngularData.h"
+#include "model/PndLmdDPMAngModel1D.h"
+#include "model/PndLmdModelFactory.h"
 
-#include <utility>
-#include <vector>
-#include <iostream>
 #include <chrono>
 #include <cmath>
+#include <iostream>
+#include <utility>
+#include <vector>
 
+#include "TClonesArray.h"
 #include "TDatabasePDG.h"
 #include "TMath.h"
 #include "TParticle.h"
 #include "TRandom3.h"
-#include "TClonesArray.h"
 
 #include "boost/property_tree/ptree.hpp"
 
 namespace PbarPElasticScattering {
 
-std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_events,
-    double theta_min_in_mrad, double theta_max_in_mrad, unsigned int seed) {
+std::pair<TTree *, double> generateEvents(double momentum,
+                                          unsigned int num_events,
+                                          double theta_min_in_mrad,
+                                          double theta_max_in_mrad,
+                                          unsigned int seed) {
   PndLmdModelFactory model_factory;
 
   boost::property_tree::ptree base_model_opt;
@@ -37,10 +40,13 @@ std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_event
   PndLmdAngularData data;
   data.setLabMomentum(momentum);
 
-  std::shared_ptr<Model> correct_model = model_factory.generateModel(correct_model_opt, data);
+  std::shared_ptr<Model> correct_model =
+      model_factory.generateModel(correct_model_opt, data);
 
-  double t_min = model_factory.getMomentumTransferFromTheta(momentum, theta_min_in_mrad / 1000.0);
-  double t_max = model_factory.getMomentumTransferFromTheta(momentum, theta_max_in_mrad / 1000.0);
+  double t_min = model_factory.getMomentumTransferFromTheta(
+      momentum, theta_min_in_mrad / 1000.0);
+  double t_max = model_factory.getMomentumTransferFromTheta(
+      momentum, theta_max_in_mrad / 1000.0);
 
   TDatabasePDG *pdg = TDatabasePDG::Instance();
   double mass_proton = pdg->GetParticle(2212)->Mass();
@@ -56,7 +62,8 @@ std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_event
 
   double temp_t_max = 4. * Pcms2;
   if (temp_t_max < t_max) {
-    std::cout << "specified tmax=" << t_max << " above limit=" << temp_t_max << "\n";
+    std::cout << "specified tmax=" << t_max << " above limit=" << temp_t_max
+              << "\n";
     t_max = temp_t_max;
   }
 
@@ -65,9 +72,10 @@ std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_event
   integral_ranges.push_back(dr);
 
   double integral = correct_model->Integral(integral_ranges, 1e-5);
-  std::cout << "Integrated total elastic cross section in theta range [" << theta_min_in_mrad
-      << " - " << theta_max_in_mrad << "] -> t [" << t_min << " - " << t_max << "] is " << integral
-      << " mb" << std::endl;
+  std::cout << "Integrated total elastic cross section in theta range ["
+            << theta_min_in_mrad << " - " << theta_max_in_mrad << "] -> t ["
+            << t_min << " - " << t_max << "] is " << integral << " mb"
+            << std::endl;
 
   if (num_events == 0) {
     return std::make_pair(nullptr, integral);
@@ -108,7 +116,8 @@ std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_event
     mydouble funcval = correct_model->eval(&t);
     double randval = RandomGen2.Uniform(0.0, func_max);
     if (funcval > func_max) {
-      std::cout << "Error: function maximum was determined not large enough...\n";
+      std::cout
+          << "Error: function maximum was determined not large enough...\n";
       std::cout << "function evaluation: " << funcval << "\n";
       std::cout << "function maximum was determined as: " << func_max << "\n";
     }
@@ -128,13 +137,14 @@ std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_event
 
     TLorentzVector vertex(0, 0, 0, 0);
 
-    double E(std::sqrt(mass_proton * mass_proton + px * px + py * py + pz * pz));
+    double E(
+        std::sqrt(mass_proton * mass_proton + px * px + py * py + pz * pz));
     TLorentzVector mom_pbar(px, py, pz, E);
     TLorentzVector mom_p(-px, -py, -pz, E);
     // boost to lab
     mom_pbar.Boost(boost_vector);
     mom_p.Boost(boost_vector);
-    //Gamma = (Elab + AMProton) / SqrtS
+    // Gamma = (Elab + AMProton) / SqrtS
 
     new (ca[0]) TParticle(-2212, 1, 0, 0, 0, 0, mom_pbar, vertex);
     new (ca[1]) TParticle(2212, 1, 0, 0, 0, 0, mom_p, vertex);
@@ -145,10 +155,10 @@ std::pair<TTree*, double> generateEvents(double momentum, unsigned int num_event
   high_resolution_clock::time_point t2 = high_resolution_clock::now();
   time_span_correct += duration_cast<duration<double>>(t2 - t1);
   std::cout << "Finished generation! Time spend on generation per event: "
-      << time_span_correct.count() / num_events << "\n";
+            << time_span_correct.count() / num_events << "\n";
   return std::make_pair(tree, integral);
 }
 
-}
+} // namespace PbarPElasticScattering
 
 #endif /* TOOLS_PBARPELASTICSCATTERINGEVENTGENERATOR_H_ */

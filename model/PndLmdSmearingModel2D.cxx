@@ -5,23 +5,22 @@
  *      Author: steve
  */
 
-#include <model/PndLmdSmearingModel2D.h>
 #include "ui/PndLmdRuntimeConfiguration.h"
+#include <model/PndLmdSmearingModel2D.h>
 
 PndLmdSmearingModel2D::PndLmdSmearingModel2D(const LumiFit::LmdDimension &dimx_,
-    const LumiFit::LmdDimension &dimy_) :
-    dim_x(dimx_), dim_y(dimy_) {
-}
+                                             const LumiFit::LmdDimension &dimy_)
+    : dim_x(dimx_), dim_y(dimy_) {}
 
-PndLmdSmearingModel2D::~PndLmdSmearingModel2D() {
-}
+PndLmdSmearingModel2D::~PndLmdSmearingModel2D() {}
 
 void PndLmdSmearingModel2D::setSmearingParameterization(
-    const std::vector<RecoBinSmearingContributions>& smearing_parameterization_) {
+    const std::vector<RecoBinSmearingContributions>
+        &smearing_parameterization_) {
   unsigned int nthreads =
       PndLmdRuntimeConfiguration::Instance().getNumberOfThreads();
 
-  std::cout<<"chopping smearing parameterization for multithreading...\n";
+  std::cout << "chopping smearing parameterization for multithreading...\n";
   unsigned int bins_per_thread_x(dim_x.bins / nthreads);
   unsigned int bins_per_thread_y(dim_y.bins / nthreads);
 
@@ -59,11 +58,12 @@ void PndLmdSmearingModel2D::setSmearingParameterization(
     smearing_parameterization_lists.push_back(
         createSmearingParameterizationPart(smearing_parameterization_, br));
   }
-  std::cout<<"done!\n";
+  std::cout << "done!\n";
 }
 
-std::vector<RecoBinSmearingContributions> PndLmdSmearingModel2D::createSmearingParameterizationPart(
-    const std::vector<RecoBinSmearingContributions>& smearing_parameterization_,
+std::vector<RecoBinSmearingContributions>
+PndLmdSmearingModel2D::createSmearingParameterizationPart(
+    const std::vector<RecoBinSmearingContributions> &smearing_parameterization_,
     const binrange &br) const {
   std::vector<RecoBinSmearingContributions> smearing_param_part;
 
@@ -72,15 +72,20 @@ std::vector<RecoBinSmearingContributions> PndLmdSmearingModel2D::createSmearingP
     x[0] = dim_x.dimension_range.getRangeLow() + dim_x.bin_size * (0.5 + ix);
     for (unsigned int iy = br.y_bin_low; iy < br.y_bin_high; iy++) {
       x[1] = dim_y.dimension_range.getRangeLow() + dim_y.bin_size * (0.5 + iy);
-      auto result =
-          std::find_if(smearing_parameterization_.begin(),
-              smearing_parameterization_.end(),
-              [&] (const RecoBinSmearingContributions& rec_bin) {if(std::fabs(rec_bin.reco_bin_x - x[0]) < dim_x.bin_size/2 && std::fabs(rec_bin.reco_bin_y - x[1]) < dim_y.bin_size/2) return true; else return false;});
+      auto result = std::find_if(
+          smearing_parameterization_.begin(), smearing_parameterization_.end(),
+          [&](const RecoBinSmearingContributions &rec_bin) {
+            if (std::fabs(rec_bin.reco_bin_x - x[0]) < dim_x.bin_size / 2 &&
+                std::fabs(rec_bin.reco_bin_y - x[1]) < dim_y.bin_size / 2)
+              return true;
+            else
+              return false;
+          });
       if (result != smearing_parameterization_.end()) {
         smearing_param_part.push_back(*result);
-        //std::cout << "found corresponding reco bin!\n";
+        // std::cout << "found corresponding reco bin!\n";
       } else {
-        //std::cout << "did not find a corresponding reco bin...\n";
+        // std::cout << "did not find a corresponding reco bin...\n";
         RecoBinSmearingContributions temp;
         temp.reco_bin_x = x[0];
         temp.reco_bin_y = x[1];
@@ -91,10 +96,9 @@ std::vector<RecoBinSmearingContributions> PndLmdSmearingModel2D::createSmearingP
   return smearing_param_part;
 }
 
-const std::vector<RecoBinSmearingContributions>& PndLmdSmearingModel2D::getListOfContributors(
-    unsigned int index) const {
+const std::vector<RecoBinSmearingContributions> &
+PndLmdSmearingModel2D::getListOfContributors(unsigned int index) const {
   return smearing_parameterization_lists[index];
 }
 
-void PndLmdSmearingModel2D::updateSmearingModel() {
-}
+void PndLmdSmearingModel2D::updateSmearingModel() {}

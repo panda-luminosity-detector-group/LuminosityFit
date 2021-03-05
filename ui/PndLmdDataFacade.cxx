@@ -1,36 +1,35 @@
 #include "PndLmdDataFacade.h"
-#include "data/PndLmdAngularData.h"
 #include "data/PndLmdAcceptance.h"
+#include "data/PndLmdAngularData.h"
+#include "data/PndLmdDataReader.h"
 #include "data/PndLmdMapData.h"
 #include "fit/data/DataStructs.h"
-#include "data/PndLmdDataReader.h"
 
 #include <sstream>
 
-#include "boost/regex.hpp"
 #include "boost/foreach.hpp"
+#include "boost/regex.hpp"
 
-using boost::property_tree::ptree;
-using std::vector;
-using std::string;
-using boost::filesystem::path;
 using boost::filesystem::directory_iterator;
+using boost::filesystem::path;
+using boost::property_tree::ptree;
+using std::string;
+using std::vector;
 
-PndLmdDataFacade::PndLmdDataFacade() :
-    lmd_runtime_config(PndLmdRuntimeConfiguration::Instance()) {
-}
+PndLmdDataFacade::PndLmdDataFacade()
+    : lmd_runtime_config(PndLmdRuntimeConfiguration::Instance()) {}
 
 PndLmdDataFacade::~PndLmdDataFacade() {
   // TODO Auto-generated destructor stub
 }
 
-void PndLmdDataFacade::initializeData(PndLmdAbstractData & data) const {
+void PndLmdDataFacade::initializeData(PndLmdAbstractData &data) const {
   data.setNumEvents(lmd_runtime_config.getNumEvents());
   data.setLabMomentum(lmd_runtime_config.getMomentum());
 }
 
 void PndLmdDataFacade::addMultipleInstancesBasedOnSelections(
-    const PndLmdAngularData & data) {
+    const PndLmdAngularData &data) {
   if (selection_combinations.size() > 0) {
     LmdDimensionCombinations::iterator selection_combinations_iter =
         selection_combinations.begin();
@@ -53,7 +52,7 @@ void PndLmdDataFacade::addMultipleInstancesBasedOnSelections(
 }
 
 void PndLmdDataFacade::addMultipleInstancesBasedOnSelections(
-    const PndLmdAcceptance & data) {
+    const PndLmdAcceptance &data) {
   if (selection_combinations.size() > 0) {
     LmdDimensionCombinations::iterator selection_combinations_iter =
         selection_combinations.begin();
@@ -76,14 +75,15 @@ void PndLmdDataFacade::addMultipleInstancesBasedOnSelections(
 }
 
 void PndLmdDataFacade::addMultipleInstancesBasedOnSelections(
-    const PndLmdHistogramData & data) {
+    const PndLmdHistogramData &data) {
   std::vector<PndLmdHistogramData> *storage_vector = &lmd_hist_data;
 
-  if (LumiFit::X == data.getPrimaryDimension().dimension_options.dimension_type
-      || LumiFit::Y
-          == data.getPrimaryDimension().dimension_options.dimension_type
-      || LumiFit::Z
-          == data.getPrimaryDimension().dimension_options.dimension_type) {
+  if (LumiFit::X ==
+          data.getPrimaryDimension().dimension_options.dimension_type ||
+      LumiFit::Y ==
+          data.getPrimaryDimension().dimension_options.dimension_type ||
+      LumiFit::Z ==
+          data.getPrimaryDimension().dimension_options.dimension_type) {
     storage_vector = &lmd_vertex_data;
   }
 
@@ -116,13 +116,13 @@ LumiFit::LmdDimension PndLmdDataFacade::constructDimensionFromConfig(
   if (active_option.is_initialized())
     dimension.is_active = active_option.get();
 
-  boost::optional<std::string> dim_type_option = pt.get_optional<std::string>(
-      "dimension_type");
+  boost::optional<std::string> dim_type_option =
+      pt.get_optional<std::string>("dimension_type");
   if (dim_type_option.is_initialized())
     dimension.dimension_options.dimension_type =
         LumiFit::StringToDimensionType.at(dim_type_option.get());
-  boost::optional<std::string> track_param_type_option = pt.get_optional<
-      std::string>("track_param_type");
+  boost::optional<std::string> track_param_type_option =
+      pt.get_optional<std::string>("track_param_type");
   if (track_param_type_option.is_initialized())
     dimension.dimension_options.track_param_type =
         LumiFit::StringToTrackParamType.at(track_param_type_option.get());
@@ -132,8 +132,8 @@ LumiFit::LmdDimension PndLmdDataFacade::constructDimensionFromConfig(
   dimension.dimension_range.setRangeHigh(pt.get<double>("range_high"));
   dimension.calculateBinSize();
 
-  boost::optional<std::string> name_option = pt.get_optional<std::string>(
-      "name");
+  boost::optional<std::string> name_option =
+      pt.get_optional<std::string>("name");
   if (name_option.is_initialized())
     dimension.name = name_option.get();
 
@@ -141,17 +141,17 @@ LumiFit::LmdDimension PndLmdDataFacade::constructDimensionFromConfig(
 }
 
 void PndLmdDataFacade::updateDimensionTypeInfoFromConfig(
-    LumiFit::LmdDimension& dimension,
+    LumiFit::LmdDimension &dimension,
     const boost::property_tree::ptree &pt) const {
 
   if (dimension.is_active) {
-    boost::optional<std::string> dim_type_option = pt.get_optional<std::string>(
-        "dimension_type");
+    boost::optional<std::string> dim_type_option =
+        pt.get_optional<std::string>("dimension_type");
     if (dim_type_option.is_initialized())
       dimension.dimension_options.dimension_type =
           LumiFit::StringToDimensionType.at(dim_type_option.get());
-    boost::optional<std::string> track_param_type_option = pt.get_optional<
-        std::string>("track_param_type");
+    boost::optional<std::string> track_param_type_option =
+        pt.get_optional<std::string>("track_param_type");
     if (track_param_type_option.is_initialized())
       dimension.dimension_options.track_param_type =
           LumiFit::StringToTrackParamType.at(track_param_type_option.get());
@@ -223,24 +223,24 @@ void PndLmdDataFacade::createEfficiencies() {
   LumiFit::LmdDimension primary_dimension = constructDimensionFromConfig(
       lmd_runtime_config.getDataConfigTree().get_child(
           "efficiency.primary_dimension"));
-  updateDimensionTypeInfoFromConfig(primary_dimension,
-      lmd_runtime_config.getDataConfigTree().get_child(
-          "general_data.primary_dimension"));
+  updateDimensionTypeInfoFromConfig(
+      primary_dimension, lmd_runtime_config.getDataConfigTree().get_child(
+                             "general_data.primary_dimension"));
   adjustDimensionDensity(primary_dimension,
-      constructDimensionFromConfig(
-          lmd_runtime_config.getDataConfigTree().get_child(
-              "general_data.primary_dimension")));
+                         constructDimensionFromConfig(
+                             lmd_runtime_config.getDataConfigTree().get_child(
+                                 "general_data.primary_dimension")));
 
   LumiFit::LmdDimension secondary_dimension = constructDimensionFromConfig(
       lmd_runtime_config.getDataConfigTree().get_child(
           "efficiency.secondary_dimension"));
-  updateDimensionTypeInfoFromConfig(secondary_dimension,
-      lmd_runtime_config.getDataConfigTree().get_child(
-          "general_data.secondary_dimension"));
+  updateDimensionTypeInfoFromConfig(
+      secondary_dimension, lmd_runtime_config.getDataConfigTree().get_child(
+                               "general_data.secondary_dimension"));
   adjustDimensionDensity(secondary_dimension,
-      constructDimensionFromConfig(
-          lmd_runtime_config.getDataConfigTree().get_child(
-              "general_data.secondary_dimension")));
+                         constructDimensionFromConfig(
+                             lmd_runtime_config.getDataConfigTree().get_child(
+                                 "general_data.secondary_dimension")));
 
   initializeData(data_template);
 
@@ -278,16 +278,16 @@ void PndLmdDataFacade::createResolutions() {
   primary_dimension = constructDimensionFromConfig(
       lmd_runtime_config.getDataConfigTree().get_child(
           "resolution.primary_dimension"));
-  updateDimensionTypeInfoFromConfig(primary_dimension,
-      lmd_runtime_config.getDataConfigTree().get_child(
-          "general_data.primary_dimension"));
+  updateDimensionTypeInfoFromConfig(
+      primary_dimension, lmd_runtime_config.getDataConfigTree().get_child(
+                             "general_data.primary_dimension"));
 
   secondary_dimension = constructDimensionFromConfig(
       lmd_runtime_config.getDataConfigTree().get_child(
           "resolution.secondary_dimension"));
-  updateDimensionTypeInfoFromConfig(secondary_dimension,
-      lmd_runtime_config.getDataConfigTree().get_child(
-          "general_data.secondary_dimension"));
+  updateDimensionTypeInfoFromConfig(
+      secondary_dimension, lmd_runtime_config.getDataConfigTree().get_child(
+                               "general_data.secondary_dimension"));
 
   primary_dimension.dimension_options.track_type = LumiFit::DIFF_RECO_MC;
   secondary_dimension.dimension_options.track_type = LumiFit::DIFF_RECO_MC;
@@ -299,11 +299,11 @@ void PndLmdDataFacade::createResolutions() {
       lmd_runtime_config.getDataConfigTree().get_optional<bool>(
           "resolution.secondary_dimension.use_automatic_range");
 
-  if (use_automatic_range_prim_dim.is_initialized()
-      && use_automatic_range_prim_dim.get())
+  if (use_automatic_range_prim_dim.is_initialized() &&
+      use_automatic_range_prim_dim.get())
     applyAutomaticResolutionDimensionRange(primary_dimension);
-  if (use_automatic_range_sec_dim.is_initialized()
-      && use_automatic_range_sec_dim.get())
+  if (use_automatic_range_sec_dim.is_initialized() &&
+      use_automatic_range_sec_dim.get())
     applyAutomaticResolutionDimensionRange(secondary_dimension);
 
   /*adjustDimensionDensity(primary_dimension,
@@ -336,7 +336,8 @@ void PndLmdDataFacade::createResolutions() {
    lmd_runtime_config.getDataConfigTree().get_child(
    "general_data.primary_dimension")));
 
-   primary_selection_dimension_bundle.dimension_options.track_type = LumiFit::MC;
+   primary_selection_dimension_bundle.dimension_options.track_type =
+   LumiFit::MC;
 
    selection_dimension_bundles.push_back(primary_selection_dimension_bundle);
 
@@ -366,17 +367,17 @@ void PndLmdDataFacade::createResolutions() {
    addMultipleInstancesBasedOnSelections(data_template);*/
 }
 
-void PndLmdDataFacade::adjustDimensionDensity(LumiFit::LmdDimension &dimension,
+void PndLmdDataFacade::adjustDimensionDensity(
+    LumiFit::LmdDimension &dimension,
     const LumiFit::LmdDimension &reference_dimension,
     bool uneven_bin_count) const {
   // make bin size same as reference and increase range to match user range
 
-  double bins = std::ceil(
-      dimension.dimension_range.getDimensionLength()
-          / reference_dimension.bin_size);
-  if (uneven_bin_count && ((unsigned int) bins % 2 == 0))
+  double bins = std::ceil(dimension.dimension_range.getDimensionLength() /
+                          reference_dimension.bin_size);
+  if (uneven_bin_count && ((unsigned int)bins % 2 == 0))
     ++bins;
-  dimension.bins = (unsigned int) bins;
+  dimension.bins = (unsigned int)bins;
 
   double range = bins * reference_dimension.bin_size / 2;
 
@@ -390,14 +391,14 @@ void PndLmdDataFacade::adjustDimensionDensity(LumiFit::LmdDimension &dimension,
 void PndLmdDataFacade::applyAutomaticResolutionDimensionRange(
     LumiFit::LmdDimension &dimension) const {
   double sigma = 5.0;
-// simple momentum dependent resolution parameterization (in mrad)
-// exp + const
-  double theta_resolution_estimate = 0.001
-      * (0.09 + 1.8 * exp(-0.7 * lmd_runtime_config.getMomentum()));
+  // simple momentum dependent resolution parameterization (in mrad)
+  // exp + const
+  double theta_resolution_estimate =
+      0.001 * (0.09 + 1.8 * exp(-0.7 * lmd_runtime_config.getMomentum()));
   double theta_plot_range_max = sigma * theta_resolution_estimate;
-// this is just guessed from the top formulas above for phi (in rad)
-  double phi_resolution_estimate = 0.03
-      + 0.6 * exp(-0.7 * lmd_runtime_config.getMomentum());
+  // this is just guessed from the top formulas above for phi (in rad)
+  double phi_resolution_estimate =
+      0.03 + 0.6 * exp(-0.7 * lmd_runtime_config.getMomentum());
   double phi_plot_range_max = sigma * phi_resolution_estimate;
 
   if (dimension.dimension_options.dimension_type == LumiFit::PHI) {
@@ -415,16 +416,16 @@ void PndLmdDataFacade::createVertexData() {
   LumiFit::LmdDimension primary_dimension = constructDimensionFromConfig(
       lmd_runtime_config.getDataConfigTree().get_child(
           "vertex.primary_dimension"));
-  updateDimensionTypeInfoFromConfig(primary_dimension,
-      lmd_runtime_config.getDataConfigTree().get_child(
-          "general_data.primary_dimension"));
+  updateDimensionTypeInfoFromConfig(
+      primary_dimension, lmd_runtime_config.getDataConfigTree().get_child(
+                             "general_data.primary_dimension"));
 
   LumiFit::LmdDimension secondary_dimension = constructDimensionFromConfig(
       lmd_runtime_config.getDataConfigTree().get_child(
           "vertex.secondary_dimension"));
-  updateDimensionTypeInfoFromConfig(secondary_dimension,
-      lmd_runtime_config.getDataConfigTree().get_child(
-          "general_data.secondary_dimension"));
+  updateDimensionTypeInfoFromConfig(
+      secondary_dimension, lmd_runtime_config.getDataConfigTree().get_child(
+                               "general_data.secondary_dimension"));
 
   primary_dimension.dimension_options.track_param_type = LumiFit::IP;
   secondary_dimension.dimension_options.track_param_type = LumiFit::IP;
@@ -491,12 +492,13 @@ void PndLmdDataFacade::createVertexData() {
 void PndLmdDataFacade::applySelections() {
   std::vector<LumiFit::LmdDimension> selection_dimensions;
 
-  BOOST_FOREACH(const ptree::value_type & sel_dim,
-      lmd_runtime_config.getDataConfigTree().get_child("selections")){
-  LumiFit::LmdDimension selection_dimension =
-  constructDimensionFromConfig(sel_dim.second);
-  selection_dimensions.push_back(selection_dimension);
-}
+  BOOST_FOREACH (
+      const ptree::value_type &sel_dim,
+      lmd_runtime_config.getDataConfigTree().get_child("selections")) {
+    LumiFit::LmdDimension selection_dimension =
+        constructDimensionFromConfig(sel_dim.second);
+    selection_dimensions.push_back(selection_dimension);
+  }
 
   appendSelectionDimensions(selection_dimensions);
 }
@@ -515,22 +517,24 @@ void PndLmdDataFacade::appendSelectionDimensions(
         selection_combinations.begin();
     while (current_selection_map_it != selection_combinations.end()) {
       current_selection_map_it->insert(current_selection_map_it->begin(),
-          selection_dimensions.begin(), selection_dimensions.end());
+                                       selection_dimensions.begin(),
+                                       selection_dimensions.end());
       ++current_selection_map_it;
     }
   }
 }
 
 void PndLmdDataFacade::createSelectionDimensionCombinations(
-    const std::vector<LumiFit::LmdDimension>& selection_dimension_bundle) {
-// create a map of selection dimension lists
-// one entry in the map for each combination
+    const std::vector<LumiFit::LmdDimension> &selection_dimension_bundle) {
+  // create a map of selection dimension lists
+  // one entry in the map for each combination
   selection_combinations.clear();
   LmdDimensionCombinations temp_selections_combinations;
 
   LumiFit::LmdDimension selection_dimension;
 
-// for the first selection dimension bundle just fill the map with all different combinations
+  // for the first selection dimension bundle just fill the map with all
+  // different combinations
   for (unsigned int i = 0; i < selection_dimension_bundle.size(); i++) {
     if (0 == i) {
       selection_dimension = selection_dimension_bundle[i];
@@ -538,13 +542,13 @@ void PndLmdDataFacade::createSelectionDimensionCombinations(
       selection_dimension.bins = 1;
 
       for (unsigned int slice_index = 0;
-          slice_index < selection_dimension_bundle[i].bins; slice_index++) {
+           slice_index < selection_dimension_bundle[i].bins; slice_index++) {
         selection_dimension.dimension_range.setRangeLow(
-            selection_dimension_bundle[i].dimension_range.getRangeLow()
-                + selection_dimension_bundle[i].bin_size * slice_index);
+            selection_dimension_bundle[i].dimension_range.getRangeLow() +
+            selection_dimension_bundle[i].bin_size * slice_index);
         selection_dimension.dimension_range.setRangeHigh(
-            selection_dimension_bundle[i].dimension_range.getRangeLow()
-                + selection_dimension_bundle[i].bin_size * (slice_index + 1));
+            selection_dimension_bundle[i].dimension_range.getRangeLow() +
+            selection_dimension_bundle[i].bin_size * (slice_index + 1));
         selection_dimension.calculateBinSize();
         std::stringstream ss;
         ss << slice_index;
@@ -561,37 +565,39 @@ void PndLmdDataFacade::createSelectionDimensionCombinations(
   }
   selection_combinations = temp_selections_combinations;
   std::cout << "successfully created selection dimension combination map!"
-      << std::endl;
+            << std::endl;
 }
 
-PndLmdDataFacade::LmdDimensionCombinations PndLmdDataFacade::extendSelectionsMapByDimensionBundle(
+PndLmdDataFacade::LmdDimensionCombinations
+PndLmdDataFacade::extendSelectionsMapByDimensionBundle(
     LmdDimensionCombinations &current_selection_combinations,
     const LumiFit::LmdDimension &selection_dimension_bundle) const {
 
   LmdDimensionCombinations new_selections_combinations;
-// for the remaining selection dimensions
-// (atm its just the secondary, but it could be more in principle):
-// loop over them, and for each entry in the map
+  // for the remaining selection dimensions
+  // (atm its just the secondary, but it could be more in principle):
+  // loop over them, and for each entry in the map
 
   LumiFit::LmdDimension selection_dimension = selection_dimension_bundle;
 
   selection_dimension.bins = 1;
 
   for (unsigned int slice_index = 0;
-      slice_index < selection_dimension_bundle.bins; slice_index++) {
+       slice_index < selection_dimension_bundle.bins; slice_index++) {
     selection_dimension.dimension_range.setRangeLow(
-        selection_dimension_bundle.dimension_range.getRangeLow()
-            + selection_dimension_bundle.bin_size * slice_index);
+        selection_dimension_bundle.dimension_range.getRangeLow() +
+        selection_dimension_bundle.bin_size * slice_index);
     selection_dimension.dimension_range.setRangeHigh(
-        selection_dimension_bundle.dimension_range.getRangeLow()
-            + selection_dimension_bundle.bin_size * (slice_index + 1));
+        selection_dimension_bundle.dimension_range.getRangeLow() +
+        selection_dimension_bundle.bin_size * (slice_index + 1));
 
     selection_dimension.calculateBinSize();
-    // loop over current map and for each entry create a new entry with addition suffix
+    // loop over current map and for each entry create a new entry with addition
+    // suffix
     LmdDimensionCombinations::iterator current_selection_combination_it =
         current_selection_combinations.begin();
-    while (current_selection_combination_it
-        != current_selection_combinations.end()) {
+    while (current_selection_combination_it !=
+           current_selection_combinations.end()) {
       std::stringstream ss;
       ss << slice_index;
       selection_dimension.name = ss.str();
@@ -607,17 +613,18 @@ PndLmdDataFacade::LmdDimensionCombinations PndLmdDataFacade::extendSelectionsMap
   return new_selections_combinations;
 }
 
-void PndLmdDataFacade::createAndFillDataBundles(const std::string &data_types, PndLmdDataReader& data_reader) {
+void PndLmdDataFacade::createAndFillDataBundles(const std::string &data_types,
+                                                PndLmdDataReader &data_reader) {
   // create data
   createDataBundles(data_types);
 
-// fill data
+  // fill data
   fillCreatedData(data_reader);
 
-// write to file
+  // write to file
   saveDataToFiles();
 
-// clean up
+  // clean up
   cleanup();
 }
 
@@ -641,14 +648,14 @@ void PndLmdDataFacade::createDataBundles(const std::string &data_types) {
 }
 
 void PndLmdDataFacade::fillCreatedData(PndLmdDataReader &data_reader) {
-// register created data objects with the data reader
+  // register created data objects with the data reader
   data_reader.registerAcceptances(lmd_acceptances);
   data_reader.registerData(lmd_angular_data);
   data_reader.registerData(lmd_vertex_data);
   data_reader.registerData(lmd_hist_data);
   data_reader.registerMapData(lmd_map_data);
 
-// and read data
+  // and read data
   data_reader.read();
 }
 
@@ -657,15 +664,17 @@ void PndLmdDataFacade::saveDataToFiles() {
 
   std::string filename_extension("");
 
-// add input directory to data facade
+  // add input directory to data facade
   if (lmd_runtime_config.getRawDataFilelistPath().compare("") != 0) {
-    const boost::regex my_filename_filter("filelist_(\\d*).txt",
-        boost::regex::extended | boost::regex::icase);
+    const boost::regex my_filename_filter(
+        "filelist_(\\d*).txt", boost::regex::extended | boost::regex::icase);
 
     boost::smatch dwhat;
     if (boost::regex_search(
-        boost::filesystem::path(lmd_runtime_config.getRawDataFilelistPath()).filename().string(),
-        dwhat, my_filename_filter)) {
+            boost::filesystem::path(lmd_runtime_config.getRawDataFilelistPath())
+                .filename()
+                .string(),
+            dwhat, my_filename_filter)) {
       filename_extension = "_";
       filename_extension += std::string(dwhat[1]);
     }
@@ -682,17 +691,17 @@ void PndLmdDataFacade::saveDataToFiles() {
 
   if (filename_extension != "") {
     boost::filesystem::path p(output_filename_angular_data);
-    output_filename_angular_data = p.stem().string() + filename_extension
-        + p.extension().string();
+    output_filename_angular_data =
+        p.stem().string() + filename_extension + p.extension().string();
     p = output_filename_acceptance_data;
-    output_filename_acceptance_data = p.stem().string() + filename_extension
-        + p.extension().string();
+    output_filename_acceptance_data =
+        p.stem().string() + filename_extension + p.extension().string();
     p = output_filename_resolution_data;
-    output_filename_resolution_data = p.stem().string() + filename_extension
-        + p.extension().string();
+    output_filename_resolution_data =
+        p.stem().string() + filename_extension + p.extension().string();
     p = output_filename_vertex_data;
-    output_filename_vertex_data = p.stem().string() + filename_extension
-        + p.extension().string();
+    output_filename_vertex_data =
+        p.stem().string() + filename_extension + p.extension().string();
   }
 
   if (lmd_angular_data.size() > 0) {
@@ -700,8 +709,8 @@ void PndLmdDataFacade::saveDataToFiles() {
 
     // ---- Output file -------------------------------------------------------
     output_filename_angular_data =
-        lmd_runtime_config.getDataOutputDirectory().string() + "/"
-            + output_filename_angular_data;
+        lmd_runtime_config.getDataOutputDirectory().string() + "/" +
+        output_filename_angular_data;
     // ------------------------------------------------------------------------
     TFile f(output_filename_angular_data.c_str(), "RECREATE");
     for (unsigned int i = 0; i < lmd_angular_data.size(); i++) {
@@ -714,8 +723,8 @@ void PndLmdDataFacade::saveDataToFiles() {
 
     // ---- Output file -------------------------------------------------------
     output_filename_acceptance_data =
-        lmd_runtime_config.getDataOutputDirectory().string() + "/"
-            + output_filename_acceptance_data;
+        lmd_runtime_config.getDataOutputDirectory().string() + "/" +
+        output_filename_acceptance_data;
     // ------------------------------------------------------------------------
     TFile f(output_filename_acceptance_data.c_str(), "RECREATE");
     for (unsigned int i = 0; i < lmd_acceptances.size(); i++) {
@@ -728,8 +737,8 @@ void PndLmdDataFacade::saveDataToFiles() {
 
     // ---- Output file -------------------------------------------------------
     output_filename_resolution_data =
-        lmd_runtime_config.getDataOutputDirectory().string() + "/"
-            + output_filename_resolution_data;
+        lmd_runtime_config.getDataOutputDirectory().string() + "/" +
+        output_filename_resolution_data;
     // ------------------------------------------------------------------------
     TFile f(output_filename_resolution_data.c_str(), "RECREATE");
     for (unsigned int i = 0; i < lmd_hist_data.size(); i++) {
@@ -743,8 +752,8 @@ void PndLmdDataFacade::saveDataToFiles() {
   if (lmd_vertex_data.size() > 0) {
     // ---- Output file -------------------------------------------------------
     output_filename_vertex_data =
-        lmd_runtime_config.getDataOutputDirectory().string() + "/"
-            + output_filename_vertex_data;
+        lmd_runtime_config.getDataOutputDirectory().string() + "/" +
+        output_filename_vertex_data;
     // ------------------------------------------------------------------------
     TFile f(output_filename_vertex_data.c_str(), "RECREATE");
     for (unsigned int i = 0; i < lmd_vertex_data.size(); i++) {
@@ -766,11 +775,11 @@ void PndLmdDataFacade::cleanup() {
 std::vector<PndLmdAngularData> PndLmdDataFacade::getElasticData() const {
   std::vector<PndLmdAngularData> data_vec;
   if (lmd_runtime_config.getElasticDataInputDirectory().string() != "") {
-    vector<string> filenames = findFiles(
-        lmd_runtime_config.getElasticDataInputDirectory(),
-        lmd_runtime_config.getElasticDataName());
+    vector<string> filenames =
+        findFiles(lmd_runtime_config.getElasticDataInputDirectory(),
+                  lmd_runtime_config.getElasticDataName());
 
-    for (auto const& filename : filenames) {
+    for (auto const &filename : filenames) {
       TFile file(filename.c_str(), "READ");
       auto temp_vec = getDataFromFile<PndLmdAngularData>(file);
       data_vec.insert(data_vec.end(), temp_vec.begin(), temp_vec.end());
@@ -781,13 +790,13 @@ std::vector<PndLmdAngularData> PndLmdDataFacade::getElasticData() const {
 
 std::vector<PndLmdAcceptance> PndLmdDataFacade::getAcceptanceData() const {
   std::vector<PndLmdAcceptance> data_vec;
-  if (lmd_runtime_config.getAcceptanceResolutionInputDirectory().string()
-      != "") {
-    vector<string> filenames = findFiles(
-        lmd_runtime_config.getAcceptanceResolutionInputDirectory(),
-        lmd_runtime_config.getAccDataName());
+  if (lmd_runtime_config.getAcceptanceResolutionInputDirectory().string() !=
+      "") {
+    vector<string> filenames =
+        findFiles(lmd_runtime_config.getAcceptanceResolutionInputDirectory(),
+                  lmd_runtime_config.getAccDataName());
 
-    for (auto const& filename : filenames) {
+    for (auto const &filename : filenames) {
       TFile file(filename.c_str(), "READ");
       auto temp_vec = getDataFromFile<PndLmdAcceptance>(file);
       data_vec.insert(data_vec.end(), temp_vec.begin(), temp_vec.end());
@@ -797,13 +806,13 @@ std::vector<PndLmdAcceptance> PndLmdDataFacade::getAcceptanceData() const {
 }
 std::vector<PndLmdHistogramData> PndLmdDataFacade::getResolutionData() const {
   std::vector<PndLmdHistogramData> data_vec;
-  if (lmd_runtime_config.getAcceptanceResolutionInputDirectory().string()
-      != "") {
-    vector<string> filenames = findFiles(
-        lmd_runtime_config.getAcceptanceResolutionInputDirectory(),
-        lmd_runtime_config.getResDataName());
+  if (lmd_runtime_config.getAcceptanceResolutionInputDirectory().string() !=
+      "") {
+    vector<string> filenames =
+        findFiles(lmd_runtime_config.getAcceptanceResolutionInputDirectory(),
+                  lmd_runtime_config.getResDataName());
 
-    for (auto const& filename : filenames) {
+    for (auto const &filename : filenames) {
       TFile file(filename.c_str(), "READ");
       auto temp_vec = getDataFromFile<PndLmdHistogramData>(file);
       data_vec.insert(data_vec.end(), temp_vec.begin(), temp_vec.end());
@@ -814,11 +823,11 @@ std::vector<PndLmdHistogramData> PndLmdDataFacade::getResolutionData() const {
 std::vector<PndLmdHistogramData> PndLmdDataFacade::getVertexData() const {
   std::vector<PndLmdHistogramData> data_vec;
   if (lmd_runtime_config.getElasticDataInputDirectory().string() != "") {
-    vector<string> filenames = findFiles(
-        lmd_runtime_config.getElasticDataInputDirectory(),
-        lmd_runtime_config.getVertexDataName());
+    vector<string> filenames =
+        findFiles(lmd_runtime_config.getElasticDataInputDirectory(),
+                  lmd_runtime_config.getVertexDataName());
 
-    for (auto const& filename : filenames) {
+    for (auto const &filename : filenames) {
       TFile file(filename.c_str(), "READ");
       auto temp_vec = getDataFromFile<PndLmdHistogramData>(file);
       data_vec.insert(data_vec.end(), temp_vec.begin(), temp_vec.end());
@@ -829,13 +838,13 @@ std::vector<PndLmdHistogramData> PndLmdDataFacade::getVertexData() const {
 
 std::vector<PndLmdMapData> PndLmdDataFacade::getMapData() const {
   std::vector<PndLmdMapData> data_vec;
-  if (lmd_runtime_config.getAcceptanceResolutionInputDirectory().string()
-      != "") {
-    vector<string> filenames = findFiles(
-        lmd_runtime_config.getAcceptanceResolutionInputDirectory(),
-        lmd_runtime_config.getResDataName());
+  if (lmd_runtime_config.getAcceptanceResolutionInputDirectory().string() !=
+      "") {
+    vector<string> filenames =
+        findFiles(lmd_runtime_config.getAcceptanceResolutionInputDirectory(),
+                  lmd_runtime_config.getResDataName());
 
-    for (auto const& filename : filenames) {
+    for (auto const &filename : filenames) {
       TFile file(filename.c_str(), "READ");
       auto temp_vec = getDataFromFile<PndLmdMapData>(file);
       data_vec.insert(data_vec.end(), temp_vec.begin(), temp_vec.end());
@@ -844,14 +853,14 @@ std::vector<PndLmdMapData> PndLmdDataFacade::getMapData() const {
   return data_vec;
 }
 
-vector<string> PndLmdDataFacade::findFiles(const path & dir_path,
-    const string & file_name) const {
+vector<string> PndLmdDataFacade::findFiles(const path &dir_path,
+                                           const string &file_name) const {
   std::cout << "finding files with pattern " << file_name << " in "
-      << dir_path.string() << std::endl;
+            << dir_path.string() << std::endl;
   vector<string> all_matching_files;
 
-  const boost::regex my_filename_filter(file_name,
-      boost::regex::extended | boost::regex::icase);
+  const boost::regex my_filename_filter(file_name, boost::regex::extended |
+                                                       boost::regex::icase);
 
   directory_iterator end_itr;
 
@@ -861,26 +870,28 @@ vector<string> PndLmdDataFacade::findFiles(const path & dir_path,
 
     // Skip if no match
     if (!boost::regex_search(fitr->path().filename().string(), fwhat,
-        my_filename_filter))
+                             my_filename_filter))
       continue;
 
-    //std::cout << "adding " << fitr->path().string() << " to filelist"
+    // std::cout << "adding " << fitr->path().string() << " to filelist"
     //    << std::endl;
     all_matching_files.push_back(fitr->path().string());
   }
   return all_matching_files;
 }
 
-vector<string> PndLmdDataFacade::findFile(const path & dir_path,
-    const string &dir_pattern, const string & file_name) const {
+vector<string> PndLmdDataFacade::findFile(const path &dir_path,
+                                          const string &dir_pattern,
+                                          const string &file_name) const {
 
-  const boost::regex my_dir_filter(dir_pattern,
-      boost::regex::extended | boost::regex::icase);
+  const boost::regex my_dir_filter(dir_pattern, boost::regex::extended |
+                                                    boost::regex::icase);
 
   vector<string> all_matching_files;
 
   if (exists(dir_path)) {
-    //std::cout << dir_path.string() << " exists... Looping over this directory.."
+    // std::cout << dir_path.string() << " exists... Looping over this
+    // directory.."
     //    << std::endl;
     directory_iterator end_itr; // default construction yields past-the-end
     for (directory_iterator itr(dir_path); itr != end_itr; ++itr) {
@@ -893,12 +904,12 @@ vector<string> PndLmdDataFacade::findFile(const path & dir_path,
         // check if directory name matches the dir pattern
         boost::smatch dwhat;
         if (!boost::regex_search(itr->path().filename().string(), dwhat,
-            my_dir_filter))
+                                 my_dir_filter))
           continue;
 
         vector<string> found_files = findFiles(itr->path(), file_name);
         all_matching_files.insert(all_matching_files.end(), found_files.begin(),
-            found_files.end());
+                                  found_files.end());
       }
     }
   }
@@ -923,12 +934,13 @@ std::vector<PndLmdAcceptance> PndLmdDataFacade::getMatchingAcceptances(
 
   std::vector<PndLmdAcceptance> prefiltered_acceptances =
       lmd_data_facade.filterData<PndLmdAcceptance>(acceptance_pool,
-          prim_dim_filter);
+                                                   prim_dim_filter);
 
   // find all acceptances with the same selections like the data
-  // but ignore secondary track filter as well as in acceptance as in the data selector set
-  LumiFit::Comparisons::SelectionDimensionsFilterIgnoringSecondaryTrack selection_dim_filter(
-      lmd_data.getSelectorSet());
+  // but ignore secondary track filter as well as in acceptance as in the data
+  // selector set
+  LumiFit::Comparisons::SelectionDimensionsFilterIgnoringSecondaryTrack
+      selection_dim_filter(lmd_data.getSelectorSet());
 
   matching_acceptances = lmd_data_facade.filterData<PndLmdAcceptance>(
       prefiltered_acceptances, selection_dim_filter);
@@ -953,13 +965,14 @@ std::vector<PndLmdHistogramData> PndLmdDataFacade::getMatchingResolutions(
 
   std::vector<PndLmdHistogramData> prefiltered_resolutions =
       lmd_data_facade.filterData<PndLmdHistogramData>(resolution_pool,
-          prim_dim_filter);
+                                                      prim_dim_filter);
 
   // TODO: find all resolutions with the same selections like the data
   // but ignore secondary track filter
-  // as well as the mc selection dimension in the same variable as the dimensions
-  /*LumiFit::Comparisons::SelectionDimensionsFilterIgnoringSecondaryTrack selection_dim_filter(
-   lmd_data.getSelectorSet());
+  // as well as the mc selection dimension in the same variable as the
+  // dimensions
+  /*LumiFit::Comparisons::SelectionDimensionsFilterIgnoringSecondaryTrack
+   selection_dim_filter( lmd_data.getSelectorSet());
 
    matching_resolutions = lmd_data_facade.filterData<PndLmdHistogramData>(
    prefiltered_resolutions, selection_dim_filter);*/
@@ -973,9 +986,9 @@ std::vector<std::string> PndLmdDataFacade::findFilesByName(
     const std::string dir_name_filter, const std::string file_name) {
 
   const boost::regex my_filter(dir_name_filter,
-      boost::regex::extended | boost::regex::icase);
-  const boost::regex my_filename_filter(file_name,
-      boost::regex::extended | boost::regex::icase);
+                               boost::regex::extended | boost::regex::icase);
+  const boost::regex my_filename_filter(file_name, boost::regex::extended |
+                                                       boost::regex::icase);
 
   std::vector<std::string> all_matching_files;
 
@@ -984,27 +997,29 @@ std::vector<std::string> PndLmdDataFacade::findFilesByName(
     bool dirname_ok(false);
     boost::smatch what;
     std::cout << "trying find " << dir_name_filter << " within "
-        << top_dir_path_to_search.string() << std::endl;
+              << top_dir_path_to_search.string() << std::endl;
     if (boost::regex_search(top_dir_path_to_search.string(), what, my_filter)) {
       dirname_ok = true;
       std::cout << "This directory matches the filter " << dir_name_filter
-          << std::endl;
+                << std::endl;
     }
 
     std::cout << top_dir_path_to_search.string()
-        << " exists... Looping over this directory.." << std::endl;
-    boost::filesystem::directory_iterator end_itr; // default construction yields past-the-end
+              << " exists... Looping over this directory.." << std::endl;
+    boost::filesystem::directory_iterator
+        end_itr; // default construction yields past-the-end
     for (boost::filesystem::directory_iterator itr(top_dir_path_to_search);
-        itr != end_itr; ++itr) {
+         itr != end_itr; ++itr) {
       // if the current entry is a file, just test for the filename
       if (boost::filesystem::is_regular_file(itr->status())) {
         if (dirname_ok) {
-          // File matches, check if fit_result.root file resides in this directory
+          // File matches, check if fit_result.root file resides in this
+          // directory
           boost::smatch fwhat;
 
           // Skip if no match
           if (!boost::regex_search(itr->path().string(), fwhat,
-              my_filename_filter))
+                                   my_filename_filter))
             continue;
 
           all_matching_files.push_back(itr->path().string());
@@ -1012,29 +1027,29 @@ std::vector<std::string> PndLmdDataFacade::findFilesByName(
       }
 
       else if (boost::filesystem::is_directory(itr->status())) {
-        std::vector<std::string> found_files = findFilesByName(itr->path(),
-            dir_name_filter, file_name);
+        std::vector<std::string> found_files =
+            findFilesByName(itr->path(), dir_name_filter, file_name);
         all_matching_files.insert(all_matching_files.end(), found_files.begin(),
-            found_files.end());
+                                  found_files.end());
       }
     }
   }
   std::cout << "Found a total of " << all_matching_files.size()
-      << " matching files!" << std::endl;
+            << " matching files!" << std::endl;
   return all_matching_files;
 }
 
-template<> std::vector<PndLmdMapData> PndLmdDataFacade::getDataFromFile(
-    TFile& f) const {
+template <>
+std::vector<PndLmdMapData> PndLmdDataFacade::getDataFromFile(TFile &f) const {
   std::vector<PndLmdMapData> lmd_data_vec;
 
   unsigned int counter = 0;
 
   TIter next(f.GetListOfKeys());
   TKey *key;
-  while ((key = (TKey*) next())) {
+  while ((key = (TKey *)next())) {
 
-    PndLmdMapData* data;
+    PndLmdMapData *data;
     f.GetObject(key->GetName(), data);
     if (data) {
       counter++;
@@ -1043,6 +1058,6 @@ template<> std::vector<PndLmdMapData> PndLmdDataFacade::getDataFromFile(
       delete data; // this delete is crucial! otherwise we have a memory leak!
     }
   }
-  //std::cout << "Found " << counter << " objects!" << std::endl;
+  // std::cout << "Found " << counter << " objects!" << std::endl;
   return lmd_data_vec;
 }

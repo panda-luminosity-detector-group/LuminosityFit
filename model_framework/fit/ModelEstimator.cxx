@@ -11,15 +11,15 @@
 #include "fit/data/Data.h"
 
 #include <cmath>
-#include <thread>
-#include <future>
 #include <functional>
+#include <future>
 #include <iostream>
+#include <thread>
 
-ModelEstimator::ModelEstimator(bool allow_initial_normalization_) :
-    free_parameters(), data(), fit_model(), estimator_options(), nthreads(1), initial_estimator_value(
-        0.0), allow_initial_normalization(allow_initial_normalization_) {
-}
+ModelEstimator::ModelEstimator(bool allow_initial_normalization_)
+    : free_parameters(), data(), fit_model(), estimator_options(), nthreads(1),
+      initial_estimator_value(0.0),
+      allow_initial_normalization(allow_initial_normalization_) {}
 
 ModelEstimator::~ModelEstimator() {
   // TODO Auto-generated destructor stub
@@ -27,7 +27,8 @@ ModelEstimator::~ModelEstimator() {
 
 void ModelEstimator::setNumberOfThreads(unsigned int number_of_threads) {
   nthreads = number_of_threads;
-  std::cout << "using multithreading with " << nthreads << " concurrent threads!" << std::endl;
+  std::cout << "using multithreading with " << nthreads
+            << " concurrent threads!" << std::endl;
 }
 
 void ModelEstimator::chopData() {
@@ -35,13 +36,14 @@ void ModelEstimator::chopData() {
   if (nthreads > 1 && data.get()) {
     std::cout << "chopping data into " << nthreads << " bunches" << std::endl;
     chopped_data.clear();
-    unsigned int data_points_per_bunch = data->getNumberOfUsedDataPoints() / nthreads + 1;
+    unsigned int data_points_per_bunch =
+        data->getNumberOfUsedDataPoints() / nthreads + 1;
     std::vector<DataPointProxy> &data_points = data->getData();
     std::shared_ptr<Data> bunch(new Data(data->getDimension()));
     std::vector<DataPointProxy>::iterator data_point_iter;
     unsigned int counter = 1;
-    for (data_point_iter = data_points.begin(); data_point_iter != data_points.end();
-        data_point_iter++) {
+    for (data_point_iter = data_points.begin();
+         data_point_iter != data_points.end(); data_point_iter++) {
       if (counter > data_points_per_bunch) {
         chopped_data.push_back(bunch);
         bunch.reset(new Data(data->getDimension()));
@@ -70,9 +72,7 @@ void ModelEstimator::setModel(std::shared_ptr<Model> new_model) {
   insertParameters();
 }
 
-const std::shared_ptr<Data> ModelEstimator::getData() const {
-  return data;
-}
+const std::shared_ptr<Data> ModelEstimator::getData() const { return data; }
 
 void ModelEstimator::setData(std::shared_ptr<Data> new_data) {
   data = new_data;
@@ -80,10 +80,11 @@ void ModelEstimator::setData(std::shared_ptr<Data> new_data) {
 
 void ModelEstimator::insertParameters() {
   for (std::map<std::pair<std::string, std::string>, std::shared_ptr<ModelPar>,
-      ModelStructs::stringpair_comp>::iterator it = free_parameters.begin();
-      it != free_parameters.end(); it++) {
-    getParameterList().push_back(
-        ModelStructs::minimization_parameter(it->first, it->second->getValue(), 0.0));
+                ModelStructs::stringpair_comp>::iterator it =
+           free_parameters.begin();
+       it != free_parameters.end(); it++) {
+    getParameterList().push_back(ModelStructs::minimization_parameter(
+        it->first, it->second->getValue(), 0.0));
   }
 }
 
@@ -92,10 +93,12 @@ void ModelEstimator::updateFreeModelParameters(const mydouble *new_values) {
   int first(false);
 
   // first overwrite the corresponding parameter values
-  // loop over the parameter set and update all the free parameters with these values
+  // loop over the parameter set and update all the free parameters with these
+  // values
   for (std::map<std::pair<std::string, std::string>, std::shared_ptr<ModelPar>,
-      ModelStructs::stringpair_comp>::iterator it = free_parameters.begin();
-      it != free_parameters.end(); it++) {
+                ModelStructs::stringpair_comp>::iterator it =
+           free_parameters.begin();
+       it != free_parameters.end(); it++) {
     if (it->second->getValue() != new_values[counter])
       it->second->setValue(new_values[counter]);
     ++counter;
@@ -111,11 +114,10 @@ void ModelEstimator::updateFreeModelParameters(const mydouble *new_values) {
    std::set<std::string> names_of_model_to_update_domain;
 
    // first overwrite the corresponding parameter values
-   // loop over the parameter set and update all the free parameters with these values
-   for (std::map<std::pair<std::string, std::string>, std::shared_ptr<ModelPar>,
-   ModelStructs::stringpair_comp>::iterator it = free_parameters.begin();
-   it != free_parameters.end(); it++) {
-   if (first) {
+   // loop over the parameter set and update all the free parameters with these
+   values for (std::map<std::pair<std::string, std::string>,
+   std::shared_ptr<ModelPar>, ModelStructs::stringpair_comp>::iterator it =
+   free_parameters.begin(); it != free_parameters.end(); it++) { if (first) {
    it->second->setValue(new_values[counter]);
    previous_values[counter] = new_values[counter];
    names_of_model_to_update_domain.insert(it->first.first);
@@ -137,18 +139,21 @@ void ModelEstimator::updateFreeModelParameters(const mydouble *new_values) {
    }*/
 }
 
-void ModelEstimator::applyEstimatorOptions(const EstimatorOptions &estimator_options_) {
+void ModelEstimator::applyEstimatorOptions(
+    const EstimatorOptions &estimator_options_) {
   estimator_options = estimator_options_;
 
   double combined_inner_radius_square(0.0);
   double combined_outer_radius_square(0.0);
   bool combined_fit_range_type(false);
-  if (data->getDimension() > 1 && estimator_options.getFitRangeX().is_active
-      && estimator_options.getFitRangeY().is_active
-      && estimator_options.getFitRangeX() == estimator_options.getFitRangeY()) {
+  if (data->getDimension() > 1 && estimator_options.getFitRangeX().is_active &&
+      estimator_options.getFitRangeY().is_active &&
+      estimator_options.getFitRangeX() == estimator_options.getFitRangeY()) {
     combined_fit_range_type = true;
-    combined_inner_radius_square = std::pow(estimator_options.getFitRangeX().range_low, 2);
-    combined_outer_radius_square = std::pow(estimator_options.getFitRangeX().range_high, 2);
+    combined_inner_radius_square =
+        std::pow(estimator_options.getFitRangeX().range_low, 2);
+    combined_outer_radius_square =
+        std::pow(estimator_options.getFitRangeX().range_high, 2);
   }
 
   std::vector<DataPointProxy> &datapoints = data->getData();
@@ -159,23 +164,29 @@ void ModelEstimator::applyEstimatorOptions(const EstimatorOptions &estimator_opt
       // check fit ranges
       if (combined_fit_range_type) {
         double data_point_radius_squared(
-            std::pow(data_point->bin_center_value[0], 2)
-                + std::pow(data_point->bin_center_value[1], 2));
-        if (data_point_radius_squared < combined_inner_radius_square
-            || data_point_radius_squared > combined_outer_radius_square) {
+            std::pow(data_point->bin_center_value[0], 2) +
+            std::pow(data_point->bin_center_value[1], 2));
+        if (data_point_radius_squared < combined_inner_radius_square ||
+            data_point_radius_squared > combined_outer_radius_square) {
           datapoints[i].setPointUsed(false);
           continue;
         }
       } else {
-        if (data->getDimension() > 0 && estimator_options.getFitRangeX().is_active) {
-          if (data_point->bin_center_value[0] < estimator_options.getFitRangeX().range_low
-              || data_point->bin_center_value[0] > estimator_options.getFitRangeX().range_high) {
+        if (data->getDimension() > 0 &&
+            estimator_options.getFitRangeX().is_active) {
+          if (data_point->bin_center_value[0] <
+                  estimator_options.getFitRangeX().range_low ||
+              data_point->bin_center_value[0] >
+                  estimator_options.getFitRangeX().range_high) {
             datapoints[i].setPointUsed(false);
             continue;
           }
-          if (data->getDimension() > 1 && estimator_options.getFitRangeY().is_active) {
-            if (data_point->bin_center_value[1] < estimator_options.getFitRangeY().range_low
-                || data_point->bin_center_value[1] > estimator_options.getFitRangeY().range_high) {
+          if (data->getDimension() > 1 &&
+              estimator_options.getFitRangeY().is_active) {
+            if (data_point->bin_center_value[1] <
+                    estimator_options.getFitRangeY().range_low ||
+                data_point->bin_center_value[1] >
+                    estimator_options.getFitRangeY().range_high) {
               datapoints[i].setPointUsed(false);
               continue;
             }
@@ -188,18 +199,21 @@ void ModelEstimator::applyEstimatorOptions(const EstimatorOptions &estimator_opt
           std::vector<DataStructs::DimensionRange> bin_ranges;
           for (unsigned int dim = 0; dim < data->getDimension(); dim++) {
             DataStructs::DimensionRange bin_range;
-            bin_range.range_low = data_point->bin_center_value[dim]
-                - data_point->bin_widths[dim] / 2.0;
-            bin_range.range_high = bin_range.range_low + data_point->bin_widths[dim];
+            bin_range.range_low = data_point->bin_center_value[dim] -
+                                  data_point->bin_widths[dim] / 2.0;
+            bin_range.range_high =
+                bin_range.range_low + data_point->bin_widths[dim];
             bin_ranges.push_back(bin_range);
           }
 
           double scale = 1.0;
           double precision = 1e-3;
           mydouble int_func_real = fit_model->Integral(bin_ranges, precision);
-          mydouble int_func_approx = fit_model->evaluate(data_point->bin_center_value);
+          mydouble int_func_approx =
+              fit_model->evaluate(data_point->bin_center_value);
           for (unsigned int dim = 0; dim < data->getDimension(); dim++) {
-            int_func_approx *= (bin_ranges[dim].range_high - bin_ranges[dim].range_low);
+            int_func_approx *=
+                (bin_ranges[dim].range_high - bin_ranges[dim].range_low);
           }
 
           if (int_func_approx > 0.0 && int_func_real > 0.0) {
@@ -215,7 +229,6 @@ void ModelEstimator::applyEstimatorOptions(const EstimatorOptions &estimator_opt
       // TODO implement for unbinned data
     } else {
       // this point is neither...
-
     }
   }
 
@@ -223,7 +236,8 @@ void ModelEstimator::applyEstimatorOptions(const EstimatorOptions &estimator_opt
     chopData();
 }
 
-void ModelEstimator::setInitialEstimatorValue(mydouble initial_estimator_value_) {
+void ModelEstimator::setInitialEstimatorValue(
+    mydouble initial_estimator_value_) {
   initial_estimator_value = initial_estimator_value_;
 }
 
@@ -241,35 +255,39 @@ mydouble ModelEstimator::evaluate(const mydouble *par) {
   mydouble estimator_value = 0.0;
 
   if (nthreads > 1) {
-    std::vector<std::future<mydouble> > future_list;
+    std::vector<std::future<mydouble>> future_list;
     for (auto databunch : chopped_data) {
-      future_list.push_back(std::async(std::launch::async, &ModelEstimator::eval, this, databunch));
+      future_list.push_back(std::async(std::launch::async,
+                                       &ModelEstimator::eval, this, databunch));
     }
-    for (auto& future : future_list) {
+    for (auto &future : future_list) {
       estimator_value += future.get();
     }
 
   } else {
     estimator_value = eval(data);
   }
-  //std::cout << "initial estimator value: " << initial_estimator_value << std::endl;
-  //std::cout << "estimator value: " << estimator_value << std::endl;
+  // std::cout << "initial estimator value: " << initial_estimator_value <<
+  // std::endl; std::cout << "estimator value: " << estimator_value <<
+  // std::endl;
   if (allow_initial_normalization)
     estimator_value -= initial_estimator_value;
 
-  //std::cout << "estimator change:\n";
-  //std::cout << "current estimator value: " << estimator_value << std::endl;
-  //std::cout << "previous estimator value: " << last_estimator_value << std::endl;
-//std::cout << "rel diff: "
-//    << std::abs((estimator_value - last_estimator_value) / estimator_value)
-//    << std::endl;
+  // std::cout << "estimator change:\n";
+  // std::cout << "current estimator value: " << estimator_value << std::endl;
+  // std::cout << "previous estimator value: " << last_estimator_value <<
+  // std::endl;
+  // std::cout << "rel diff: "
+  //    << std::abs((estimator_value - last_estimator_value) / estimator_value)
+  //    << std::endl;
 
   /*std::cout << "parameters:\n";
    unsigned int counter(0);
    for (std::map<std::pair<std::string, std::string>, std::shared_ptr<ModelPar>,
    ModelStructs::stringpair_comp>::iterator it = free_parameters.begin();
    it != free_parameters.end(); it++) {
-   std::cout << it->first.first << ":" << it->first.second << ": " << par[counter] << std::endl;
+   std::cout << it->first.first << ":" << it->first.second << ": " <<
+   par[counter] << std::endl;
    ++counter;
    }*/
 

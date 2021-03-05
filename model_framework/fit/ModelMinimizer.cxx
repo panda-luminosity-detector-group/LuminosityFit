@@ -7,15 +7,14 @@
 
 #include "ModelMinimizer.h"
 
-ModelMinimizer::ModelMinimizer() :
-    control_parameter() {
-}
+ModelMinimizer::ModelMinimizer() : control_parameter() {}
 
 ModelMinimizer::~ModelMinimizer() {
   // TODO Auto-generated destructor stub
 }
 
-std::shared_ptr<ModelControlParameter> ModelMinimizer::getControlParameter() const {
+std::shared_ptr<ModelControlParameter>
+ModelMinimizer::getControlParameter() const {
   return control_parameter;
 }
 
@@ -24,15 +23,13 @@ void ModelMinimizer::setControlParameter(
   control_parameter = control_parameter_;
 }
 
-void ModelMinimizer::increaseFunctionCallLimit() {
-}
+void ModelMinimizer::increaseFunctionCallLimit() {}
 
 int ModelMinimizer::doMinimization() {
   // then apply minimization procedure
   if (control_parameter->getParameterList().size() > 0) {
     return minimize();
-  }
-  else {
+  } else {
     return -1;
   }
 }

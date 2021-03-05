@@ -1,31 +1,28 @@
 #include "PndLmdDataReader.h"
 #include "PndLmdAbstractData.h"
-#include "PndLmdHistogramData.h"
-#include "PndLmdAngularData.h"
 #include "PndLmdAcceptance.h"
+#include "PndLmdAngularData.h"
+#include "PndLmdHistogramData.h"
 #include "PndLmdMapData.h"
 
-#include <set>
 #include <fstream>
 #include <iostream>
+#include <set>
 
 #include "boost/progress.hpp"
 
 #include "TrackData.h"
 
-#include "TDatabasePDG.h"
-#include "TClonesArray.h"
-#include "TMath.h"
 #include "TChain.h"
 #include "TClonesArray.h"
+#include "TDatabasePDG.h"
+#include "TMath.h"
 
-PndLmdDataReader::PndLmdDataReader() :
-    beam(0.0, 0.0, 0.0, 0.0) {
+PndLmdDataReader::PndLmdDataReader() : beam(0.0, 0.0, 0.0, 0.0) {
   pdg = TDatabasePDG::Instance();
 }
 
-PndLmdDataReader::~PndLmdDataReader() {
-}
+PndLmdDataReader::~PndLmdDataReader() {}
 
 void PndLmdDataReader::registerMapData(std::vector<PndLmdMapData> &data_vec) {
   for (unsigned int i = 0; i < data_vec.size(); i++) {
@@ -33,7 +30,7 @@ void PndLmdDataReader::registerMapData(std::vector<PndLmdMapData> &data_vec) {
   }
 }
 
-int PndLmdDataReader::registerData(PndLmdHistogramData* data) {
+int PndLmdDataReader::registerData(PndLmdHistogramData *data) {
   registered_data.push_back(data);
   return 0;
 }
@@ -52,7 +49,7 @@ int PndLmdDataReader::registerData(std::vector<PndLmdHistogramData> &data_vec) {
   return 0;
 }
 
-int PndLmdDataReader::registerAcceptance(PndLmdAcceptance* acc) {
+int PndLmdDataReader::registerAcceptance(PndLmdAcceptance *acc) {
   registered_acceptances.push_back(acc);
   return 0;
 }
@@ -70,9 +67,9 @@ void PndLmdDataReader::clearRegisters() {
   registered_acceptances.clear();
 }
 
-void PndLmdDataReader::removeFinished(std::vector<PndLmdAbstractData*> &lmd_vec,
-    int current_event_index) {
-  std::vector<PndLmdAbstractData*>::iterator it = lmd_vec.begin();
+void PndLmdDataReader::removeFinished(
+    std::vector<PndLmdAbstractData *> &lmd_vec, int current_event_index) {
+  std::vector<PndLmdAbstractData *>::iterator it = lmd_vec.begin();
   while (it != lmd_vec.end()) {
     if (current_event_index == (*it)->getNumEvents()) {
       (*it)->setNumEvents(current_event_index);
@@ -84,7 +81,7 @@ void PndLmdDataReader::removeFinished(std::vector<PndLmdAbstractData*> &lmd_vec,
 }
 
 int PndLmdDataReader::getNextMinEventIndex(
-    std::vector<PndLmdAbstractData*> &lmd_vec) {
+    std::vector<PndLmdAbstractData *> &lmd_vec) {
   int next_min_event_index = -1;
   for (unsigned int i = 0; i < lmd_vec.size(); i++) {
     if (lmd_vec[i]->getNumEvents() < next_min_event_index)
@@ -112,20 +109,21 @@ void PndLmdDataReader::addFileList(const std::string &filelist) {
   }
 }
 
-std::vector<PndLmdAbstractData*> PndLmdDataReader::combineAllRegisteredDataObjects() {
-  std::vector<PndLmdAbstractData*> lmd_vec;
+std::vector<PndLmdAbstractData *>
+PndLmdDataReader::combineAllRegisteredDataObjects() {
+  std::vector<PndLmdAbstractData *> lmd_vec;
   std::cout << registered_data.size() << " data objects are registered!"
-      << std::endl;
+            << std::endl;
   for (unsigned int i = 0; i < registered_data.size(); i++) {
     lmd_vec.push_back(registered_data[i]);
   }
   std::cout << registered_acceptances.size()
-      << " acceptance objects are registered!" << std::endl;
+            << " acceptance objects are registered!" << std::endl;
   for (unsigned int i = 0; i < registered_acceptances.size(); i++) {
     lmd_vec.push_back(registered_acceptances[i]);
   }
   std::cout << registered_map_data.size() << " map data objects are registered!"
-      << std::endl;
+            << std::endl;
   for (unsigned int i = 0; i < registered_map_data.size(); i++) {
     lmd_vec.push_back(registered_map_data[i]);
   }
@@ -138,18 +136,20 @@ void PndLmdDataReader::cleanup() {
 }
 
 void PndLmdDataReader::setBeam(double lab_momentum) {
-  beam = TLorentzVector(0, 0, lab_momentum,
+  beam = TLorentzVector(
+      0, 0, lab_momentum,
       sqrt(pow(lab_momentum, 2.0) + pow(pdg->GetParticle(-2212)->Mass(), 2.0)));
 }
 
 void PndLmdDataReader::read() {
-  std::vector<PndLmdAbstractData*> lmd_vec = combineAllRegisteredDataObjects();
+  std::vector<PndLmdAbstractData *> lmd_vec = combineAllRegisteredDataObjects();
 
   if (0 == lmd_vec.size()) {
-    std::cout
-        << "No data or acceptance objects were registered, hence no data can be filled."
-            " Please register objects via the register methods of this helper class"
-        << std::endl;
+    std::cout << "No data or acceptance objects were registered, hence no data "
+                 "can be filled."
+                 " Please register objects via the register methods of this "
+                 "helper class"
+              << std::endl;
     return;
   }
 
@@ -203,9 +203,9 @@ void PndLmdDataReader::read() {
       // adjust the minimum number of events to the remaining data objects
       min_num_events = getNextMinEventIndex(lmd_vec);
     }
-    
+
     std::vector<Lmd::Data::TrackPairInfo> track_pair_infos = getEntry(j);
-    for (auto const& trk_pair_info : track_pair_infos) {
+    for (auto const &trk_pair_info : track_pair_infos) {
       fillData(trk_pair_info);
     }
 
@@ -218,8 +218,8 @@ void PndLmdDataReader::read() {
 void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
   if (isGoodTrack(track_info)) {
     std::vector<double> data(4);
-    auto const& mom_mc = track_info.MCIP.Momentum;
-    auto const& mom_rec = track_info.RecoIP.Momentum;
+    auto const &mom_mc = track_info.MCIP.Momentum;
+    auto const &mom_rec = track_info.RecoIP.Momentum;
     data[0] = mom_rec[0] / mom_rec[2];
     data[1] = mom_rec[1] / mom_rec[2];
     data[2] = mom_mc[0] / mom_mc[2];
@@ -236,13 +236,12 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
         if (registered_data[i]->getSecondaryDimension().is_active) {
           registered_data[i]->addData(
               getTrackParameterValue(track_info,
-                  registered_data[i]->getPrimaryDimension()),
-              getTrackParameterValue(track_info,
-                  registered_data[i]->getSecondaryDimension()));
+                                     registered_data[i]->getPrimaryDimension()),
+              getTrackParameterValue(
+                  track_info, registered_data[i]->getSecondaryDimension()));
         } else {
-          registered_data[i]->addData(
-              getTrackParameterValue(track_info,
-                  registered_data[i]->getPrimaryDimension()));
+          registered_data[i]->addData(getTrackParameterValue(
+              track_info, registered_data[i]->getPrimaryDimension()));
         }
       }
     }
@@ -256,49 +255,55 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
     // skip tracks that do not pass the filters
     if (successfullyPassedFilters(registered_acceptances[i], track_info)) {
       if (registered_acceptances[i]->getSecondaryDimension().is_active) {
-        registered_acceptances[i]->addData(track_accepted,
-            getTrackParameterValue(track_info,
-                registered_acceptances[i]->getPrimaryDimension()),
-            getTrackParameterValue(track_info,
+        registered_acceptances[i]->addData(
+            track_accepted,
+            getTrackParameterValue(
+                track_info, registered_acceptances[i]->getPrimaryDimension()),
+            getTrackParameterValue(
+                track_info,
                 registered_acceptances[i]->getSecondaryDimension()));
       } else {
-        registered_acceptances[i]->addData(track_accepted,
-            getTrackParameterValue(track_info,
-                registered_acceptances[i]->getPrimaryDimension()));
+        registered_acceptances[i]->addData(
+            track_accepted,
+            getTrackParameterValue(
+                track_info, registered_acceptances[i]->getPrimaryDimension()));
       }
     }
   }
 }
 
-bool PndLmdDataReader::isGoodTrack(const Lmd::Data::TrackPairInfo &track_info) const {
-  return (track_info.IsReconstructedAtIP);
-}
-
-bool PndLmdDataReader::wasReconstructed(const Lmd::Data::TrackPairInfo &track_info) const {
-  return (track_info.IsReconstructedAtIP);
-}
-
-bool PndLmdDataReader::skipDataObject(const PndLmdAbstractData* data,
+bool PndLmdDataReader::isGoodTrack(
     const Lmd::Data::TrackPairInfo &track_info) const {
-// if it was not reconstructed and this information is required
+  return (track_info.IsReconstructedAtIP);
+}
+
+bool PndLmdDataReader::wasReconstructed(
+    const Lmd::Data::TrackPairInfo &track_info) const {
+  return (track_info.IsReconstructedAtIP);
+}
+
+bool PndLmdDataReader::skipDataObject(
+    const PndLmdAbstractData *data,
+    const Lmd::Data::TrackPairInfo &track_info) const {
+  // if it was not reconstructed and this information is required
   if (!wasReconstructed(track_info)) {
-    if (LumiFit::RECO
-        == data->getPrimaryDimension().dimension_options.track_type) {
+    if (LumiFit::RECO ==
+        data->getPrimaryDimension().dimension_options.track_type) {
       return true;
-    } else if (LumiFit::MC_ACC
-        == data->getPrimaryDimension().dimension_options.track_type
-        || LumiFit::DIFF_RECO_MC
-            == data->getPrimaryDimension().dimension_options.track_type) {
+    } else if (LumiFit::MC_ACC ==
+                   data->getPrimaryDimension().dimension_options.track_type ||
+               LumiFit::DIFF_RECO_MC ==
+                   data->getPrimaryDimension().dimension_options.track_type) {
       return true;
     }
     if (data->getSecondaryDimension().is_active) {
-      if (LumiFit::RECO
-          == data->getSecondaryDimension().dimension_options.track_type)
+      if (LumiFit::RECO ==
+          data->getSecondaryDimension().dimension_options.track_type)
         return true;
-      else if (LumiFit::MC_ACC
-          == data->getSecondaryDimension().dimension_options.track_type
-          || LumiFit::DIFF_RECO_MC
-              == data->getSecondaryDimension().dimension_options.track_type) {
+      else if (LumiFit::MC_ACC ==
+                   data->getSecondaryDimension().dimension_options.track_type ||
+               LumiFit::DIFF_RECO_MC ==
+                   data->getSecondaryDimension().dimension_options.track_type) {
         return true;
       }
     }
@@ -310,18 +315,19 @@ bool PndLmdDataReader::skipDataObject(const PndLmdAbstractData* data,
   return false;
 }
 
-bool PndLmdDataReader::successfullyPassedFilters(const PndLmdAbstractData* data,
+bool PndLmdDataReader::successfullyPassedFilters(
+    const PndLmdAbstractData *data,
     const Lmd::Data::TrackPairInfo &track_info) const {
-// if it fails to pass a filter
+  // if it fails to pass a filter
   const std::set<LumiFit::LmdDimension> &selection_dimensions(
       data->getSelectorSet());
   std::set<LumiFit::LmdDimension>::iterator selection_dimension_iterator =
       selection_dimensions.begin();
   while (selection_dimension_iterator != selection_dimensions.end()) {
-    if (false
-        == selection_dimension_iterator->dimension_range.isDataWithinRange(
+    if (false ==
+        selection_dimension_iterator->dimension_range.isDataWithinRange(
             getTrackParameterValue(track_info,
-                *selection_dimension_iterator))) {
+                                   *selection_dimension_iterator))) {
       return false;
     }
     ++selection_dimension_iterator;
@@ -329,7 +335,8 @@ bool PndLmdDataReader::successfullyPassedFilters(const PndLmdAbstractData* data,
   return true;
 }
 
-double PndLmdDataReader::getTrackParameterValue(const Lmd::Data::TrackPairInfo &track_info,
+double PndLmdDataReader::getTrackParameterValue(
+    const Lmd::Data::TrackPairInfo &track_info,
     const LumiFit::LmdDimension &lmd_dim) const {
   TVector3 pos(0.0, 0.0, 0.0);
   TVector3 mom(0.0, 0.0, 1.0);
@@ -346,8 +353,8 @@ double PndLmdDataReader::getTrackParameterValue(const Lmd::Data::TrackPairInfo &
     return 1.0 * track_info.IsSecondary;
   }
 
-  if (lmd_dim.dimension_options.track_type == LumiFit::MC
-      || lmd_dim.dimension_options.track_type == LumiFit::MC_ACC) {
+  if (lmd_dim.dimension_options.track_type == LumiFit::MC ||
+      lmd_dim.dimension_options.track_type == LumiFit::MC_ACC) {
     if (lmd_dim.dimension_options.track_param_type == LumiFit::IP) {
       auto mc_pos = track_info.MCIP.Position;
       pos.SetXYZ(mc_pos[0], mc_pos[1], mc_pos[2]);
@@ -423,8 +430,8 @@ double PndLmdDataReader::getTrackParameterValue(const Lmd::Data::TrackPairInfo &
   } else if (lmd_dim.dimension_options.dimension_type == LumiFit::Z) {
     return pos.Z();
   } else if (lmd_dim.dimension_options.dimension_type == LumiFit::T) {
-    TLorentzVector track(mom,
-        sqrt(pow(mom.Mag(), 2.0) + pow(pdg->GetParticle(-2212)->Mass(), 2.0)));
+    TLorentzVector track(mom, sqrt(pow(mom.Mag(), 2.0) +
+                                   pow(pdg->GetParticle(-2212)->Mass(), 2.0)));
     return -(track - beam).M2();
   } else if (lmd_dim.dimension_options.dimension_type == LumiFit::THETA_X) {
     return theta_x;

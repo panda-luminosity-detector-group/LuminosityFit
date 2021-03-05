@@ -3,7 +3,7 @@
 
 #include "core/Model2D.h"
 
-class BoxModel2D: public Model2D {
+class BoxModel2D : public Model2D {
 private:
   std::shared_ptr<ModelPar> amplitude;
   std::shared_ptr<ModelPar> lower_edge_var1;
@@ -13,7 +13,7 @@ private:
 
 public:
   BoxModel2D(std::string name_);
-	virtual ~BoxModel2D();
+  virtual ~BoxModel2D();
 
   mydouble eval(const mydouble *x) const;
 

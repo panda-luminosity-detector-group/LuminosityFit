@@ -2,20 +2,21 @@
 #include "ui/PndLmdRuntimeConfiguration.h"
 
 #include <cmath>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #include <boost/thread.hpp>
 
 #include "TMath.h"
 
-PndLmdDifferentialSmearingConvolutionModel2D::PndLmdDifferentialSmearingConvolutionModel2D(
-    std::string name_, std::shared_ptr<Model2D> unsmeared_model_,
-    std::shared_ptr<PndLmdDivergenceSmearingModel2D> smearing_model_,
-    const LumiFit::LmdDimension& data_dim_x_,
-    const LumiFit::LmdDimension& data_dim_y_, unsigned int combine_factor_) :
-    Model2D(name_), data_dim_x(data_dim_x_), data_dim_y(data_dim_y_), combine_factor(
-        combine_factor_) {
+PndLmdDifferentialSmearingConvolutionModel2D::
+    PndLmdDifferentialSmearingConvolutionModel2D(
+        std::string name_, std::shared_ptr<Model2D> unsmeared_model_,
+        std::shared_ptr<PndLmdDivergenceSmearingModel2D> smearing_model_,
+        const LumiFit::LmdDimension &data_dim_x_,
+        const LumiFit::LmdDimension &data_dim_y_, unsigned int combine_factor_)
+    : Model2D(name_), data_dim_x(data_dim_x_), data_dim_y(data_dim_y_),
+      combine_factor(combine_factor_) {
   nthreads = PndLmdRuntimeConfiguration::Instance().getNumberOfThreads();
 
   unsmeared_model = unsmeared_model_;
@@ -83,40 +84,40 @@ PndLmdDifferentialSmearingConvolutionModel2D::PndLmdDifferentialSmearingConvolut
     list_of_bin_ranges.push_back(br);
   }
 
-  model_grid = new mydouble*[data_dim_x.bins];
+  model_grid = new mydouble *[data_dim_x.bins];
   for (unsigned int i = 0; i < data_dim_x.bins; i++) {
     model_grid[i] = new mydouble[data_dim_y.bins];
   }
-  fine_model_grid = new mydouble*[calc_data_dim_x.bins];
+  fine_model_grid = new mydouble *[calc_data_dim_x.bins];
   for (unsigned int i = 0; i < calc_data_dim_x.bins; i++) {
     fine_model_grid[i] = new mydouble[calc_data_dim_y.bins];
   }
 
-  previous_model_grid = new mydouble*[data_dim_x.bins];
+  previous_model_grid = new mydouble *[data_dim_x.bins];
   for (unsigned int i = 0; i < data_dim_x.bins; i++) {
     previous_model_grid[i] = new mydouble[data_dim_y.bins];
   }
 }
 
-PndLmdDifferentialSmearingConvolutionModel2D::~PndLmdDifferentialSmearingConvolutionModel2D() {
+PndLmdDifferentialSmearingConvolutionModel2D::
+    ~PndLmdDifferentialSmearingConvolutionModel2D() {
   for (unsigned int i = 0; i < data_dim_x.bins; i++) {
-    delete[] (model_grid[i]);
+    delete[](model_grid[i]);
   }
-  delete[] (model_grid);
+  delete[](model_grid);
 
   for (unsigned int i = 0; i < calc_data_dim_x.bins; i++) {
-    delete[] (fine_model_grid[i]);
+    delete[](fine_model_grid[i]);
   }
-  delete[] (fine_model_grid);
+  delete[](fine_model_grid);
 
   for (unsigned int i = 0; i < data_dim_x.bins; i++) {
-    delete[] (previous_model_grid[i]);
+    delete[](previous_model_grid[i]);
   }
-  delete[] (previous_model_grid);
+  delete[](previous_model_grid);
 }
 
-void PndLmdDifferentialSmearingConvolutionModel2D::initModelParameters() {
-}
+void PndLmdDifferentialSmearingConvolutionModel2D::initModelParameters() {}
 
 void PndLmdDifferentialSmearingConvolutionModel2D::injectModelParameter(
     std::shared_ptr<ModelPar> model_param) {
@@ -124,32 +125,31 @@ void PndLmdDifferentialSmearingConvolutionModel2D::injectModelParameter(
 }
 
 void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D() {
-  //std::cout << "generating divergence smeared grid..." << std::endl;
+  // std::cout << "generating divergence smeared grid..." << std::endl;
   // create threads and let them evaluate a part of the data
   boost::thread_group threads;
 
   for (unsigned int i = 0; i < nthreads; i++) {
-    threads.create_thread(
-        boost::bind(
-            &PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D,
-            this, boost::cref(list_of_bin_ranges[i])));
+    threads.create_thread(boost::bind(
+        &PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D,
+        this, boost::cref(list_of_bin_ranges[i])));
   }
 
   threads.join_all();
-  //std::cout << "done!" << std::endl;
+  // std::cout << "done!" << std::endl;
 
   if (combine_factor > 1) {
     // now merge fine model grid to coarser grid
     for (unsigned int ix = 0; ix < calc_data_dim_x.bins;
-        ix = ix + combine_factor) {
+         ix = ix + combine_factor) {
       for (unsigned int iy = 0; iy < calc_data_dim_y.bins;
-          iy = iy + combine_factor) {
+           iy = iy + combine_factor) {
         mydouble temp(fine_model_grid[ix][iy]);
         temp += fine_model_grid[ix][iy + 1];
         mydouble temp2(fine_model_grid[ix + 1][iy]);
         temp2 += fine_model_grid[ix + 1][iy + 1];
-        model_grid[ix / combine_factor][iy / combine_factor] = (temp + temp2)
-            / (combine_factor * combine_factor);
+        model_grid[ix / combine_factor][iy / combine_factor] =
+            (temp + temp2) / (combine_factor * combine_factor);
       }
     }
     evaluation_grid = model_grid;
@@ -189,45 +189,47 @@ void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D() {
 void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D(
     const binrange &br) {
   mydouble x[2];
-  //std::cout<<br.x_bin_low<<" "<<br.x_bin_high<<std::endl;
-  //std::cout<<br.y_bin_low<<" "<<br.y_bin_high<<std::endl;
+  // std::cout<<br.x_bin_low<<" "<<br.x_bin_high<<std::endl;
+  // std::cout<<br.y_bin_low<<" "<<br.y_bin_high<<std::endl;
 
   for (unsigned int ix = br.x_bin_low; ix < br.x_bin_high; ix++) {
-    x[0] = calc_data_dim_x.dimension_range.getRangeLow()
-        + calc_data_dim_x.bin_size * (0.5 + ix);
+    x[0] = calc_data_dim_x.dimension_range.getRangeLow() +
+           calc_data_dim_x.bin_size * (0.5 + ix);
     for (unsigned int iy = br.y_bin_low; iy < br.y_bin_high; iy++) {
-      x[1] = calc_data_dim_y.dimension_range.getRangeLow()
-          + calc_data_dim_y.bin_size * (0.5 + iy);
+      x[1] = calc_data_dim_y.dimension_range.getRangeLow() +
+             calc_data_dim_y.bin_size * (0.5 + iy);
 
-      //mydouble value(0.0);
+      // mydouble value(0.0);
 
-      const std::vector<DifferentialCoordinateContribution> &mc_element_contributors =
-          smearing_model->getListOfContributors(x);
+      const std::vector<DifferentialCoordinateContribution>
+          &mc_element_contributors = smearing_model->getListOfContributors(x);
 
       std::vector<mydouble> numbers;
       numbers.reserve(mc_element_contributors.size());
 
-
-      //std::cout<<"contributors: "<<mc_element_contributors.size()<<std::endl;
-      std::vector<DifferentialCoordinateContribution>::const_iterator mc_element_it;
+      // std::cout<<"contributors: "<<mc_element_contributors.size()<<std::endl;
+      std::vector<DifferentialCoordinateContribution>::const_iterator
+          mc_element_it;
       for (mc_element_it = mc_element_contributors.begin();
-          mc_element_it != mc_element_contributors.end(); ++mc_element_it) {
+           mc_element_it != mc_element_contributors.end(); ++mc_element_it) {
         mydouble xx[2];
         xx[0] = x[0] - binsizes.first * mc_element_it->coordinate_delta.first;
         xx[1] = x[1] - binsizes.second * mc_element_it->coordinate_delta.second;
-        //The negative sign in the above equations is crucial!!!
-        //So we calculate the final value of one single bin x[] from all its neighbouring bins!
-        //We turn around the definition so that we can use multi-threading!
+        // The negative sign in the above equations is crucial!!!
+        // So we calculate the final value of one single bin x[] from all its
+        // neighbouring bins! We turn around the definition so that we can use
+        // multi-threading!
         mydouble integral_unsmeared_model = unsmeared_model->evaluate(xx);
 
-        //integral_unsmeared_model = integral_unsmeared_model * area_xy;
-        numbers.push_back(
-            integral_unsmeared_model * mc_element_it->contribution_factor);
-        //value = value + numbers.back();
+        // integral_unsmeared_model = integral_unsmeared_model * area_xy;
+        numbers.push_back(integral_unsmeared_model *
+                          mc_element_it->contribution_factor);
+        // value = value + numbers.back();
 
         /*if (value != value) {
          std::cout << xx[0] << ", " << xx[1] << std::endl;
-         std::cout << integral_unsmeared_model << " " << mc_element_it->contribution_factor
+         std::cout << integral_unsmeared_model << " " <<
+         mc_element_it->contribution_factor
          << std::endl;
          }*/
 
@@ -258,7 +260,8 @@ void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D(
 
       /*if(value != 0) {
        if(std::fabs((value-sum_value)/sum_value) > 0.001)
-       std::cout<<std::setprecision(9) << "compare standard summation: "<<value<<" with pairwise summation: "<<sum_value<<std::endl;
+       std::cout<<std::setprecision(9) << "compare standard summation:
+       "<<value<<" with pairwise summation: "<<sum_value<<std::endl;
        }*/
       /*if (fabs(x[0] + 0.00615) < 0.0001 && fabs(x[1] + 0.00705) < 0.0001) {
        std::cout << x[0] << ", " << x[1] << " value: " << value << std::endl;
@@ -271,12 +274,12 @@ void PndLmdDifferentialSmearingConvolutionModel2D::generateModelGrid2D(
   }
 }
 
-mydouble PndLmdDifferentialSmearingConvolutionModel2D::eval(
-    const mydouble *x) const {
-  int ix = (x[0] - data_dim_x.dimension_range.getRangeLow())
-      / data_dim_x.bin_size;
-  int iy = (x[1] - data_dim_y.dimension_range.getRangeLow())
-      / data_dim_y.bin_size;
+mydouble
+PndLmdDifferentialSmearingConvolutionModel2D::eval(const mydouble *x) const {
+  int ix =
+      (x[0] - data_dim_x.dimension_range.getRangeLow()) / data_dim_x.bin_size;
+  int iy =
+      (x[1] - data_dim_y.dimension_range.getRangeLow()) / data_dim_y.bin_size;
 
   /*std::cout << ix << " " << iy << " " << data_dim_x.bins << " "
    << data_dim_y.bins << " " << x[0] << " "

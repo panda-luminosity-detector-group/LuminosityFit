@@ -1,19 +1,20 @@
 #include "DataModel2D.h"
 
 #include <cmath>
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 
-DataModel2D::DataModel2D(std::string name_, ModelStructs::InterpolationType type) :
-    Model2D(name_), data(0), grid_density(1.0), intpol_type(type) {
+DataModel2D::DataModel2D(std::string name_,
+                         ModelStructs::InterpolationType type)
+    : Model2D(name_), data(0), grid_density(1.0), intpol_type(type) {
   setIntpolType(type);
   initModelParameters();
 }
 
-DataModel2D::DataModel2D(const DataModel2D &data_model_) :
-    Model2D(data_model_.getName()), data(
-        new mydouble[data_model_.cell_count[0] * data_model_.cell_count[1]]), grid_density(1.0), intpol_type(
-        data_model_.intpol_type) {
+DataModel2D::DataModel2D(const DataModel2D &data_model_)
+    : Model2D(data_model_.getName()),
+      data(new mydouble[data_model_.cell_count[0] * data_model_.cell_count[1]]),
+      grid_density(1.0), intpol_type(data_model_.intpol_type) {
   grid_spacing[0] = data_model_.grid_spacing[0];
   grid_spacing[1] = data_model_.grid_spacing[1];
 
@@ -36,7 +37,8 @@ DataModel2D::~DataModel2D() {
     delete[] data;
 }
 
-std::pair<mydouble, bool> DataModel2D::getCellSpacing(const std::set<mydouble> &values) {
+std::pair<mydouble, bool>
+DataModel2D::getCellSpacing(const std::set<mydouble> &values) {
   mydouble dist = -1;
   bool first_dist(true);
   bool first(true);
@@ -65,7 +67,8 @@ std::pair<mydouble, bool> DataModel2D::getCellSpacing(const std::set<mydouble> &
   return std::make_pair(dist, success);
 }
 
-void DataModel2D::setData(const std::map<std::pair<mydouble, mydouble>, mydouble> &data_) {
+void DataModel2D::setData(
+    const std::map<std::pair<mydouble, mydouble>, mydouble> &data_) {
   // delete old data if existent
   if (data)
     delete[] data;
@@ -127,8 +130,9 @@ void DataModel2D::setData(const std::map<std::pair<mydouble, mydouble>, mydouble
       int idx = ((it->first.first - domain_low[0]) / grid_spacing[0]);
       int idy = ((it->first.second - domain_low[1]) / grid_spacing[1]);
 
-      // ok we address the data as idy+ycellcount*idx (so y before x) because the data
-      // is presorted with x as a stronger variable, then its easier to find out the missing values
+      // ok we address the data as idy+ycellcount*idx (so y before x) because
+      // the data is presorted with x as a stronger variable, then its easier to
+      // find out the missing values
 
       bool missing(false);
       unsigned int missing_start_x = idx_last;
@@ -151,9 +155,12 @@ void DataModel2D::setData(const std::map<std::pair<mydouble, mydouble>, mydouble
 
       if (missing) {
         // translate into running index range
-        unsigned int miss_id_low = missing_start_x * cell_count[1] + missing_start_y;
-        unsigned int miss_id_high = missing_end_x * cell_count[1] + missing_end_y;
-        for (unsigned int miss_id = miss_id_low; miss_id < miss_id_high; miss_id++) {
+        unsigned int miss_id_low =
+            missing_start_x * cell_count[1] + missing_start_y;
+        unsigned int miss_id_high =
+            missing_end_x * cell_count[1] + missing_end_y;
+        for (unsigned int miss_id = miss_id_low; miss_id < miss_id_high;
+             miss_id++) {
           missing_indices.push_back(miss_id);
         }
       }
@@ -166,8 +173,9 @@ void DataModel2D::setData(const std::map<std::pair<mydouble, mydouble>, mydouble
 
     // now fix the missing values
     std::cout << "found " << missing_indices.size()
-        << " missing evaluation points. Fixing interpolation by setting cells to zero!"
-        << std::endl;
+              << " missing evaluation points. Fixing interpolation by setting "
+                 "cells to zero!"
+              << std::endl;
     for (unsigned int i = 0; i < missing_indices.size(); i++) {
       data[missing_indices[i]] = 0.0;
     }
@@ -180,8 +188,9 @@ void DataModel2D::setData(const std::map<std::pair<mydouble, mydouble>, mydouble
   setVar1Domain(domain_low[0], domain_high[0]);
   setVar2Domain(domain_low[1], domain_high[1]);
 
-  std::cout << "acc domain: [" << domain_low[0] << ", " << domain_high[0] << "] [" << domain_low[1]
-      << ", " << domain_high[1] << "]" << std::endl;
+  std::cout << "acc domain: [" << domain_low[0] << ", " << domain_high[0]
+            << "] [" << domain_low[1] << ", " << domain_high[1] << "]"
+            << std::endl;
 }
 
 void DataModel2D::initModelParameters() {
@@ -198,8 +207,8 @@ void DataModel2D::setIntpolType(ModelStructs::InterpolationType intpol_type_) {
 }
 
 mydouble DataModel2D::evaluateConstant(const mydouble *x) const {
-  unsigned int idx = (unsigned int) ((x[0] - domain_low[0]) / grid_spacing[0]);
-  unsigned int idy = (unsigned int) ((x[1] - domain_low[1]) / grid_spacing[1]);
+  unsigned int idx = (unsigned int)((x[0] - domain_low[0]) / grid_spacing[0]);
+  unsigned int idy = (unsigned int)((x[1] - domain_low[1]) / grid_spacing[1]);
 
   return data[idx * cell_count[1] + idy];
 }
@@ -207,8 +216,8 @@ mydouble DataModel2D::evaluateConstant(const mydouble *x) const {
 mydouble DataModel2D::evaluateLinear(const mydouble *x) const {
   mydouble dx = (x[0] - domain_low[0]) / grid_spacing[0];
   mydouble dy = (x[1] - domain_low[1]) / grid_spacing[1];
-  unsigned int idx = (unsigned int) dx;
-  unsigned int idy = (unsigned int) dy;
+  unsigned int idx = (unsigned int)dx;
+  unsigned int idy = (unsigned int)dy;
   int idx_low(idx);
   int idx_high(idx);
   int idy_low(idy);
@@ -223,8 +232,8 @@ mydouble DataModel2D::evaluateLinear(const mydouble *x) const {
     --idy_low;
 
   mydouble p11(0.0), p12(0.0), p21(0.0), p22(0.0);
-  if (idx_low > 0 && idy_low > 0 && idx_high < (int) cell_count[0] - 1
-      && idy_high < (int) cell_count[1] - 1) {
+  if (idx_low > 0 && idy_low > 0 && idx_high < (int)cell_count[0] - 1 &&
+      idy_high < (int)cell_count[1] - 1) {
     p11 = data[idx_low * cell_count[1] + idy_low];
     p12 = data[idx_low * cell_count[1] + idy_high];
     p21 = data[idx_high * cell_count[1] + idy_low];
@@ -232,13 +241,13 @@ mydouble DataModel2D::evaluateLinear(const mydouble *x) const {
   } else if (idx_low < 0) {
     p21 = data[idx_high * cell_count[1] + idy_low];
     p22 = data[idx_high * cell_count[1] + idy_high];
-  } else if (idx_high > (int) cell_count[0] - 1) {
+  } else if (idx_high > (int)cell_count[0] - 1) {
     p11 = data[idx_low * cell_count[1] + idy_low];
     p12 = data[idx_low * cell_count[1] + idy_high];
   } else if (idy_low < 0) {
     p11 = data[idx_low * cell_count[1] + idy_low];
     p12 = data[idx_low * cell_count[1] + idy_high];
-  } else if (idy_high > (int) cell_count[1] - 1) {
+  } else if (idy_high > (int)cell_count[1] - 1) {
     p12 = data[idx_low * cell_count[1] + idy_high];
     p22 = data[idx_high * cell_count[1] + idy_high];
   }
@@ -247,8 +256,9 @@ mydouble DataModel2D::evaluateLinear(const mydouble *x) const {
   mydouble dxx1(x[0] - (domain_low[0] + (0.5 + idx_low) * grid_spacing[0]));
   mydouble dy2y(domain_low[1] + (0.5 + idy_high) * grid_spacing[1] - x[1]);
   mydouble dyy1(x[1] - (domain_low[1] + (0.5 + idy_low) * grid_spacing[1]));
-  mydouble value = (p11 * dx2x * dy2y + p21 * dxx1 * dy2y + p12 * dx2x * dyy1 + p22 * dxx1 * dyy1)
-      * grid_density;
+  mydouble value = (p11 * dx2x * dy2y + p21 * dxx1 * dy2y + p12 * dx2x * dyy1 +
+                    p22 * dxx1 * dyy1) *
+                   grid_density;
   return value;
 }
 
@@ -257,17 +267,15 @@ mydouble DataModel2D::eval(const mydouble *x) const {
   shifted_x[0] = x[0] - offset_x->getValue();
   shifted_x[1] = x[1] - offset_y->getValue();
 
-  if (shifted_x[0] < domain_low[0] || shifted_x[0] > domain_high[0] || shifted_x[1] < domain_low[1]
-      || shifted_x[1] > domain_high[1])
+  if (shifted_x[0] < domain_low[0] || shifted_x[0] > domain_high[0] ||
+      shifted_x[1] < domain_low[1] || shifted_x[1] > domain_high[1])
     return 0.0;
   return (this->*model_func)(shifted_x);
 }
 
-void DataModel2D::updateDomain() {
+void DataModel2D::updateDomain() {}
 
-}
-
-DataModel2D& DataModel2D::operator=(const DataModel2D &data_model_) {
+DataModel2D &DataModel2D::operator=(const DataModel2D &data_model_) {
   grid_spacing[0] = data_model_.grid_spacing[0];
   grid_spacing[1] = data_model_.grid_spacing[1];
 

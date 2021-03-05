@@ -10,15 +10,15 @@
 
 #include "core/Model1D.h"
 
-class StepFunction1D: public Model1D {
+class StepFunction1D : public Model1D {
 private:
   std::shared_ptr<ModelPar> amplitude;
   std::shared_ptr<ModelPar> edge;
   bool falling_edge;
 
 public:
-	StepFunction1D(std::string name_, bool falling_edge_);
-	virtual ~StepFunction1D();
+  StepFunction1D(std::string name_, bool falling_edge_);
+  virtual ~StepFunction1D();
 
   mydouble eval(const mydouble *x) const;
 

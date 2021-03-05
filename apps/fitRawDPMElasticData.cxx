@@ -5,43 +5,43 @@
  *      Author: steve
  */
 
+#include "ROOTPlotHelper.hpp"
+#include "data/PndLmdAngularData.h"
 #include "fit/ModelFitFacade.h"
+#include "fit/PndLmdLumiFitResult.h"
+#include "fit/data/DataStructs.h"
+#include "fit/data/ROOT/ROOTDataHelper.h"
 #include "fit/estimatorImpl/Chi2Estimator.h"
 #include "fit/estimatorImpl/LogLikelihoodEstimator.h"
 #include "fit/estimatorImpl/UnbinnedLogLikelihoodEstimator.h"
-#include "fit/data/ROOT/ROOTDataHelper.h"
 #include "fit/minimizerImpl/ROOT/ROOTMinimizer.h"
-#include "fit/data/DataStructs.h"
-#include "visualization/ROOT/ROOTPlotter.h"
-#include "visualization/ModelVisualizationProperties1D.h"
 #include "model/PndLmdModelFactory.h"
-#include "fit/PndLmdLumiFitResult.h"
-#include "ROOTPlotHelper.hpp"
-#include "data/PndLmdAngularData.h"
 #include "ui/PndLmdFitFacade.h"
+#include "visualization/ModelVisualizationProperties1D.h"
+#include "visualization/ROOT/ROOTPlotter.h"
 
 #include "tools/PbarPElasticScatteringEventGenerator.h"
 
-#include <sstream>
-#include <iostream>
 #include <fstream>
-#include <vector>
+#include <iostream>
+#include <sstream>
 #include <stdlib.h>
+#include <vector>
 
 #include "boost/property_tree/ptree.hpp"
 
-#include "TFile.h"
-#include "TString.h"
-#include "TTree.h"
+#include "TCanvas.h"
 #include "TChain.h"
 #include "TClonesArray.h"
-#include "TParticle.h"
 #include "TDatabasePDG.h"
-#include "TMath.h"
-#include "TH1D.h"
+#include "TFile.h"
 #include "TGraphAsymmErrors.h"
-#include "TCanvas.h"
+#include "TH1D.h"
 #include "TLatex.h"
+#include "TMath.h"
+#include "TParticle.h"
+#include "TString.h"
+#include "TTree.h"
 
 struct data_options {
   double momentum;
@@ -61,26 +61,26 @@ struct data_options {
 };
 
 struct hist_bunch {
-  TH1D* t_hist;
-  TH1D* th_hist;
-  TH2D* th_phi_hist;
+  TH1D *t_hist;
+  TH1D *th_hist;
+  TH2D *th_phi_hist;
   std::shared_ptr<Data> unbinned_data;
 
   double gen_lumi;
-  hist_bunch() :
-      unbinned_data(new Data(2)) {
-  }
+  hist_bunch() : unbinned_data(new Data(2)) {}
 };
 
-hist_bunch createHistogramsFromRawDPMData(data_options &data_opt, unsigned int num_events) {
+hist_bunch createHistogramsFromRawDPMData(data_options &data_opt,
+                                          unsigned int num_events) {
   hist_bunch return_histgrams;
 
-  std::pair<TTree*, double> events = PbarPElasticScattering::generateEvents(data_opt.momentum,
-      num_events, data_opt.theta_bound_low_in_mrad, data_opt.theta_bound_high_in_mrad, 1234);
+  std::pair<TTree *, double> events = PbarPElasticScattering::generateEvents(
+      data_opt.momentum, num_events, data_opt.theta_bound_low_in_mrad,
+      data_opt.theta_bound_high_in_mrad, 1234);
 
   data_opt.elastic_cross_section = events.second;
 
-  TClonesArray* fEvt = new TClonesArray("TParticle", 100);
+  TClonesArray *fEvt = new TClonesArray("TParticle", 100);
   TTree &tree(*events.first);
   tree.SetBranchAddress("Particles", &fEvt);
 
@@ -90,29 +90,35 @@ hist_bunch createHistogramsFromRawDPMData(data_options &data_opt, unsigned int n
     num_events_to_process = num_events;
 
   PndLmdModelFactory model_factory;
-  double t_bound_low = model_factory.getMomentumTransferFromTheta(data_opt.momentum,
-      data_opt.theta_bound_low_in_mrad / 1000.0);
-  double t_bound_high = model_factory.getMomentumTransferFromTheta(data_opt.momentum,
-      data_opt.theta_bound_high_in_mrad / 1000.0);
+  double t_bound_low = model_factory.getMomentumTransferFromTheta(
+      data_opt.momentum, data_opt.theta_bound_low_in_mrad / 1000.0);
+  double t_bound_high = model_factory.getMomentumTransferFromTheta(
+      data_opt.momentum, data_opt.theta_bound_high_in_mrad / 1000.0);
 
   // create histograms from raw dpm files
-  return_histgrams.th_hist = new TH1D("hist_dpm_theta", "", data_opt.theta_binning,
-      data_opt.theta_bound_low_in_mrad / 1000.0, data_opt.theta_bound_high_in_mrad / 1000.0);
-  return_histgrams.t_hist = new TH1D("hist_dpm_t", "", data_opt.theta_binning, t_bound_low,
-      t_bound_high);
-  return_histgrams.th_phi_hist = new TH2D("hist_dpm_theta_phi", "", data_opt.theta_binning,
-      data_opt.theta_bound_low_in_mrad / 1000.0, data_opt.theta_bound_high_in_mrad / 1000.0,
-      data_opt.phi_binning, data_opt.phi_bound_low, data_opt.phi_bound_high);
+  return_histgrams.th_hist =
+      new TH1D("hist_dpm_theta", "", data_opt.theta_binning,
+               data_opt.theta_bound_low_in_mrad / 1000.0,
+               data_opt.theta_bound_high_in_mrad / 1000.0);
+  return_histgrams.t_hist = new TH1D("hist_dpm_t", "", data_opt.theta_binning,
+                                     t_bound_low, t_bound_high);
+  return_histgrams.th_phi_hist =
+      new TH2D("hist_dpm_theta_phi", "", data_opt.theta_binning,
+               data_opt.theta_bound_low_in_mrad / 1000.0,
+               data_opt.theta_bound_high_in_mrad / 1000.0, data_opt.phi_binning,
+               data_opt.phi_bound_low, data_opt.phi_bound_high);
 
-  std::cout << "Processing " << num_events_to_process << " events!" << std::endl;
+  std::cout << "Processing " << num_events_to_process << " events!"
+            << std::endl;
 
-  return_histgrams.gen_lumi = num_events_to_process / data_opt.elastic_cross_section;
+  return_histgrams.gen_lumi =
+      num_events_to_process / data_opt.elastic_cross_section;
 
   TDatabasePDG *pdg = TDatabasePDG::Instance();
-  TLorentzVector ingoing(0, 0, data_opt.momentum,
-      TMath::Sqrt(
-          TMath::Power(data_opt.momentum, 2.0)
-              + TMath::Power(pdg->GetParticle(-2212)->Mass(), 2.0)));
+  TLorentzVector ingoing(
+      0, 0, data_opt.momentum,
+      TMath::Sqrt(TMath::Power(data_opt.momentum, 2.0) +
+                  TMath::Power(pdg->GetParticle(-2212)->Mass(), 2.0)));
 
   TVector3 tilt(tan(data_opt.tilt_x), tan(data_opt.tilt_y), 1.0);
   TVector3 zprime = tilt.Unit();
@@ -125,7 +131,7 @@ hist_bunch createHistogramsFromRawDPMData(data_options &data_opt, unsigned int n
   for (unsigned int i = 0; i < num_events_to_process; i++) {
     tree.GetEntry(i);
     for (unsigned int np = 0; np < fEvt->GetEntries(); np++) {
-      TParticle *particle = (TParticle*) fEvt->At(np);
+      TParticle *particle = (TParticle *)fEvt->At(np);
       if (particle->GetPdgCode() == -2212) {
         TLorentzVector outgoing;
         particle->Momentum(outgoing);
@@ -138,23 +144,26 @@ hist_bunch createHistogramsFromRawDPMData(data_options &data_opt, unsigned int n
           measured_direction.Rotate(gamma, zprime);
         }
         // if data should be rotated like in pandaroot
-        //if (true)
+        // if (true)
         //  measured_direction.RotateUz(zprime);
 
         return_histgrams.t_hist->Fill(-1.0 * (outgoing - ingoing).M2());
         return_histgrams.th_hist->Fill(measured_direction.Theta());
-        return_histgrams.th_phi_hist->Fill(measured_direction.Theta(), measured_direction.Phi());
+        return_histgrams.th_phi_hist->Fill(measured_direction.Theta(),
+                                           measured_direction.Phi());
       }
     }
   }
   return return_histgrams;
 }
 
-void fit1D(const hist_bunch &histograms, data_options &data_opt, std::string filename) {
-  DataStructs::DimensionRange fit_range_th(data_opt.theta_fit_range_low_in_mrad / 1000.0,
+void fit1D(const hist_bunch &histograms, data_options &data_opt,
+           std::string filename) {
+  DataStructs::DimensionRange fit_range_th(
+      data_opt.theta_fit_range_low_in_mrad / 1000.0,
       data_opt.theta_fit_range_high_in_mrad / 1000.0);
 
-  TH1D* hist(histograms.th_hist);
+  TH1D *hist(histograms.th_hist);
 
   // create 1d model and initialize tilt parameters
   PndLmdModelFactory model_factory;
@@ -175,7 +184,8 @@ void fit1D(const hist_bunch &histograms, data_options &data_opt, std::string fil
   PndLmdAngularData tempdata;
   tempdata.setLabMomentum(data_opt.momentum);
 
-  std::shared_ptr<Model> model = model_factory.generateModel(fit_op_full, tempdata);
+  std::shared_ptr<Model> model =
+      model_factory.generateModel(fit_op_full, tempdata);
   if (model->init()) {
     std::cout << "Error: not all parameters have been set!" << std::endl;
   }
@@ -185,11 +195,11 @@ void fit1D(const hist_bunch &histograms, data_options &data_opt, std::string fil
    model->getModelParameterSet().setModelParameterValue("tilt_x", 0.0);
    model->getModelParameterSet().setModelParameterValue("tilt_y", 0.0);*/
 
-  //model->getModelParameterSet().printInfo();
+  // model->getModelParameterSet().printInfo();
   // integral - just for testing purpose
   std::vector<DataStructs::DimensionRange> int_range;
   int_range.push_back(fit_range_th);
-  //int_range.push_back(plot_range_phi);
+  // int_range.push_back(plot_range_phi);
 
   PndLmdFitFacade lmd_helper;
   double integral_data = 0.0;
@@ -199,14 +209,17 @@ void fit1D(const hist_bunch &histograms, data_options &data_opt, std::string fil
   double integral_func = model->Integral(int_range, 1e-3);
   std::cout << "integral: " << integral_func << std::endl;
 
-  double lumi_start = integral_data / integral_func / hist->GetXaxis()->GetBinWidth(1);
+  double lumi_start =
+      integral_data / integral_func / hist->GetXaxis()->GetBinWidth(1);
   std::cout << "Using start luminosity: " << lumi_start << std::endl;
   model->getModelParameterSet().freeModelParameter("luminosity");
-  model->getModelParameterSet().setModelParameterValue("luminosity", lumi_start);
+  model->getModelParameterSet().setModelParameterValue("luminosity",
+                                                       lumi_start);
 
   ModelFitFacade fit_facade;
 
-  std::shared_ptr<LogLikelihoodEstimator> loglikelihood_est(new LogLikelihoodEstimator());
+  std::shared_ptr<LogLikelihoodEstimator> loglikelihood_est(
+      new LogLikelihoodEstimator());
   fit_facade.setEstimator(loglikelihood_est);
   std::shared_ptr<Data> data(new Data(1));
   ROOTDataHelper data_helper;
@@ -223,7 +236,7 @@ void fit1D(const hist_bunch &histograms, data_options &data_opt, std::string fil
   EstimatorOptions est_opt;
   est_opt.setWithIntegralScaling(false);
   est_opt.setFitRangeX(fit_range_th);
-  //est_opt.setFitRangeY(plot_range_phi);
+  // est_opt.setFitRangeY(plot_range_phi);
   fit_facade.setEstimatorOptions(est_opt);
 
   ModelFitResult fit_result = fit_facade.Fit();
@@ -235,21 +248,23 @@ void fit1D(const hist_bunch &histograms, data_options &data_opt, std::string fil
   vis_prop_th.setBinningFactor(hist->GetXaxis()->GetBinWidth(1));
   vis_prop_th.setPlotRange(fit_range_th);
 
-  TGraphAsymmErrors* graph = root_plotter.createGraphFromModel1D(model, vis_prop_th);
+  TGraphAsymmErrors *graph =
+      root_plotter.createGraphFromModel1D(model, vis_prop_th);
 
   double lumi = fit_result.getFitParameter("luminosity").value;
   double lumi_err = fit_result.getFitParameter("luminosity").error;
   double lumi_ref = histograms.gen_lumi;
 
-  std::pair<double, double> lumi_reldiff = std::make_pair(100.0 * (lumi - lumi_ref) / lumi_ref,
-      100.0 * lumi_err / lumi_ref);
+  std::pair<double, double> lumi_reldiff = std::make_pair(
+      100.0 * (lumi - lumi_ref) / lumi_ref, 100.0 * lumi_err / lumi_ref);
 
   std::cout << "lumi: " << lumi << " lumi_ref: " << lumi_ref << std::endl;
   std::cout << "accuracy: " << (lumi - lumi_ref) / lumi_ref << std::endl;
 
   NeatPlotting::GraphAndHistogramHelper neat_plot_helper;
   NeatPlotting::PlotBundle residual_plot_bundle;
-  TGraphAsymmErrors *residual = neat_plot_helper.makeDifferenceGraph(hist, graph);
+  TGraphAsymmErrors *residual =
+      neat_plot_helper.makeDifferenceGraph(hist, graph);
 
   TFile file("fitresult.root", "RECREATE");
   residual->Write("residual");
@@ -257,9 +272,11 @@ void fit1D(const hist_bunch &histograms, data_options &data_opt, std::string fil
 }
 
 void fit2D(hist_bunch histograms, data_options &data_opt, bool binned = true) {
-  DataStructs::DimensionRange plot_range_th(data_opt.theta_bound_low_in_mrad / 1000.0,
+  DataStructs::DimensionRange plot_range_th(
+      data_opt.theta_bound_low_in_mrad / 1000.0,
       data_opt.theta_bound_high_in_mrad / 1000.0);
-  DataStructs::DimensionRange plot_range_phi(data_opt.phi_bound_low, data_opt.phi_bound_high);
+  DataStructs::DimensionRange plot_range_phi(data_opt.phi_bound_low,
+                                             data_opt.phi_bound_high);
 
   // create 2d model and initialize tilt parameters
   PndLmdModelFactory model_factory;
@@ -272,7 +289,8 @@ void fit2D(hist_bunch histograms, data_options &data_opt, bool binned = true) {
   PndLmdAngularData tempdata;
   tempdata.setLabMomentum(data_opt.momentum);
 
-  std::shared_ptr<Model> model = model_factory.generateModel(fit_op_full, tempdata);
+  std::shared_ptr<Model> model =
+      model_factory.generateModel(fit_op_full, tempdata);
   if (model->init()) {
     std::cout << "Error: not all parameters have been set!" << std::endl;
   }
@@ -288,7 +306,7 @@ void fit2D(hist_bunch histograms, data_options &data_opt, bool binned = true) {
    model->getModelParameterSet().getModelParameter("tilt_y")->setParameterFixed(
    true);*/
 
-  //model->getModelParameterSet().printInfo();
+  // model->getModelParameterSet().printInfo();
   // integral - just for testing purpose
   std::vector<DataStructs::DimensionRange> int_range;
   int_range.push_back(plot_range_th);
@@ -297,7 +315,8 @@ void fit2D(hist_bunch histograms, data_options &data_opt, bool binned = true) {
   PndLmdFitFacade lmd_helper;
   double integral_data = 0.0;
   std::cout << "calculating data integrals..." << std::endl;
-  integral_data = lmd_helper.calcHistIntegral(histograms.th_phi_hist, int_range);
+  integral_data =
+      lmd_helper.calcHistIntegral(histograms.th_phi_hist, int_range);
   std::cout << "integral: " << integral_data << std::endl;
   double integral_func = model->Integral(int_range, 1e-3);
   std::cout << "integral: " << integral_func << std::endl;
@@ -305,7 +324,8 @@ void fit2D(hist_bunch histograms, data_options &data_opt, bool binned = true) {
   ModelFitFacade fit_facade;
 
   if (binned) {
-    std::shared_ptr<LogLikelihoodEstimator> loglikelihood_est(new LogLikelihoodEstimator());
+    std::shared_ptr<LogLikelihoodEstimator> loglikelihood_est(
+        new LogLikelihoodEstimator());
     fit_facade.setEstimator(loglikelihood_est);
 
     std::shared_ptr<Data> data(new Data(2));
@@ -313,9 +333,9 @@ void fit2D(hist_bunch histograms, data_options &data_opt, bool binned = true) {
     data_helper.fillBinnedData(data, histograms.th_phi_hist);
     fit_facade.setData(data);
 
-    double lumi_start = integral_data / integral_func
-        / histograms.th_phi_hist->GetXaxis()->GetBinWidth(1)
-        / histograms.th_phi_hist->GetYaxis()->GetBinWidth(1);
+    double lumi_start = integral_data / integral_func /
+                        histograms.th_phi_hist->GetXaxis()->GetBinWidth(1) /
+                        histograms.th_phi_hist->GetYaxis()->GetBinWidth(1);
 
     std::cout << "Using start luminosity: " << lumi_start << std::endl;
     model->getModelParameterSet().freeModelParameter("luminosity");
@@ -329,8 +349,11 @@ void fit2D(hist_bunch histograms, data_options &data_opt, bool binned = true) {
     double lumi_start = integral_data / integral_func;
     std::cout << "Using start luminosity: " << lumi_start << std::endl;
     model->getModelParameterSet().freeModelParameter("luminosity");
-    model->getModelParameterSet().setModelParameterValue("luminosity", 5700.33); // change this to num events or something...
-    model->getModelParameterSet().getModelParameter("luminosity")->setParameterFixed(true);
+    model->getModelParameterSet().setModelParameterValue(
+        "luminosity", 5700.33); // change this to num events or something...
+    model->getModelParameterSet()
+        .getModelParameter("luminosity")
+        ->setParameterFixed(true);
   }
 
   fit_facade.setModel(model);
@@ -352,16 +375,18 @@ void fit2D(hist_bunch histograms, data_options &data_opt, bool binned = true) {
 
   ModelVisualizationProperties1D vis_prop_th;
   vis_prop_th.setEvaluations(data_opt.theta_binning);
-  vis_prop_th.setBinningFactor(histograms.th_phi_hist->GetXaxis()->GetBinWidth(1));
+  vis_prop_th.setBinningFactor(
+      histograms.th_phi_hist->GetXaxis()->GetBinWidth(1));
   vis_prop_th.setPlotRange(plot_range_th);
 
   ModelVisualizationProperties1D vis_prop_phi;
   vis_prop_phi.setEvaluations(data_opt.phi_binning);
-  vis_prop_phi.setBinningFactor(histograms.th_phi_hist->GetYaxis()->GetBinWidth(1));
+  vis_prop_phi.setBinningFactor(
+      histograms.th_phi_hist->GetYaxis()->GetBinWidth(1));
   vis_prop_phi.setPlotRange(plot_range_phi);
 
-  std::pair<ModelVisualizationProperties1D, ModelVisualizationProperties1D> vis_prop_pair =
-      std::make_pair(vis_prop_th, vis_prop_phi);
+  std::pair<ModelVisualizationProperties1D, ModelVisualizationProperties1D>
+      vis_prop_pair = std::make_pair(vis_prop_th, vis_prop_phi);
 
   /*integral_func = model->Integral(int_range, 1e-3);
    std::cout << "integral: " << integral_func << std::endl;
@@ -374,10 +399,12 @@ void fit2D(hist_bunch histograms, data_options &data_opt, bool binned = true) {
    model->getModelParameterSet().setModelParameterValue("luminosity",
    lumi_start);*/
 
-  TH2D* model_hist = root_plotter.createHistogramFromModel2D(model, vis_prop_pair);
+  TH2D *model_hist =
+      root_plotter.createHistogramFromModel2D(model, vis_prop_pair);
 
   NeatPlotting::GraphAndHistogramHelper hist_helper;
-  TH2D* diffmodel = hist_helper.makeRatioHistogram(model_hist, histograms.th_phi_hist);
+  TH2D *diffmodel =
+      hist_helper.makeRatioHistogram(model_hist, histograms.th_phi_hist);
 
   TCanvas c;
 
@@ -385,16 +412,17 @@ void fit2D(hist_bunch histograms, data_options &data_opt, bool binned = true) {
   double lumi_err = fit_result.getFitParameter("luminosity").error;
   double lumi_ref = histograms.gen_lumi;
 
-  std::pair<double, double> lumi_reldiff = std::make_pair(100.0 * (lumi - lumi_ref) / lumi_ref,
-      100.0 * lumi_err / lumi_ref);
+  std::pair<double, double> lumi_reldiff = std::make_pair(
+      100.0 * (lumi - lumi_ref) / lumi_ref, 100.0 * lumi_err / lumi_ref);
 
   diffmodel->Draw("colz");
   diffmodel->GetXaxis()->SetTitle("#theta / rad");
   diffmodel->GetYaxis()->SetTitle("#phi / rad");
   diffmodel->GetZaxis()->SetRangeUser(0.5, 1.5);
   std::stringstream titletext;
-  titletext << "tilt_{x}=" << data_opt.tilt_x << " rad, tilt_{y}=" << data_opt.tilt_y << " rad  | "
-      << lumi_reldiff.first << " +- " << lumi_reldiff.second;
+  titletext << "tilt_{x}=" << data_opt.tilt_x
+            << " rad, tilt_{y}=" << data_opt.tilt_y << " rad  | "
+            << lumi_reldiff.first << " +- " << lumi_reldiff.second;
   diffmodel->SetTitle(titletext.str().c_str());
 
   c.SaveAs("tilttest_2d.pdf");
@@ -407,7 +435,8 @@ void fitRawDPMElasticData(double momentum, unsigned int num_events) {
   data_opt.theta_bound_low_in_mrad = 2.7;
   data_opt.theta_bound_high_in_mrad = 13.0;
   data_opt.theta_fit_range_low_in_mrad = data_opt.theta_bound_low_in_mrad + 0.1;
-  data_opt.theta_fit_range_high_in_mrad = data_opt.theta_bound_high_in_mrad - 0.1;
+  data_opt.theta_fit_range_high_in_mrad =
+      data_opt.theta_bound_high_in_mrad - 0.1;
   data_opt.phi_bound_low = -TMath::Pi();
   data_opt.phi_bound_high = TMath::Pi();
   data_opt.theta_binning = 200;
@@ -416,10 +445,11 @@ void fitRawDPMElasticData(double momentum, unsigned int num_events) {
   data_opt.tilt_y = 0.0;
   data_opt.elastic_cross_section = 0.0;
 
-  hist_bunch dpm_mc_histograms = createHistogramsFromRawDPMData(data_opt, num_events);
+  hist_bunch dpm_mc_histograms =
+      createHistogramsFromRawDPMData(data_opt, num_events);
 
-  /*hist_bunch pr_mc_histograms = createHistogramsFromPandarootMCData(data_path, data_opt,
-   is_filelist_path, index, num_events);*/
+  /*hist_bunch pr_mc_histograms = createHistogramsFromPandarootMCData(data_path,
+   data_opt, is_filelist_path, index, num_events);*/
 
   /*NeatPlotting::GraphAndHistogramHelper hist_helper;
    TH2D* diff = hist_helper.makeRatioHistogram(dpm_mc_histograms.th_phi_hist,
@@ -430,19 +460,18 @@ void fitRawDPMElasticData(double momentum, unsigned int num_events) {
    c.SaveAs("tilttest.pdf");*/
 
   fit1D(dpm_mc_histograms, data_opt, "raw_dpm_fit1d.pdf");
-  //fit1D(pr_mc_histograms, data_opt, "pandaroot_mc_fit1d.pdf");
-  //fit2D(dpm_mc_histograms, data_opt);
+  // fit1D(pr_mc_histograms, data_opt, "pandaroot_mc_fit1d.pdf");
+  // fit2D(dpm_mc_histograms, data_opt);
 }
 
 void displayInfo() {
-// display info
+  // display info
   std::cout << "Required arguments are: " << std::endl;
   std::cout << "-m [pbar momentum]" << std::endl;
   std::cout << "-n [number of events to process]" << std::endl;
-
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   bool is_mom_set = false, is_num_events_set = false;
   double momentum = -1.0;
   unsigned int num_events = 0;
@@ -450,27 +479,28 @@ int main(int argc, char* argv[]) {
 
   while ((c = getopt(argc, argv, "hm:n:")) != -1) {
     switch (c) {
-      case 'm':
-        momentum = atof(optarg);
-        is_mom_set = true;
-        break;
-      case 'n':
-        num_events = atoi(optarg);
-        is_num_events_set = true;
-        break;
-      case '?':
-        if (optopt == 'm' || optopt == 'n')
-          std::cerr << "Option -" << optopt << " requires an argument." << std::endl;
-        else if (isprint(optopt))
-          std::cerr << "Unknown option -" << optopt << "." << std::endl;
-        else
-          std::cerr << "Unknown option character" << optopt << "." << std::endl;
-        return 1;
-      case 'h':
-        displayInfo();
-        return 1;
-      default:
-        return 1;
+    case 'm':
+      momentum = atof(optarg);
+      is_mom_set = true;
+      break;
+    case 'n':
+      num_events = atoi(optarg);
+      is_num_events_set = true;
+      break;
+    case '?':
+      if (optopt == 'm' || optopt == 'n')
+        std::cerr << "Option -" << optopt << " requires an argument."
+                  << std::endl;
+      else if (isprint(optopt))
+        std::cerr << "Unknown option -" << optopt << "." << std::endl;
+      else
+        std::cerr << "Unknown option character" << optopt << "." << std::endl;
+      return 1;
+    case 'h':
+      displayInfo();
+      return 1;
+    default:
+      return 1;
     }
   }
 

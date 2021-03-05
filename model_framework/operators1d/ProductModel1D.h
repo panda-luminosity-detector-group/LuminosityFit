@@ -10,20 +10,21 @@
 
 #include "core/Model1D.h"
 
-class ProductModel1D: public Model1D {
+class ProductModel1D : public Model1D {
 private:
-	std::shared_ptr<Model1D> first, second;
+  std::shared_ptr<Model1D> first, second;
+
 public:
-	ProductModel1D(std::string name_, std::shared_ptr<Model1D> first_,
-			std::shared_ptr<Model1D> second_);
+  ProductModel1D(std::string name_, std::shared_ptr<Model1D> first_,
+                 std::shared_ptr<Model1D> second_);
 
-	void initModelParameters();
+  void initModelParameters();
 
-	mydouble eval(const mydouble *x) const;
+  mydouble eval(const mydouble *x) const;
 
-	void updateDomain();
+  void updateDomain();
 
-	virtual std::pair<mydouble, mydouble> getUncertaincy(const mydouble *x) const;
+  virtual std::pair<mydouble, mydouble> getUncertaincy(const mydouble *x) const;
 };
 
 #endif /* PRODUCTMODEL1D_H_ */

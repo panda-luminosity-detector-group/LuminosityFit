@@ -8,23 +8,26 @@
 #ifndef PNDLMDFITSTORAGE_H_
 #define PNDLMDFITSTORAGE_H_
 
-#include "PndLmdLumiFitResult.h"
 #include "PndLmdFitOptions.h"
+#include "PndLmdLumiFitResult.h"
 #include "fit/ModelFitResult.h"
 
 #include <map>
 #include <vector>
 
 class PndLmdFitStorage {
-	std::map<PndLmdFitOptions, std::vector<ModelFitResult> > fit_results;
+  std::map<PndLmdFitOptions, std::vector<ModelFitResult>> fit_results;
 
 public:
-	PndLmdFitStorage();
-	virtual ~PndLmdFitStorage();
+  PndLmdFitStorage();
+  virtual ~PndLmdFitStorage();
 
-	const std::map<PndLmdFitOptions, std::vector<ModelFitResult> >& getFitResults() const;
-	std::vector<ModelFitResult> getFitResults(const PndLmdFitOptions &fit_options) const;
-	void addFitResult(const PndLmdFitOptions &fit_options, const ModelFitResult &fit_result_);
+  const std::map<PndLmdFitOptions, std::vector<ModelFitResult>> &
+  getFitResults() const;
+  std::vector<ModelFitResult>
+  getFitResults(const PndLmdFitOptions &fit_options) const;
+  void addFitResult(const PndLmdFitOptions &fit_options,
+                    const ModelFitResult &fit_result_);
 };
 
 #endif /* PNDLMDFITSTORAGE_H_ */

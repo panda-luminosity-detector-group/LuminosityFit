@@ -5,21 +5,21 @@
 
 class AsymmetricGaussianModel1D;
 
-class AsymmetricDoubleGaussianModel1D: public Model1D {
-	std::shared_ptr<AsymmetricGaussianModel1D> wide_gauss;
-	std::shared_ptr<AsymmetricGaussianModel1D> narrow_gauss;
+class AsymmetricDoubleGaussianModel1D : public Model1D {
+  std::shared_ptr<AsymmetricGaussianModel1D> wide_gauss;
+  std::shared_ptr<AsymmetricGaussianModel1D> narrow_gauss;
 
-	std::shared_ptr<ModelPar> ratio_narrow_wide_gauss;
+  std::shared_ptr<ModelPar> ratio_narrow_wide_gauss;
 
 public:
-	AsymmetricDoubleGaussianModel1D(std::string name_);
-	virtual ~AsymmetricDoubleGaussianModel1D();
+  AsymmetricDoubleGaussianModel1D(std::string name_);
+  virtual ~AsymmetricDoubleGaussianModel1D();
 
-	void initModelParameters();
+  void initModelParameters();
 
-	mydouble eval(const double *x) const;
+  mydouble eval(const double *x) const;
 
-	void updateDomain();
+  void updateDomain();
 };
 
 #endif /* ASYMMETRICDOUBLEGAUSSIANMODEL1D_H_ */
