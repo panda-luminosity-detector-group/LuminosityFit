@@ -1,59 +1,8 @@
-def addArgumentsToParser(parser):
-    parser.add_argument('--misalignment_matrices_path',
-                        metavar='misalignment_matrices_path', type=str,
-                        default='', help='')
-    parser.add_argument('--alignment_matrices_path',
-                        metavar='alignment_matrices_path', type=str,
-                        default='', help='')
-    parser.add_argument('--use_point_transform_misalignment',
-                        action='store_true',
-                        help='Instead of misaligning the geometry, '
-                        'the points are misaligned after the simulation.')
-
-    return parser
+import attr
 
 
-def createAlignmentParameters():
-    return {
-        'misalignment_matrices_path': '',
-        'use_point_transform_misalignment': False,
-        'alignment_matrices_path': ''
-    }
-
-
-def getAlignmentParameters(parameter_dict):
-    alignment_pars = {}
-
-    alignment_pars['misalignment_matrices_path'] = parameter_dict['misalignment_matrices_path']
-    alignment_pars['use_point_transform_misalignment'] = parameter_dict['use_point_transform_misalignment']
-    alignment_pars['alignment_matrices_path'] = parameter_dict['alignment_matrices_path']
-
-    return alignment_pars
-
-
-def addAlignmentParametersToConfig(params, args):
-    alignment_params = createAlignmentParameters()
-    if args.misalignment_matrices_path:
-        alignment_params[
-            'misalignment_matrices_path'] = args.misalignment_matrices_path
-    if args.use_point_transform_misalignment:
-        alignment_params['use_point_transform_misalignment'
-                         ] = args.use_point_transform_misalignment
-    if args.alignment_matrices_path:
-        alignment_params[
-            'alignment_matrices_path'] = args.alignment_matrices_path
-    from copy import copy
-    new_params = copy(params)
-    new_params.update(alignment_params)
-    return new_params
-
-
-def appendAlignmentInfoToJob(job, align_params):
-    job.add_exported_user_variable(
-        'misalignment_matrices_path',
-        align_params['misalignment_matrices_path'])
-    job.add_exported_user_variable('use_point_transform_misalignment', str(
-        align_params['use_point_transform_misalignment']).lower())
-    job.add_exported_user_variable(
-        'alignment_matrices_path', align_params['alignment_matrices_path'])
-    return job
+@attr.s
+class AlignmentParameters:
+    misalignment_matrices_path: str = attr.ib(default="")
+    use_point_transform_misalignment: bool = attr.ib(default=False)
+    alignment_matrices_path: str = attr.ib(default="")
