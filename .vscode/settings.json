@@ -80,5 +80,6 @@
   },
   "cmake.configureOnOpen": true,
   "python.formatting.provider": "black",
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "python.linting.mypyEnabled": true
 }

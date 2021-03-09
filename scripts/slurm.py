@@ -1,6 +1,9 @@
+# cSpell:ignore slurm,sbatch,squeue,CPUs,Popen
+
 import subprocess
-from typing import Optional, Callable
-from .cluster import Job, JobResourceRequest, JobHandler
+from typing import Callable, List, Optional
+
+from .cluster import Job, JobHandler, JobResourceRequest
 
 
 def _stringify(job_resource_request: JobResourceRequest):
@@ -83,45 +86,42 @@ class SlurmJobHandler(JobHandler):
 
     def get_active_number_of_jobs(self) -> int:
         """Check users current number of running and queued jobs."""
-        bashcommand = "squeue -u $USER -o %C | sed 's/CPUS/0/' | awk '{s+=$1} END {print s}'"
+        bashcommand = (
+            "squeue -u $USER -o %C | sed 's/CPUS/0/'"
+            + " | awk '{s+=$1} END {print s}'"
+        )
         returnvalue = subprocess.Popen(
             bashcommand, shell=True, stdout=subprocess.PIPE
         )
         out, err = returnvalue.communicate()
         return int(out)
 
-    def create_submit_commands(self, job: Job, debug=False):
+    def create_submit_commands(self, job: Job) -> List[str]:
         if self.__job_preprocessor:
             job = self.__job_preprocessor(job)
-        bashcommand_list = []
-        if debug:
-            bashcommand_list.append(
-                (job.application_url, job.exported_user_variables)
-            )
-        else:
-            bashcommand = (
-                "sbatch"
-                + (" -A {self.__account}" if self.__account else "")
-                + f" -p {self.__partition}"
-                + (
-                    f" --constraint={self.__constraints}"
-                    if self.__constraints
-                    else ""
-                )
-            )
 
-            bashcommand += _create_array_string(job)
-
-            bashcommand += (
-                f" --job-name={job.name}"
-                + _stringify(job.resource_request)
-                + f" --output={job.logfile_url}"
+        bashcommand = (
+            "sbatch"
+            + (" -A {self.__account}" if self.__account else "")
+            + f" -p {self.__partition}"
+            + (
+                f" --constraint={self.__constraints}"
+                if self.__constraints
+                else ""
             )
-            # export variables
-            bashcommand += " --export=ALL,"
-            for name, value in job.exported_user_variables.items():
-                bashcommand += f"{name}={value},"
+        )
 
-            bashcommand = bashcommand[:-1] + " " + job.application_url
-            bashcommand_list.append(bashcommand)
-        return bashcommand_list
+        bashcommand += _create_array_string(job)
+
+        bashcommand += (
+            f" --job-name={job.name}"
+            + _stringify(job.resource_request)
+            + f" --output={job.logfile_url}"
+        )
+        # export variables
+        bashcommand += " --export=ALL,"
+        for name, value in job.exported_user_variables.items():
+            bashcommand += f"{name}={value},"
+
+        bashcommand = bashcommand[:-1] + " " + job.application_url
+        return [bashcommand]
