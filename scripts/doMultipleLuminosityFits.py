@@ -39,7 +39,7 @@ def getListOfBoxDirectories(path):
                             box_dirs.append(bunch_dir)
                 return
             else:
-                if glob.glob(path + '/Lumi_TrksQA_*.root'):
+                if glob.glob(path + Track + '*.root'):
                     return
             dirpath = path + '/' + dir
             if os.path.isdir(dirpath):

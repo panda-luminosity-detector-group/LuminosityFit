@@ -32,6 +32,20 @@ class Scenario:
         self.use_m_cut = True
         self.use_xy_cut = True
         self.use_ip_determination = True
+        self.Lumi = True
+        if Lumi:
+            self.Track = 'Lumi_TrkQA_'
+            self.MC = 'Lumi_MC_'
+            self.Params = 'Lumi_Params_'
+            self.Sim = './runLmdSimReco'
+            self.Reco = './runLmdReco'
+        else:
+            self.Track = 'Koala_Track_'
+            self.MC = 'Koala_MC_'
+            self.Params = 'Koala_Params_'
+            self.Sim = './runKoalaSimReco'
+            self.Reco = './runKoalaReco'
+          
 
         self.alignment_parameters = {}
 
@@ -123,12 +137,12 @@ def simulateDataOnHimster(scenario):
                     temp_dir_searcher = general.DirectorySearcher(
                         ['box', data_keywords[0]])
                     temp_dir_searcher.searchListOfDirectories(
-                        dir_path, 'Lumi_TrksQA_')
+                        dir_path, Track)
                     found_dirs = temp_dir_searcher.getListOfDirectories()
 
                 if found_dirs:
                     status_code = wasSimulationSuccessful(
-                        found_dirs[0], 'Lumi_TrksQA_*.root')
+                        found_dirs[0], Track + '*.root')
                 elif last_state < 1:
                     # then lets simulate!
                     # this command runs the full sim software with box gen data
@@ -183,11 +197,11 @@ def simulateDataOnHimster(scenario):
                     temp_dir_searcher = general.DirectorySearcher(
                         ['dpm_elastic', data_keywords[0]])
                     temp_dir_searcher.searchListOfDirectories(
-                        dir_path, 'Lumi_TrksQA_')
+                        dir_path, Track)
                     found_dirs = temp_dir_searcher.getListOfDirectories()
                 if found_dirs:
                     status_code = wasSimulationSuccessful(
-                        found_dirs[0], 'Lumi_TrksQA_*.root')
+                        found_dirs[0], Track + '*.root')
 
                 elif last_state < state:
                     # then lets do reco
@@ -522,7 +536,7 @@ box_num_events_per_sample = args.box_num_events_per_sample
 dir_searcher = general.DirectorySearcher(['dpm_elastic', 'uncut'])
 
 dir_searcher.searchListOfDirectories(
-    args.base_output_data_dir, 'Lumi_TrksQA_')
+    args.base_output_data_dir, Track)
 dirs = dir_searcher.getListOfDirectories()
 
 print(dirs)

@@ -126,7 +126,7 @@ def createSimulationAndReconstructionJob(
     force_level=0,
     debug=False,
     use_devel_queue=False,
-    reco_file_name_pattern="Lumi_TrksQA_*.root",
+    reco_file_name_pattern= Track + "*.root",
 ) -> Tuple[Job, str]:
     print(
         "preparing simulations in index range "
@@ -238,7 +238,7 @@ def createSimulationAndReconstructionJob(
 
     job = Job(
         resource_request,
-        application_url="./runLmdSimReco.sh",
+        application_url= Sim,
         name="lmd_simreco_" + sim_type,
         logfile_url=pathname_full + "/simreco-%a.log",
     )

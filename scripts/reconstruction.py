@@ -79,7 +79,7 @@ def createReconstructionJob(
     force_level=0,
     debug=False,
     use_devel_queue=False,
-    reco_file_name_pattern="Lumi_TrksQA_*.root",
+    reco_file_name_pattern= Track + "*.root",
 ) -> Tuple[Job, str]:
     print(
         "preparing reconstruction in index range "
@@ -151,7 +151,7 @@ def createReconstructionJob(
 
     job = Job(
         resource_request,
-        application_url="./runLmdReco.sh",
+        application_url= Reco,
         name="lmd_reco_",
         logfile_url=pathname_full + "/reco-%a.log",
     )
