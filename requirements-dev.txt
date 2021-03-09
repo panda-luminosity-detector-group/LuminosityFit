@@ -1,0 +1,6 @@
+autopep8
+black
+flake8
+isort
+mypy
+pycodestyle

@@ -61,7 +61,6 @@ class ClusterJobManager:
         job_handler: JobHandler,
         total_job_threshold: int = 30000,
         resubmit_wait_time_in_seconds: int = 1800,
-        debug: bool = False,
     ) -> None:
         self.__job_handler = job_handler
         self.__jobs: List[Job] = []
