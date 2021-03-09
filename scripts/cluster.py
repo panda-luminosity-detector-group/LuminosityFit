@@ -1,9 +1,10 @@
 import os
 import subprocess
-from time import time, sleep
 from abc import abstractmethod
+from time import sleep, time
+from typing import Any, Dict, Iterable, List
+
 import attr
-from typing import Any, Iterable, Tuple, Dict
 
 
 @attr.s
@@ -46,9 +47,7 @@ class Job:
 
 class JobHandler:
     @abstractmethod
-    def create_submit_commands(
-        self, job: Job, debug=False
-    ) -> Iterable[Tuple[str, ...]]:
+    def create_submit_commands(self, job: Job, debug=False) -> Iterable[str]:
         pass
 
     @abstractmethod
@@ -62,34 +61,37 @@ class ClusterJobManager:
         job_handler: JobHandler,
         total_job_threshold: int = 30000,
         resubmit_wait_time_in_seconds: int = 1800,
-        debug: bool = False,
     ) -> None:
         self.__job_handler = job_handler
-        self.__jobs = []
+        self.__jobs: List[Job] = []
         self.__total_job_threshold = total_job_threshold
         # sleep time when total job threshold is reached in seconds
         self.__resubmit_wait_time_in_seconds = resubmit_wait_time_in_seconds
-        self.__debug = debug
 
-    def manage_jobs(self):
-        job_command_list = []
-        for job in self.__jobs:
-            job_command_list.extend(
-                self.__job_handler.create_submit_commands(job=job)
-            )
-        failed_submit_commands = {}
-        if self.__debug:
-            for cmd in job_command_list:
+    def manage_jobs(self, debug: bool = False):
+        if debug:
+            bashcommand_list = [
+                (job.application_url, job.exported_user_variables)
+                for job in self.__jobs
+            ]
+            for cmd in bashcommand_list:
                 my_env = os.environ.copy()
-                bashcommand = cmd
-                if len(cmd) == 2:
-                    my_env.update(cmd[1])
-                    bashcommand = cmd[0]
+                my_env.update(cmd[1])
+                bashcommand = cmd[0]
                 returncode = subprocess.call(bashcommand, env=my_env)
+
         else:
-            while job_command_list:
+            job_command_queue: List[str] = []
+            for job in self.__jobs:
+                job_command_queue.extend(
+                    self.__job_handler.create_submit_commands(job=job)
+                )
+
+            failed_submit_commands: Dict[str, float] = {}
+
+            while job_command_queue:
                 print("checking if total job threshold is reached...")
-                bashcommand = job_command_list.pop(0)
+                bashcommand = job_command_queue.pop(0)
                 if (
                     self.__job_handler.get_active_number_of_jobs()
                     < self.__total_job_threshold
@@ -118,16 +120,16 @@ class ClusterJobManager:
 
                         if resubmit:
                             # put the command back into the list
-                            job_command_list.insert(0, bashcommand)
+                            job_command_queue.insert(0, bashcommand)
                     else:
                         # sleep 3 sec to make the queue changes active
                         sleep(3)
                 else:
                     # put the command back into the list
-                    job_command_list.insert(0, bashcommand)
+                    job_command_queue.insert(0, bashcommand)
                     print(
                         "Yep, we have currently have "
-                        + str(len(job_command_list))
+                        + str(len(job_command_queue))
                         + " jobs waiting in queue!"
                     )
                     # and sleep for some time

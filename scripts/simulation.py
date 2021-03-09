@@ -10,7 +10,7 @@ import attr
 from .alignment import AlignmentParameters
 from .cluster import Job, JobResourceRequest, make_test_job_resource_request
 from .general import write_params_to_file
-from .reconstruction import generateRecoDirSuffix
+from .reconstruction import ReconstructionParameters, generateRecoDirSuffix
 
 simulation_types = ["box", "dpm_elastic", "dpm_elastic_inelastic", "noise"]
 
@@ -31,7 +31,7 @@ class SimulationParameters:
     theta_min_in_mrad: float = attr.ib(default=2.7)
     theta_max_in_mrad: float = attr.ib(default=13.0)
     neglect_recoil_momentum: bool = attr.ib(default=False)
-    random_seed: int = attr.ib(factory=lambda x: random.randint(10, 9999))
+    random_seed: int = attr.ib(factory=lambda: random.randint(10, 9999))
 
     ip_offset_x: float = attr.ib(default=0.0)  # in cm
     ip_offset_y: float = attr.ib(default=0.0)  # in cm
@@ -118,39 +118,42 @@ def generateDirectory(
     return dirname
 
 
-def createSimulationAndReconstructionJob(
+def create_simulation_and_reconstruction_job(
     sim_params: SimulationParameters,
     align_params: AlignmentParameters,
-    reco_params,
+    reco_params: ReconstructionParameters,
     output_dir="",
     force_level=0,
     debug=False,
     use_devel_queue=False,
-    reco_file_name_pattern= Track + "*.root",
+    reco_file_name_pattern=Track"*.root",
 ) -> Tuple[Job, str]:
     print(
         "preparing simulations in index range "
-        + str(sim_params["low_index"])
-        + " - "
-        + str(sim_params["low_index"] + sim_params["num_samples"] - 1)
+        + f"{reco_params.low_index} - "
+        + f"{reco_params.low_index + reco_params.num_samples - 1}"
     )
 
     dirname = generateDirectory(sim_params, align_params, output_dir)
     dirname_filter_suffix = generateRecoDirSuffix(reco_params, align_params)
 
-    low_index_used = sim_params["low_index"]
-    num_samples = sim_params["num_samples"]
-    if debug and sim_params["num_samples"] > 1:
+    low_index_used = sim_params.low_index
+    num_samples = sim_params.num_samples
+    if debug and sim_params.num_samples > 1:
         print(
             "Warning: number of samples in debug mode is limited to 1! "
             "Setting to 1!"
         )
         num_samples = 1
 
-    pathname_base = os.getenv("LMDFIT_DATA_DIR") + "/" + dirname
+    lmdfit_data_dir = os.getenv("LMDFIT_DATA_DIR")
+    if lmdfit_data_dir is None:
+        raise ValueError("LMDFIT_DATA_DIR environment variable is not set!")
+
+    pathname_base = lmdfit_data_dir + "/" + dirname
     path_mc_data = pathname_base + "/mc_data"
     dirname_full = dirname + "/" + dirname_filter_suffix
-    pathname_full = os.getenv("LMDFIT_DATA_DIR") + "/" + dirname_full
+    pathname_full = lmdfit_data_dir + "/" + dirname_full
 
     print("using output folder structure: " + pathname_full)
 
@@ -186,19 +189,18 @@ def createSimulationAndReconstructionJob(
                 return (None, pathname_full)
 
     # generate simulation config parameter file
-    if "elastic" in sim_params["sim_type"]:
+    if "elastic" in sim_params.sim_type:
+        lmdfit_build_dir = os.getenv("LMDFIT_BUILD_PATH")
+        if lmdfit_build_dir is None:
+            raise ValueError(
+                "LMDFIT_BUILD_PATH environment variable is not set!"
+            )
         # determine the elastic cross section in the theta range
         bashcommand = (
-            os.getenv("LMDFIT_BUILD_PATH")
-            + "/bin/generatePbarPElasticScattering "
-            + str(sim_params["lab_momentum"])
-            + " 0 -l "
-            + str(sim_params["theta_min_in_mrad"])
-            + " -u "
-            + str(sim_params["theta_max_in_mrad"])
-            + " -o "
-            + pathname_base
-            + "/elastic_cross_section.txt"
+            f"{lmdfit_build_dir}/bin/generatePbarPElasticScattering "
+            + f"{sim_params.lab_momentum} 0 -l {sim_params.theta_min_in_mrad}"
+            + f" -u {sim_params.theta_max_in_mrad}"
+            + f" -o {pathname_base}/elastic_cross_section.txt"
         )
 
         subprocess.call(bashcommand.split())
@@ -208,24 +210,6 @@ def createSimulationAndReconstructionJob(
     )
     write_params_to_file(reco_params, pathname_full, "reco_params.config")
     write_params_to_file(align_params, pathname_full, "align_params.config")
-
-    use_recoil_momentum = 1
-    if sim_params["neglect_recoil_momentum"]:
-        use_recoil_momentum = 0
-
-    # box gen: -1
-    # dpm only inelastic: 0
-    # dpm elastic & inelastic: 1
-    # dpm only elastic: 2
-    sim_type = sim_params["sim_type"]
-
-    reaction_type = 2
-    if sim_type == "box":
-        reaction_type = -1
-    elif sim_type == "dpm_elastic":
-        reaction_type = 2
-    elif sim_type == "dpm_elastic_inelastic":
-        reaction_type = 1
 
     resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
     resource_request.number_of_nodes = 1
@@ -238,8 +222,8 @@ def createSimulationAndReconstructionJob(
 
     job = Job(
         resource_request,
-        application_url= Sim,
-        name="lmd_simreco_" + sim_type,
+        application_url="./runLmdSimReco.sh",
+        name="lmd_simreco_" + sim_params.sim_type,
         logfile_url=pathname_full + "/simreco-%a.log",
     )
 
@@ -253,8 +237,6 @@ def createSimulationAndReconstructionJob(
             "dirname": dirname_full,
             "path_mc_data": path_mc_data,
             "pathname": pathname_full,
-            "use_recoil_momentum": use_recoil_momentum,
-            "reaction_type": reaction_type,
         }
     )
 
