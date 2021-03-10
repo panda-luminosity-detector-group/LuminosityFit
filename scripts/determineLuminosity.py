@@ -163,7 +163,7 @@ def simulateDataOnHimster(scenario):
                     sim_par['theta_min_in_mrad'] -= max_xy_shift
                     sim_par['theta_max_in_mrad'] += max_xy_shift
                     sim_par.update(gen_par)
-                    rec_par = reconstruction.createReconstructionParameters()
+                    rec_par = reconstruction.createReconstructionParameters(Track , Reco)
                     rec_par['use_xy_cut'] = scenario.use_xy_cut
                     rec_par['use_m_cut'] = scenario.use_m_cut
                     rec_par['reco_ip_offset'] = [ip_info_dict['ip_offset_x'],
@@ -183,7 +183,7 @@ def simulateDataOnHimster(scenario):
                     rec_par.update(align_par)
 
                     (dir_path, is_finished) = simulation.startSimulationAndReconstruction(
-                        sim_par, align_par, rec_par, use_devel_queue=args.use_devel_queue)
+                        sim_par, align_par, rec_par, use_devel_queue=args.use_devel_queue, Track, Sim)
                     simulation_task[0] = dir_path
                     scenario.acc_and_res_dir_path = dir_path
                     if is_finished:
@@ -234,7 +234,7 @@ def simulateDataOnHimster(scenario):
                     # dirname = os.path.dirname(scenario.dir_path)
                     (dir_path, is_finished) = simulation.startSimulationAndReconstruction(
                         sim_par, alignment.getAlignmentParameters(rec_par),
-                        rec_par, use_devel_queue=args.use_devel_queue)
+                        rec_par, use_devel_queue=args.use_devel_queue, Track , Sim)
                     # (dir_path, is_finished) = reconstruction.startReconstruction(
                     #    rec_par, alignment.getAlignmentParameters(rec_par),
                     #    dirname, use_devel_queue=args.use_devel_queue)
@@ -473,7 +473,7 @@ def lumiDetermination(scen):
             bashcommand = 'python doMultipleLuminosityFits.py '\
                 '--forced_box_gen_data ' + scen.acc_and_res_dir_path + \
                 ' ' + scen.filtered_dir_path + ' ' + cut_keyword + \
-                lmd_fit_path + '/' + args.fit_config
+                lmd_fit_path + '/' + args.fit_config + ' ' + Track
             returnvalue = subprocess.call(bashcommand.split())
 
         print('this scenario is fully processed!!!')
