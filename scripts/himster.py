@@ -1,5 +1,7 @@
-from .slurm import SlurmJobHandler
+# cSpell:ignore slurm, cpus
+
 from .cluster import Job
+from .slurm import SlurmJobHandler
 
 
 def create_himster_job_handler(
