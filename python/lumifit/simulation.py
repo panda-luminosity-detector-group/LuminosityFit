@@ -3,7 +3,8 @@ import glob
 import os
 import random
 import subprocess
-from typing import Tuple
+from enum import Enum
+from typing import Any, Optional, Tuple
 
 import attr
 
@@ -12,16 +13,24 @@ from .cluster import Job, JobResourceRequest, make_test_job_resource_request
 from .general import write_params_to_file
 from .reconstruction import ReconstructionParameters, generateRecoDirSuffix
 
-simulation_types = ["box", "dpm_elastic", "dpm_elastic_inelastic", "noise"]
+
+class SimulationType(Enum):
+    BOX = "box"
+    PBARP_ELASTIC = "dpm_elastic"
+    PBARP = "dpm_elastic_inelastic"
+    NOISE = "noise"
 
 
 @attr.s
 class SimulationParameters:
-    def _validate_sim_type(instance, attribute, value):
-        if value not in simulation_types:
-            raise ValueError("specified simulation type is invalid!")
+    def simulation_type_converter(value: Any) -> SimulationType:
+        if isinstance(value, SimulationType):
+            return value
+        elif isinstance(value, str):
+            return SimulationType(value)
+        raise TypeError("sim_type has to be of type SimulationType or str.")
 
-    sim_type: str = attr.ib(validator=_validate_sim_type)
+    sim_type: SimulationType = attr.ib(converter=simulation_type_converter)
     num_events_per_sample: int = attr.ib()
     num_samples: int = attr.ib()
     lab_momentum: float = attr.ib()
@@ -127,7 +136,7 @@ def create_simulation_and_reconstruction_job(
     debug=False,
     use_devel_queue=False,
     reco_file_name_pattern="Lumi_TrksQA_*.root",
-) -> Tuple[Job, str]:
+) -> Tuple[Optional[Job], str]:
     print(
         "preparing simulations in index range "
         + f"{reco_params.low_index} - "
