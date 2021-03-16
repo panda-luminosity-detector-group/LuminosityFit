@@ -3,10 +3,10 @@
 import argparse
 import json
 
-from .alignment import AlignmentParameters
-from .cluster import ClusterJobManager
-from .general import addDebugArgumentsToParser
-from .simulation import create_simulation_and_reconstruction_job
+from lumifit.alignment import AlignmentParameters
+from lumifit.cluster import ClusterJobManager
+from lumifit.general import addDebugArgumentsToParser
+from lumifit.simulation import create_simulation_and_reconstruction_job
 
 
 def run_simulation_and_reconstruction(sim_params, align_params, reco_params):
@@ -69,5 +69,6 @@ align_params = AlignmentParameters()
 if args.align_params:
     with open(args.align_params, "r") as json_file:
         align_params = json.load(json_file)
+
 
 run_simulation_and_reconstruction(sim_params, align_params, reco_params)
