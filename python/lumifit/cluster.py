@@ -43,6 +43,7 @@ class Job:
     logfile_url: str = attr.ib()
     array_indices = attr.ib(validator=_validate_job_array_indices)
     exported_user_variables: Dict[str, Any] = attr.ib(factory=dict)
+    additional_flags: str = attr.ib(default="")
 
 
 class JobHandler:
@@ -59,7 +60,7 @@ class ClusterJobManager:
     def __init__(
         self,
         job_handler: JobHandler,
-        total_job_threshold: int = 30000,
+        total_job_threshold: int = 1000,
         resubmit_wait_time_in_seconds: int = 1800,
     ) -> None:
         if not isinstance(job_handler, JobHandler):

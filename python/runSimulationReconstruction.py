@@ -6,13 +6,13 @@ import socket
 from lumifit.alignment import AlignmentParameters
 from lumifit.cluster import ClusterJobManager
 from lumifit.general import addDebugArgumentsToParser, load_params_from_file
+from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
 from lumifit.reconstruction import ReconstructionParameters
 from lumifit.simulation import (
     SimulationParameters,
     create_simulation_and_reconstruction_job,
 )
-from lumifit.slurm import SlurmJobHandler
 
 
 def run_simulation_and_reconstruction(sim_params, align_params, reco_params):
@@ -29,12 +29,12 @@ def run_simulation_and_reconstruction(sim_params, align_params, reco_params):
         pass
     else:
         if "gsi.de" in full_hostname:
-            job_handler = SlurmJobHandler("")
+            job_handler = create_virgo_job_handler("long")
         else:
             if args.use_devel_queue:
                 job_handler = create_himster_job_handler("devel")
             else:
-                job_handler = create_himster_job_handler("exp2")
+                job_handler = create_himster_job_handler("himster2_exp")
 
     # job threshold of this type (too many jobs could generate to much io load
     # as quite a lot of data is read in from the storage...)

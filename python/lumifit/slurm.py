@@ -123,5 +123,11 @@ class SlurmJobHandler(JobHandler):
         for name, value in job.exported_user_variables.items():
             bashcommand += f"{name}={value},"
 
-        bashcommand = bashcommand[:-1] + " " + job.application_url
+        bashcommand = (
+            bashcommand[:-1]
+            + " "
+            + job.additional_flags
+            + " "
+            + job.application_url
+        )
         return [bashcommand]
