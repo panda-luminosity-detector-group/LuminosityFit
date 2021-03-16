@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
 
 import argparse
-import json
+import socket
 
 from lumifit.alignment import AlignmentParameters
 from lumifit.cluster import ClusterJobManager
-from lumifit.general import addDebugArgumentsToParser
-from lumifit.simulation import create_simulation_and_reconstruction_job
+from lumifit.general import addDebugArgumentsToParser, load_params_from_file
+from lumifit.himster import create_himster_job_handler
+from lumifit.reconstruction import ReconstructionParameters
+from lumifit.simulation import (
+    SimulationParameters,
+    create_simulation_and_reconstruction_job,
+)
+from lumifit.slurm import SlurmJobHandler
 
 
 def run_simulation_and_reconstruction(sim_params, align_params, reco_params):
-    job = create_simulation_and_reconstruction_job(
+    job, dir_path = create_simulation_and_reconstruction_job(
         sim_params,
         align_params,
         reco_params,
@@ -18,10 +24,21 @@ def run_simulation_and_reconstruction(sim_params, align_params, reco_params):
         debug=args.debug,
         use_devel_queue=args.use_devel_queue,
     )
+    full_hostname = socket.getfqdn()
+    if args.debug:
+        pass
+    else:
+        if "gsi.de" in full_hostname:
+            job_handler = SlurmJobHandler("")
+        else:
+            if args.use_devel_queue:
+                job_handler = create_himster_job_handler("devel")
+            else:
+                job_handler = create_himster_job_handler("exp2")
 
     # job threshold of this type (too many jobs could generate to much io load
     # as quite a lot of data is read in from the storage...)
-    job_manager = ClusterJobManager(2000, 3600)
+    job_manager = ClusterJobManager(job_handler, 2000, 3600)
     job_manager.append(job)
     job_manager.manage_jobs(debug=args.debug)
 
@@ -58,17 +75,18 @@ parser = addDebugArgumentsToParser(parser)
 
 args = parser.parse_args()
 
-with open(args.sim_params[0], "r") as json_file:
-    sim_params = json.load(json_file)
+sim_params = SimulationParameters(**load_params_from_file(args.sim_params[0]))
 
-with open(args.reco_params[0], "r") as json_file:
-    reco_params = json.load(json_file)
+reco_params = ReconstructionParameters(
+    **load_params_from_file(args.reco_params[0])
+)
 
 align_params = AlignmentParameters()
 
 if args.align_params:
-    with open(args.align_params, "r") as json_file:
-        align_params = json.load(json_file)
+    align_params = AlignmentParameters(
+        **load_params_from_file(args.align_params)
+    )
 
 
 run_simulation_and_reconstruction(sim_params, align_params, reco_params)

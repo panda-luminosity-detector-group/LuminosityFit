@@ -82,8 +82,7 @@ def write_params_to_file(params: dict, pathname: str, filename: str):
         print(f"Config file {filename} already exists!")
 
 
-def load_params_from_file(pathname: str, filename: str) -> dict:
-    file_path = pathname + "/" + filename
+def load_params_from_file(file_path: str) -> dict:
     if os.path.exists(file_path):
         with open(file_path, "r") as json_file:
             return json.load(json_file)

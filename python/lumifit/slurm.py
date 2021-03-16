@@ -65,7 +65,7 @@ def _create_array_string(job: Job) -> str:
             indices_string += str(array_indices[-1])
         return " --array=" + indices_string
     elif len(array_indices) == 1:
-        job.exported_user_variable["SLURM_ARRAY_TASK_ID"] = array_indices[0]
+        job.exported_user_variables["SLURM_ARRAY_TASK_ID"] = array_indices[0]
         return ""
     else:
         raise ValueError("Number of jobs is zero!")

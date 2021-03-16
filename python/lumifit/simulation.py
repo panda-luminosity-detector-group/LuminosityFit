@@ -84,7 +84,7 @@ def generateDirectory(
         # lets generate a folder structure based on the input
         dirname = f"plab_{sim_params.lab_momentum}GeV"
         gen_part = (
-            f"{sim_params.sim_type}_theta_"
+            f"{sim_params.sim_type.value}_theta_"
             + f"{sim_params.theta_min_in_mrad}-"
             + f"{sim_params.theta_max_in_mrad}mrad"
         )
@@ -198,7 +198,7 @@ def create_simulation_and_reconstruction_job(
                 return (None, pathname_full)
 
     # generate simulation config parameter file
-    if "elastic" in sim_params.sim_type:
+    if sim_params.sim_type == SimulationType.PBARP_ELASTIC:
         lmdfit_build_dir = os.getenv("LMDFIT_BUILD_PATH")
         if lmdfit_build_dir is None:
             raise ValueError(
@@ -217,8 +217,12 @@ def create_simulation_and_reconstruction_job(
     write_params_to_file(
         attr.asdict(sim_params), pathname_base, "sim_params.config"
     )
-    write_params_to_file(reco_params, pathname_full, "reco_params.config")
-    write_params_to_file(align_params, pathname_full, "align_params.config")
+    write_params_to_file(
+        attr.asdict(reco_params), pathname_full, "reco_params.config"
+    )
+    write_params_to_file(
+        attr.asdict(align_params), pathname_full, "align_params.config"
+    )
 
     resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
     resource_request.number_of_nodes = 1
@@ -232,12 +236,11 @@ def create_simulation_and_reconstruction_job(
     job = Job(
         resource_request,
         application_url="./runLmdSimReco.sh",
-        name="lmd_simreco_" + sim_params.sim_type,
+        name="lmd_simreco_" + sim_params.sim_type.value,
         logfile_url=pathname_full + "/simreco-%a.log",
-    )
-
-    job.array_indices = list(
-        range(low_index_used, low_index_used + num_samples)
+        array_indices=list(
+            range(low_index_used, low_index_used + num_samples)
+        ),
     )
 
     job.exported_user_variables.update(
