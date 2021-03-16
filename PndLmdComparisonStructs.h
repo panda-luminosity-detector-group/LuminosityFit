@@ -24,7 +24,7 @@ public:
 
 // compare estimator options only
 struct FitOptionsCompare {
-  bool operator()(const PndLmdFitOptions &lhs, const PndLmdFitOptions &rhs) {
+  bool operator()(const PndLmdFitOptions &lhs, const PndLmdFitOptions &rhs) const {
     if (lhs.getEstimatorOptions() < rhs.getEstimatorOptions())
       return true;
     else if (lhs.getEstimatorOptions() > rhs.getEstimatorOptions())

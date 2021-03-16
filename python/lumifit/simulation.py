@@ -3,7 +3,8 @@ import glob
 import os
 import random
 import subprocess
-from typing import Tuple
+from enum import Enum
+from typing import Any, Optional, Tuple
 
 import attr
 
@@ -12,16 +13,24 @@ from .cluster import Job, JobResourceRequest, make_test_job_resource_request
 from .general import write_params_to_file
 from .reconstruction import ReconstructionParameters, generateRecoDirSuffix
 
-simulation_types = ["box", "dpm_elastic", "dpm_elastic_inelastic", "noise"]
+
+class SimulationType(Enum):
+    BOX = "box"
+    PBARP_ELASTIC = "dpm_elastic"
+    PBARP = "dpm_elastic_inelastic"
+    NOISE = "noise"
 
 
 @attr.s
 class SimulationParameters:
-    def _validate_sim_type(instance, attribute, value):
-        if value not in simulation_types:
-            raise ValueError("specified simulation type is invalid!")
+    def simulation_type_converter(value: Any) -> SimulationType:
+        if isinstance(value, SimulationType):
+            return value
+        elif isinstance(value, str):
+            return SimulationType(value)
+        raise TypeError("sim_type has to be of type SimulationType or str.")
 
-    sim_type: str = attr.ib(validator=_validate_sim_type)
+    sim_type: SimulationType = attr.ib(converter=simulation_type_converter)
     num_events_per_sample: int = attr.ib()
     num_samples: int = attr.ib()
     lab_momentum: float = attr.ib()
@@ -75,7 +84,7 @@ def generateDirectory(
         # lets generate a folder structure based on the input
         dirname = f"plab_{sim_params.lab_momentum}GeV"
         gen_part = (
-            f"{sim_params.sim_type}_theta_"
+            f"{sim_params.sim_type.value}_theta_"
             + f"{sim_params.theta_min_in_mrad}-"
             + f"{sim_params.theta_max_in_mrad}mrad"
         )
@@ -126,8 +135,8 @@ def create_simulation_and_reconstruction_job(
     force_level=0,
     debug=False,
     use_devel_queue=False,
-    reco_file_name_pattern=Track"*.root",
-) -> Tuple[Job, str]:
+    reco_file_name_pattern="Lumi_TrksQA_*.root",
+) -> Tuple[Optional[Job], str]:
     print(
         "preparing simulations in index range "
         + f"{reco_params.low_index} - "
@@ -189,7 +198,7 @@ def create_simulation_and_reconstruction_job(
                 return (None, pathname_full)
 
     # generate simulation config parameter file
-    if "elastic" in sim_params.sim_type:
+    if sim_params.sim_type == SimulationType.PBARP_ELASTIC:
         lmdfit_build_dir = os.getenv("LMDFIT_BUILD_PATH")
         if lmdfit_build_dir is None:
             raise ValueError(
@@ -208,8 +217,12 @@ def create_simulation_and_reconstruction_job(
     write_params_to_file(
         attr.asdict(sim_params), pathname_base, "sim_params.config"
     )
-    write_params_to_file(reco_params, pathname_full, "reco_params.config")
-    write_params_to_file(align_params, pathname_full, "align_params.config")
+    write_params_to_file(
+        attr.asdict(reco_params), pathname_full, "reco_params.config"
+    )
+    write_params_to_file(
+        attr.asdict(align_params), pathname_full, "align_params.config"
+    )
 
     resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
     resource_request.number_of_nodes = 1
@@ -223,12 +236,11 @@ def create_simulation_and_reconstruction_job(
     job = Job(
         resource_request,
         application_url="./runLmdSimReco.sh",
-        name="lmd_simreco_" + sim_params.sim_type,
+        name="lmd_simreco_" + sim_params.sim_type.value,
         logfile_url=pathname_full + "/simreco-%a.log",
-    )
-
-    job.array_indices = list(
-        range(low_index_used, low_index_used + num_samples)
+        array_indices=list(
+            range(low_index_used, low_index_used + num_samples)
+        ),
     )
 
     job.exported_user_variables.update(

@@ -3,6 +3,7 @@ import json
 import os
 import re
 from argparse import ArgumentDefaultsHelpFormatter, RawTextHelpFormatter
+from enum import Enum
 
 
 def getGoodFiles(
@@ -62,14 +63,32 @@ def addDebugArgumentsToParser(parser):
     return parser
 
 
+class _EnumEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Enum):
+            return obj.value
+        return json.JSONEncoder.default(self, obj)
+
+
 def write_params_to_file(params: dict, pathname: str, filename: str):
     file_path = pathname + "/" + filename
     if not os.path.exists(file_path):
         print("creating config file: " + file_path)
         with open(file_path, "w") as json_file:
-            json.dump(params, json_file, sort_keys=True, indent=4)
+            json.dump(
+                params, json_file, sort_keys=True, indent=4, cls=_EnumEncoder
+            )
     else:
         print(f"Config file {filename} already exists!")
+
+
+def load_params_from_file(file_path: str) -> dict:
+    if os.path.exists(file_path):
+        with open(file_path, "r") as json_file:
+            return json.load(json_file)
+
+    print(f"file {file_path} does not exist!")
+    return {}
 
 
 class DirectorySearcher:

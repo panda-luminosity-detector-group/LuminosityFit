@@ -50,7 +50,7 @@ class PndLmdDivergenceSmearingModel2D {
 public:
   struct IntPairLess {
     bool operator()(const DifferentialCoordinateContribution &lhs,
-                    const DifferentialCoordinateContribution &rhs) {
+                    const DifferentialCoordinateContribution &rhs) const {
       return lhs.coordinate_delta < rhs.coordinate_delta;
     }
   };

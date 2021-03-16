@@ -20,7 +20,10 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-set (CMAKE_CXX_STANDARD 11)
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+  message(STATUS "CMAKE_CXX_STANDARD is not defined. Setting to 11")
+  set (CMAKE_CXX_STANDARD 11)
+endif()
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 message( STATUS "Compiler: " ${CMAKE_CXX_COMPILER_ID} " ( " ${CMAKE_CXX_COMPILER} " )" )
