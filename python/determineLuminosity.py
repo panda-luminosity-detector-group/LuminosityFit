@@ -3,21 +3,21 @@
 # ok this whole procedure is extremely tedious and costly. unfortunately there is no other way...
 # so dont be scared when you see all this...
 
-import os
-import re
-import time
-import glob
 import argparse
-import subprocess
+import glob
 import json
 import math
+import os
+import re
+import subprocess
 import sys
+import time
 
-import himster
-import general
-import simulation
-import reconstruction
 import alignment
+import general
+import himster
+import reconstruction
+import simulation
 
 
 class Scenario:
@@ -234,7 +234,7 @@ def simulateDataOnHimster(scenario):
                     # dirname = os.path.dirname(scenario.dir_path)
                     (dir_path, is_finished) = simulation.startSimulationAndReconstruction(
                         sim_par, alignment.getAlignmentParameters(rec_par),
-                        rec_par, use_devel_queue=args.use_devel_queue, Track , Sim)
+                        rec_par, use_devel_queue=args.use_devel_queue, scenario.Track , scenario.Sim)
                     # (dir_path, is_finished) = reconstruction.startReconstruction(
                     #    rec_par, alignment.getAlignmentParameters(rec_par),
                     #    dirname, use_devel_queue=args.use_devel_queue)
