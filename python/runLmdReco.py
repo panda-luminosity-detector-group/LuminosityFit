@@ -1,37 +1,48 @@
+import argparse
 import json
 import os
 
-#read json file
-with open('../simconfig.json','r') as simconfig:
-        data = simconfig.read()
+import alignment
+import general
+import reconstruction
+from lumifit.alignment import AlignmentParameters
+from lumifit.general import load_params_from_file
+from lumifit.reconstruction import RecoParameters
 
-#parse json file
-obj = json.loads(data)
+parser.add_argument('force_level', metavar='force_level', type=int, default=0,
+                    help='"force level 0: if directories exist with data\n"
+                          "files no new simulation is started\n"
+                          "force level 1: will do full reconstruction even if "
+                          "this data already exists, but not geant simulation\n"
+                          "force level 2: resimulation of everything!"')
+parser.add_argument('dirname', metavar='dirname', type=str, nargs=1,
+                    help='This directory for the outputfiles.')
+parser.add_argument('pathname', metavar='pathname', type=str, nargs=1,
+                    help='This the path to the outputdirectory')
+parser.add_argument('macropath', metavar='macropath', type=str, nargs=1,
+                    help='This the path to the macros')
 
 
-class SimulationParamteres():
 
-    def _init_(self, macropath = ${VMCWORKDIR}"/macro/detector/lmd", pathname, scriptpath = $pwd, random_seed, dirname, workpathname = "lokalscratch/" + ${SLURM_JOB_ID} + "/" + dirname, gen_filepath = workpathname + "/gen_mc.root", XThetaCut, YPhiCut, CleanSig)
-        self.macropath = ""
-        self.pathname = ""
-        self.scriptpath = ""
-        self.random_seed: int = $((${random_seed}+${filename_index}))
-        self.dirname = ""
-        self.workpathname = ""
-        self.gen_filepath = ""
+if not os.path.isdir(args.pathname):
+ os.system("mkdir -p args.pathname")
 
-if ! -d pathname
- os.system("mkdir -p pathname")
+reco_params = RecoParameters(**load_params_from_file(path_mc_data + "/.."))
+ali_params = AlignmentParameters(**load_params_from_file(path_mc_data + "/.."))
 
 verbosityLevel: int = 0
-start_evt: int = $((${num_evts}*${filename_index}))
+start_evt: int = $((${num_evts} * ${filename_index}))
+workpathname = "lokalscratch/" + ${SLURM_JOB_ID} + "/" + dirname
+gen_filepath = workpathname + "/gen_mc.root"
+scriptpath = pwd
+
 
 #switch on "missing plane" search algorithm
 misspl = True
 
 #use cuts during trk seacrh with "CA". Should be 'false' if sensors missaligned!
 trkcut = True
- if alignment_matrices_path = ""
+ if ali_params.alignment_matrices_path = ""
    trkcut = False
 
 #merge hits on sensors from different sides. true=yes
@@ -41,22 +52,22 @@ BoxCut = False
 ## Write all MC info in TrkQA array
 WrAllMC = True
 
-radLength=0.32
+radLength = 0.32
 
 prefilter = False
 if XThetaCut = True or YPhiCut = True
   prefilter = True
 
 check_stage_success "workpathname + "/Lumi_MC_${start_evt}.root""
-if 0 -eq "$?" or  1 -eq "force_level"
-  os.system("root -l -b -q 'runLumiPixel2Reco.C('${num_evts}','${start_evt}',"'${workpathname}'", "'${alignment_matrices_path}'", "'${misalignment_matrices_path}'", '${use_point_transform_misalignment}', '$verbositylvl')'")
+if 0 == "$?" or  1 == "force_level"
+  os.system("root -l -b -q 'runLumiPixel2Reco.C('{reco_params.num_events_per_sample}','${start_evt}',"'workpathname'", "'{ali_params.alignment_matrices_path}'", "'{ali_params.misalignment_matrices_path}'", '{ali_params.use_point_transform_misalignment}', 'verbositylvl')'")
 
 
 check_stage_success "workpathname + "/Lumi_recoMerged_${start_evt}.root""
-if 0 -eq "$?" or  1 -eq "force_level"
-  os.system("root -l -b -q 'runLumiPixel2bHitMerge.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl')'")
+if 0 == "$?" or  1 == "force_level"
+  os.system("root -l -b -q 'runLumiPixel2bHitMerge.C('{reco_params.num_events_per_sample}','${start_evt}',"'workpathname'",'verbositylvl')'")
   # copy Lumi_recoMerged_ for module aligner
-  os.system("cp $workpathname/Lumi_recoMerged_${start_evt}.root $pathname/Lumi_recoMerged_${start_evt}.root")
+  os.system("cp workpathname/Lumi_recoMerged_${start_evt}.root pathname/Lumi_recoMerged_${start_evt}.root")
 
 os.system("cd scriptpath")
 os.system("./runLmdPairFinder.sh")
