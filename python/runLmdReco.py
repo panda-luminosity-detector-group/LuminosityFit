@@ -34,7 +34,7 @@ verbosityLevel: int = 0
 start_evt: int = $((${num_evts} * ${filename_index}))
 workpathname = "lokalscratch/" + ${SLURM_JOB_ID} + "/" + dirname
 gen_filepath = workpathname + "/gen_mc.root"
-scriptpath = pwd
+scriptpath = os.getcwd()
 
 
 #switch on "missing plane" search algorithm

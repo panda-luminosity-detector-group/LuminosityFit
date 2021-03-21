@@ -52,7 +52,7 @@ start_evt: int = $((${num_evts}*${filename_index}))
 numTracks: int = 1 #do not change
 workpathname = "lokalscratch/" + ${SLURM_JOB_ID} + "/" + dirname
 gen_filepath = workpathname + "/gen_mc.root"
-scriptpath = pwd
+scriptpath = os.getcwd() 
 
  #simulation
 
