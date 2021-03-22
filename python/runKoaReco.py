@@ -58,16 +58,16 @@ prefilter = False
 if reco_params.use_xy_cut :
   prefilter = True
 
-check_stage_success "workpathname + "/Lumi_MC_${start_evt}.root""
+check_stage_success "workpathname + "/Koala_MC_${start_evt}.root""
 if 0 == "$?" or  1 == "force_level":
-  os.system("root -l -b -q 'runLumiPixel2Reco.C('{reco_params.num_events_per_sample}','${start_evt}',"'workpathname'", "'{ali_params.alignment_matrices_path}'", "'{ali_params.misalignment_matrices_path}'", '{ali_params.use_point_transform_misalignment}', 'verbositylvl')'")
+  os.system("root -l -b -q 'runKoaPixel2Reco.C('{reco_params.num_events_per_sample}','${start_evt}',"'workpathname'", "'{ali_params.alignment_matrices_path}'", "'{ali_params.misalignment_matrices_path}'", '{ali_params.use_point_transform_misalignment}', 'verbositylvl')'")
 
 
-check_stage_success "workpathname + "/Lumi_recoMerged_${start_evt}.root""
+check_stage_success "workpathname + "/Koala_reco_${start_evt}.root""
 if 0 == "$?" or  1 == "force_level":
-  os.system("root -l -b -q 'runLumiPixel2bHitMerge.C('{reco_params.num_events_per_sample}','${start_evt}',"'workpathname'",'verbositylvl')'")
+  os.system("root -l -b -q 'runLumiPixel2Reco.C('{reco_params.num_events_per_sample}','${start_evt}',"'workpathname'",'verbositylvl')'")
   # copy Lumi_recoMerged_ for module aligner
-  os.system("cp workpathname/Lumi_recoMerged_${start_evt}.root pathname/Lumi_recoMerged_${start_evt}.root")
+  os.system("cp workpathname/Koala_reco_${start_evt}.root pathname/Koala_reco_${start_evt}.root")
 
 os.system("cd scriptpath")
 os.system("./runLmdPairFinder.sh")
