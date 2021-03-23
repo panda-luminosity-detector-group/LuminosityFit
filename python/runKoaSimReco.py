@@ -65,10 +65,7 @@ if 0 == "$?" or  2 == "args.force_level":
      os.system(f"${LMDFIT_BUILD_PATH}/bin/generatePbarPElasticScattering {sim_params.lab_momentum} {sim_params.num_events_per_sample} -l {sim_params.theta_min_in_mrad} -u {sim_params.theta_max_in_mrad} -s {sim_params.random_seed} -o gen_filepath")
    os.system("cd args.macropath")
    print('starting up a koalasoft simulation...')
-   if simulate_noise:
-     os.system(f"root -l -b -q 'runKoaPixel0SimDPMDirect.C('{sim_params.num_events_per_sample}','${start_evt}',"'workpathname'",'verbositylvl',2112,'{sim_params.lab_momentum}','{numTrks}','{sim_params.random_seed}')' > /dev/null 2>&1")
-   else: 
-     os.system(f"root -l -b -q 'runLumiPixel0SimExtern.C('{sim_params.num_events_per_sample}','${start_evt}','{sim_params.lab_momentum}',"'gen_filepath'", "'workpathname'",'{sim_params.ip_offset_x}', '{sim_params.ip_offset_y}', '{sim_params.ip_offset_z}', '{sim_params.ip_spread_x}', '{sim_params.ip_spread_y}', '{sim_params.ip_spread_z}', '{sim_params.beam_tilt_x}', '{sim_params.beam_tilt_y}', '{sim_params.beam_divergence_x}', '{sim_params.beam_divergence_y}', "'{sim_params.lmd_geometry_filename}'", "'${ali_params.misalignment_matrices_path}'", '${ali_params.use_point_transform_misalignment}', '$verbositylvl')'")
+   os.system(f"root -l -b -q 'runLumiPixel0SimExtern.C('{sim_params.num_events_per_sample}','${start_evt}','{sim_params.lab_momentum}',"'gen_filepath'", "'workpathname'",'{sim_params.ip_offset_x}', '{sim_params.ip_offset_y}', '{sim_params.ip_offset_z}', '{sim_params.ip_spread_x}', '{sim_params.ip_spread_y}', '{sim_params.ip_spread_z}', '{sim_params.beam_tilt_x}', '{sim_params.beam_tilt_y}', '{sim_params.beam_divergence_x}', '{sim_params.beam_divergence_y}', "'{sim_params.lmd_geometry_filename}'", "'${ali_params.misalignment_matrices_path}'", '${ali_params.use_point_transform_misalignment}', '$verbositylvl')'")
    if debug:
      os.system(f"cp {args.workpathname}/Koala_MC_${start_evt}.root {args.path_mc_data}/Koala_MC_${start_evt}.root")
      os.system(f"cp {args.workpathname}/Koala_Params_${start_evt}.root {args.path_mc_data}/Koala_Params_${start_evt}.root")
@@ -79,10 +76,6 @@ else:
 
 check_stage_success "workpathname + "/Koala_digi_${start_evt}.root""
 if 0 == "$?" or  1 == "{args.force_level}":
-  if simulate_noise:
-     print('simulate noise is not implemented in KoalaSoft')
-   # os.system(f"root -l -b -q 'runLumiPixel1bDigiNoise.C('{sim_params.num_events_per_sample}','${start_evt}',"'workpathname'",'verbositylvl', '{sim_params.random_seed}')'")
-  else:
     os.system(f"root -l -b -q 'runKoaPixel1Digi.C('{sim_params.num_events_per_sample}','${start_evt}',"'workpathname'", "'{ali_params.misalignment_matrices_path}'", '{ali_params.use_point_transform_misalignment}', 'verbositylvl')'")
 
 os.system(f"cd scriptpath")
