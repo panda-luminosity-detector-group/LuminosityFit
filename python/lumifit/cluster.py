@@ -1,5 +1,6 @@
 import os
 import subprocess
+import threading
 from abc import abstractmethod
 from time import sleep, time
 from typing import Any, Dict, Iterable, List
@@ -57,11 +58,19 @@ class JobHandler:
 
 
 class ClusterJobManager:
+    """Manages submission of jobs on a cluster environment.
+
+    The jobs are pending in a queue until the number of jobs running on the
+    cluster is below a certain threshold.
+    """
+
     def __init__(
         self,
         job_handler: JobHandler,
         total_job_threshold: int = 1000,
         resubmit_wait_time_in_seconds: int = 1800,
+        debug: bool = False,
+        time_to_sleep_after_submission: int = 3,
     ) -> None:
         if not isinstance(job_handler, JobHandler):
             raise TypeError(
@@ -72,9 +81,13 @@ class ClusterJobManager:
         self.__total_job_threshold = total_job_threshold
         # sleep time when total job threshold is reached in seconds
         self.__resubmit_wait_time_in_seconds = resubmit_wait_time_in_seconds
+        self.__time_to_sleep_after_submission = time_to_sleep_after_submission
+        self.__debug = debug
+        self.__manage_thread = threading.Thread(target=self.__manage_jobs)
+        self.__lock = threading.Lock()
 
-    def manage_jobs(self, debug: bool = False):
-        if debug:
+    def __manage_jobs(self):
+        if self.__debug:
             bashcommand_list = [
                 (job.application_url, job.exported_user_variables)
                 for job in self.__jobs
@@ -87,21 +100,27 @@ class ClusterJobManager:
 
         else:
             job_command_queue: List[str] = []
-            for job in self.__jobs:
-                job_command_queue.extend(
-                    self.__job_handler.create_submit_commands(job=job)
-                )
-
             failed_submit_commands: Dict[str, float] = {}
 
-            while job_command_queue:
+            while True:
+                with self.__lock:
+                    for job in self.__jobs:
+                        job_command_queue.extend(
+                            self.__job_handler.create_submit_commands(job=job)
+                        )
+
+                    self.__jobs.clear()
+
+                if not job_command_queue:
+                    break  # finished and stop thread
+
                 print("checking if total job threshold is reached...")
-                bashcommand = job_command_queue.pop(0)
                 if (
                     self.__job_handler.get_active_number_of_jobs()
                     < self.__total_job_threshold
                 ):
                     print("Nope, trying to submit job...")
+                    bashcommand = job_command_queue.pop(0)
                     returncode = subprocess.call(bashcommand, shell=True)
                     if returncode > 0:
                         resubmit = True
@@ -127,11 +146,9 @@ class ClusterJobManager:
                             # put the command back into the list
                             job_command_queue.insert(0, bashcommand)
                     else:
-                        # sleep 3 sec to make the queue changes active
-                        sleep(3)
+                        # sleep a bit to make the queue changes active
+                        sleep(self.__time_to_sleep_after_submission)
                 else:
-                    # put the command back into the list
-                    job_command_queue.insert(0, bashcommand)
                     print(
                         "Yep, we have currently have "
                         + str(len(job_command_queue))
@@ -145,5 +162,13 @@ class ClusterJobManager:
                     )
                     sleep(self.__resubmit_wait_time_in_seconds)
 
+    def is_active(self) -> bool:
+        return self.__manage_thread.is_alive()
+
     def append(self, job: Job):
-        self.__jobs.append(job)
+        with self.__lock:
+            self.__jobs.append(job)
+
+        if not self.__manage_thread.is_alive():
+            self.__manage_thread = threading.Thread(target=self.__manage_jobs)
+            self.__manage_thread.start()
