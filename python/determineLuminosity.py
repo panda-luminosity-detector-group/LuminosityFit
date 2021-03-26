@@ -45,7 +45,7 @@ class Scenario:
             self.Params = 'Koala_Params_'
             self.Sim = './runKoalaSimReco'
             self.Reco = './runKoalaReco'
-          
+
 
         self.alignment_parameters = {}
 
@@ -91,7 +91,7 @@ waiting_scenario_stack = []
 dead_scenario_stack = []
 
 
-def simulateDataOnHimster(scenario):
+def simulateDataOnHimster(scenario: Scenario):
     tasks_to_remove = []
 
     lab_momentum = scenario.momentum
@@ -163,7 +163,7 @@ def simulateDataOnHimster(scenario):
                     sim_par['theta_min_in_mrad'] -= max_xy_shift
                     sim_par['theta_max_in_mrad'] += max_xy_shift
                     sim_par.update(gen_par)
-                    rec_par = reconstruction.createReconstructionParameters(Track , Reco)
+                    rec_par = reconstruction.ReconstructionParmaters()
                     rec_par['use_xy_cut'] = scenario.use_xy_cut
                     rec_par['use_m_cut'] = scenario.use_m_cut
                     rec_par['reco_ip_offset'] = [ip_info_dict['ip_offset_x'],
@@ -183,7 +183,7 @@ def simulateDataOnHimster(scenario):
                     rec_par.update(align_par)
 
                     (dir_path, is_finished) = simulation.startSimulationAndReconstruction(
-                        sim_par, align_par, rec_par, use_devel_queue=args.use_devel_queue, Track, Sim)
+                        sim_par, align_par, rec_par, use_devel_queue=args.use_devel_queue, scenario.Track, scenario.SimReco)
                     simulation_task[0] = dir_path
                     scenario.acc_and_res_dir_path = dir_path
                     if is_finished:
