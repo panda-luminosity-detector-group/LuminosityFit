@@ -21,13 +21,13 @@ parser.add_argument(
     + "this data already exists, but not geant simulation\n"
     + "force level 2: resimulation of everything!",
 )
-# parser.add_argument(
-#     "dirname",
-#     metavar="dirname",
-#     type=str,
-#     nargs=1,
-#     help="This directory for the outputfiles.",
-# )
+parser.add_argument(
+     "dirname",
+     metavar="dirname",
+     type=str,
+     nargs=1,
+     help="This directory for the outputfiles.",
+ )
 parser.add_argument(
     "path_mc_data",
     metavar="path_mc_data",
@@ -47,8 +47,9 @@ parser.add_argument('macropath', metavar='macropath', type=str, nargs=1,
 
 args = parser.parse_args()
 
-# dirname = args.dirname[0]
+
 force_level = args.force_level
+dirname = args.dirname[0]
 path_mc_data = os.path.abspath(args.path_mc_data[0])
 pathname = os.path.abspath(args.pathname[0])
 macropath = os.path.abspath(args.macropath[0])
@@ -161,4 +162,4 @@ if not check_stage_sucess() or force_level == 2:
     )
 
 os.chdir(scriptpath)
-os.system(f"python runKoaReco.py {pathname}")
+os.system(f"python runKoaReco.py {dirname} {path_mc_data} {pathname} {macropath}")

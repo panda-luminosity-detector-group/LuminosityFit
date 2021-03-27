@@ -18,6 +18,13 @@ parser.add_argument('--force_level', metavar='force_level', type=int, default=0,
                           + "force level 2: resimulation of everything!")
 parser.add_argument('dirname', metavar='dirname', type=str, nargs=1,
                     help='This directory for the outputfiles.')
+parser.add_argument(           
+    "path_mc_data",
+    metavar="path_mc_data",
+    type=str,
+    nargs=1,
+    help="Path to MC files.",
+)
 parser.add_argument('pathname', metavar='pathname', type=str, nargs=1,
                     help='This the path to the outputdirectory')
 parser.add_argument('macropath', metavar='macropath', type=str, nargs=1,
@@ -28,16 +35,19 @@ args = parser.parse_args()
 debug = 1
 filename_index = 1
 dirname = os.path.abspath(args.dirname[0])
+path_mc_data = os.path.abspath(args.path_mc_data[0])
 pathname = os.path.abspath(args.pathname[0])
 macropath = os.path.abspath(args.macropath[0])
 
-reco_params = RecoParameters(**load_params_from_file(path_mc_data + "/recoparams.config"))
+reco_params = ReconstructionParameters(**load_params_from_file(path_mc_data + "/recoparams.config"))
 ali_params = AlignmentParameters()
 
-verbosityLevel: int = 0
+verbositylvl: int = 0
 start_evt: int = reco_params.num_events_per_sample * filename_index 
 #workpathname = "lokalscratch/" + ${SLURM_JOB_ID} + "/" + dirname
 workpathname = f"{os.getcwd()}/tmpOutput"
+if debug:
+    workpathname = path_mc_data
 gen_filepath = workpathname + "/gen_mc.root"
 scriptpath = os.getcwd()
 
@@ -65,7 +75,8 @@ if reco_params.use_xy_cut :
 
 def check_stage_sucess() -> bool:
         return False
-
+print(workpathname)
+os.chdir(macropath)
 #check_stage_success "workpathname + "/Koala_MC_${start_evt}.root""
 if not check_stage_sucess() or force_level ==  1:
   os.system(f"root -l -b -q 'KoaPixel2Reco.C({reco_params.num_events_per_sample},"
