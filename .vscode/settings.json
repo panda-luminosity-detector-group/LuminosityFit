@@ -1,7 +1,7 @@
 {
   "[python]": {
     "editor.codeActionsOnSave": {
-      "source.organizeImports": true
+      //"source.organizeImports": true
     }
   },
   "python.pythonPath": "pyvenv/bin/python",
@@ -80,6 +80,6 @@
   },
   "cmake.configureOnOpen": true,
   "python.formatting.provider": "black",
-  "editor.formatOnSave": true,
+  //"editor.formatOnSave": true,
   "python.linting.mypyEnabled": true
 }
