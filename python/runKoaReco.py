@@ -81,7 +81,7 @@ os.chdir(macropath)
 if not check_stage_sucess() or force_level ==  1:
   os.system(f"root -l -b -q 'KoaPixel2Reco.C({reco_params.num_events_per_sample},"
           + f"{start_evt},"
-          + f"\"workpathname\","
+          + f"\"{workpathname}\","
          #+ f"\"{ali_params.alignment_matrices_path}\", "
          #+ f"\"{ali_params.misalignment_matrices_path}\", {ali_params.use_point_transform_misalignment},"
           + f"{verbositylvl})'"
@@ -95,7 +95,7 @@ if not check_stage_sucess() or force_level ==  1:
   # copy Lumi_recoMerged_ for module aligner
 #  os.system(f"cp workpathname/Koala_reco_{start_evt}.root pathname/Koala_reco_{start_evt}.root")
 
-os.system("cd scriptpath")
+os.chdir(scriptpath)
 os.system("./runLmdPairFinder.sh")
 os.system("./runLmdTrackFinder.sh")
 
