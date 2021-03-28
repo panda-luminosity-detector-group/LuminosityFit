@@ -57,15 +57,28 @@ misspl = True
 
 #use cuts during trk seacrh with "CA". Should be 'false' if sensors missaligned!
 trkcut = True
+
+track_search_algorithm = CA
+if not trkcut:
+    track_search_algorithm = Follow
+
 #if ali_params.alignment_matrices_path = "":
 #   trkcut = False
 
 #merge hits on sensors from different sides. true=yes
-mergedHits = True
+mergedHits = False
 ## BOX cut before back-propagation
 BoxCut = False
 ## Write all MC info in TrkQA array
 WrAllMC = True
+
+missalign = False
+SkipFilt = False
+XthFilt = False
+YthFilt = False
+BoxFilt = False
+dX = 0
+dY = 0
 
 radLength = 0.32
 
@@ -75,27 +88,51 @@ if reco_params.use_xy_cut :
 
 def check_stage_sucess() -> bool:
         return False
-print(workpathname)
+
 os.chdir(macropath)
-#check_stage_success "workpathname + "/Koala_MC_${start_evt}.root""
+#check_stage_success "workpathname + "/Koala_TCand_${start_evt}.root""
 if not check_stage_sucess() or force_level ==  1:
-  os.system(f"root -l -b -q 'KoaPixel2Reco.C({reco_params.num_events_per_sample},"
+  os.system(f"root -l -b -q 'KoaPixel3Finder.C({reco_params.num_events_per_sample},"
           + f"{start_evt},"
           + f"\"{workpathname}\","
-         #+ f"\"{ali_params.alignment_matrices_path}\", "
-         #+ f"\"{ali_params.misalignment_matrices_path}\", {ali_params.use_point_transform_misalignment},"
-          + f"{verbositylvl})'"
+          + f"{verbositylvl},"
+          + f"\"{track_search_algorithm}\","
+          + f"\"{misspl}\","
+          + f"\"{mergedHits}\","
+          + f"\"{trkcut}\","
+          + f"{reco_params.lab_momentum})'"
           )
 
 
 #check_stage_success "workpathname + "/Koala_reco_${start_evt}.root""
-#if not check_stage_sucess() or force_level ==  1:
-#  os.system(f"root -l -b -q 'LumiPixel2Reco.C({reco_params.num_events_per_sample},{start_evt},"
-#          + f"\"workpathname\",verbositylvl)'")
+if not check_stage_sucess() or force_level ==  1:
+  os.system(f"root -l -b -q 'KoaPixel4Fitter.C({reco_params.num_events_per_sample},{start_evt},"
+           + f"\"{workpathname}\",{verbositylvl},"
+           + f"\"Minuit\", \"{mergedHits}\")'")
   # copy Lumi_recoMerged_ for module aligner
-#  os.system(f"cp workpathname/Koala_reco_{start_evt}.root pathname/Koala_reco_{start_evt}.root")
+  os.system(f"cp workpathname/Koala_Track_{start_evt}.root pathname/Koala_Track_{start_evt}.root")
+
+#check_stage_success "workpathname + "/Koala_reco_${start_evt}.root""
+if not check_stage_sucess() or force_level ==  1:
+  os.system(f"root -l -b -q 'KoaPixel5BackProp.C({reco_params.num_events_per_sample},{start_evt},"
+           + f"\"{workpathname}\",{verbositylvl},"
+           + f"\"{mergedHits}\","
+           + f"\"{SkipFilt}\","
+           + f"\"{XthFilt}\","
+           + f"\"{YthFilt}\","
+           + f"\"{BoxFilt}\","
+           + f"{dX},"
+           + f"{dY})'"
+           )
+
+  #check_stage_success "workpathname + "/Koala_reco_${start_evt}.root""
+if not check_stage_sucess() or force_level ==  1:
+  os.system(f"root -l -b -q 'KoaPixel6Compare.C({reco_params.num_events_per_sample},{start_evt},"
+           + f"\"{workpathname}\",{verbositylvl},"
+           + f"\"{missalign}\")'")
+        # copy Lumi_recoMerged_ for module aligner
+  os.system(f"cp workpathname/Koala_comp_{start_evt}.root pathname/Koala_comp_{start_evt}.root")
 
 os.chdir(scriptpath)
-#os.system("./runLmdPairFinder.sh") #only for Lmd
-os.system("./runKoaTrack.py")
+
 
