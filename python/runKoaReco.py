@@ -97,5 +97,5 @@ if not check_stage_sucess() or force_level ==  1:
 
 os.chdir(scriptpath)
 #os.system("./runLmdPairFinder.sh") #only for Lmd
-os.system("./runKoaTrack.py")
+os.system(f"python runKoaTrack.py {dirname} {path_mc_data} {pathname} {macropath}")
 
