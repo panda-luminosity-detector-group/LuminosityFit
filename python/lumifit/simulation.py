@@ -135,6 +135,7 @@ def create_simulation_and_reconstruction_job(
     force_level=0,
     debug=False,
     use_devel_queue=False,
+    application_command="./runLmdSimReco.sh",
     reco_file_name_pattern="Lumi_TrksQA_*.root",
 ) -> Tuple[Optional[Job], str]:
     print(
@@ -235,7 +236,7 @@ def create_simulation_and_reconstruction_job(
 
     job = Job(
         resource_request,
-        application_url="./runLmdSimReco.sh",
+        application_url=application_command,
         name="lmd_simreco_" + sim_params.sim_type.value,
         logfile_url=pathname_full + "/simreco-%a.log",
         array_indices=list(

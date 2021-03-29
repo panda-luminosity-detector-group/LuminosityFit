@@ -5,75 +5,65 @@ from lumifit.alignment import AlignmentParameters
 from lumifit.general import load_params_from_file
 from lumifit.simulation import SimulationParameters, SimulationType
 
-parser = argparse.ArgumentParser(
-    description="Call for important variables" " Detector.",
-    formatter_class=argparse.RawTextHelpFormatter,
-)
-
-parser.add_argument(
-    "--force_level",
-    metavar="force_level",
-    type=int,
-    default=0,
-    help="force level 0: if directories exist with data\n"
-    + "files no new simulation is started\n"
-    + "force level 1: will do full reconstruction even if "
-    + "this data already exists, but not geant simulation\n"
-    + "force level 2: resimulation of everything!",
-)
-parser.add_argument(
-     "dirname",
-     metavar="dirname",
-     type=str,
-     nargs=1,
-     help="This directory for the outputfiles.",
- )
-parser.add_argument(
-    "path_mc_data",
-    metavar="path_mc_data",
-    type=str,
-    nargs=1,
-    help="Path to MC files.",
-)
-parser.add_argument(
-    "pathname",
-    metavar="pathname",
-    type=str,
-    nargs=1,
-    help="This the path to the outputdirectory",
-)
-parser.add_argument('macropath', metavar='macropath', type=str, nargs=1,
-                    help='This the path to the macros')
-
-args = parser.parse_args()
-
-
-force_level = args.force_level
-dirname = args.dirname[0]
-path_mc_data = os.path.abspath(args.path_mc_data[0])
-pathname = os.path.abspath(args.pathname[0])
-macropath = os.path.abspath(args.macropath[0])
-filename_index = 1
-debug = 1
-
-# def _init_(macropath = ${VMCWORKDIR}"/macro/detector/lmd", 
-# pathname, 
-# scriptpath = $pwd,
-#  dirname, 
-#  workpathname = "lokalscratch/" + ${SLURM_JOB_ID} + "/" + dirname, 
-#  gen_filepath = workpathname + "/gen_mc.root")
-
-
-# if {SLURM_ARRAY_TASK_ID}:
-#    filename_index = {SLURM_ARRAY_TASK_ID}
-#    debug = 0
-
-# if not os.path.isdir(args.pathname[0]):
-#    raise PathDoesNotExistError(....)
-
-# sim_params = SimulationParameters(
-#     **load_params_from_file(path_mc_data + "/..")
+# parser = argparse.ArgumentParser(
+#     description="Call for important variables" " Detector.",
+#     formatter_class=argparse.RawTextHelpFormatter,
 # )
+
+# parser.add_argument(
+#     "--force_level",
+#     metavar="force_level",
+#     type=int,
+#     default=0,
+#     help="force level 0: if directories exist with data\n"
+#     + "files no new simulation is started\n"
+#     + "force level 1: will do full reconstruction even if "
+#     + "this data already exists, but not geant simulation\n"
+#     + "force level 2: resimulation of everything!",
+# )
+# parser.add_argument(
+#      "dirname",
+#      metavar="dirname",
+#      type=str,
+#      nargs=1,
+#      help="This directory for the outputfiles.",
+#  )
+# parser.add_argument(
+#     "path_mc_data",
+#     metavar="path_mc_data",
+#     type=str,
+#     nargs=1,
+#     help="Path to MC files.",
+# )
+# parser.add_argument(
+#     "pathname",
+#     metavar="pathname",
+#     type=str,
+#     nargs=1,
+#     help="This the path to the outputdirectory",
+# )
+# parser.add_argument('macropath', metavar='macropath', type=str, nargs=1,
+#                     help='This the path to the macros')
+
+# args = parser.parse_args()
+
+
+# force_level = args.force_level
+# dirname = args.dirname[0]
+# path_mc_data = os.path.abspath(args.path_mc_data[0])
+# pathname = os.path.abspath(args.pathname[0])
+# macropath = os.path.abspath(args.macropath[0])
+
+dirname = os.environ["dirname"]
+path_mc_data = os.environ["path_mc_data"]
+pathname = os.environ["pathname"]
+macropath = f"{os.environ["VMCWORKDIR"]}/macro/detector/lmd"
+
+filename_index = 1
+debug = True
+if os.environ["SLURM_ARRAY_TASK_ID"]:
+    filename_index = int(os.environ["SLURM_ARRAY_TASK_ID"])
+    debug = False
 
 sim_params = SimulationParameters(
     **load_params_from_file(path_mc_data + "/simparams.config")
@@ -81,21 +71,21 @@ sim_params = SimulationParameters(
 
 ali_params = AlignmentParameters()
 
-print(sim_params)
-
-verbositylvl = 0
-start_evt: int = sim_params.num_events_per_sample * filename_index
-numTracks: int = 1  # do not change
-# workpathname = "lokalscratch/" + {SLURM_JOB_ID} + "/" + dirname[0]
-workpathname = f"{os.getcwd()}/tmpOutput"
+workpathname="/localscratch/{SLURM_JOB_ID}/{dirname}"
 if debug:
-    workpathname = path_mc_data
+    workpathname=pathname
+    path_mc_data=workpathname
+
+if not os.path.exists(workpathname):
+    os.makedirs(workpathname)
+
 gen_filepath = workpathname + "/gen_mc.root"
 scriptpath = os.getcwd()
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 
-if not os.path.exists(workpathname):
-    os.makedirs(workpathname)
+verbositylvl = 0
+start_evt: int = sim_params.num_events_per_sample * filename_index
+numTracks: int = 1  # do not change
 
 # simulation
 def check_stage_sucess() -> bool:
@@ -162,4 +152,4 @@ if not check_stage_sucess() or force_level == 2:
     )
 
 os.chdir(scriptpath)
-os.system(f"python runKoaReco.py {dirname} {path_mc_data} {pathname} {macropath}")
+os.system(f"python runKoaReco.py")

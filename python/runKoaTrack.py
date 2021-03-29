@@ -1,53 +1,63 @@
 import argparse
 import os
 
+import subprocess
 from lumifit.alignment import AlignmentParameters
 from lumifit.general import load_params_from_file
 from lumifit.reconstruction import ReconstructionParameters
 
-parser = argparse.ArgumentParser(
-    description="Call for important variables" " Detector.",
-    formatter_class=argparse.RawTextHelpFormatter,
-)
+# parser = argparse.ArgumentParser(
+#     description="Call for important variables" " Detector.",
+#     formatter_class=argparse.RawTextHelpFormatter,
+# )
 
-parser.add_argument('--force_level', metavar='force_level', type=int, default=0,
-                    help="force level 0: if directories exist with data\n"
-                          + "files no new simulation is started\n"
-                          + "force level 1: will do full reconstruction even if "
-                          + "this data already exists, but not geant simulation\n"
-                          + "force level 2: resimulation of everything!")
-parser.add_argument('dirname', metavar='dirname', type=str, nargs=1,
-                    help='This directory for the outputfiles.')
-parser.add_argument(           
-    "path_mc_data",
-    metavar="path_mc_data",
-    type=str,
-    nargs=1,
-    help="Path to MC files.",
-)
-parser.add_argument('pathname', metavar='pathname', type=str, nargs=1,
-                    help='This the path to the outputdirectory')
-parser.add_argument('macropath', metavar='macropath', type=str, nargs=1,
-                    help='This the path to the macros')
+#parser.add_argument('--force_level', metavar='force_level', type=int, default=0,
+#                    help="force level 0: if directories exist with data\n"
+#                          + "files no new simulation is started\n"
+#                          + "force level 1: will do full reconstruction even if "
+#                          + "this data already exists, but not geant simulation\n"
+#                          + "force level 2: resimulation of everything!")
+#parser.add_argument('dirname', metavar='dirname', type=str, nargs=1,
+#                    help='This directory for the outputfiles.')
+#parser.add_argument(           
+#    "path_mc_data",
+#    metavar="path_mc_data",
+#    type=str,
+#    nargs=1,
+#    help="Path to MC files.",
+#)
+#parser.add_argument('pathname', metavar='pathname', type=str, nargs=1,
+#                    help='This the path to the outputdirectory')
+#parser.add_argument('macropath', metavar='macropath', type=str, nargs=1,
+#                    help='This the path to the macros')
 
-args = parser.parse_args()
+#args = parser.parse_args()
 
-debug = 1
+debug = True
+if os.environ["SLURM_ARRAY_TASK_ID"]:
+    filename_index = int(os.environ["SLURM_ARRAY_TASK_ID"])
+    debug = False
+
 filename_index = 1
-dirname = os.path.abspath(args.dirname[0])
-path_mc_data = os.path.abspath(args.path_mc_data[0])
-pathname = os.path.abspath(args.pathname[0])
-macropath = os.path.abspath(args.macropath[0])
+#dirname = os.path.abspath(args.dirname[0])
+#path_mc_data = os.path.abspath(args.path_mc_data[0])
+#pathname = os.path.abspath(args.pathname[0])
+#macropath = os.path.abspath(args.macropath[0])
+dirname = os.environ["dirname"]
+path_mc_data = os.environ["path_mc_data"]
+pathname = os.environ["pathname"]
+macropath = f"{os.environ["VMCWORKDIR"]}/macro/detector/lmd"
 
 reco_params = ReconstructionParameters(**load_params_from_file(path_mc_data + "/recoparams.config"))
 ali_params = AlignmentParameters()
 
 verbositylvl: int = 0
 start_evt: int = reco_params.num_events_per_sample * filename_index 
-#workpathname = "lokalscratch/" + ${SLURM_JOB_ID} + "/" + dirname
-workpathname = f"{os.getcwd()}/tmpOutput"
+workpathname="/localscratch/{SLURM_JOB_ID}/{dirname}"
 if debug:
-    workpathname = path_mc_data
+    workpathname=pathname
+    path_mc_data=workpathname
+
 gen_filepath = workpathname + "/gen_mc.root"
 scriptpath = os.getcwd()
 
@@ -114,7 +124,7 @@ if not check_stage_sucess() or force_level ==  1:
 
 #check_stage_success "workpathname + "/Koala_reco_${start_evt}.root""
 if not check_stage_sucess() or force_level ==  1:
-  os.system(f"root -l -b -q 'KoaPixel5BackProp.C({reco_params.num_events_per_sample},{start_evt},"
+  returnvalue = subprocess.run(f"root -l -b -q 'KoaPixel5BackProp.C({reco_params.num_events_per_sample},{start_evt},"
            + f"\"{workpathname}\",{verbositylvl},"
            + f"{1 if mergedHits else 0},"
            + f"{1 if SkipFilt else 0},"
@@ -122,7 +132,7 @@ if not check_stage_sucess() or force_level ==  1:
            + f"{1 if YthFilt else 0},"
            + f"{1 if BoxFilt else 0},"
            + f"{dX},"
-           + f"{dY})'"
+           + f"{dY})'", shell=True
            )
 
   #check_stage_success "workpathname + "/Koala_reco_${start_evt}.root""

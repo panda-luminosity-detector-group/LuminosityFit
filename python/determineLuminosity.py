@@ -234,7 +234,7 @@ def simulateDataOnHimster(scenario: Scenario):
                     # dirname = os.path.dirname(scenario.dir_path)
                     (dir_path, is_finished) = simulation.startSimulationAndReconstruction(
                         sim_par, alignment.getAlignmentParameters(rec_par),
-                        rec_par, use_devel_queue=args.use_devel_queue, scenario.Track , scenario.Sim)
+                        rec_par, use_devel_queue=args.use_devel_queue, scenario.Track, scenario.Sim)
                     # (dir_path, is_finished) = reconstruction.startReconstruction(
                     #    rec_par, alignment.getAlignmentParameters(rec_par),
                     #    dirname, use_devel_queue=args.use_devel_queue)
