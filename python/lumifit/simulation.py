@@ -164,6 +164,7 @@ def create_simulation_and_reconstruction_job(
     path_mc_data = pathname_base + "/mc_data"
     dirname_full = dirname + "/" + dirname_filter_suffix
     pathname_full = lmdfit_data_dir + "/" + dirname_full
+    macropath_full = "/home/jfrech/KoalaSoft/macro/lmd"
 
     print("using output folder structure: " + pathname_full)
 
@@ -250,6 +251,7 @@ def create_simulation_and_reconstruction_job(
             "dirname": dirname_full,
             "path_mc_data": path_mc_data,
             "pathname": pathname_full,
+            "macropath": macropath_full,
         }
     )
 
