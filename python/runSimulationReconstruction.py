@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import argparse
 import socket
@@ -23,7 +23,7 @@ def run_simulation_and_reconstruction(sim_params, align_params, reco_params):
         force_level=args.force_level,
         debug=args.debug,
         use_devel_queue=args.use_devel_queue,
-        application_command="python runKoaSimReco.py"
+        application_command="./runKoaSimReco.sh"
     )
     full_hostname = socket.getfqdn()
     if args.debug:
@@ -39,9 +39,8 @@ def run_simulation_and_reconstruction(sim_params, align_params, reco_params):
 
     # job threshold of this type (too many jobs could generate to much io load
     # as quite a lot of data is read in from the storage...)
-    job_manager = ClusterJobManager(job_handler, 2000, 3600)
+    job_manager = ClusterJobManager(job_handler, 2000, 3600, debug=args.debug)
     job_manager.append(job)
-    job_manager.manage_jobs(debug=args.debug)
 
 
 parser = argparse.ArgumentParser(

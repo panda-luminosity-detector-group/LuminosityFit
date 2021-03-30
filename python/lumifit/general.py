@@ -30,6 +30,15 @@ def getGoodFiles(
     return [good_files, files_percentage]
 
 
+def check_stage_success(file_url: str) -> bool:
+    if os.path.exists(file_url):
+        if os.stat(file_url).st_size > 3000:
+            print(f"{file_url} exists and is larger than 3kb!")
+            return True
+
+    return False
+
+
 class SmartFormatter(ArgumentDefaultsHelpFormatter):
     def _split_lines(self, text, width):
         return RawTextHelpFormatter._split_lines(self, text, width)

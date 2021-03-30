@@ -102,7 +102,7 @@ class SlurmJobHandler(JobHandler):
 
         bashcommand = (
             "sbatch"
-            + (" -A {self.__account}" if self.__account else "")
+            + (f" -A {self.__account}" if self.__account else "")
             + f" -p {self.__partition}"
             + (
                 f" --constraint={self.__constraints}"

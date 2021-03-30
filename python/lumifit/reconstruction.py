@@ -24,7 +24,6 @@ class ReconstructionParameters:
     low_index: int = attr.ib(default=1)
     output_dir: str = attr.ib(default="")
     lmd_geometry_filename: str = attr.ib(default="Luminosity-Detector.root")
-
     use_xy_cut: bool = attr.ib(default=False)
     use_m_cut: bool = attr.ib(default=False)
     track_search_algo: str = attr.ib(

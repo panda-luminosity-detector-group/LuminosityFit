@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-
-# ok this whole procedure is extremely tedious and costly. unfortunately there is no other way...
-# so dont be scared when you see all this...
+#!/usr/bin/env python
 
 import argparse
 import glob
@@ -13,15 +10,22 @@ import subprocess
 import sys
 import time
 
+from enum import Enum
+
 import alignment
-import general
+from lumifit.general import load_params_from_file, write_params_to_file
 import himster
 import reconstruction
-import simulation
+from lumifit.simulation import SimulationParameters, SimulationType
+
+
+class ExperimentType(Enum):
+    LUMI = "LUMI"
+    KOALA = "KOALA"
 
 
 class Scenario:
-    def __init__(self, dir_path_):
+    def __init__(self, dir_path_, experiment_type: ExperimentType):
         self.momentum = 0.0
 
         self.dir_path = dir_path_
@@ -33,7 +37,7 @@ class Scenario:
         self.use_xy_cut = True
         self.use_ip_determination = True
         self.Lumi = True
-        if Lumi:
+        if experiment_type == ExperimentType.LUMI:
             self.Track = 'Lumi_TrkQA_'
             self.MC = 'Lumi_MC_'
             self.Params = 'Lumi_Params_'
@@ -156,33 +160,38 @@ def simulateDataOnHimster(scenario: Scenario):
                     max_xy_shift = float('{0:.2f}'.format(
                         round(float(max_xy_shift), 2)))
 
-                    gen_par = general.createGeneralRunParameters(
-                        box_num_events_per_sample,
-                        box_num_samples, lab_momentum)
-                    sim_par = simulation.createSimulationParameters('box')
-                    sim_par['theta_min_in_mrad'] -= max_xy_shift
-                    sim_par['theta_max_in_mrad'] += max_xy_shift
-                    sim_par.update(gen_par)
-                    rec_par = reconstruction.ReconstructionParmaters()
-                    rec_par['use_xy_cut'] = scenario.use_xy_cut
-                    rec_par['use_m_cut'] = scenario.use_m_cut
-                    rec_par['reco_ip_offset'] = [ip_info_dict['ip_offset_x'],
+                    sim_par = SimulationParameters(
+                        sim_type=SimulationType.BOX,
+                        num_events_per_sample = box_num_events_per_sample,
+                        num_samples = box_num_samples,
+                        lab_momentum = lab_momentum
+                    )
+                    sim_par.theta_min_in_mrad -= max_xy_shift
+                    sim_par.theta_max_in_mrad += max_xy_shift
+                    #TODO: ip offset for sim params?
+
+                    rec_par = reconstruction.ReconstructionParmaters(
+                        num_events_per_sample = box_num_events_per_sample,
+                        num_samples = box_num_samples,
+                        lab_momentum = lab_momentum
+                    )
+                    rec_par.use_xy_cut = scenario.use_xy_cut
+                    rec_par.use_m_cut = scenario.use_m_cut
+                    rec_par.reco_ip_offset = [ip_info_dict['ip_offset_x'],
                                                  ip_info_dict['ip_offset_y'],
                                                  ip_info_dict['ip_offset_z']]
-                    rec_par.update(gen_par)
 
                     # alignment part
                     # if alignement matrices were specified, we used them as a mis-alignment
                     # and alignment for the box simulations
                     align_par = alignment.createAlignmentParameters()
                     if 'alignment_matrices_path' in scen.alignment_parameters:
-                        align_par['misalignment_matrices_path'] = scen.alignment_parameters['alignment_matrices_path']
-                        align_par['alignment_matrices_path'] = scen.alignment_parameters['alignment_matrices_path']
+                        align_par.misalignment_matrices_path = scen.alignment_parameters['alignment_matrices_path']
+                        align_par.alignment_matrices_path = scen.alignment_parameters['alignment_matrices_path']
                     # update the sim and reco par dicts
-                    sim_par.update(align_par)
-                    rec_par.update(align_par)
+                    
 
-                    (dir_path, is_finished) = simulation.startSimulationAndReconstruction(
+                    (job, dir_path) = simulation.create_simulation_and_reconstruction_job(
                         sim_par, align_par, rec_par, use_devel_queue=args.use_devel_queue, scenario.Track, scenario.SimReco)
                     simulation_task[0] = dir_path
                     scenario.acc_and_res_dir_path = dir_path
@@ -222,18 +231,18 @@ def simulateDataOnHimster(scenario: Scenario):
                         sim_par = json.load(json_file)
                     with open(scenario.dir_path + '/reco_params.config', 'r') as json_file:
                         rec_par = json.load(json_file)
-                    rec_par['use_xy_cut'] = scenario.use_xy_cut
-                    rec_par['use_m_cut'] = scenario.use_m_cut
-                    rec_par['reco_ip_offset'] = [ip_info_dict['ip_offset_x'],
+                    rec_par.use_xy_cut = scenario.use_xy_cut
+                    rec_par.use_m_cut = scenario.use_m_cut
+                    rec_par.reco_ip_offset = [ip_info_dict['ip_offset_x'],
                                                  ip_info_dict['ip_offset_y'],
                                                  ip_info_dict['ip_offset_z']]
                     if (num_samples > 0 and
-                            rec_par['num_samples'] > num_samples):
-                        rec_par['num_samples'] = num_samples
-                        sim_par['num_samples'] = num_samples
+                            rec_par.num_samples > num_samples):
+                        rec_par.num_samples = num_samples
+                        sim_par.num_samples = num_samples
                     # dirname = os.path.dirname(scenario.dir_path)
                     (dir_path, is_finished) = simulation.startSimulationAndReconstruction(
-                        sim_par, alignment.getAlignmentParameters(rec_par),
+                        sim_par, align_par,
                         rec_par, use_devel_queue=args.use_devel_queue, scenario.Track, scenario.Sim)
                     # (dir_path, is_finished) = reconstruction.startReconstruction(
                     #    rec_par, alignment.getAlignmentParameters(rec_par),

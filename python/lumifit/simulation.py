@@ -164,7 +164,7 @@ def create_simulation_and_reconstruction_job(
     path_mc_data = pathname_base + "/mc_data"
     dirname_full = dirname + "/" + dirname_filter_suffix
     pathname_full = lmdfit_data_dir + "/" + dirname_full
-    macropath_full = "/home/jfrech/KoalaSoft/macro/lmd"
+    macropath_full = "/home/jenfrech/KoalaSoft/macro/lmd"
 
     print("using output folder structure: " + pathname_full)
 
@@ -172,8 +172,7 @@ def create_simulation_and_reconstruction_job(
         os.makedirs(pathname_full)
         os.makedirs(path_mc_data)
     except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            print("error: thought dir does not exists but it does...")
+        print(exception)
 
     min_file_size = 3000  # in bytes
     if force_level == 0:
