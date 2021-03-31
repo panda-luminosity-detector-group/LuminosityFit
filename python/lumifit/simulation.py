@@ -1,5 +1,6 @@
 import errno
 import glob
+import math
 import os
 import random
 import subprocess
@@ -39,6 +40,8 @@ class SimulationParameters:
     lmd_geometry_filename: str = attr.ib(default="Luminosity-Detector.root")
     theta_min_in_mrad: float = attr.ib(default=2.7)
     theta_max_in_mrad: float = attr.ib(default=13.0)
+    phi_min_in_rad: float = attr.ib(default=0.0)
+    phi_max_in_rad: float = attr.ib(default=2 * math.pi)
     neglect_recoil_momentum: bool = attr.ib(default=False)
     random_seed: int = attr.ib(factory=lambda: random.randint(10, 9999))
 
@@ -132,12 +135,11 @@ def create_simulation_and_reconstruction_job(
     align_params: AlignmentParameters,
     reco_params: ReconstructionParameters,
     output_dir="",
+    application_command="./runLmdSimReco.sh",
     force_level=0,
     debug=False,
     use_devel_queue=False,
-    application_command="./runLmdSimReco.sh",
-    reco_file_name_pattern="Lumi_TrksQA_*.root",
-) -> Tuple[Optional[Job], str]:
+) -> Tuple[Job, str]:
     print(
         "preparing simulations in index range "
         + f"{reco_params.low_index} - "
@@ -173,30 +175,6 @@ def create_simulation_and_reconstruction_job(
         os.makedirs(path_mc_data)
     except OSError as exception:
         print(exception)
-
-    min_file_size = 3000  # in bytes
-    if force_level == 0:
-        # check if the directory already has the reco data in it
-        reco_files = glob.glob(pathname_full + "/" + reco_file_name_pattern)
-        total_requested_jobs = num_samples
-        reco_files = [
-            x for x in reco_files if os.path.getsize(x) > min_file_size
-        ]
-        if total_requested_jobs == 1:
-            if len(reco_files) == total_requested_jobs:
-                print(
-                    "directory of with fully reconstructed track file"
-                    " already exists! Skipping..."
-                )
-                return (None, pathname_full)
-        else:
-            if len(reco_files) >= int(0.8 * total_requested_jobs):
-                print(
-                    "directory with at least 80% (compared to requested"
-                    " number of simulated files) of fully reconstructed"
-                    " track files already exists! Skipping..."
-                )
-                return (None, pathname_full)
 
     # generate simulation config parameter file
     if sim_params.sim_type == SimulationType.PBARP_ELASTIC:
@@ -246,7 +224,7 @@ def create_simulation_and_reconstruction_job(
 
     job.exported_user_variables.update(
         {
-            "force_level": force_level,
+            "force_level": str(force_level),
             "dirname": dirname_full,
             "path_mc_data": path_mc_data,
             "pathname": pathname_full,

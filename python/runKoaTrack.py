@@ -9,7 +9,7 @@ from lumifit.reconstruction import ReconstructionParameters
 
 debug = True
 filename_index = 1
-if os.environ["SLURM_ARRAY_TASK_ID"]:
+if "SLURM_ARRAY_TASK_ID" in os.environ:
     filename_index = int(os.environ["SLURM_ARRAY_TASK_ID"])
     debug = False
 
@@ -17,17 +17,19 @@ dirname = os.environ["dirname"]
 path_mc_data = os.environ["path_mc_data"]
 pathname = os.environ["pathname"]
 macropath = os.environ["macropath"]
-force_level = os.environ["force_level"]
+force_level = int(os.environ["force_level"])
 
 reco_param = ReconstructionParameters(**load_params_from_file(pathname + "/reco_params.config"))
 ali_params = AlignmentParameters()
 
 verbositylvl: int = 0
 start_evt: int = reco_param.num_events_per_sample * filename_index 
-workpathname=f"/localscratch/{os.environ['SLURM_JOB_ID']}/{dirname}"
+
 if debug:
     workpathname=pathname
     path_mc_data=workpathname
+else:
+    workpathname=f"/localscratch/{os.environ['SLURM_JOB_ID']}/{dirname}"
 
 gen_filepath = workpathname + "/gen_mc.root"
 scriptpath = os.getcwd()

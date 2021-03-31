@@ -76,7 +76,8 @@ hist_bunch createHistogramsFromRawDPMData(data_options &data_opt,
 
   std::pair<TTree *, double> events = PbarPElasticScattering::generateEvents(
       data_opt.momentum, num_events, data_opt.theta_bound_low_in_mrad,
-      data_opt.theta_bound_high_in_mrad, 1234);
+      data_opt.theta_bound_high_in_mrad, data_opt.phi_bound_low,
+      data_opt.phi_bound_high, 1234);
 
   data_opt.elastic_cross_section = events.second;
 

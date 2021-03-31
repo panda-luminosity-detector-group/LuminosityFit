@@ -1,4 +1,4 @@
-#! /bin/python
+#!/usr/bin/env python
 
 import os
 import sys
@@ -9,7 +9,7 @@ import time
 import subprocess
 import multiprocessing
 import argparse
-from general import getGoodFiles
+from lumifit.general import getGoodFiles
 
 cpu_cores = multiprocessing.cpu_count()
 
@@ -30,7 +30,7 @@ def getListOfDirectories(path):
                         return
                 getListOfDirectories(dirpath)
             else:
-                match = re.search('Lumi_TrksQA_\d*\.root', dir)
+                match = re.search(f"{filename_prefix}\d*\.root", dir)
                 if match:
                     match_dir_pattern = re.search(pattern, path)
                     if match_dir_pattern:
@@ -38,7 +38,8 @@ def getListOfDirectories(path):
                     return
 
 
-filename_prefix = 'Lumi_TrksQA_'
+# filename_prefix = 'Lumi_TrksQA_'
+filename_prefix = 'Koala_comp_'
 
 
 def createFileListFile(output_url, list_of_files):

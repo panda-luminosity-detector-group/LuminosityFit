@@ -96,7 +96,7 @@ class SlurmJobHandler(JobHandler):
         out, err = returnvalue.communicate()
         return int(out)
 
-    def create_submit_commands(self, job: Job) -> List[str]:
+    def submit(self, job: Job) -> int:
         if self.__job_preprocessor:
             job = self.__job_preprocessor(job)
 
@@ -130,4 +130,4 @@ class SlurmJobHandler(JobHandler):
             + " "
             + job.application_url
         )
-        return [bashcommand]
+        return subprocess.call(bashcommand, shell=True)

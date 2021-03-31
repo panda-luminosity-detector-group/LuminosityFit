@@ -7,13 +7,13 @@ from enum import Enum
 
 
 def getGoodFiles(
-    directory, glob_pattern, min_filesize_in_byte=2000, is_bunches=False
+    directory, glob_pattern, min_filesize_in_bytes=2000, is_bunches=False
 ):
     found_files = glob.glob(directory + "/" + glob_pattern)
     good_files = []
     bad_files = []
     for file in found_files:
-        if os.stat(file).st_size > min_filesize_in_byte:
+        if os.stat(file).st_size > min_filesize_in_bytes:
             good_files.append(file)
         else:
             bad_files.append(file)

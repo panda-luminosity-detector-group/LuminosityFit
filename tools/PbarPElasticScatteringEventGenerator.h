@@ -20,12 +20,14 @@
 #include "boost/property_tree/ptree.hpp"
 
 namespace PbarPElasticScattering {
-
-std::pair<TTree *, double> generateEvents(double momentum,
+  std::pair<TTree *, double> generateEvents(double momentum,
                                           unsigned int num_events,
                                           double theta_min_in_mrad,
                                           double theta_max_in_mrad,
-                                          unsigned int seed) {
+                                          double phi_min_in_rad,
+                                          double phi_max_in_rad,
+                                          unsigned int seed
+                                          ) {
   PndLmdModelFactory model_factory;
 
   boost::property_tree::ptree base_model_opt;
@@ -50,8 +52,8 @@ std::pair<TTree *, double> generateEvents(double momentum,
 
   TDatabasePDG *pdg = TDatabasePDG::Instance();
   double mass_proton = pdg->GetParticle(2212)->Mass();
-  double fPhiMin = 0.0;
-  double fPhiMax = 2.0 * TMath::Pi();
+  double fPhiMin = phi_min_in_rad;
+  double fPhiMax = phi_max_in_rad;
   double plab = momentum;
   double Elab = std::sqrt(std::pow(mass_proton, 2) + std::pow(plab, 2));
   double s = 2.0 * std::pow(mass_proton, 2) + 2.0 * mass_proton * Elab;
@@ -72,6 +74,7 @@ std::pair<TTree *, double> generateEvents(double momentum,
   integral_ranges.push_back(dr);
 
   double integral = correct_model->Integral(integral_ranges, 1e-5);
+  integral *= (phi_max-phi_min)/2*pi;
   std::cout << "Integrated total elastic cross section in theta range ["
             << theta_min_in_mrad << " - " << theta_max_in_mrad << "] -> t ["
             << t_min << " - " << t_max << "] is " << integral << " mb"

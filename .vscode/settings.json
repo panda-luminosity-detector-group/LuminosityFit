@@ -76,7 +76,8 @@
     "codecvt": "cpp",
     "forward_list": "cpp",
     "unordered_set": "cpp",
-    "regex": "cpp"
+    "regex": "cpp",
+    "standaloneBoxGen.C": "cpp"
   },
   "cmake.configureOnOpen": true,
   "python.formatting.provider": "black",

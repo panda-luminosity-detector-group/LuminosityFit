@@ -12,12 +12,12 @@ dirname = os.environ["dirname"]
 path_mc_data = os.environ["path_mc_data"]
 pathname = os.environ["pathname"]
 macropath = os.environ["macropath"]
-force_level = os.environ["force_level"]
+force_level = int(os.environ["force_level"])
 
 
 filename_index = 1
 debug = True
-if os.environ["SLURM_ARRAY_TASK_ID"]:
+if "SLURM_ARRAY_TASK_ID" in os.environ:
     filename_index = int(os.environ["SLURM_ARRAY_TASK_ID"])
     debug = False
 
@@ -27,10 +27,11 @@ sim_params = SimulationParameters(
 
 ali_params = AlignmentParameters()
 
-workpathname=f"/localscratch/{os.environ['SLURM_JOB_ID']}/{dirname}"
 if debug:
     workpathname=pathname
     path_mc_data=workpathname
+else:
+    workpathname=f"/localscratch/{os.environ['SLURM_JOB_ID']}/{dirname}"
 
 if not os.path.exists(workpathname):
     os.makedirs(workpathname)
@@ -50,6 +51,8 @@ if not check_stage_success(path_mc_data + f"/Koala_MC_{start_evt}.root") or forc
             + f"{sim_params.num_events_per_sample}, "
             + f"{sim_params.theta_min_in_mrad}, "
             + f"{sim_params.theta_max_in_mrad}, "
+            + f"{sim_params.phi_min_in_rad}, "
+            + f"{sim_params.phi_max_in_rad}, "
             + f"\"{gen_filepath}\", {sim_params.random_seed}, "
             + f"{sim_params.neglect_recoil_momentum})'"
         )
@@ -58,7 +61,9 @@ if not check_stage_success(path_mc_data + f"/Koala_MC_{start_evt}.root") or forc
             f"{lmd_build_path}/bin/generatePbarPElasticScattering"
             + f" {sim_params.lab_momentum} {sim_params.num_events_per_sample}"
             + f" -l {sim_params.theta_min_in_mrad}"
-            + f" -u {sim_params.theta_max_in_mrad} -s {sim_params.random_seed}"
+            + f" -u {sim_params.theta_max_in_mrad}"
+            + f" -n {sim_params.phi_min_in_rad}"
+            + f" -g {sim_params.phi_max_in_rad} -s {sim_params.random_seed}"
             + f" -o {gen_filepath}"
         )
     
