@@ -45,6 +45,10 @@ find_package(Boost COMPONENTS
    serialization 
     REQUIRED)
 find_package(ROOT REQUIRED)
+
+#! TODO: check if we're on Debian, this is not required on Ubuntu 
+find_package(Pythia6 REQUIRED)
+
 find_package(PANDAROOT)
 find_package(KOALASOFT)
 
