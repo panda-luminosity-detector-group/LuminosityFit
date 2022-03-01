@@ -74,7 +74,7 @@ namespace PbarPElasticScattering {
   integral_ranges.push_back(dr);
 
   double integral = correct_model->Integral(integral_ranges, 1e-5);
-  integral *= (phi_max-phi_min)/2*pi;
+  //integral *= (phi_max-phi_min)/2*pi;
   std::cout << "Integrated total elastic cross section in theta range ["
             << theta_min_in_mrad << " - " << theta_max_in_mrad << "] -> t ["
             << t_min << " - " << t_max << "] is " << integral << " mb"
