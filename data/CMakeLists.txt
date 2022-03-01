@@ -8,7 +8,12 @@ set(ROOT_DICT_HEADERS
 	LumiFitStructs.h
 )
 
-set(INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/model_framework ${CMAKE_SOURCE_DIR})
+set(INCLUDE_DIRECTORIES 
+${CMAKE_SOURCE_DIR}/model_framework 
+${CMAKE_SOURCE_DIR}
+${VMC_INCLUDE_DIRS}
+)
+
 ROOT_GENERATE_DICTIONARY(LmdFitDataDict ${ROOT_DICT_HEADERS} LINKDEF LinkDef.h)
 
 set(SRCS
@@ -50,9 +55,6 @@ target_link_libraries(LmdFitDataReader
 	PUBLIC LmdFitData
 )
 
-
-
-
 if (PANDAROOT_FOUND)
 	set(SRCS
 		PndLmdCombinedDataReader.cxx
@@ -68,6 +70,15 @@ else()
 endif()
 
 if (KOALASOFT_FOUND)
+	find_package(VMC)
+	message("found VMC at: " ${VMC_INCLUDE_DIRS})
+
+	set(INCLUDE_DIRECTORIES 
+	${VMC_INCLUDE_DIRS}
+	)
+
+	include_directories(${INCLUDE_DIRECTORIES})
+
 	set(SRCS
 		KoaSeperateDataReader.cxx
 	)
