@@ -22,7 +22,7 @@ endif()
 
 if(NOT DEFINED CMAKE_CXX_STANDARD)
   message(STATUS "CMAKE_CXX_STANDARD is not defined. Setting to 11")
-  set (CMAKE_CXX_STANDARD 11)
+  set (CMAKE_CXX_STANDARD 17)
 endif()
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
