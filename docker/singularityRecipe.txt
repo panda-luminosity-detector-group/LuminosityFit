@@ -1,0 +1,3 @@
+Bootstrap: docker
+From: lumifit:latest
+Registry: localhost:5000
