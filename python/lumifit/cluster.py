@@ -96,7 +96,18 @@ class ClusterJobManager:
                 my_env = os.environ.copy()
                 my_env.update(cmd[1])
                 bashcommand = cmd[0]
-                returncode = subprocess.call(bashcommand, env=my_env)
+
+                # TODO: use some sort of switch here instead                    
+                if False:
+                    returncode = subprocess.call(bashcommand, env=my_env)
+                else:
+                    with open('orderPipe') as orderPipe:
+                        # open this pipe before committing orders, else deadlock!
+                        with open('returncodePipe', 'r') as returnPipe:
+
+                            # TODO: also handle env variables!
+                            orderPipe.write(bashcommand)
+                            returncode = int(returnPipe.readline())                
 
         else:
             job_command_queue: List[str] = []
@@ -121,7 +132,18 @@ class ClusterJobManager:
                 ):
                     print("Nope, trying to submit job...")
                     bashcommand = job_command_queue.pop(0)
-                    returncode = subprocess.call(bashcommand, shell=True)
+
+                    # TODO: use some sort of switch here instead                    
+                    if False:
+                        returncode = subprocess.call(bashcommand, shell=True)
+                    else:
+                        with open('orderPipe') as orderPipe:
+
+                            # open this pipe before committing orders, else deadlock!
+                            with open('returncodePipe', 'r') as returnPipe:
+                                orderPipe.write(bashcommand)
+                                returncode = int(returnPipe.readline())
+                    
                     if returncode > 0:
                         resubmit = True
                         if bashcommand in failed_submit_commands:
