@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, shlex, subprocess
+import os, shlex, subprocess, sys
 
 orderPipeName = 'orderPipe'
 outputPipeName = 'outputPipe'
@@ -35,11 +35,21 @@ def readAndExecute():
 
 if __name__ == '__main__':
     welcome = """
-    Agent starting.
-    Press ctrl + C or write "exit" to orderPipe to exit.
+    Agent starting and forking to background.
+    Write "exit" to orderPipe to exit agent.
     """
 
     print(welcome)
+
+    try:
+        pid = os.fork()
+        if pid > 0:
+            # Exit parent process
+            sys.exit(0)
+    
+    except OSError:
+        print(f"fork failed: {e.errno} ({e.strerror})")
+        sys.exit(1)
     
     preparePipes()
     
