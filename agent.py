@@ -4,11 +4,19 @@ import os, shlex, subprocess
 
 orderPipeName = 'orderPipe'
 outputPipeName = 'outputPipe'
+returnCodePipeName = 'returncodePipe'
 
 def preparePipes():
     os.mkfifo(orderPipeName)
     os.mkfifo(outputPipeName)
+    os.mkfifo(returnCodePipeName)
 
+def deletePipes():
+    os.unlink(orderPipeName)
+    os.unlink(outputPipeName)
+    os.unlink(returnCodePipeName)
+
+# continously read from pipe and execute, write output and return codes back
 def readAndExecute():
     while True:
         with open(orderPipeName, 'r') as orderPipe:
@@ -19,7 +27,11 @@ def readAndExecute():
                 else:
                     with open(outputPipeName, 'w') as pipeOut:
                         args = shlex.split(line)
-                        subprocess.run(args, stdout=pipeOut)
+                        completedProcess = subprocess.run(args, stdout=pipeOut)
+                        returnCode = completedProcess.returncode
+
+                        with open(returnCodePipeName, 'w') as returnPipe:
+                            returnPipe.write(str(returnCode))
 
 if __name__ == '__main__':
     welcome = """
@@ -28,6 +40,7 @@ if __name__ == '__main__':
     """
 
     print(welcome)
+    
     preparePipes()
     
     try:
@@ -35,7 +48,9 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('Caught ctrl+c. Exiting.')
     
-    os.unlink(orderPipeName)
-    os.unlink(outputPipeName)
+    except:
+        pass
+    
+    deletePipes()
     
     print('Have a nice day.')
