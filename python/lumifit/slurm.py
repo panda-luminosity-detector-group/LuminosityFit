@@ -87,8 +87,7 @@ class SlurmJobHandler(JobHandler):
     def get_active_number_of_jobs(self) -> int:
         """Check users current number of running and queued jobs."""
         bashcommand = (
-            "squeue -u $USER -o %C | sed 's/CPUS/0/'"
-            + " | awk '{s+=$1} END {print s}'"
+            "squeue -u $USER -o %C | sed 's/CPUS/0/' | awk '{s+=$1} END {print s}'"
         )
         returnvalue = subprocess.Popen(
             bashcommand, shell=True, stdout=subprocess.PIPE
