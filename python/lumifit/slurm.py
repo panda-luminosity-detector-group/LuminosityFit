@@ -1,6 +1,6 @@
 # cSpell:ignore slurm,sbatch,squeue,CPUs,Popen
 
-import subprocess
+import subprocess, os
 from typing import Callable, List, Optional
 
 from .cluster import Job, JobHandler, JobResourceRequest
@@ -78,13 +78,12 @@ class SlurmJobHandler(JobHandler):
         account: Optional[str] = None,
         constraints: Optional[str] = None,
         job_preprocessor: Optional[Callable[[Job], Job]] = None,
-        useSlurmAgent: bool,
     ) -> None:
         self.__partition = partition
         self.__account = account
         self.__constraints = constraints
         self.__job_preprocessor = job_preprocessor
-        self.__useSlurmAgent__ = true
+        self.__useSlurmAgent__ = True
 
     def get_active_number_of_jobs(self) -> int:
         """Check users current number of running and queued jobs."""
@@ -98,17 +97,18 @@ class SlurmJobHandler(JobHandler):
         # return int(out)
 
         if self.__useSlurmAgent__:
+            pipePath = os.getenv('LMDFIT_BUILD_PATH') + '/../'
             # this order is important! first, write to command (agent is listening)
-            with open('orderPipe') as orderPipe:
-                orderPipe.write(bashcommand)
+            with open(pipePath+'orderPipe', 'w') as orderPipe:
+                orderPipe.write(bashcommand + '\n')
 
-                # then, listen for stdout
-                with open('outputPipe') as outputPipe:
-                    result = outputPipe.readLine()
-                    # listen for return code last!
-                    with open('returncodePipe') as returncodePipe:
-                        returnCode = int(returncodePipe.read())
-                        return int(result)  # shoould be no of jobs
+            # then, listen for stdout
+            with open(pipePath+'outputPipe', 'r') as outputPipe:
+                result = outputPipe.read()
+                # listen for return code last!
+                with open(pipePath+'returncodePipe', 'r') as returncodePipe:
+                    returnCode = int(returncodePipe.read())
+                    return int(result)  # should be no of jobs
 
         else:
             pass
@@ -152,19 +152,19 @@ class SlurmJobHandler(JobHandler):
             + " "
             + job.application_url
         )
-        
+        print(f'trying to submit job')
         # TODO: prepare json object
         if self.__useSlurmAgent__:
+            pipePath = os.getenv('LMDFIT_BUILD_PATH') + '/../'
             # this order is important! first, write to command (agent is listening)
-            with open('orderPipe') as orderPipe:
-                orderPipe.write(bashcommand)
-
-                # then, listen for stdout
-                with open('outputPipe') as outputPipe:
-                    outputPipe.readLines()
-                    # listen for return code last!
-                    with open('returncodePipe') as returncodePipe:
-                        return int(returncodePipe.read())
+            with open(pipePath+'orderPipe', 'w') as orderPipe:
+                orderPipe.write(bashcommand + '\n')
+            # then, listen for stdout
+            with open(pipePath+'outputPipe') as outputPipe:
+                outputPipe.read()
+                # listen for return code last!
+                with open(pipePath+'returncodePipe') as returncodePipe:
+                    return int(returncodePipe.read())
 
         else:
             return subprocess.call(bashcommand, shell=True)
