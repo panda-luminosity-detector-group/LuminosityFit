@@ -78,22 +78,44 @@ class SlurmJobHandler(JobHandler):
         account: Optional[str] = None,
         constraints: Optional[str] = None,
         job_preprocessor: Optional[Callable[[Job], Job]] = None,
+        useSlurmAgent: bool,
     ) -> None:
         self.__partition = partition
         self.__account = account
         self.__constraints = constraints
         self.__job_preprocessor = job_preprocessor
+        self.__useSlurmAgent__ = true
 
     def get_active_number_of_jobs(self) -> int:
         """Check users current number of running and queued jobs."""
         bashcommand = (
             "squeue -u $USER -o %C | sed 's/CPUS/0/' | awk '{s+=$1} END {print s}'"
         )
-        returnvalue = subprocess.Popen(
-            bashcommand, shell=True, stdout=subprocess.PIPE
-        )
-        out, err = returnvalue.communicate()
-        return int(out)
+        # returnvalue = subprocess.Popen(
+        #     bashcommand, shell=True, stdout=subprocess.PIPE
+        # )
+        # out, err = returnvalue.communicate()
+        # return int(out)
+
+        if self.__useSlurmAgent__:
+            # this order is important! first, write to command (agent is listening)
+            with open('orderPipe') as orderPipe:
+                orderPipe.write(bashcommand)
+
+                # then, listen for stdout
+                with open('outputPipe') as outputPipe:
+                    result = outputPipe.readLine()
+                    # listen for return code last!
+                    with open('returncodePipe') as returncodePipe:
+                        returnCode = int(returncodePipe.read())
+                        return int(result)  # shoould be no of jobs
+
+        else:
+            returnvalue = subprocess.Popen(
+                bashcommand, shell=True, stdout=subprocess.PIPE
+            )
+            out, err = returnvalue.communicate()
+            return int(out)
 
     def submit(self, job: Job) -> int:
         if self.__job_preprocessor:
@@ -129,4 +151,19 @@ class SlurmJobHandler(JobHandler):
             + " "
             + job.application_url
         )
-        return subprocess.call(bashcommand, shell=True)
+        
+        # TODO: prepare json object
+        if self.__useSlurmAgent__:
+            # this order is important! first, write to command (agent is listening)
+            with open('orderPipe') as orderPipe:
+                orderPipe.write(bashcommand)
+
+                # then, listen for stdout
+                with open('outputPipe') as outputPipe:
+                    outputPipe.readLines()
+                    # listen for return code last!
+                    with open('returncodePipe') as returncodePipe:
+                        return int(returncodePipe.read())
+
+        else:
+            return subprocess.call(bashcommand, shell=True)
