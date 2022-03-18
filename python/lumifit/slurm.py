@@ -111,11 +111,12 @@ class SlurmJobHandler(JobHandler):
                         return int(result)  # shoould be no of jobs
 
         else:
-            returnvalue = subprocess.Popen(
-                bashcommand, shell=True, stdout=subprocess.PIPE
-            )
-            out, err = returnvalue.communicate()
-            return int(out)
+            pass
+            # returnvalue = subprocess.Popen(
+            #     bashcommand, shell=True, stdout=subprocess.PIPE
+            # )
+            # out, err = returnvalue.communicate()
+            # return int(out)
 
     def submit(self, job: Job) -> int:
         if self.__job_preprocessor:
