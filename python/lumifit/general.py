@@ -7,13 +7,13 @@ from enum import Enum
 
 
 def getGoodFiles(
-    directory, glob_pattern, min_filesize_in_byte=2000, is_bunches=False
+    directory, glob_pattern, min_filesize_in_bytes=2000, is_bunches=False
 ):
     found_files = glob.glob(directory + "/" + glob_pattern)
     good_files = []
     bad_files = []
     for file in found_files:
-        if os.stat(file).st_size > min_filesize_in_byte:
+        if os.stat(file).st_size > min_filesize_in_bytes:
             good_files.append(file)
         else:
             bad_files.append(file)
@@ -28,6 +28,15 @@ def getGoodFiles(
     files_percentage = len(good_files) / num_sim_files
 
     return [good_files, files_percentage]
+
+
+def check_stage_success(file_url: str) -> bool:
+    if os.path.exists(file_url):
+        if os.stat(file_url).st_size > 3000:
+            print(f"{file_url} exists and is larger than 3kb!")
+            return True
+
+    return False
 
 
 class SmartFormatter(ArgumentDefaultsHelpFormatter):

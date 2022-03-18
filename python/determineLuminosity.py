@@ -1,27 +1,33 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
-# ok this whole procedure is extremely tedious and costly. unfortunately there is no other way...
-# so dont be scared when you see all this...
-
-import os
-import re
-import time
-import glob
 import argparse
-import subprocess
+import glob
 import json
 import math
+import os
+import re
+import subprocess
 import sys
+import time
+import socket
 
-import himster
-import general
-import simulation
-import reconstruction
-import alignment
+from enum import Enum
+
+from lumifit.alignment import AlignmentParameters
+import lumifit.general as general
+from lumifit.reconstruction import create_reconstruction_job, ReconstructionParameters
+from lumifit.simulation import SimulationParameters, SimulationType, create_simulation_and_reconstruction_job
+from lumifit.cluster import ClusterJobManager
+from lumifit.gsi_virgo import create_virgo_job_handler
+from lumifit.himster import create_himster_job_handler
+
+class ExperimentType(Enum):
+    LUMI = "LUMI"
+    KOALA = "KOALA"
 
 
 class Scenario:
-    def __init__(self, dir_path_):
+    def __init__(self, dir_path_, experiment_type: ExperimentType):
         self.momentum = 0.0
 
         self.dir_path = dir_path_
@@ -32,8 +38,20 @@ class Scenario:
         self.use_m_cut = True
         self.use_xy_cut = True
         self.use_ip_determination = True
+        self.Lumi = True
+        if experiment_type == ExperimentType.LUMI:
+            self.phi_min_in_rad = 0
+            self.phi_max_in_rad = 2 * math.pi
+            self.Sim = './runLmdSimReco.py'
+            self.Reco = './runLmdReco.py'
+        else:
+            self.phi_min_in_rad = 0.9 * math.pi
+            self.phi_max_in_rad = 1.3 * math.pi
+            self.Sim = './runKoalaSimReco.py'
+            self.Reco = './runKoalaReco.py'
 
-        self.alignment_parameters = {}
+
+        self.alignment_parameters: AlignmentParameters = AlignmentParameters()
 
         self.state = 1
         self.last_state = 0
@@ -43,7 +61,7 @@ class Scenario:
         self.is_broken = False
 
 
-def wasSimulationSuccessful(directory, glob_pattern, is_bunches=False):
+def wasSimulationSuccessful(directory, glob_pattern, min_filesize_in_bytes = 10000, is_bunches=False):
     # return values:
     # 0: everything is fine
     # >0: its not finished processing, just keep waiting
@@ -53,7 +71,7 @@ def wasSimulationSuccessful(directory, glob_pattern, is_bunches=False):
 
     files_percentage = general.getGoodFiles(directory,
                                             glob_pattern,
-                                            10000,
+                                            min_filesize_in_bytes=min_filesize_in_bytes,
                                             is_bunches=is_bunches)[1]
 
     if files_percentage < required_files_percentage:
@@ -68,7 +86,6 @@ def wasSimulationSuccessful(directory, glob_pattern, is_bunches=False):
 
     return return_value
 
-
 # ----------------------------------------------------------------------------
 # ok we do it in such a way we have a step state for each directory and stacks
 # we try to process
@@ -77,7 +94,7 @@ waiting_scenario_stack = []
 dead_scenario_stack = []
 
 
-def simulateDataOnHimster(scenario):
+def simulateDataOnHimster(scenario: Scenario):
     tasks_to_remove = []
 
     lab_momentum = scenario.momentum
@@ -123,12 +140,12 @@ def simulateDataOnHimster(scenario):
                     temp_dir_searcher = general.DirectorySearcher(
                         ['box', data_keywords[0]])
                     temp_dir_searcher.searchListOfDirectories(
-                        dir_path, 'Lumi_TrksQA_')
+                        dir_path, track_file_pattern)
                     found_dirs = temp_dir_searcher.getListOfDirectories()
 
                 if found_dirs:
                     status_code = wasSimulationSuccessful(
-                        found_dirs[0], 'Lumi_TrksQA_*.root')
+                        found_dirs[0], track_file_pattern + '*.root')
                 elif last_state < 1:
                     # then lets simulate!
                     # this command runs the full sim software with box gen data
@@ -142,38 +159,44 @@ def simulateDataOnHimster(scenario):
                     max_xy_shift = float('{0:.2f}'.format(
                         round(float(max_xy_shift), 2)))
 
-                    gen_par = general.createGeneralRunParameters(
-                        box_num_events_per_sample,
-                        box_num_samples, lab_momentum)
-                    sim_par = simulation.createSimulationParameters('box')
-                    sim_par['theta_min_in_mrad'] -= max_xy_shift
-                    sim_par['theta_max_in_mrad'] += max_xy_shift
-                    sim_par.update(gen_par)
-                    rec_par = reconstruction.createReconstructionParameters()
-                    rec_par['use_xy_cut'] = scenario.use_xy_cut
-                    rec_par['use_m_cut'] = scenario.use_m_cut
-                    rec_par['reco_ip_offset'] = [ip_info_dict['ip_offset_x'],
+                    sim_par = SimulationParameters(
+                        sim_type=SimulationType.BOX,
+                        num_events_per_sample = box_num_events_per_sample,
+                        num_samples = box_num_samples,
+                        lab_momentum = lab_momentum
+                    )
+                    sim_par.theta_min_in_mrad -= max_xy_shift
+                    sim_par.theta_max_in_mrad += max_xy_shift
+                    sim_par.phi_min_in_rad = scen.phi_min_in_rad
+                    sim_par.phi_max_in_rad = scen.phi_max_in_rad
+                    #TODO: ip offset for sim params?
+
+                    rec_par = reconstruction.ReconstructionParmaters(
+                        num_events_per_sample = box_num_events_per_sample,
+                        num_samples = box_num_samples,
+                        lab_momentum = lab_momentum
+                    )
+                    rec_par.use_xy_cut = scenario.use_xy_cut
+                    rec_par.use_m_cut = scenario.use_m_cut
+                    rec_par.reco_ip_offset = [ip_info_dict['ip_offset_x'],
                                                  ip_info_dict['ip_offset_y'],
                                                  ip_info_dict['ip_offset_z']]
-                    rec_par.update(gen_par)
 
                     # alignment part
                     # if alignement matrices were specified, we used them as a mis-alignment
                     # and alignment for the box simulations
                     align_par = alignment.createAlignmentParameters()
-                    if 'alignment_matrices_path' in scen.alignment_parameters:
-                        align_par['misalignment_matrices_path'] = scen.alignment_parameters['alignment_matrices_path']
-                        align_par['alignment_matrices_path'] = scen.alignment_parameters['alignment_matrices_path']
+                    if scen.alignment_parameters.alignment_matrices_path:
+                        align_par.misalignment_matrices_path = scen.alignment_parameters.alignment_matrices_path
+                        align_par.alignment_matrices_path = scen.alignment_parameters.alignment_matrices_path
                     # update the sim and reco par dicts
-                    sim_par.update(align_par)
-                    rec_par.update(align_par)
-
-                    (dir_path, is_finished) = simulation.startSimulationAndReconstruction(
-                        sim_par, align_par, rec_par, use_devel_queue=args.use_devel_queue)
+                    
+                    (job, dir_path) = create_simulation_and_reconstruction_job(
+                        sim_par, align_par, rec_par, application_command=scenario.Sim, use_devel_queue=args.use_devel_queue)
+                    job_manager.append(job)
+                    
                     simulation_task[0] = dir_path
                     scenario.acc_and_res_dir_path = dir_path
-                    if is_finished:
-                        state += 1
                     last_state += 1
 
             elif 'a' in sim_type:
@@ -183,11 +206,11 @@ def simulateDataOnHimster(scenario):
                     temp_dir_searcher = general.DirectorySearcher(
                         ['dpm_elastic', data_keywords[0]])
                     temp_dir_searcher.searchListOfDirectories(
-                        dir_path, 'Lumi_TrksQA_')
+                        dir_path, track_file_pattern)
                     found_dirs = temp_dir_searcher.getListOfDirectories()
                 if found_dirs:
                     status_code = wasSimulationSuccessful(
-                        found_dirs[0], 'Lumi_TrksQA_*.root')
+                        found_dirs[0], track_file_pattern + '*.root')
 
                 elif last_state < state:
                     # then lets do reco
@@ -204,34 +227,32 @@ def simulateDataOnHimster(scenario):
                     if not os.path.exists(simParamFile):
                         simParamFile = scenario.dir_path+'/../../sim_params.config'
 
-                    with open(simParamFile, 'r') as json_file:
-                        sim_par = json.load(json_file)
-                    with open(scenario.dir_path + '/reco_params.config', 'r') as json_file:
-                        rec_par = json.load(json_file)
-                    rec_par['use_xy_cut'] = scenario.use_xy_cut
-                    rec_par['use_m_cut'] = scenario.use_m_cut
-                    rec_par['reco_ip_offset'] = [ip_info_dict['ip_offset_x'],
-                                                 ip_info_dict['ip_offset_y'],
-                                                 ip_info_dict['ip_offset_z']]
-                    if (num_samples > 0 and
-                            rec_par['num_samples'] > num_samples):
-                        rec_par['num_samples'] = num_samples
-                        sim_par['num_samples'] = num_samples
-                    # dirname = os.path.dirname(scenario.dir_path)
-                    (dir_path, is_finished) = simulation.startSimulationAndReconstruction(
-                        sim_par, alignment.getAlignmentParameters(rec_par),
-                        rec_par, use_devel_queue=args.use_devel_queue)
-                    # (dir_path, is_finished) = reconstruction.startReconstruction(
-                    #    rec_par, alignment.getAlignmentParameters(rec_par),
-                    #    dirname, use_devel_queue=args.use_devel_queue)
+                    sim_par = SimulationParameters(**general.load_params_from_file(simParamFile))
+
+                    rec_par = ReconstructionParameters(
+                        **general.load_params_from_file(scenario.dir_path + '/reco_params.config')
+                    )
+                    rec_par.use_xy_cut = scenario.use_xy_cut
+                    rec_par.use_m_cut = scenario.use_m_cut
+                    rec_par.reco_ip_offset = [ip_info_dict['ip_offset_x'],
+                                              ip_info_dict['ip_offset_y'],
+                                              ip_info_dict['ip_offset_z']]
+                    if (num_samples > 0 and rec_par.num_samples > num_samples):
+                        rec_par.num_samples = num_samples
+                        sim_par.num_samples = num_samples
+
+                    #TODO: ALIGNMENT PARAMETERS
+
+                    dirname = os.path.dirname(scenario.dir_path)
+                    (job, dir_path) = create_reconstruction_job(
+                        rec_par, align_par, dirname, application_command=scenario.Reco, use_devel_queue=args.use_devel_queue)
+                    job_manager.append(job)
+   
                     simulation_task[0] = dir_path
                     scen.filtered_dir_path = dir_path
-                    if is_finished:
-                        state += 1
                     last_state += 1
             else:
                 # just skip simulation for vertex data... we always have that..
-                print('skipping simulation step...')
                 status_code = 0
 
             if status_code == 0:
@@ -255,7 +276,7 @@ def simulateDataOnHimster(scenario):
             status_code = 1
             if found_dirs:
                 status_code = wasSimulationSuccessful(
-                    found_dirs[0], data_pattern + "*", True)
+                    found_dirs[0], data_pattern + "*", is_bunches=True)
             elif last_state < state:
                 os.chdir(lmd_fit_script_path)
                 # bunch data
@@ -358,9 +379,9 @@ def lumiDetermination(scen):
     momentum = float(m.group(1))
     scen.momentum = momentum
 
-    with open(scen.dir_path + '/reco_params.config', 'r') as json_file:
-        rec_par = json.load(json_file)
-        scen.alignment_parameters = alignment.getAlignmentParameters(rec_par)
+    scen.alignment_parameters = AlignmentParameters(
+        **general.load_params_from_file(scen.dir_path + '/align_params.config')
+    )
 
     finished = False
     # 1. create vertex data (that means bunch data, create data objects and merge)
@@ -459,7 +480,7 @@ def lumiDetermination(scen):
             bashcommand = 'python doMultipleLuminosityFits.py '\
                 '--forced_box_gen_data ' + scen.acc_and_res_dir_path + \
                 ' ' + scen.filtered_dir_path + ' ' + cut_keyword + \
-                lmd_fit_path + '/' + args.fit_config
+                lmd_fit_path + '/' + args.fit_config + ' ' + track_file_pattern
             returnvalue = subprocess.call(bashcommand.split())
 
         print('this scenario is fully processed!!!')
@@ -509,6 +530,13 @@ parser.add_argument('--use_devel_queue', action='store_true',
 
 args = parser.parse_args()
 
+experiment_type = ExperimentType.KOALA
+
+if experiment_type == ExperimentType.LUMI:
+    track_file_pattern = 'Lumi_TrkQA_'
+elif experiment_type == ExperimentType.KOALA:
+    track_file_pattern = 'Koala_Track_'
+
 lmd_fit_script_path = os.path.dirname(os.path.realpath(__file__))
 lmd_fit_path = os.path.dirname(lmd_fit_script_path)
 lmd_fit_bin_path = os.getenv('LMDFIT_BUILD_PATH') + '/bin'
@@ -522,14 +550,14 @@ box_num_events_per_sample = args.box_num_events_per_sample
 dir_searcher = general.DirectorySearcher(['dpm_elastic', 'uncut'])
 
 dir_searcher.searchListOfDirectories(
-    args.base_output_data_dir, 'Lumi_TrksQA_')
+    args.base_output_data_dir, track_file_pattern)
 dirs = dir_searcher.getListOfDirectories()
 
 print(dirs)
 
 # at first assign each scenario the first step and push on the active stack
 for dir in dirs:
-    scen = Scenario(dir)
+    scen = Scenario(dir, experiment_type=ExperimentType.KOALA)
     print("creating scenario:", dir)
     if args.disable_xy_cut or ("/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir):
         print("Disabling xy cut!")
@@ -541,6 +569,20 @@ for dir in dirs:
         print("Disabling IP determination!")
         scen.use_ip_determination = False
     active_scenario_stack.append(scen)
+
+
+full_hostname = socket.getfqdn()
+if "gsi.de" in full_hostname:
+    job_handler = create_virgo_job_handler("long")
+else:
+    if args.use_devel_queue:
+        job_handler = create_himster_job_handler("devel")
+    else:
+        job_handler = create_himster_job_handler("himster2_exp")
+
+# job threshold of this type (too many jobs could generate to much io load
+# as quite a lot of data is read in from the storage...)
+job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
 
 # now just keep processing the active_stack

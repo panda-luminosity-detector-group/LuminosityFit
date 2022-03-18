@@ -4,7 +4,7 @@ import argparse
 import socket
 
 from lumifit.alignment import AlignmentParameters
-from lumifit.cluster import ClusterJobManager
+from lumifit.cluster import ClusterJobManager, DebugJobHandler
 from lumifit.general import addDebugArgumentsToParser, load_params_from_file
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
@@ -23,10 +23,11 @@ def run_simulation_and_reconstruction(sim_params, align_params, reco_params):
         force_level=args.force_level,
         debug=args.debug,
         use_devel_queue=args.use_devel_queue,
+        application_command="./runKoaSimReco.sh"
     )
     full_hostname = socket.getfqdn()
     if args.debug:
-        pass
+        job_handler = DebugJobHandler()
     else:
         if "gsi.de" in full_hostname:
             job_handler = create_virgo_job_handler("long")
@@ -40,7 +41,6 @@ def run_simulation_and_reconstruction(sim_params, align_params, reco_params):
     # as quite a lot of data is read in from the storage...)
     job_manager = ClusterJobManager(job_handler, 2000, 3600)
     job_manager.append(job)
-    job_manager.manage_jobs(debug=args.debug)
 
 
 parser = argparse.ArgumentParser(

@@ -1,9 +1,12 @@
-import himster
-import general
 import os, sys, errno, glob
 import shutil
 import argparse
+import socket
 
+import lumifit.general as general
+from lumifit.cluster import ClusterJobManager, Job, JobResourceRequest
+from lumifit.gsi_virgo import create_virgo_job_handler
+from lumifit.himster import create_himster_job_handler
 
 parser = argparse.ArgumentParser(description='Script for going through whole directory trees and looking for bunches directories with filelists in them creating lmd data objects.', formatter_class=argparse.RawTextHelpFormatter)
 
@@ -76,7 +79,15 @@ for bins in range(args.general_dimension_bins_low, args.general_dimension_bins_h
       config_paths.append(path)
 
 
-joblist = []
+full_hostname = socket.getfqdn()
+if "gsi.de" in full_hostname:
+    job_handler = create_virgo_job_handler("long")
+else:
+    job_handler = create_himster_job_handler("himster2_exp")
+
+# job threshold of this type (too many jobs could generate to much io load
+# as quite a lot of data is read in from the storage...)
+job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
 for config_path in config_paths:   
     filelist_path = os.path.split(config_path)[0]
@@ -84,27 +95,26 @@ for config_path in config_paths:
     
     num_filelists = len(glob.glob(filelist_path + '/filelist_*.txt'))
     
-    resource_request = himster.JobResourceRequest(3 * 60)
+    resource_request = JobResourceRequest(3 * 60)
     resource_request.number_of_nodes = 1
     resource_request.processors_per_node = 1
     resource_request.memory_in_mb = 2500
-    job = himster.Job(resource_request, './createLumiFitData.sh', 'createLumiFitData', config_path + '/createLumiFitData-%a.log')
-    job.set_job_array_indices(list(range(1, num_filelists+1)))
+    #TODO: choose correct create data application
+    job = Job(
+        resource_request, 
+        './createLumiFitData.sh', 
+        'createLumiFitData', 
+        config_path + '/createLumiFitData-%a.log', 
+        array_indices = list(range(1, num_filelists+1)
+    )
     
-    job.add_exported_user_variable('numEv', args.num_events)
-    job.add_exported_user_variable('pbeam', args.lab_momentum[0])
-    job.add_exported_user_variable('input_path', input_path)
-    job.add_exported_user_variable('filelist_path', filelist_path)
-    job.add_exported_user_variable('output_path', config_path)
-    job.add_exported_user_variable('config_path', config_path+'/dataconfig.json')
-    job.add_exported_user_variable('type', args.type[0])
-    job.add_exported_user_variable('elastic_cross_section', args.elastic_cross_section)
+    job.exported_user_variables['numEv'] = args.num_events
+    job.exported_user_variables['pbeam'] = args.lab_momentum[0]
+    job.exported_user_variables['input_path'] = input_path
+    job.exported_user_variables['filelist_path'] = filelist_path
+    job.exported_user_variables['output_path'] = config_path
+    job.exported_user_variables['config_path'] = config_path+'/dataconfig.json'
+    job.exported_user_variables['type'] = args.type[0]
+    job.exported_user_variables['elastic_cross_section'] = args.elastic_cross_section
     
-    joblist.append(job)
-   
-# job threshold of this type (too many jobs could generate to much io load
-# as quite a lot of data is read in from the storage...)
-job_manager = himster.HimsterJobManager(2000, 300)
-
-job_manager.submit_jobs_to_himster(joblist)
-job_manager.manage_jobs()
+    job_manager.append(job)

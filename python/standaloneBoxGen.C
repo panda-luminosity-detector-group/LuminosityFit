@@ -16,11 +16,11 @@
 	return t;
 }*/
 
-void standaloneBoxGen(double plab, int nevents, double fThetaMin,
-		double fThetaMax, TString output_filename, double seed = 123456., bool use_recoil_correction = true) {
+void standaloneBoxGen( double plab, int nevents,  double fThetaMin,
+		double fThetaMax,  double fPhiMin = 0.0,
+		double fPhiMax = 360.0, TString output_filename = "gen_mc.root" , double seed = 123456., bool use_recoil_correction = true) {
 	double mp = 0.938272;
-	double fPhiMin = 0.0;
-	double fPhiMax = 360.0;
+	
 
 	TClonesArray ca("TParticle", 1);
 	TClonesArray *pars = &ca;

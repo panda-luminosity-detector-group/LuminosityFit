@@ -1,5 +1,4 @@
 autopep8
-attrs
 black
 flake8
 isort

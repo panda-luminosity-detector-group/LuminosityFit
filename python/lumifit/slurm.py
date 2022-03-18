@@ -95,13 +95,13 @@ class SlurmJobHandler(JobHandler):
         out, err = returnvalue.communicate()
         return int(out)
 
-    def create_submit_commands(self, job: Job) -> List[str]:
+    def submit(self, job: Job) -> int:
         if self.__job_preprocessor:
             job = self.__job_preprocessor(job)
 
         bashcommand = (
             "sbatch"
-            + (" -A {self.__account}" if self.__account else "")
+            + (f" -A {self.__account}" if self.__account else "")
             + f" -p {self.__partition}"
             + (
                 f" --constraint={self.__constraints}"
@@ -129,4 +129,4 @@ class SlurmJobHandler(JobHandler):
             + " "
             + job.application_url
         )
-        return [bashcommand]
+        return subprocess.call(bashcommand, shell=True)

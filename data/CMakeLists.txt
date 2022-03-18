@@ -9,7 +9,7 @@ set(ROOT_DICT_HEADERS
 )
 
 set(INCLUDE_DIRECTORIES 
-${CMAKE_SOURCE_DIR}/model_framework 
+${CMAKE_SOURCE_DIR}/model_framework
 ${CMAKE_SOURCE_DIR}
 ${VMC_INCLUDE_DIRS}
 )
@@ -77,8 +77,8 @@ if (KOALASOFT_FOUND)
 	${VMC_INCLUDE_DIRS}
 	)
 
-	include_directories(${INCLUDE_DIRECTORIES})
-
+        include_directories(${INCLUDE_DIRECTORIES})
+	
 	set(SRCS
 		KoaSeperateDataReader.cxx
 	)

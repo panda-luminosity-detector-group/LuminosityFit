@@ -24,7 +24,6 @@ class ReconstructionParameters:
     low_index: int = attr.ib(default=1)
     output_dir: str = attr.ib(default="")
     lmd_geometry_filename: str = attr.ib(default="Luminosity-Detector.root")
-
     use_xy_cut: bool = attr.ib(default=False)
     use_m_cut: bool = attr.ib(default=False)
     track_search_algo: str = attr.ib(
@@ -72,14 +71,14 @@ def generateRecoDirSuffix(
     return reco_dirname_suffix
 
 
-def createReconstructionJob(
+def create_reconstruction_job(
     reco_params: ReconstructionParameters,
     align_params: AlignmentParameters,
     dirname,
+    application_command="runLmdReco.py",
     force_level=0,
     debug=False,
     use_devel_queue=False,
-    reco_file_name_pattern="Lumi_TrksQA_*.root",
 ) -> Tuple[Job, str]:
     print(
         "preparing reconstruction in index range "
@@ -113,30 +112,6 @@ def createReconstructionJob(
         if exception.errno != errno.EEXIST:
             print("error: thought dir does not exists but it does...")
 
-    min_file_size = 3000  # in bytes
-    if force_level == 0:
-        # check if the directory already has the reco data in it
-        reco_files = glob.glob(pathname_full + "/" + reco_file_name_pattern)
-        total_requested_jobs = num_samples
-        reco_files = [
-            x for x in reco_files if os.path.getsize(x) > min_file_size
-        ]
-        if total_requested_jobs == 1:
-            if len(reco_files) == total_requested_jobs:
-                print(
-                    "directory of with fully reconstructed track file "
-                    "already exists! Skipping..."
-                )
-                return (pathname_full, True)
-        else:
-            if len(reco_files) >= int(0.8 * total_requested_jobs):
-                print(
-                    "directory with at least 80% (compared to requested "
-                    "number of simulated files) of fully reconstructed "
-                    " track files already exists! Skipping..."
-                )
-                return (pathname_full, True)
-
     write_params_to_file(reco_params, pathname_full, "reco_params.config")
     write_params_to_file(align_params, pathname_full, "align_params.config")
 
@@ -151,7 +126,7 @@ def createReconstructionJob(
 
     job = Job(
         resource_request,
-        application_url="./runLmdReco.sh",
+        application_url=application_command,
         name="lmd_reco_",
         logfile_url=pathname_full + "/reco-%a.log",
     )
@@ -164,7 +139,7 @@ def createReconstructionJob(
         "dirname": dirname_full,
         "path_mc_data": path_mc_data,
         "pathname": pathname_full,
-        "force_level": force_level,
+        "force_level": str(force_level),
     }
 
     if os.environ["force_cut_disable"] == "True":
