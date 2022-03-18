@@ -20,6 +20,6 @@ def create_himster_job_handler(
     return SlurmJobHandler(
         partition=partition,
         account=account,
-        constraints="skylake,mhz-2101",
+        constraints="skylake",
         job_preprocessor=job_preprocessor,
     )
