@@ -32,3 +32,19 @@ In order to have the full ROOT cling support, export the build library directory
 ```bash
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LMDFIT_BUILD_PATH/lib
 ``` 
+
+## Using in Container with the Slurm Agent
+
+Start the agent with:
+
+```bash
+python python/lmdfit/agent.py
+```
+
+It will run in the background and wait for json-formatted `SlurmOrder`s in the named pipe `/tmp/lmdfitpipe`. After it receives an order and executes it, it returns a json-formatted `SlurmOrder` to the same pipe (and blocks if no-one receives it!).
+
+To exit the agent, pipe the exit meta-command to the pipe:
+
+```bash
+echo '{"orderType": "meta", "cmd": "exit"}' > /tmp/lmdfit
+```
