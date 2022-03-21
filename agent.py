@@ -28,14 +28,20 @@ returnCodePipeName = 'returncodePipe'
 
 # TODO: only two pipes in the future, use json objects instead
 def preparePipes():
-    os.mkfifo(orderPipeName)
-    os.mkfifo(outputPipeName)
-    os.mkfifo(returnCodePipeName)
+    if not os.path.exists(orderPipeName):
+        os.mkfifo(orderPipeName)
+    if not os.path.exists(outputPipeName):
+        os.mkfifo(outputPipeName)
+    if not os.path.exists(returnCodePipeName):
+        os.mkfifo(returnCodePipeName)
 
 def deletePipes():
-    os.unlink(orderPipeName)
-    os.unlink(outputPipeName)
-    os.unlink(returnCodePipeName)
+    if os.path.exists(orderPipeName):
+        os.unlink(orderPipeName)
+    if os.path.exists(outputPipeName):
+        os.unlink(outputPipeName)
+    if os.path.exists(returnCodePipeName):
+        os.unlink(returnCodePipeName)
 
 # continouosly read from pipe and execute, write output and return codes back
 def readAndExecute():
@@ -46,13 +52,15 @@ def readAndExecute():
                     print('Got exit command.')
                     return
                 else:
-                    with open(outputPipeName, 'w') as pipeOut:
-                        # args = shlex.split(line)
-                        completedProcess = subprocess.run(line, shell=True, stdout=pipeOut)
-                        returnCode = completedProcess.returncode
+                    print(f'Got command: {line}')
+                    command = line
+        with open(outputPipeName, 'w') as pipeOut:
+            # args = shlex.split(line)
+            completedProcess = subprocess.run(line, shell=True, stdout=pipeOut)
+            returnCode = completedProcess.returncode
 
-                        with open(returnCodePipeName, 'w') as returnPipe:
-                            returnPipe.write(str(returnCode))
+            with open(returnCodePipeName, 'w') as returnPipe:
+                returnPipe.write(str(returnCode))
 
 if __name__ == '__main__':
     welcome = """
