@@ -30,7 +30,7 @@ def make_test_job_resource_request() -> JobResourceRequest:
     )
 
 
-@attr.s(hash=True)
+@attr.s(hash=False)
 class Job:
     def _validate_job_array_indices(instance, attribute, value):
         if not isinstance(value, list):

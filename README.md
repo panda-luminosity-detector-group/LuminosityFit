@@ -38,6 +38,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LMDFIT_BUILD_PATH/lib
 Start the agent with:
 
 ```bash
+module load lang/Python/3.9.6-GCCcore-11.2.0
 python python/lmdfit/agent.py
 ```
 
@@ -47,4 +48,17 @@ To exit the agent, pipe the exit meta-command to the pipe:
 
 ```bash
 echo '{"orderType": "meta", "cmd": "exit"}' > /tmp/lmdfit
+```
+
+Start container (pipe in `/tmp` is automatically available in Singularity):
+
+```bash
+module load tools/Singularity
+singularity run lmdfit-mini.sif
+```
+
+In there, run the test simulation:
+
+```bash
+python python runSimulationReconstruction.py simparams.conf recoparams.conf
 ```

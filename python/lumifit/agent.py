@@ -134,7 +134,7 @@ class Server(Agent):
                 process = subprocess.run(
                     cmds,
                     env=thisOrder.env,
-                    capture_output=True,
+                    capture_output=True,    # this is available from Python 3.7 onwards, but NOT 3.6 (which is on himster)
                     shell=False,
                     encoding="utf-8",
                 )
