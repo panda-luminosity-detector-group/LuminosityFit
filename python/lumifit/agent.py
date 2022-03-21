@@ -79,14 +79,14 @@ class Agent:
             # this handles the entire pipe (encoding, newlines and all)
             payload = json.load(universalPipe)
 
-            if isinstance(payload, str):
-                print(f"\n\nDEBUG: returned object was stored as string?")
-                print(f"This is weird! Should've been dict!")
-                print(f"\n\nDEBUG:\n{payload}\n")
-                payload = json.loads(payload)
+        if isinstance(payload, str):
+            print(f"\n\nDEBUG: returned object was stored as string?")
+            print(f"This is weird! Should've been dict!")
+            print(f"\n\nDEBUG:\n{payload}\n")
+            payload = json.loads(payload)
 
-            # python json's are actually dicts
-            return SlurmOrder.fromDict(payload)
+        # python json's are actually dicts
+        return SlurmOrder.fromDict(payload)
 
 
 class Server(Agent):
@@ -94,7 +94,9 @@ class Server(Agent):
 
         if os.path.exists(self.universalPipePath):
             if not stat.S_ISFIFO(os.stat(self.universalPipePath).st_mode):
-                print(f"Warning! Path {self.universalPipePath} exists but is not a pipe. Deleting!")
+                print(
+                    f"Warning! Path {self.universalPipePath} exists but is not a pipe. Deleting!"
+                )
                 os.unlink(self.universalPipePath)
 
         if not os.path.exists(self.universalPipePath):
@@ -193,9 +195,13 @@ class Client(Agent):
     def __init__(self) -> None:
         super().__init__()
         if not os.path.exists(self.universalPipePath):
-            raise Exception(f"named pipe not found at {self.universalPipePath}")
+            raise Exception(
+                f"named pipe not found at {self.universalPipePath}"
+            )
         if not stat.S_ISFIFO(os.stat(self.universalPipePath).st_mode):
-            raise Exception(f"\nERROR! Path {self.universalPipePath} is not a pipe!")
+            raise Exception(
+                f"\nERROR! Path {self.universalPipePath} is not a pipe!"
+            )
 
 
 if __name__ == "__main__":
