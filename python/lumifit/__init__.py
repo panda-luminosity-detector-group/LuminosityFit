@@ -1,6 +1,16 @@
-__all__ = ["alignment", "cluster", "general", "himster", "reconstruction", "simulation", "slurm"]
+__all__ = [
+    "agent",
+    "alignment",
+    "cluster",
+    "general",
+    "himster",
+    "reconstruction",
+    "simulation",
+    "slurm",
+]
 
 from . import (
+    agent,
     alignment,
     cluster,
     general,

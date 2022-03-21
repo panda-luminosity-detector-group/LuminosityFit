@@ -4,6 +4,7 @@ import subprocess, os
 from typing import Callable, List, Optional
 
 from .cluster import Job, JobHandler, JobResourceRequest
+from .agent import Client, SlurmOrder
 
 
 def _stringify(job_resource_request: JobResourceRequest):
@@ -87,36 +88,25 @@ class SlurmJobHandler(JobHandler):
 
     def get_active_number_of_jobs(self) -> int:
         """Check users current number of running and queued jobs."""
-        bashcommand = (
-            "squeue -u $USER -o %C | sed 's/CPUS/0/' | awk '{s+=$1} END {print s}'"
-        )
-        # returnvalue = subprocess.Popen(
-        #     bashcommand, shell=True, stdout=subprocess.PIPE
-        # )
-        # out, err = returnvalue.communicate()
-        # return int(out)
+        bashcommand = "squeue -u $USER -o %C | sed 's/CPUS/0/' | awk '{s+=$1} END {print s}'"
 
         if self.__useSlurmAgent__:
-            pipePath = os.getenv('LMDFIT_BUILD_PATH') + '/../'
-            # this order is important! first, write to command (agent is listening)
-            with open(pipePath+'orderPipe', 'w') as orderPipe:
-                orderPipe.write(bashcommand + '\n')
-
-            # then, listen for stdout
-            with open(pipePath+'outputPipe', 'r') as outputPipe:
-                result = outputPipe.read()
-                # listen for return code last!
-                with open(pipePath+'returncodePipe', 'r') as returncodePipe:
-                    returnCode = int(returncodePipe.read())
-                    return int(result)  # should be no of jobs
+            client = Client()
+            thisOrder = SlurmOrder()
+            thisOrder.cmd = bashcommand
+            thisOrder.runShell = True
+            thisOrder.stdout = "0"
+            client.sendOrder(thisOrder)
+            resultOrder = client.receiveOrder()
+            resultOut = resultOrder.stdout
+            return int(resultOut)
 
         else:
-            pass
-            # returnvalue = subprocess.Popen(
-            #     bashcommand, shell=True, stdout=subprocess.PIPE
-            # )
-            # out, err = returnvalue.communicate()
-            # return int(out)
+            returnvalue = subprocess.Popen(
+                bashcommand, shell=True, stdout=subprocess.PIPE
+            )
+            out, err = returnvalue.communicate()
+            return int(out)
 
     def submit(self, job: Job) -> int:
         if self.__job_preprocessor:
@@ -152,19 +142,15 @@ class SlurmJobHandler(JobHandler):
             + " "
             + job.application_url
         )
-        print(f'trying to submit job')
-        # TODO: prepare json object
         if self.__useSlurmAgent__:
-            pipePath = os.getenv('LMDFIT_BUILD_PATH') + '/../'
-            # this order is important! first, write to command (agent is listening)
-            with open(pipePath+'orderPipe', 'w') as orderPipe:
-                orderPipe.write(bashcommand + '\n')
-            # then, listen for stdout
-            with open(pipePath+'outputPipe') as outputPipe:
-                outputPipe.read()
-                # listen for return code last!
-                with open(pipePath+'returncodePipe') as returncodePipe:
-                    return int(returncodePipe.read())
+            client = Client()
+            thisOrder = SlurmOrder()
+            thisOrder.cmd = bashcommand
+            thisOrder.runShell = True
+            client.sendOrder(thisOrder)
+            resultOrder = client.receiveOrder()
+            returnCode = resultOrder.returnCode
+            return int(returnCode)
 
         else:
             return subprocess.call(bashcommand, shell=True)
