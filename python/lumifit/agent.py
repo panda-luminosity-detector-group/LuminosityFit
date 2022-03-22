@@ -80,9 +80,10 @@ class Agent:
             payload = json.load(universalPipe)
 
         if isinstance(payload, str):
-            print(f"\n\nDEBUG: returned object was stored as string?")
-            print(f"This is weird! Should've been dict!")
-            print(f"\n\nDEBUG:\n{payload}\n")
+            # apparently, this is by design! if the json thing is interpreted as string, then a string is returned (and not a dict)!
+            # so just remove the output and parse again so that it becomes a dict 
+            # TODO: find out how you can force this dict-behaviour
+            # could be https://stackoverflow.com/questions/71397342/how-to-use-pythons-jsondecoder
             payload = json.loads(payload)
 
         # python json's are actually dicts
