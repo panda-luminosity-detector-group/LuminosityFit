@@ -1,6 +1,6 @@
 from rklasen/fairroot:mini
 
-COPY requirements-dev.txt /requirements.txt
+COPY requirements.txt /requirements.txt
 
 RUN apt-get install -y python3-pip
 
