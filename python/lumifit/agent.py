@@ -7,7 +7,9 @@ the structure of the order and return object is governd by the SlurmOrder Class.
 """
 
 import attr
+import datetime
 import json
+import logging
 import os
 import shlex
 import subprocess
@@ -81,7 +83,7 @@ class Agent:
 
         if isinstance(payload, str):
             # apparently, this is by design! if the json thing is interpreted as string, then a string is returned (and not a dict)!
-            # so just remove the output and parse again so that it becomes a dict 
+            # so just remove the output and parse again so that it becomes a dict
             # TODO: find out how you can force this dict-behaviour
             # could be https://stackoverflow.com/questions/71397342/how-to-use-pythons-jsondecoder
             payload = json.loads(payload)
@@ -92,7 +94,6 @@ class Agent:
 
 class Server(Agent):
     def preparePipes(self) -> None:
-
         if os.path.exists(self.universalPipePath):
             if not stat.S_ISFIFO(os.stat(self.universalPipePath).st_mode):
                 print(
@@ -112,10 +113,12 @@ class Server(Agent):
         while True:
             # read entire pipe contents and try to deserialize json from it (close pipe!)
             thisOrder = self.receiveOrder()
+            logging.info(f'Received Order:\n{thisOrder}')
             # execute command as ordered
             returnOrder = self.execute(thisOrder)
 
             # return result
+            logging.info(f'Sent back result:\n{returnOrder}')
             self.sendOrder(returnOrder)
 
     def execute(self, thisOrder: SlurmOrder) -> SlurmOrder:
@@ -135,7 +138,7 @@ class Server(Agent):
                 process = subprocess.run(
                     cmds,
                     env=thisOrder.env,
-                    capture_output=True,    # this is available from Python 3.7 onwards, but NOT 3.6 (which is on himster)
+                    capture_output=True,  # this is available from Python 3.7 onwards, but NOT 3.6 (which is on himster)
                     shell=False,
                     encoding="utf-8",
                 )
@@ -178,6 +181,10 @@ class Server(Agent):
         except OSError as e:
             print(f"fork failed: {e.errno} ({e.strerror})")
             sys.exit(1)
+
+        # preapare log
+        logging.basicConfig(filename=f'agentLog-{datetime.datetime.now().isoformat()}.log', encoding='utf-8', level=logging.INFO)
+        logging.info(f'Starting Log at {datetime.datetime.now().isoformat()}\n')
 
         thisServer = Server()
         thisServer.preparePipes()
