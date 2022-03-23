@@ -8,4 +8,5 @@ SINGULARITY_TMPDIR=/localscratch/${SLURM_JOB_ID}/singularity_tmp/
 export SINGULARITY_TMPDIR
 mkdir -p $SINGULARITY_TMPDIR
 
+#TODO: don't hardcode the path ffs, use environment variables
 singularity exec /home/roklasen/lmdfit-mini.sif python /home/roklasen/LuminosityFit/python/runKoaSimReco.py
