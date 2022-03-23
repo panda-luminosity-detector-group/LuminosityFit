@@ -113,12 +113,12 @@ class Server(Agent):
         while True:
             # read entire pipe contents and try to deserialize json from it (close pipe!)
             thisOrder = self.receiveOrder()
-            logging.info(f'Received Order:\n{thisOrder}\n')
+            logging.info(f"Received Order:\n{thisOrder}\n")
             # execute command as ordered
             returnOrder = self.execute(thisOrder)
 
             # return result
-            logging.info(f'Sent back result:\n{returnOrder}\n')
+            logging.info(f"Sent back result:\n{returnOrder}\n")
             self.sendOrder(returnOrder)
 
     def execute(self, thisOrder: SlurmOrder) -> SlurmOrder:
@@ -183,8 +183,14 @@ class Server(Agent):
             sys.exit(1)
 
         # preapare log
-        logging.basicConfig(filename=f'agentLog-{datetime.datetime.now().isoformat()}.log', encoding='utf-8', level=logging.INFO)
-        logging.info(f'Starting Log at {datetime.datetime.now().isoformat()}\n')
+        logging.basicConfig(
+            filename=f"agentLog-{datetime.datetime.now().isoformat()}.log",
+            encoding="utf-8",
+            level=logging.INFO,
+        )
+        logging.info(
+            f"Starting Log at {datetime.datetime.now().isoformat()}\n"
+        )
 
         thisServer = Server()
         thisServer.preparePipes()
