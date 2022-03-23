@@ -96,6 +96,7 @@ class SlurmJobHandler(JobHandler):
             thisOrder.cmd = bashcommand
             thisOrder.runShell = True
             thisOrder.stdout = "0"
+            thisOrder.env = os.environ.copy()
             client.sendOrder(thisOrder)
             resultOrder = client.receiveOrder()
             resultOut = resultOrder.stdout
@@ -147,6 +148,7 @@ class SlurmJobHandler(JobHandler):
             thisOrder = SlurmOrder()
             thisOrder.cmd = bashcommand
             thisOrder.runShell = True
+            thisOrder.env = os.environ.copy()
             client.sendOrder(thisOrder)
             resultOrder = client.receiveOrder()
             returnCode = resultOrder.returnCode
