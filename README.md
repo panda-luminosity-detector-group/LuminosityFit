@@ -39,7 +39,7 @@ Start the agent with:
 
 ```bash
 module load lang/Python/3.9.6-GCCcore-11.2.0
-python python/lmdfit/agent.py
+python/lumifit/agent.py
 ```
 
 It will run in the background and wait for json-formatted `SlurmOrder`s in the named pipe `/tmp/lmdfitpipe`. After it receives an order and executes it, it returns a json-formatted `SlurmOrder` to the same pipe (and blocks if no-one receives it!).
