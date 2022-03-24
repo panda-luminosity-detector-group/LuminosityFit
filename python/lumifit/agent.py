@@ -50,6 +50,8 @@ class SlurmOrder:
 
 
 class Agent:
+    # TODO: put this somewhere else, everybody can write to this!
+    # this may even be accidental by some scripts
     universalPipePath = "/tmp/lmdfit"
 
     def SlurmOrderExamples():
@@ -210,7 +212,7 @@ class Client(Agent):
         super().__init__()
         if not os.path.exists(self.universalPipePath):
             raise Exception(
-                f"named pipe not found at {self.universalPipePath}"
+                f"named pipe not found at {self.universalPipePath}. Please start the agent first!"
             )
         if not stat.S_ISFIFO(os.stat(self.universalPipePath).st_mode):
             raise Exception(

@@ -167,7 +167,7 @@ def create_simulation_and_reconstruction_job(
     dirname_full = dirname + "/" + dirname_filter_suffix
     pathname_full = lmdfit_data_dir + "/" + dirname_full
     # TODO: don't hardcode the path ffs, use environment variables
-    macropath_full = "/home/jenfrech/KoalaSoft/macro/lmd"
+    macropath_full = "/home/roklasen/KoalaSoft/macro/lmd"
 
     print("using output folder structure: " + pathname_full)
 

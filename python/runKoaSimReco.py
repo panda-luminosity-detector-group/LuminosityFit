@@ -7,12 +7,16 @@ from lumifit.alignment import AlignmentParameters
 from lumifit.general import load_params_from_file, check_stage_success
 from lumifit.simulation import SimulationParameters, SimulationType
 
-
+# TODO: scriptpath ALYWAS depends on LMD_BUILD_PATH and should never be read by getcwd()
+#! this also applies to other script, so search the ENTIRE repo for this.
+lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
+scriptpath = lmd_build_path + "../python"
 dirname = os.environ["dirname"]
 path_mc_data = os.environ["path_mc_data"]
 pathname = os.environ["pathname"]
 macropath = os.environ["macropath"]
 force_level = int(os.environ["force_level"])
+gen_filepath = workpathname + "/gen_mc.root"
 
 
 filename_index = 1
@@ -36,9 +40,6 @@ else:
 if not os.path.exists(workpathname):
     os.makedirs(workpathname)
 
-gen_filepath = workpathname + "/gen_mc.root"
-scriptpath = os.getcwd()
-lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 
 verbositylvl = 0
 start_evt: int = sim_params.num_events_per_sample * filename_index
