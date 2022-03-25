@@ -76,6 +76,7 @@ class Agent:
             json.dump(thisOrder.toJson(), universalPipe)
 
     def receiveOrder(self) -> SlurmOrder:
+        # TODO: I don't know is this works for multi-line orders. check that!
         with open(
             self.universalPipePath, "r", encoding="utf-8"
         ) as universalPipe:
