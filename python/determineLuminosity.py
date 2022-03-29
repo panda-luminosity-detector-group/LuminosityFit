@@ -3,7 +3,6 @@
 # TODO: check if this script works, it seems to be python3 at least
 
 import argparse
-import glob
 import json
 import math
 import os

@@ -1,3 +1,7 @@
+"""
+TODO: this script is not done! half of it is still bash code. see issue #27
+"""
+
 import argparse
 import json
 import os

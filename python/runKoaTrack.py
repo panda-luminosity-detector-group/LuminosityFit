@@ -46,9 +46,9 @@ trkcut = True
 
 # merge hits on sensors from different sides. true=yes
 mergedHits = False
-## BOX cut before back-propagation
+# BOX cut before back-propagation
 BoxCut = False
-## Write all MC info in TrkQA array
+# Write all MC info in TrkQA array
 WrAllMC = True
 
 missalign = False

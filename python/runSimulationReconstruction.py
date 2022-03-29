@@ -24,8 +24,8 @@ def run_simulation_and_reconstruction(sim_params, align_params, reco_params):
         debug=args.debug,
         use_devel_queue=args.use_devel_queue,
         # application_command="./runKoaSimReco.sh"
-        #TODO: don't hardcode the path ffs, use environment variables
-        application_command="/home/roklasen/LuminosityFit/python/singularityJob.sh"
+        # TODO: don't hardcode the path ffs, use environment variables
+        application_command="/home/roklasen/LuminosityFit/python/singularityJob.sh",
     )
     full_hostname = socket.getfqdn()
     if args.debug:

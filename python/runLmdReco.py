@@ -1,3 +1,7 @@
+"""
+TODO: this script is not done! half of it is still bash code. see issue #27
+"""
+
 import argparse
 import json
 import os
@@ -10,11 +14,11 @@ from lumifit.general import load_params_from_file
 from lumifit.reconstruction import RecoParameters
 
 parser.add_argument('force_level', metavar='force_level', type=int, default=0,
-                    help='"force level 0: if directories exist with data\n"
-                          "files no new simulation is started\n"
-                          "force level 1: will do full reconstruction even if "
-                          "this data already exists, but not geant simulation\n"
-                          "force level 2: resimulation of everything!"')
+                    help="force level 0: if directories exist with data\n"+
+                          "files no new simulation is started\n"+
+                          "force level 1: will do full reconstruction even if "+
+                          "this data already exists, but not geant simulation\n"+
+                          "force level 2: resimulation of everything!")
 parser.add_argument('dirname', metavar='dirname', type=str, nargs=1,
                     help='This directory for the outputfiles.')
 parser.add_argument('pathname', metavar='pathname', type=str, nargs=1,

@@ -1,3 +1,5 @@
+# TODO: port to python3, add shebang
+
 import os, sys, re, errno, glob, time, glob
 import subprocess
 import multiprocessing
