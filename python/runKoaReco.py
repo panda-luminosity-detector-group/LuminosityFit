@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-
-
+#!/usr/bin/env python3
 import os
 
 from lumifit.alignment import AlignmentParameters
@@ -19,31 +17,33 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
     filename_index = int(os.environ["SLURM_ARRAY_TASK_ID"])
     debug = False
 
-reco_params = ReconstructionParameters(**load_params_from_file(pathname + "/reco_params.config"))
+reco_params = ReconstructionParameters(
+    **load_params_from_file(pathname + "/reco_params.config")
+)
 ali_params = AlignmentParameters()
 
 verbositylvl: int = 0
-start_evt: int = reco_params.num_events_per_sample * filename_index 
+start_evt: int = reco_params.num_events_per_sample * filename_index
 
 if debug:
-    workpathname=pathname
-    path_mc_data=workpathname
+    workpathname = pathname
+    path_mc_data = workpathname
 else:
-    workpathname=f"/localscratch/{os.environ['SLURM_JOB_ID']}/{dirname}"
+    workpathname = f"/localscratch/{os.environ['SLURM_JOB_ID']}/{dirname}"
 
 gen_filepath = workpathname + "/gen_mc.root"
 scriptpath = os.getcwd()
 
 
-#switch on "missing plane" search algorithm
+# switch on "missing plane" search algorithm
 misspl = True
 
-#use cuts during trk seacrh with "CA". Should be 'false' if sensors missaligned!
+# use cuts during trk seacrh with "CA". Should be 'false' if sensors missaligned!
 trkcut = True
-#if ali_params.alignment_matrices_path = "":
+# if ali_params.alignment_matrices_path = "":
 #   trkcut = False
 
-#merge hits on sensors from different sides. true=yes
+# merge hits on sensors from different sides. true=yes
 mergedHits = True
 ## BOX cut before back-propagation
 BoxCut = False
@@ -58,16 +58,19 @@ if reco_params.use_xy_cut:
     prefilter = True
 
 os.chdir(macropath)
-#check_stage_success "workpathname + "/Koala_MC_${start_evt}.root""
-if not check_stage_success(pathname + f"/Koala_Track_{start_evt}.root") or force_level == 1:
-    os.system(f"root -l -b -q 'KoaPixel2Reco.C({reco_params.num_events_per_sample},"
+# check_stage_success "workpathname + "/Koala_MC_${start_evt}.root""
+if (
+    not check_stage_success(pathname + f"/Koala_Track_{start_evt}.root")
+    or force_level == 1
+):
+    os.system(
+        f"root -l -b -q 'KoaPixel2Reco.C({reco_params.num_events_per_sample},"
         + f"{start_evt},"
-        + f"\"{workpathname}\","
-        #+ f"\"{ali_params.alignment_matrices_path}\", "
-        #+ f"\"{ali_params.misalignment_matrices_path}\", {ali_params.use_point_transform_misalignment},"
+        + f'"{workpathname}",'
+        # + f"\"{ali_params.alignment_matrices_path}\", "
+        # + f"\"{ali_params.misalignment_matrices_path}\", {ali_params.use_point_transform_misalignment},"
         + f"{verbositylvl})'"
     )
 
 os.chdir(scriptpath)
 os.system(f"python runKoaTrack.py")
-

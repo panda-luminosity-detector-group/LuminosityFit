@@ -1,7 +1,10 @@
 #!/usr/bin/python
 
+# TODO: this entire file must be ported to python3
+
 import os, sys, re, errno
 
+# TODO: remove hard coded path
 lib_path = os.path.abspath('../steve/argparse-1.2.1/build/lib')
 sys.path.append(lib_path)
 

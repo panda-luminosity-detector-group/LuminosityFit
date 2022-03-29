@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 
@@ -19,32 +19,32 @@ pathname = os.environ["pathname"]
 macropath = os.environ["macropath"]
 force_level = int(os.environ["force_level"])
 
-reco_param = ReconstructionParameters(**load_params_from_file(pathname + "/reco_params.config"))
+reco_param = ReconstructionParameters(
+    **load_params_from_file(pathname + "/reco_params.config")
+)
 ali_params = AlignmentParameters()
 
 verbositylvl: int = 0
-start_evt: int = reco_param.num_events_per_sample * filename_index 
+start_evt: int = reco_param.num_events_per_sample * filename_index
 
 if debug:
-    workpathname=pathname
-    path_mc_data=workpathname
+    workpathname = pathname
+    path_mc_data = workpathname
 else:
-    workpathname=f"/localscratch/{os.environ['SLURM_JOB_ID']}/{dirname}"
+    workpathname = f"/localscratch/{os.environ['SLURM_JOB_ID']}/{dirname}"
 
 gen_filepath = workpathname + "/gen_mc.root"
-scriptpath = os.getcwd()
 
-
-#switch on "missing plane" search algorithm
+# switch on "missing plane" search algorithm
 misspl = True
 
-#use cuts during trk seacrh with "CA". Should be 'false' if sensors missaligned!
+# use cuts during trk seacrh with "CA". Should be 'false' if sensors missaligned!
 trkcut = True
 
-#if ali_params.alignment_matrices_path = "":
+# if ali_params.alignment_matrices_path = "":
 #   trkcut = False
 
-#merge hits on sensors from different sides. true=yes
+# merge hits on sensors from different sides. true=yes
 mergedHits = False
 ## BOX cut before back-propagation
 BoxCut = False
@@ -62,51 +62,66 @@ dY = 0
 radLength = 0.32
 
 prefilter = False
-if reco_param.use_xy_cut :
-  prefilter = True
-
+if reco_param.use_xy_cut:
+    prefilter = True
 
 
 os.chdir(macropath)
-#check_stage_success "workpathname + "/Koala_TCand_${start_evt}.root""
-if not check_stage_success(pathname + f"/Koala_Track_{start_evt}.root") or force_level ==  1:
-  os.system(f"root -l -b -q 'KoaPixel3Finder.C({reco_param.num_events_per_sample},"
-          + f"{start_evt},"
-          + f"\"{workpathname}\","
-          + f"{verbositylvl},"
-          + f"\"{reco_param.track_search_algo}\","
-          + f"{1 if misspl else 0},"
-          + f"{1 if mergedHits else 0},"
-          + f"{1 if trkcut else 0},"
-          + f"{reco_param.lab_momentum})'"
-          )
+# check_stage_success "workpathname + "/Koala_TCand_${start_evt}.root""
+if (
+    not check_stage_success(pathname + f"/Koala_Track_{start_evt}.root")
+    or force_level == 1
+):
+    os.system(
+        f"root -l -b -q 'KoaPixel3Finder.C({reco_param.num_events_per_sample},"
+        + f"{start_evt},"
+        + f'"{workpathname}",'
+        + f"{verbositylvl},"
+        + f'"{reco_param.track_search_algo}",'
+        + f"{1 if misspl else 0},"
+        + f"{1 if mergedHits else 0},"
+        + f"{1 if trkcut else 0},"
+        + f"{reco_param.lab_momentum})'"
+    )
 
-  os.system(f"root -l -b -q 'KoaPixel4Fitter.C({reco_param.num_events_per_sample},{start_evt},"
-          + f"\"{workpathname}\",{verbositylvl},"
-          + f"\"Minuit\", {1 if mergedHits else 0})'")
-  # copy Lumi_recoMerged_ for module aligner
-  os.system(f"cp {workpathname}/Koala_Track_{start_evt}.root {pathname}/Koala_Track_{start_evt}.root")
+    os.system(
+        f"root -l -b -q 'KoaPixel4Fitter.C({reco_param.num_events_per_sample},{start_evt},"
+        + f'"{workpathname}",{verbositylvl},'
+        + f'"Minuit", {1 if mergedHits else 0})\''
+    )
+    # copy Lumi_recoMerged_ for module aligner
+    os.system(
+        f"cp {workpathname}/Koala_Track_{start_evt}.root {pathname}/Koala_Track_{start_evt}.root"
+    )
 else:
     if not debug:
         os.system(
             f"cp {pathname}/Koala_Track_{start_evt}.root {workpathname}/Koala_Track_{start_evt}.root"
         )
 
-if not check_stage_success(pathname + f"/Koala_comp_{start_evt}.root") or force_level ==  1:
-  returnvalue = subprocess.run(f"root -l -b -q 'KoaPixel5BackProp.C({reco_param.num_events_per_sample},{start_evt},"
-           + f"\"{workpathname}\",{verbositylvl},"
-           + f"{1 if mergedHits else 0},"
-           + f"{1 if SkipFilt else 0},"
-           + f"{1 if XthFilt else 0},"
-           + f"{1 if YthFilt else 0},"
-           + f"{1 if BoxFilt else 0},"
-           + f"{dX},"
-           + f"{dY})'", shell=True
-           )
+if (
+    not check_stage_success(pathname + f"/Koala_comp_{start_evt}.root")
+    or force_level == 1
+):
+    returnvalue = subprocess.run(
+        f"root -l -b -q 'KoaPixel5BackProp.C({reco_param.num_events_per_sample},{start_evt},"
+        + f'"{workpathname}",{verbositylvl},'
+        + f"{1 if mergedHits else 0},"
+        + f"{1 if SkipFilt else 0},"
+        + f"{1 if XthFilt else 0},"
+        + f"{1 if YthFilt else 0},"
+        + f"{1 if BoxFilt else 0},"
+        + f"{dX},"
+        + f"{dY})'",
+        shell=True,
+    )
 
-  os.system(f"root -l -b -q 'KoaPixel6Compare.C({reco_param.num_events_per_sample},{start_evt},"
-           + f"\"{workpathname}\",{verbositylvl},"
-           + f"{1 if missalign else 0})'")
-        # copy Lumi_recoMerged_ for module aligner
-  os.system(f"cp {workpathname}/Koala_comp_{start_evt}.root {pathname}/Koala_comp_{start_evt}.root")
-
+    os.system(
+        f"root -l -b -q 'KoaPixel6Compare.C({reco_param.num_events_per_sample},{start_evt},"
+        + f'"{workpathname}",{verbositylvl},'
+        + f"{1 if missalign else 0})'"
+    )
+    # copy Lumi_recoMerged_ for module aligner
+    os.system(
+        f"cp {workpathname}/Koala_comp_{start_evt}.root {pathname}/Koala_comp_{start_evt}.root"
+    )
