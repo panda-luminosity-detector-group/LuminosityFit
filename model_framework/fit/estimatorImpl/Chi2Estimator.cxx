@@ -12,11 +12,11 @@
 #include <iostream>
 
 Chi2Estimator::Chi2Estimator() : ModelEstimator(false) {
-  // TODO Auto-generated constructor stub
+  
 }
 
 Chi2Estimator::~Chi2Estimator() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 mydouble Chi2Estimator::eval(std::shared_ptr<Data> data) {

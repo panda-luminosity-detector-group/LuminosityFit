@@ -7,7 +7,7 @@ BoxModel2D::BoxModel2D(std::string name_) : Model2D(name_) {
 }
 
 BoxModel2D::~BoxModel2D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 mydouble BoxModel2D::eval(const mydouble *x) const {

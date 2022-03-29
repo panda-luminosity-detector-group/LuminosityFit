@@ -19,7 +19,7 @@ PndLmdDPMModelParametrization::PndLmdDPMModelParametrization(
 }
 
 PndLmdDPMModelParametrization::~PndLmdDPMModelParametrization() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void PndLmdDPMModelParametrization::initParameters() {

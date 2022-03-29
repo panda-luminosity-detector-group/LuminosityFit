@@ -15,11 +15,11 @@
 #include <iostream>
 
 ROOTDataHelper::ROOTDataHelper() {
-  // TODO Auto-generated constructor stub
+  
 }
 
 ROOTDataHelper::~ROOTDataHelper() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void ROOTDataHelper::fillBinnedData(std::shared_ptr<Data> data,

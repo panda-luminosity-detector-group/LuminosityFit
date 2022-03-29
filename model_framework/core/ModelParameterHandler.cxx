@@ -14,7 +14,7 @@ ModelParameterHandler::ModelParameterHandler(std::string model_name_)
     : model_par_set(model_name_), parametrizations() {}
 
 ModelParameterHandler::~ModelParameterHandler() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 ModelParSet &ModelParameterHandler::getModelParameterSet() {

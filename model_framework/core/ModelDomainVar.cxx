@@ -8,11 +8,11 @@
 #include "ModelDomainVar.h"
 
 ModelDomainVar::ModelDomainVar() {
-  // TODO Auto-generated constructor stub
+  
 }
 
 ModelDomainVar::~ModelDomainVar() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 double ModelDomainVar::getDomainRange() {

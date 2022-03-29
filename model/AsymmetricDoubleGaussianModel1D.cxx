@@ -25,7 +25,7 @@ AsymmetricDoubleGaussianModel1D::AsymmetricDoubleGaussianModel1D(
 }
 
 AsymmetricDoubleGaussianModel1D::~AsymmetricDoubleGaussianModel1D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void AsymmetricDoubleGaussianModel1D::initModelParameters() {

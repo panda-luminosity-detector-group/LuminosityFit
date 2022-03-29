@@ -145,5 +145,5 @@ PndLmdSmearingDoubleGaussianModelParametrization1D::
 
 PndLmdSmearingDoubleGaussianModelParametrization1D::
     ~PndLmdSmearingDoubleGaussianModelParametrization1D() {
-  // TODO Auto-generated destructor stub
+  
 }

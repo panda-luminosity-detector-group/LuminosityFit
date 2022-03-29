@@ -13,7 +13,7 @@ Model1D::Model1D(std::string name_)
       integral_strategy(new IntegralStrategyGSL1D()) {}
 
 Model1D::~Model1D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 mydouble

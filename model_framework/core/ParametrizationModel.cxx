@@ -12,7 +12,7 @@ ParametrizationModel::ParametrizationModel(std::shared_ptr<Model> model_)
     : model(model_), model_par() {}
 
 ParametrizationModel::~ParametrizationModel() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void ParametrizationModel::parametrize(const mydouble *x) {

@@ -12,7 +12,7 @@ ModelMinimizationControlParameter::ModelMinimizationControlParameter()
     : model() {}
 
 ModelMinimizationControlParameter::~ModelMinimizationControlParameter() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 mydouble ModelMinimizationControlParameter::evaluate(const mydouble *pars) {

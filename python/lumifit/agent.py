@@ -54,7 +54,7 @@ class Agent:
     # this may even be accidental by some scripts
     universalPipePath = "/tmp/lmdfit"
 
-    def SlurmOrderExamples():
+    def SlurmOrderExamples() -> None:
         slurmOrder = SlurmOrder()
         print(f"This is the Slurm Order:\n{slurmOrder}\n")
         print(f"This is the Slurm Order as json:\n{slurmOrder.toJson()}\n")
@@ -69,7 +69,7 @@ class Agent:
         )
         sys.exit(0)
 
-    def sendOrder(self, thisOrder: SlurmOrder):
+    def sendOrder(self, thisOrder: SlurmOrder) -> None:
         with open(
             self.universalPipePath, "w", encoding="utf-8"
         ) as universalPipe:
@@ -167,7 +167,7 @@ class Server(Agent):
         print("Have a nice day.")
         sys.exit(0)
 
-    def run():
+    def run() -> None:
         welcome = """
         Agent starting and forking to background.
         Write "exit" to orderPipe to exit agent.
@@ -201,7 +201,7 @@ class Server(Agent):
 
 
 class Client(Agent):
-    def checkConnection(self):
+    def checkConnection(self) -> None:
         testOrder = SlurmOrder()
         testOrder.orderType = "meta"
         testOrder.cmd = "test"

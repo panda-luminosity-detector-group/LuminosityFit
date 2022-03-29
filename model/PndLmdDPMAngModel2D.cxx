@@ -20,7 +20,7 @@ PndLmdDPMAngModel2D::PndLmdDPMAngModel2D(
 }
 
 PndLmdDPMAngModel2D::~PndLmdDPMAngModel2D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 std::pair<mydouble, mydouble>

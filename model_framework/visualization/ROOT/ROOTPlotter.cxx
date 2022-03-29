@@ -16,11 +16,11 @@
 #include <limits>
 
 ROOTPlotter::ROOTPlotter() {
-  // TODO Auto-generated constructor stub
+  
 }
 
 ROOTPlotter::~ROOTPlotter() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 TGraphAsymmErrors *ROOTPlotter::createGraphFromModel1D(

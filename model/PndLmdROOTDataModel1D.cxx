@@ -17,7 +17,7 @@ PndLmdROOTDataModel1D::PndLmdROOTDataModel1D(std::string name_)
     : Model1D(name_), spline(0), using_acceptance_bounds(false) {}
 
 PndLmdROOTDataModel1D::~PndLmdROOTDataModel1D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void PndLmdROOTDataModel1D::updateDomainFromPars(mydouble *par) {}

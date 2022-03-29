@@ -21,7 +21,7 @@ PndLmdROOTDataModel2D::PndLmdROOTDataModel2D(std::string name_)
       acc_y_range_high(0.0) {}
 
 PndLmdROOTDataModel2D::~PndLmdROOTDataModel2D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void PndLmdROOTDataModel2D::updateDomainFromPars(double *par) {}

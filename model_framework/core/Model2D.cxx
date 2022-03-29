@@ -14,7 +14,7 @@ Model2D::Model2D(std::string name_)
       integral_strategy(new IntegralStrategyGSL2D()) {}
 
 Model2D::~Model2D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 mydouble Model2D::getVar1DomainRange() {

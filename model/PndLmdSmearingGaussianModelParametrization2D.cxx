@@ -152,5 +152,5 @@ parameter_name->second.second << "!" << std::endl;
 
 PndLmdSmearingGaussianModelParametrization2D::
     ~PndLmdSmearingGaussianModelParametrization2D() {
-  // TODO Auto-generated destructor stub
+  
 }

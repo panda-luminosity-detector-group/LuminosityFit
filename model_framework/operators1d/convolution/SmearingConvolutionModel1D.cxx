@@ -18,7 +18,7 @@ SmearingConvolutionModel1D::SmearingConvolutionModel1D(
 }
 
 SmearingConvolutionModel1D::~SmearingConvolutionModel1D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void SmearingConvolutionModel1D::initModelParameters() {}

@@ -29,7 +29,7 @@ PndLmdAbstractData::PndLmdAbstractData(const PndLmdAbstractData &lmd_abs_data_)
       selection_dimensions(lmd_abs_data_.getSelectorSet()) {}
 
 PndLmdAbstractData::~PndLmdAbstractData() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 int PndLmdAbstractData::getNumEvents() const { return num_events; }

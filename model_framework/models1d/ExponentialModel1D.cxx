@@ -16,7 +16,7 @@ ExponentialModel1D::ExponentialModel1D(std::string name_) : Model1D(name_) {
 }
 
 ExponentialModel1D::~ExponentialModel1D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void ExponentialModel1D::initModelParameters() {

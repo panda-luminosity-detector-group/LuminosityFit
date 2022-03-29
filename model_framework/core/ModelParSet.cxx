@@ -13,7 +13,7 @@ ModelParSet::ModelParSet(std::string model_name_)
     : model_name(model_name_), model_par_map() {}
 
 ModelParSet::~ModelParSet() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 unsigned int ModelParSet::getNumberOfParameters() const {

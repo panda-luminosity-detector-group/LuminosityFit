@@ -17,7 +17,7 @@ ModelFitFacade::ModelFitFacade()
     : data(), model(), estimator(), minimizer(), estimator_options() {}
 
 ModelFitFacade::~ModelFitFacade() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 const EstimatorOptions &ModelFitFacade::getEstimatorOptions() const {

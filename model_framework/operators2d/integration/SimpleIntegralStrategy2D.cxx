@@ -11,11 +11,11 @@
 #include <operators2d/integration/SimpleIntegralStrategy2D.h>
 
 SimpleIntegralStrategy2D::SimpleIntegralStrategy2D() {
-  // TODO Auto-generated constructor stub
+  
 }
 
 SimpleIntegralStrategy2D::~SimpleIntegralStrategy2D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void SimpleIntegralStrategy2D::setUsedEvaluationGridConstant(

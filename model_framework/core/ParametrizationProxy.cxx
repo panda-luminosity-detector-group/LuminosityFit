@@ -11,7 +11,7 @@ ParametrizationProxy::ParametrizationProxy()
     : state(NONE), parametrization_model(), parametrization() {}
 
 ParametrizationProxy::~ParametrizationProxy() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 bool ParametrizationProxy::hasParametrization() const {

@@ -12,7 +12,7 @@ Data::Data(unsigned int dimension_)
       is_binning_factor_set(false) {}
 
 Data::~Data() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 unsigned int Data::getDimension() const { return dimension; }

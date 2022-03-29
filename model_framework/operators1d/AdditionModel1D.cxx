@@ -19,7 +19,7 @@ AdditionModel1D::AdditionModel1D(std::string name_,
 }
 
 AdditionModel1D::~AdditionModel1D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void AdditionModel1D::initModelParameters() {}

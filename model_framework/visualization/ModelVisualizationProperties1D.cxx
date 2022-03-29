@@ -42,5 +42,5 @@ void ModelVisualizationProperties1D::setPlotRange(
 }
 
 ModelVisualizationProperties1D::~ModelVisualizationProperties1D() {
-  // TODO Auto-generated destructor stub
+  
 }

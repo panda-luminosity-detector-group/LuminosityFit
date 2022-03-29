@@ -19,7 +19,7 @@ PndLmdE760ModelParametrization::PndLmdE760ModelParametrization(
 }
 
 PndLmdE760ModelParametrization::~PndLmdE760ModelParametrization() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void PndLmdE760ModelParametrization::initParameters() {
