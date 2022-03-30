@@ -33,7 +33,7 @@ def run_simulation_and_reconstruction(sim_params, align_params, reco_params):
     else:
         if "gsi.de" in full_hostname:
             job_handler = create_virgo_job_handler("long")
-        else:
+        elif "mogon" in full_hostname:
             if args.use_devel_queue:
                 job_handler = create_himster_job_handler("devel")
             else:

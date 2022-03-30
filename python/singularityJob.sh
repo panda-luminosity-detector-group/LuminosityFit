@@ -10,4 +10,4 @@ mkdir -p $SINGULARITY_TMPDIR
 
 # TODO: don't hardcode the path ffs, use environment variables
 # TODO add bash -c and source config.sh here!
-singularity exec /home/roklasen/lmdfit-mini.sif python /home/roklasen/LuminosityFit/python/runKoaSimReco.py
+singularity exec /home/roklasen/lmdfit-mini.sif bash -c ". $VMCWORKDIR/build/config.sh -a & python /home/roklasen/LuminosityFit/python/runLmdSimReco.py"
