@@ -1,11 +1,9 @@
-import errno
-import glob
 import math
 import os
 import random
 import subprocess
 from enum import Enum
-from typing import Any, Optional, Tuple
+from typing import Any, Tuple
 
 import attr
 
