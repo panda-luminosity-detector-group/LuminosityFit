@@ -1,79 +1,90 @@
-"""
-TODO: this script is not done! half of it is still bash code. see issue #27
-"""
+#!/usr/bin/env python3
 
-import argparse
-import json
 import os
 
-import alignment
-import general
-import reconstruction
 from lumifit.alignment import AlignmentParameters
-from lumifit.general import load_params_from_file
-from lumifit.reconstruction import RecoParameters
+from lumifit.general import load_params_from_file, check_stage_success
+from lumifit.reconstruction import ReconstructionParameters
 
-parser.add_argument('force_level', metavar='force_level', type=int, default=0,
-                    help="force level 0: if directories exist with data\n"+
-                          "files no new simulation is started\n"+
-                          "force level 1: will do full reconstruction even if "+
-                          "this data already exists, but not geant simulation\n"+
-                          "force level 2: resimulation of everything!")
-parser.add_argument('dirname', metavar='dirname', type=str, nargs=1,
-                    help='This directory for the outputfiles.')
-parser.add_argument('pathname', metavar='pathname', type=str, nargs=1,
-                    help='This the path to the outputdirectory')
-parser.add_argument('macropath', metavar='macropath', type=str, nargs=1,
-                    help='This the path to the macros')
+lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
+scriptpath = lmd_build_path + "../python"
+dirname = os.environ["dirname"]
+path_mc_data = os.environ["path_mc_data"]
+pathname = os.environ["pathname"]
+macropath = os.environ["macropath"]
+force_level = int(os.environ["force_level"])
 
+debug = True
+filename_index = 1
+if "SLURM_ARRAY_TASK_ID" in os.environ:
+    filename_index = int(os.environ["SLURM_ARRAY_TASK_ID"])
+    debug = False
 
+if not os.path.isdir(pathname):
+    os.makedirs(pathname)
 
-if not os.path.isdir(args.pathname):
- os.system("mkdir -p args.pathname")
-
-reco_params = RecoParameters(**load_params_from_file(path_mc_data + "/.."))
+# TODO: check if params are loaded correctly, shouldn't be the specified file name be uses?
+reco_params = ReconstructionParameters(
+    **load_params_from_file(path_mc_data + "/..")
+)
 ali_params = AlignmentParameters(**load_params_from_file(path_mc_data + "/.."))
 
-verbosityLevel: int = 0
-start_evt: int = $((${num_evts} * ${filename_index}))
-workpathname = "lokalscratch/" + ${SLURM_JOB_ID} + "/" + dirname
+verbositylvl: int = 0
+start_evt: int = reco_params.num_events_per_sample * filename_index
+
+if debug:
+    workpathname = pathname
+    path_mc_data = workpathname
+else:
+    workpathname = f"/localscratch/{os.environ['SLURM_JOB_ID']}/{dirname}"
+
 gen_filepath = workpathname + "/gen_mc.root"
-scriptpath = os.getcwd()
 
-
-#switch on "missing plane" search algorithm
+# switch on "missing plane" search algorithm
 misspl = True
 
-#use cuts during trk seacrh with "CA". Should be 'false' if sensors missaligned!
+# use cuts during trk seacrh with "CA". Should be 'false' if sensors missaligned!
 trkcut = True
- if ali_params.alignment_matrices_path = "":
-   trkcut = False
+if ali_params.alignment_matrices_path == "":
+    trkcut = False
 
-#merge hits on sensors from different sides. true=yes
+# merge hits on sensors from different sides. true=yes
 mergedHits = True
-## BOX cut before back-propagation
+# BOX cut before back-propagation
 BoxCut = False
-## Write all MC info in TrkQA array
+# Write all MC info in TrkQA array
 WrAllMC = True
 
 radLength = 0.32
 
 prefilter = False
-if reco_params.use_xy_cut :
-  prefilter = True
+if reco_params.use_xy_cut:
+    prefilter = True
 
-check_stage_success "workpathname + "/Lumi_MC_${start_evt}.root""
-if 0 == "$?" or  1 == "force_level":
-  os.system("root -l -b -q 'runLumiPixel2Reco.C('{reco_params.num_events_per_sample}','${start_evt}',"'workpathname'", "'{ali_params.alignment_matrices_path}'", "'{ali_params.misalignment_matrices_path}'", '{ali_params.use_point_transform_misalignment}', 'verbositylvl')'")
+os.chdir(macropath)
+if (
+    not check_stage_success(pathname + f"/Lumi_MC_{start_evt}.root")
+    or force_level == 1
+):
+    os.system(
+        f"root -l -b -q 'runLumiPixel2Reco.C({reco_params.num_events_per_sample},{start_evt},{workpathname}, {ali_params.alignment_matrices_path}, {ali_params.misalignment_matrices_path}, {ali_params.use_point_transform_misalignment}, {verbositylvl})'"
+    )
 
+if (
+    not check_stage_success(
+        workpathname + f"/Lumi_recoMerged_{start_evt}.root"
+    )
+    or force_level == 1
+):
+    os.system(
+        f"root -l -b -q 'runLumiPixel2bHitMerge.C({reco_params.num_events_per_sample},{start_evt},{workpathname},{verbositylvl})'"
+    )
 
-check_stage_success "workpathname + "/Lumi_recoMerged_${start_evt}.root""
-if 0 == "$?" or  1 == "force_level":
-  os.system("root -l -b -q 'runLumiPixel2bHitMerge.C('{reco_params.num_events_per_sample}','${start_evt}',"'workpathname'",'verbositylvl')'")
-  # copy Lumi_recoMerged_ for module aligner
-  os.system("cp workpathname/Lumi_recoMerged_${start_evt}.root pathname/Lumi_recoMerged_${start_evt}.root")
+    # copy Lumi_recoMerged_ for module aligner
+    os.system(
+        f"cp workpathname/Lumi_recoMerged_{start_evt}.root pathname/Lumi_recoMerged_{start_evt}.root"
+    )
 
-os.system("cd scriptpath")
+os.chdir(scriptpath)
 os.system("./runLmdPairFinder.sh")
 os.system("./runLmdTrackFinder.sh")
-

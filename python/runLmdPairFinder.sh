@@ -5,7 +5,6 @@ if [ -z $scriptpath ] || [ -z $workpathname ]; then
   #include some helper functions
   . ./bashFunctions.sh
 
-  scriptpath=$PWD
   macropath="${VMCWORKDIR}/macro/detectors/lmd"
   cd $macropath
 

@@ -5,6 +5,8 @@ from lumifit.alignment import AlignmentParameters
 from lumifit.general import load_params_from_file, check_stage_success
 from lumifit.reconstruction import ReconstructionParameters
 
+lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
+scriptpath = lmd_build_path + "../python"
 dirname = os.environ["dirname"]
 path_mc_data = os.environ["path_mc_data"]
 pathname = os.environ["pathname"]
@@ -17,6 +19,7 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
     filename_index = int(os.environ["SLURM_ARRAY_TASK_ID"])
     debug = False
 
+# TODO: check if params are loaded correctly, shouldn't be the specified file name be uses?
 reco_params = ReconstructionParameters(
     **load_params_from_file(pathname + "/reco_params.config")
 )
@@ -73,4 +76,4 @@ if (
     )
 
 os.chdir(scriptpath)
-os.system(f"python runKoaTrack.py")
+os.system("python runKoaTrack.py")
