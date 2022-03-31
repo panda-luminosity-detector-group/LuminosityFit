@@ -25,9 +25,11 @@ if not os.path.isdir(pathname):
 
 # TODO: check if params are loaded correctly, shouldn't be the specified file name be uses?
 reco_params = ReconstructionParameters(
-    **load_params_from_file(path_mc_data + "/..")
+    **load_params_from_file(pathname + "/reco_params.config")
 )
-ali_params = AlignmentParameters(**load_params_from_file(path_mc_data + "/.."))
+
+# TODO: read alignment parameters correctly
+ali_params = AlignmentParameters()
 
 verbositylvl: int = 0
 start_evt: int = reco_params.num_events_per_sample * filename_index
