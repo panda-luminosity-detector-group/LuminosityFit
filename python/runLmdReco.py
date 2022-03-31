@@ -7,7 +7,7 @@ from lumifit.general import load_params_from_file, check_stage_success
 from lumifit.reconstruction import ReconstructionParameters
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
-scriptpath = lmd_build_path + "../python"
+scriptpath = lmd_build_path + "/../python"
 dirname = os.environ["dirname"]
 path_mc_data = os.environ["path_mc_data"]
 pathname = os.environ["pathname"]
