@@ -10,5 +10,5 @@ mkdir -p $SINGULARITY_TMPDIR
 
 # TODO: don't hardcode the path ffs, use environment variables
 # TODO add bash -c and source config.sh here!
-singularity exec --env-file /home/roklasen/lmdEnvFile.env /home/roklasen/lmdfit-mini.sif bash -c ". \$VMCWORKDIR/build/config.sh -a
+singularity exec --env-file /home/roklasen/LuminosityFit/lmdEnvFile.env /home/roklasen/lmdfit-mini.sif bash -c ". \$VMCWORKDIR/build/config.sh -a
 ; python /home/roklasen/LuminosityFit/python/runLmdSimReco.py"
