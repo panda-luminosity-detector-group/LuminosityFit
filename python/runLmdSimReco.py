@@ -134,7 +134,7 @@ if (
         )
     else:
         os.system(
-            f"""root -l -b -q 'runLumiPixel1Digi.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}", "{ali_params.misalignment_matrices_path}", {ali_params.use_point_transform_misalignment}, {verbositylvl})'"""
+            f"""root -l -b -q 'runLumiPixel1Digi.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}", "{ali_params.misalignment_matrices_path}", {1 if ali_params.use_point_transform_misalignment else 0}, {verbositylvl})'"""
         )
 
 os.chdir(scriptpath)
