@@ -69,7 +69,7 @@ if (
     or force_level == 1
 ):
     os.system(
-        f"root -l -b -q 'runLumiPixel2Reco.C({reco_params.num_events_per_sample},{start_evt},{workpathname}, {ali_params.alignment_matrices_path}, {ali_params.misalignment_matrices_path}, {ali_params.use_point_transform_misalignment}, {verbositylvl})'"
+        f"""root -l -b -q 'runLumiPixel2Reco.C({reco_params.num_events_per_sample},{start_evt}, "{workpathname}", "{ali_params.alignment_matrices_path}", "{ali_params.misalignment_matrices_path}", {ali_params.use_point_transform_misalignment}, {verbositylvl})'"""
     )
 
 if (
@@ -79,12 +79,12 @@ if (
     or force_level == 1
 ):
     os.system(
-        f"root -l -b -q 'runLumiPixel2bHitMerge.C({reco_params.num_events_per_sample},{start_evt},{workpathname},{verbositylvl})'"
+        f"""root -l -b -q 'runLumiPixel2bHitMerge.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl})'"""
     )
 
     # copy Lumi_recoMerged_ for module aligner
     os.system(
-        f"cp workpathname/Lumi_recoMerged_{start_evt}.root pathname/Lumi_recoMerged_{start_evt}.root"
+        f"cp {workpathname}/Lumi_recoMerged_{start_evt}.root {pathname}/Lumi_recoMerged_{start_evt}.root"
     )
 
 os.chdir(scriptpath)

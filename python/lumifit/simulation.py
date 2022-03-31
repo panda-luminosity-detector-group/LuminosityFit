@@ -164,7 +164,8 @@ def create_simulation_and_reconstruction_job(
     path_mc_data = pathname_base + "/mc_data"
     dirname_full = dirname + "/" + dirname_filter_suffix
     pathname_full = lmdfit_data_dir + "/" + dirname_full
-    macropath_full = os.environ["VMCWORKDIR"] + "/macro/lmd"
+    # TODO: this path depends on KOALA/LUMI, so change it accroding to scenario type!
+    macropath_full = os.environ["VMCWORKDIR"] + "/macro/detectrors/lmd"
 
     print("using output folder structure: " + pathname_full)
 

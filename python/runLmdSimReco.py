@@ -84,7 +84,7 @@ if (
     # if sim_params.reaction_type -eq -1:
     if sim_params.sim_type == SimulationType.BOX:
         os.system(
-            f"root -l -b -q 'standaloneBoxGen.C({sim_params.lab_momentum}, {sim_params.num_events_per_sample}, {sim_params.theta_min_in_mrad}, {sim_params.theta_max_in_mrad},{gen_filepath}, {sim_params.random_seed}, {sim_params.neglect_recoil_momentum})'"
+            f"""root -l -b -q 'standaloneBoxGen.C({sim_params.lab_momentum}, {sim_params.num_events_per_sample}, {sim_params.theta_min_in_mrad}, {sim_params.theta_max_in_mrad},"{gen_filepath}", {sim_params.random_seed}, {sim_params.neglect_recoil_momentum})'"""
         )
     elif sim_params.sim_type == SimulationType.PBARP_ELASTIC:
         os.system(
@@ -97,11 +97,11 @@ if (
 
     if sim_params.sim_type == SimulationType.NOISE:
         os.system(
-            f"root -l -b -q 'runLumiPixel0SimBox.C({sim_params.num_events_per_sample},{start_evt},     {workpathname},{verbositylvl},2112,{sim_params.lab_momentum},{numTrks},{sim_params.random_seed})' > /dev/null 2>&1"
+            f"""root -l -b -q 'runLumiPixel0SimBox.C({sim_params.num_events_per_sample},{start_evt}, "{workpathname}",{verbositylvl},2112,{sim_params.lab_momentum},{numTrks},{sim_params.random_seed})' > /dev/null 2>&1"""
         )
     else:
         os.system(
-            f"root -l -b -q 'runLumiPixel0SimDPM.C({sim_params.num_events_per_sample},{start_evt},{sim_params.lab_momentum}, {gen_filepath}, {workpathname}, {sim_params.ip_offset_x}, {sim_params.ip_offset_y}, {sim_params.ip_offset_z}, {sim_params.ip_spread_x}, {sim_params.ip_spread_y}, {sim_params.ip_spread_z}, {sim_params.beam_tilt_x}, {sim_params.beam_tilt_y}, {sim_params.beam_divergence_x}, {sim_params.beam_divergence_y}, {sim_params.lmd_geometry_filename}, {ali_params.misalignment_matrices_path}, {1 if ali_params.use_point_transform_misalignment else 0}, {verbositylvl})'"
+            f"""root -l -b -q 'runLumiPixel0SimDPM.C({sim_params.num_events_per_sample},{start_evt},{sim_params.lab_momentum}, "{gen_filepath}", "{workpathname}", {sim_params.ip_offset_x}, {sim_params.ip_offset_y}, {sim_params.ip_offset_z}, {sim_params.ip_spread_x}, {sim_params.ip_spread_y}, {sim_params.ip_spread_z}, {sim_params.beam_tilt_x}, {sim_params.beam_tilt_y}, {sim_params.beam_divergence_x}, {sim_params.beam_divergence_y}, "{sim_params.lmd_geometry_filename}", "{ali_params.misalignment_matrices_path}", {1 if ali_params.use_point_transform_misalignment else 0}, {verbositylvl})'"""
         )
 
     # if debug mode, copy mc data from node to permanent storage
@@ -130,11 +130,11 @@ if (
 
     if sim_params.sim_type == SimulationType.NOISE:
         os.system(
-            f"root -l -b -q 'runLumiPixel1bDigiNoise.C({sim_params.num_events_per_sample}, {start_evt}, {workpathname}, {verbositylvl}, {sim_params.random_seed})'"
+            f"""root -l -b -q 'runLumiPixel1bDigiNoise.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {sim_params.random_seed})'"""
         )
     else:
         os.system(
-            f"root -l -b -q 'runLumiPixel1Digi.C({sim_params.num_events_per_sample}, {start_evt}, {workpathname}, {ali_params.misalignment_matrices_path}, {ali_params.use_point_transform_misalignment}, {verbositylvl})'"
+            f"""root -l -b -q 'runLumiPixel1Digi.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}", "{ali_params.misalignment_matrices_path}", {ali_params.use_point_transform_misalignment}, {verbositylvl})'"""
         )
 
 os.chdir(scriptpath)
