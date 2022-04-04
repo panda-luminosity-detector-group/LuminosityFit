@@ -21,7 +21,7 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
     filename_index = int(os.environ["SLURM_ARRAY_TASK_ID"])
     debug = False
 
-# TODO: check if params are loaded correctly, shouldn't be the specified file name be uses?
+# TODO: check if params are loaded correctly, shouldn't be the specified file name be used?
 sim_params = SimulationParameters(
     **load_params_from_file(path_mc_data + "/../sim_params.config")
 )

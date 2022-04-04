@@ -61,7 +61,7 @@ if not os.path.isdir(workpathname):
 
 gen_filepath = workpathname + "/gen_mc.root"
 
-# TODO: check if params are loaded correctly, shouldn't be the specified file name be uses?
+# TODO: check if params are loaded correctly, shouldn't be the specified file name be used?
 sim_params = SimulationParameters(
     **load_params_from_file(path_mc_data + "/../sim_params.config")
 )
@@ -74,6 +74,7 @@ numTrks = 1  # should not be changed
 start_evt: int = sim_params.num_events_per_sample * filename_index
 
 
+# * ------------------- MC Data Step -------------------
 if (
     not check_stage_success(path_mc_data + f"/Lumi_MC_{start_evt}.root")
     or force_level == 2
@@ -123,6 +124,7 @@ else:
             f"cp {path_mc_data}/Lumi_Params_{start_evt}.root {workpathname}/Lumi_Params_{start_evt}.root"
         )
 
+# * ------------------- Digi Step -------------------
 if (
     not check_stage_success(workpathname + f"/Lumi_digi_{start_evt}.root")
     or force_level == 2
