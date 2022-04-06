@@ -98,7 +98,7 @@ if (
 
     if sim_params.sim_type == SimulationType.NOISE:
         os.system(
-            f"""root -l -b -q 'runLumiPixel0SimBox.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}",{verbositylvl},2112,{sim_params.lab_momentum},{numTrks},{sim_params.random_seed})' > /dev/null 2>&1"""
+            f"""root -l -b -q 'runLumiPixel0SimBox.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}",{verbositylvl},-2212,{sim_params.lab_momentum},{numTrks},{sim_params.random_seed})' > /dev/null 2>&1"""
         )
     else:
         os.system(

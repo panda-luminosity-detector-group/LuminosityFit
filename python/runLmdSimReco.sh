@@ -60,7 +60,7 @@ if [ 0 -eq "$?" ] || [ 2 -eq "${force_level}" ]; then
   echo "starting up a pandaroot simulation..."
   if [ ${simulate_noise} ]; then
     #simulation with Box generator cheating with neutrons, since "no tracks" gave problems
-    root -l -b -q 'runLumiPixel0SimBox.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',2112,'${mom}','${numTrks}','${random_seed}')' > /dev/null 2>&1
+    root -l -b -q 'runLumiPixel0SimBox.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',-2212,'${mom}','${numTrks}','${random_seed}')' > /dev/null 2>&1
   else
     root -l -b -q 'runLumiPixel0SimDPM.C('${num_evts}','${start_evt}','${mom}',"'${gen_filepath}'", "'${workpathname}'",'$beamX0', '$beamY0', '${targetZ0}', '${beam_widthX}', '${beam_widthY}', '${target_widthZ}', '${beam_gradX}', '${beam_gradY}', '${beam_grad_sigmaX}', '${beam_grad_sigmaY}', "'${lmd_geometry_filename}'", "'${misalignment_matrices_path}'", '${use_point_transform_misalignment}', '$verbositylvl')'
   fi
