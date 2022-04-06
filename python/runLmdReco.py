@@ -92,7 +92,7 @@ if (
     or force_level == 1
 ):
     os.system(
-        f"""root -l -b -q 'runLumiPixel2Reco.C({reco_params.num_events_per_sample},{start_evt}, "{workpathname}", "{ali_params.alignment_matrices_path}", "{ali_params.misalignment_matrices_path}", {1 if ali_params.use_point_transform_misalignment else 0}, {verbositylvl})'"""
+        f"""root -l -b -q 'runLumiPixel2Reco.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", "{ali_params.alignment_matrices_path}", "{ali_params.misalignment_matrices_path}", {1 if ali_params.use_point_transform_misalignment else 0}, {verbositylvl})'"""
     )
 
 # * ------------------- Hit Merge Step -------------------
@@ -122,7 +122,7 @@ if (
 if True:
 
     os.system(
-        f"""root -l -b -q 'runLumiPixel2ePairFinder.C({reco_params.num_events_per_sample},{start_evt},"{workpathname}", {verbositylvl})'"""
+        f"""root -l -b -q 'runLumiPixel2ePairFinder.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl})'"""
     )
 
     os.system(
@@ -136,7 +136,7 @@ if (
     or force_level == 1
 ):
     os.system(
-        f"""root -l -b -q 'runLumiPixel3Finder.C({reco_params.num_events_per_sample_evts},{start_evt},"{workpathname}",{verbositylvl},"{reco_params.track_search_algo}",{int(misspl)},{int(mergedHits)}, {int(trkcut)}, {reco_params.lab_momentum})'"""
+        f"""root -l -b -q 'runLumiPixel3Finder.C({reco_params.num_events_per_sample},{start_evt},"{workpathname}",{verbositylvl},"{reco_params.track_search_algo}",{int(misspl)},{int(mergedHits)}, {int(trkcut)}, {reco_params.lab_momentum})'"""
     )
 
 
@@ -154,7 +154,7 @@ if (
 
         # this script outputs a Lumi_Track_... file. Rename that to the NotFiltered..
         os.system(
-            f"""root -l -b -q 'runLumiPixel4Fitter.C({reco_params.num_events_per_sample_evts}, {start_evt},"{workpathname}", {verbositylvl}, {trackFitAlgorithm}, {int(mergedHits)})'"""
+            f"""root -l -b -q 'runLumiPixel4Fitter.C({reco_params.num_events_per_sample}, {start_evt},"{workpathname}", {verbositylvl}, {trackFitAlgorithm}, {int(mergedHits)})'"""
         )
 
         # copy track file for module alignment
@@ -189,7 +189,7 @@ if prefilter == 1:
             reco_params.reco_ip_offset[0]
 
             os.system(
-                f"""root -l -b -q 'runLumiPixel4aFilter.C({reco_params.num_events_per_sample_evts}, {start_evt}, "{workpathname}", {verbositylvl}, {int(mergedHits)}, {reco_params.lab_momentum}, {KinematicsCut}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
+                f"""root -l -b -q 'runLumiPixel4aFilter.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {int(mergedHits)}, {reco_params.lab_momentum}, {KinematicsCut}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
             )
 
             # now overwrite the Lumi_Track_ sym link with the filtered version
@@ -208,14 +208,14 @@ if (
     or force_level == 1
 ):
     os.system(
-        f"""root -l -b -q 'runLumiPixel5BackProp.C({reco_params.num_events_per_sample_evts}, {start_evt}, "{workpathname}", {verbositylvl}', "{backPropAlgorithm}", {int(mergedHits)}, {reco_params.lab_momentum}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]}, {reco_params.reco_ip_offset[2]}, {prefilter})'"""
+        f"""root -l -b -q 'runLumiPixel5BackProp.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}', "{backPropAlgorithm}", {int(mergedHits)}, {reco_params.lab_momentum}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]}, {reco_params.reco_ip_offset[2]}, {prefilter})'"""
     )
 
 # * ------------------- Pixel CleanSig Step -------------------
 # filter back-propagated tracks (momentum cut)
 if CleanSig:
     os.system(
-        f"""root -l -b -q 'runLumiPixel5bCleanSig.C({reco_params.num_events_per_sample_evts}, {start_evt}, "{workpathname}", {verbositylvl}, {reco_params.lab_momentum}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
+        f"""root -l -b -q 'runLumiPixel5bCleanSig.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {reco_params.lab_momentum}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
     )
 
 # * ------------------- Pixel Track QA Step -------------------
@@ -229,7 +229,7 @@ if (
     or force_level == 1
 ):
     os.system(
-        f"""root -l -b -q 'runLumiPixel7TrksQA.C({reco_params.num_events_per_sample_evts}, {start_evt}, "{workpathname}", {verbositylvl}, {reco_params.lab_momentum}, {int(WrAllMC)}, {KinematicsCut}, {int(CleanSig)})'"""
+        f"""root -l -b -q 'runLumiPixel7TrksQA.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {reco_params.lab_momentum}, {int(WrAllMC)}, {KinematicsCut}, {int(CleanSig)})'"""
     )
     if not debug:
         os.system(
