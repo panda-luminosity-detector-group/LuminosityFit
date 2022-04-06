@@ -1,5 +1,4 @@
 import errno
-import glob
 import os
 from typing import Optional, Tuple
 

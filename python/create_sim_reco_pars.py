@@ -5,6 +5,7 @@ from lumifit.simulation import SimulationParameters, SimulationType
 
 simpars = SimulationParameters(SimulationType.PBARP_ELASTIC, 1000, 1, 1.5)
 recopars = ReconstructionParameters(1000, 1, 1.5)
+recopars.reco_ip_offset = [0, 0, 0]
 
 write_params_to_file(attr.asdict(simpars), ".", "simparams.config")
 write_params_to_file(attr.asdict(recopars), ".", "recoparams.config")

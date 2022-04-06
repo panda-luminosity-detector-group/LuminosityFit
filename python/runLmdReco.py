@@ -73,8 +73,7 @@ CleanSig = True
 
 # TODO check if the prefilter is off at any time, add to recoparams in that case
 
-prefilter = 1
-KinematicsCut = 1
+KinematicsCut = reco_params.use_m_cut
 
 # track fit:
 # Possible options: "Minuit", "KalmanGeane", "KalmanRK"
@@ -162,14 +161,14 @@ if (
             f"""cp {workpathname}/Lumi_Track_{start_evt}.root {pathname}/Lumi_Track_{start_evt}.root"""
         )
 
-        if prefilter == 1:
+        if prefilter:
             os.system(
                 f"""mv {workpathname}/Lumi_Track_{start_evt}.root {workpathname}/Lumi_TrackNotFiltered_{start_evt}.root"""
             )
 
 # * ------------------- Pixel Filter Step -------------------
 # track filter (on number of hits and chi2 and optionally on track kinematics)
-if prefilter == 1:
+if prefilter:
     if (
         not check_stage_success(f"{workpathname}/Lumi_Track_{start_evt}.root")
         or force_level == 1
@@ -189,7 +188,7 @@ if prefilter == 1:
             reco_params.reco_ip_offset[0]
 
             os.system(
-                f"""root -l -b -q 'runLumiPixel4aFilter.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {int(mergedHits)}, {reco_params.lab_momentum}, {KinematicsCut}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
+                f"""root -l -b -q 'runLumiPixel4aFilter.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {int(mergedHits)}, {reco_params.lab_momentum}, {int(KinematicsCut)}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
             )
 
             # now overwrite the Lumi_Track_ sym link with the filtered version
@@ -229,7 +228,7 @@ if (
     or force_level == 1
 ):
     os.system(
-        f"""root -l -b -q 'runLumiPixel7TrksQA.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {reco_params.lab_momentum}, {int(WrAllMC)}, {KinematicsCut}, {int(CleanSig)})'"""
+        f"""root -l -b -q 'runLumiPixel7TrksQA.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {reco_params.lab_momentum}, {int(WrAllMC)}, {int(KinematicsCut)}, {int(CleanSig)})'"""
     )
     if not debug:
         os.system(
