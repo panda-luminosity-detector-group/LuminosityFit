@@ -122,11 +122,11 @@ if (
 if True:
 
     os.system(
-        f"""root -l -b -q 'runLumiPixel2ePairFinder.C({reco_params.num_events_per_sample},{start_evt},"{workpathname}", $verbositylvl)'"""
+        f"""root -l -b -q 'runLumiPixel2ePairFinder.C({reco_params.num_events_per_sample},{start_evt},"{workpathname}", {verbositylvl})'"""
     )
 
     os.system(
-        f"""cp $workpathname/Lumi_Pairs_{start_evt}.root {pathname}/Lumi_Pairs_{start_evt}.root"""
+        f"""cp {workpathname}/Lumi_Pairs_{start_evt}.root {pathname}/Lumi_Pairs_{start_evt}.root"""
     )
 
 
@@ -199,7 +199,7 @@ if prefilter == 1:
 
             # don't copy to permanent storage, but don't delete this comment just yet
             os.system(
-                f"""cp {workpathname}/Lumi_Track_${start_evt}.root {pathname}/Lumi_TrackFiltered_{start_evt}.root"""
+                f"""cp {workpathname}/Lumi_Track_{start_evt}.root {pathname}/Lumi_TrackFiltered_{start_evt}.root"""
             )
 
 # * ------------------- Pixel BackProp Step -------------------
@@ -233,7 +233,7 @@ if (
     )
     if not debug:
         os.system(
-            f"""cp $workpathname/Lumi_TrksQA_${start_evt}.root $pathname/Lumi_TrksQA_${start_evt}.root"""
+            f"""cp {workpathname}/Lumi_TrksQA_{start_evt}.root {pathname}/Lumi_TrksQA_{start_evt}.root"""
         )
 
 # * ------------------- Cleanup Step -------------------
