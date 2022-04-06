@@ -62,6 +62,7 @@ radLength = 0.32
 
 prefilter = False
 
+# TODO: in the original, this was called KinematicsCut, but what is that?
 if reco_params.use_xy_cut:
     prefilter = True
 
@@ -169,6 +170,7 @@ if (
 # * ------------------- Pixel Filter Step -------------------
 # track filter (on number of hits and chi2 and optionally on track kinematics)
 if prefilter:
+    # TODO: if prefilter is on, the file Lumi_Track has been renamed to Lumi_TrackNotFiltered, so this one always fails!
     if (
         not check_stage_success(f"{workpathname}/Lumi_Track_{start_evt}.root")
         or force_level == 1
