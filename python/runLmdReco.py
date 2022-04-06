@@ -154,7 +154,7 @@ if (
 
         # this script outputs a Lumi_Track_... file. Rename that to the NotFiltered..
         os.system(
-            f"""root -l -b -q 'runLumiPixel4Fitter.C({reco_params.num_events_per_sample}, {start_evt},"{workpathname}", {verbositylvl}, {trackFitAlgorithm}, {int(mergedHits)})'"""
+            f"""root -l -b -q 'runLumiPixel4Fitter.C({reco_params.num_events_per_sample}, {start_evt},"{workpathname}", {verbositylvl}, "{trackFitAlgorithm}", {int(mergedHits)})'"""
         )
 
         # copy track file for module alignment
