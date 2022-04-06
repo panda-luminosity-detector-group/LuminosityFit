@@ -59,9 +59,31 @@ WrAllMC = True
 
 radLength = 0.32
 
+
 prefilter = False
+
 if reco_params.use_xy_cut:
     prefilter = True
+
+# TODO: get all these from config file
+CleanSig = True
+
+# echo "Kinematics cut (@LMD): $KinematicsCut"
+# echo "Momentum cut (after backpropagation): $CleanSig"
+
+# TODO check if the prefilter is off at any time, add to recoparams in that case
+
+prefilter = 1
+KinematicsCut = 1
+
+# track fit:
+# Possible options: "Minuit", "KalmanGeane", "KalmanRK"
+trackFitAlgorithm = "Minuit"
+
+# back-propgation GEANE
+# Possible options: "Geane", "RK"
+backPropAlgorithm = "Geane"
+
 
 os.chdir(macropath)
 # * ------------------- Reco Step -------------------
@@ -109,113 +131,115 @@ if True:
 
 
 # * ------------------- Pixel Finder Step -------------------
+if (
+    not check_stage_success(f"{workpathname}/Lumi_TCand_{start_evt}.root")
+    or force_level == 1
+):
+    os.system(
+        f"""root -l -b -q 'runLumiPixel3Finder.C({reco_params.num_events_per_sample_evts},{start_evt},"{workpathname}",{verbositylvl},"{reco_params.track_search_algo}",{int(misspl)},{int(mergedHits)}, {int(trkcut)}, {reco_params.lab_momentum})'"""
+    )
 
-echo "Kinematics cut (@LMD): $KinematicsCut"
-echo "Momentum cut (after backpropagation): $CleanSig"
-
-# TODO check if the prefilter is off at any time, add to recoparams in that case
-
-prefilter = 1
-# prefilter="false"
-# if [ "$KinematicsCut" = "true" ]; then
-#   prefilter="true"
-# fi
-
-# change "CA" --> "Follow" if you want to use Trk-Following as trk-search algorithm
-# NB: CA can use merged or single(not merged) hits, Trk-Following can't
-# check_stage_success "$workpathname/Lumi_TCand_${start_evt}.root"
-# if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-#   root -l -b -q 'runLumiPixel3Finder.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',"'${track_search_algorithm}'",'${misspl}','${mergedHits}','${trkcut}','${mom}')'
-
-#   # copy track candidates, although maybe we don't actually need them
-#   # cp ${workpathname}/Lumi_TCand_${start_evt}.root ${pathname}/Lumi_TCand_${start_evt}.root
-# fi
-
-if(not check_stage_success(f"{workpathname}/Lumi_TCand_{start_evt}.root") or force_level == 1):
-  os.system(f"""root -l -b -q 'runLumiPixel3Finder.C({reco_params.num_events_per_sample_evts},{start_evt},"{workpathname}",{verbositylvl},"{reco_params.track_search_algo}",{int(misspl)},{int(mergedHits)}, {int(trkcut)}, {reco_params.lab_momentum})'""")
-
-#! ------------------- Everything below is still bash, this needs to be ported!
 
 # * ------------------- Pixel Fitter Step -------------------
+if (
+    not check_stage_success(
+        f"{workpathname}/Lumi_TrackNotFiltered_{start_evt}.root"
+    )
+    or force_level == 1
+):
+    if (
+        not check_stage_success(f"{workpathname}/Lumi_Track_{start_evt}.root")
+        or force_level == 1
+    ):
 
-#track fit:
-### Possible options: "Minuit", "KalmanGeane", "KalmanRK"
-check_stage_success "$workpathname/Lumi_TrackNotFiltered_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-  check_stage_success "$workpathname/Lumi_Track_${start_evt}.root"
-  if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-    root -l -b -q 'runLumiPixel4Fitter.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl',"Minuit",'${mergedHits}')'
-    #this script outputs a Lumi_Track_... file. Rename that to the NotFiltered..
+        # this script outputs a Lumi_Track_... file. Rename that to the NotFiltered..
+        os.system(
+            f"""root -l -b -q 'runLumiPixel4Fitter.C({reco_params.num_events_per_sample_evts}, {start_evt},"{workpathname}", {verbositylvl}, {trackFitAlgorithm}, {int(mergedHits)})'"""
+        )
 
-    # copy track file for module alignment
-    cp ${workpathname}/Lumi_Track_${start_evt}.root ${pathname}/Lumi_Track_${start_evt}.root
+        # copy track file for module alignment
+        os.system(
+            f"""cp {workpathname}/Lumi_Track_{start_evt}.root {pathname}/Lumi_Track_{start_evt}.root"""
+        )
 
-    if [ "$prefilter" = "true" ]; then
-      mv ${workpathname}/Lumi_Track_${start_evt}.root ${workpathname}/Lumi_TrackNotFiltered_${start_evt}.root
-    fi
-  fi
-fi
+        if prefilter == 1:
+            os.system(
+                f"""mv {workpathname}/Lumi_Track_{start_evt}.root {workpathname}/Lumi_TrackNotFiltered_{start_evt}.root"""
+            )
 
 # * ------------------- Pixel Filter Step -------------------
+# track filter (on number of hits and chi2 and optionally on track kinematics)
+if prefilter == 1:
+    if (
+        not check_stage_success(f"{workpathname}/Lumi_Track_{start_evt}.root")
+        or force_level == 1
+    ):
+        if (
+            not check_stage_success(
+                f"{workpathname}/Lumi_TrackNotFiltered_{start_evt}.root"
+            )
+            or force_level == 1
+        ):
 
-#track filter (on number of hits and chi2 and optionally on track kinematics)
+            # this macro needs Lumi_Track_... file as input so we need to link the unfiltered file
+            os.system(
+                f"""ln -sf {workpathname}/Lumi_TrackNotFiltered_{start_evt}.root {workpathname}/Lumi_Track_{start_evt}.root"""
+            )
 
-if [ "$prefilter" = "true" ]; then
-  check_stage_success "$workpathname/Lumi_Track_${start_evt}.root"
-  if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-    check_stage_success "$workpathname/Lumi_TrackFiltered_${start_evt}.root"
-    if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-      #this macro needs Lumi_Track_... file as input so we need to link the unfiltered file
-      ln -sf ${workpathname}/Lumi_TrackNotFiltered_${start_evt}.root ${workpathname}/Lumi_Track_${start_evt}.root
+            reco_params.reco_ip_offset[0]
 
-      root -l -b -q 'runLumiPixel4aFilter.C('${num_evts}', '${start_evt}', "'${workpathname}'", '$verbositylvl', '${mergedHits}', '${mom}', '${KinematicsCut}', '${rec_ipx}', '${rec_ipy}')'
+            os.system(
+                f"""root -l -b -q 'runLumiPixel4aFilter.C({reco_params.num_events_per_sample_evts}, {start_evt}, "{workpathname}", {verbositylvl}, {int(mergedHits)}, {reco_params.lab_momentum}, {KinematicsCut}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
+            )
 
-      #now overwrite the Lumi_Track_ sym link with the filtered version
-      ln -sf ${workpathname}/Lumi_TrackFiltered_${start_evt}.root ${workpathname}/Lumi_Track_${start_evt}.root
+            # now overwrite the Lumi_Track_ sym link with the filtered version
+            os.system(
+                f"""ln -sf {workpathname}/Lumi_TrackFiltered_{start_evt}.root {workpathname}/Lumi_Track_{start_evt}.root"""
+            )
 
-      # don't copy to permanent storage, but don't delete this comment just yet
-      cp ${workpathname}/Lumi_Track_${start_evt}.root ${pathname}/Lumi_TrackFiltered_${start_evt}.root
-    fi
-  fi
-fi
+            # don't copy to permanent storage, but don't delete this comment just yet
+            os.system(
+                f"""cp {workpathname}/Lumi_Track_${start_evt}.root {pathname}/Lumi_TrackFiltered_{start_evt}.root"""
+            )
 
 # * ------------------- Pixel BackProp Step -------------------
-
-# back-propgation GEANE
-### Possible options: "Geane", "RK"
-check_stage_success "$workpathname/Lumi_Geane_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-  root -l -b -q 'runLumiPixel5BackProp.C('${num_evts}', '${start_evt}', "'${workpathname}'", '$verbositylvl', "Geane", '${mergedHits}', '${mom}', '${rec_ipx}', '${rec_ipy}', '${rec_ipz}', '$prefilter')'
-fi
+if (
+    not check_stage_success(f"{workpathname}/Lumi_Geane_{start_evt}.root")
+    or force_level == 1
+):
+    os.system(
+        f"""root -l -b -q 'runLumiPixel5BackProp.C({reco_params.num_events_per_sample_evts}, {start_evt}, "{workpathname}", {verbositylvl}', "{backPropAlgorithm}", {int(mergedHits)}, {reco_params.lab_momentum}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]}, {reco_params.reco_ip_offset[2]}, {prefilter})'"""
+    )
 
 # * ------------------- Pixel CleanSig Step -------------------
-
 # filter back-propagated tracks (momentum cut)
-if [ $CleanSig = "true" ]; then
-  root -l -b -q 'runLumiPixel5bCleanSig.C('${num_evts}', '${start_evt}', "'${workpathname}'", '$verbositylvl', '${mom}', '${rec_ipx}', '${rec_ipy}')'
-fi
+if CleanSig:
+    os.system(
+        f"""root -l -b -q 'runLumiPixel5bCleanSig.C({reco_params.num_events_per_sample_evts}, {start_evt}, "{workpathname}", {verbositylvl}, {reco_params.lab_momentum}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
+    )
 
 # * ------------------- Pixel Track QA Step -------------------
-
-# # Quality assurance task(s)
+# Quality assurance task(s)
 # combine MC and reco information
 # the last parameter is mc all write flag and needs to be true
 # so that all mc events are written even if geometrically missing the sensors
 # this is required for the acceptance calculation
-check_stage_success "$workpathname/Lumi_TrksQA_${start_evt}.root"
-if [ 0 -eq "$?" ] || [ 1 -eq "${force_level}" ]; then
-  root -l -b -q 'runLumiPixel7TrksQA.C('${num_evts}','${start_evt}',"'${workpathname}'",'$verbositylvl','${mom}', '$WrAllMC', '${KinematicsCut}', '${CleanSig}')'
-  if [ "${debug}" -eq 0 ]; then
-    cp $workpathname/Lumi_TrksQA_${start_evt}.root $pathname/Lumi_TrksQA_${start_evt}.root
-  fi
-fi
+if (
+    not check_stage_success(f"{workpathname}/Lumi_TrksQA_{start_evt}.root")
+    or force_level == 1
+):
+    os.system(
+        f"""root -l -b -q 'runLumiPixel7TrksQA.C({reco_params.num_events_per_sample_evts}, {start_evt}, "{workpathname}", {verbositylvl}, {reco_params.lab_momentum}, {int(WrAllMC)}, {KinematicsCut}, {int(CleanSig)})'"""
+    )
+    if not debug:
+        os.system(
+            f"""cp $workpathname/Lumi_TrksQA_${start_evt}.root $pathname/Lumi_TrksQA_${start_evt}.root"""
+        )
 
 # * ------------------- Cleanup Step -------------------
+# remove everything in the local path
+if not debug:
+    os.system(f"""rm -f {workpathname}/Lumi_*_{start_evt}.root""")
 
-#remove everything in the local path
-if [ "${debug}" -eq 0 ]; then
-  rm -f $workpathname/Lumi_*_${start_evt}.root
-  if [ ! "$(ls -A $workpathname)" ]; then
-    rm -rf $workpathname
-  fi
-fi
+    if len(os.listdir(workpathname)) == 0:
+        os.system(f"""rm -rf {workpathname}""")
