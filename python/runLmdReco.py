@@ -63,18 +63,19 @@ radLength = 0.32
 prefilter = False
 
 # TODO: in the original, this was called KinematicsCut, but what is that?
-if reco_params.use_xy_cut:
+if reco_params.use_xy_cut:  # off by default?
     prefilter = True
 
 # TODO: get all these from config file
-CleanSig = True
+CleanSig = reco_params.use_m_cut  # off by default?
 
 # echo "Kinematics cut (@LMD): $KinematicsCut"
 # echo "Momentum cut (after backpropagation): $CleanSig"
 
 # TODO check if the prefilter is off at any time, add to recoparams in that case
 
-KinematicsCut = reco_params.use_m_cut
+
+KinematicsCut = reco_params.use_m_cut  # off by default?
 
 # track fit:
 # Possible options: "Minuit", "KalmanGeane", "KalmanRK"
