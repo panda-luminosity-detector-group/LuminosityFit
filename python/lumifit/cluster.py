@@ -3,7 +3,7 @@ import subprocess
 import threading
 from abc import abstractmethod
 from time import sleep, time
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, List
 
 import attr
 
@@ -67,7 +67,6 @@ class DebugJobHandler(JobHandler):
 
     def get_active_number_of_jobs(self) -> int:
         return 0
-
 
 
 class ClusterJobManager:
@@ -153,7 +152,7 @@ class ClusterJobManager:
                     + " min and then trying a resubmit..."
                 )
                 sleep(self.__resubmit_wait_time_in_seconds)
-        print('\n\nAll jobs submitted!\n\n')
+        print("\n\nAll jobs submitted!\n\n")
 
     def is_active(self) -> bool:
         return self.__manage_thread.is_alive()

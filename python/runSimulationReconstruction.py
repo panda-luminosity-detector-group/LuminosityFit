@@ -14,6 +14,8 @@ from lumifit.simulation import (
     create_simulation_and_reconstruction_job,
 )
 
+from lumifit.agent import Client
+
 
 def run_simulation_and_reconstruction(sim_params, align_params, reco_params):
     job, dir_path = create_simulation_and_reconstruction_job(
@@ -90,5 +92,8 @@ if args.align_params:
         **load_params_from_file(args.align_params)
     )
 
+# check if the slurm argent is running
+client = Client()
+client.checkConnection()
 
 run_simulation_and_reconstruction(sim_params, align_params, reco_params)

@@ -1,7 +1,8 @@
 # cSpell:ignore slurm,sbatch,squeue,CPUs,Popen
 
-import subprocess, os
-from typing import Callable, List, Optional
+import os
+import subprocess
+from typing import Callable, Optional
 
 from .cluster import Job, JobHandler, JobResourceRequest
 from .agent import Client, SlurmOrder
@@ -95,6 +96,7 @@ class SlurmJobHandler(JobHandler):
             thisOrder = SlurmOrder()
             thisOrder.cmd = bashcommand
             thisOrder.runShell = True
+            # default output to zero, doesn't work otheriwse
             thisOrder.stdout = "0"
             thisOrder.env = os.environ.copy()
             client.sendOrder(thisOrder)

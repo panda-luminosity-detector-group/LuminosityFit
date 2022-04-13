@@ -175,6 +175,7 @@ class Server(Agent):
 
         print(welcome)
 
+        # fork to background
         try:
             pid = os.fork()
             if pid > 0:
@@ -207,7 +208,9 @@ class Client(Agent):
         testOrder.cmd = "test"
         self.sendOrder(testOrder)
         resultOrder = self.receiveOrder()
-        assert resultOrder.stdout == "ok"
+        assert (
+            resultOrder.stdout == "ok"
+        ), "Agent not running or not accepting commands!"
 
     def __init__(self) -> None:
         super().__init__()
