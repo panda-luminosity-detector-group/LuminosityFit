@@ -77,6 +77,24 @@ dead_scenario_stack = []
 
 
 def simulateDataOnHimster(scenario: Scenario):
+    """Determines the luminosity of a set of Lumi_TrksQA_* files.
+
+    This is pretty complicated and uses a lot of intermediate steps.
+    Many of them have to be run on a cluster system, which is done
+    with a slurm job handler.
+
+    The states determine what step is currently being run:
+
+    1:  Simulate Data (so box/dpm)
+        Runs RunLmdSim and RunLmdReco to get MC Data and reconstructed
+        tracks. This is the same as what the runSimulationReconstruction
+        script does.
+
+    2:  ceate Data (bunch data objects)
+        first thing it should do is create bunches/binning dirs.
+        Then call createMultipleLmdData which looks for these dirs.
+        This currently doesn't work.
+    """
     tasks_to_remove = []
 
     lab_momentum = scenario.momentum

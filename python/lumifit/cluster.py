@@ -158,6 +158,11 @@ class ClusterJobManager:
         return self.__manage_thread.is_alive()
 
     def append(self, job: Job):
+        """Append Job to this managers list of pending jobs.
+
+        The manager submits the jobs as soon as there is capacity on the cluster,
+        no need to manually submit jobs!
+        """
         with self.__lock:
             self.__jobs.append(job)
 

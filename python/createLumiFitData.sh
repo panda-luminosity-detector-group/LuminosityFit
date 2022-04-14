@@ -23,6 +23,7 @@ if [ ! $numEv ]; then
   numEv=0
 fi
 
+# if {filelist_url} is empty, the createLmdFitData binary must be run
 if [ -z ${filelist_url} ]; then
   echo ${LMDFIT_BUILD_PATH}/bin/createLmdFitData -m $pbeam -t $type -c ${config_path} -d ${input_path} -n ${numEv} -e ${elastic_cross_section}
   if [ $batchjob -eq "0" ]; then

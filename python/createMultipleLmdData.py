@@ -158,6 +158,8 @@ else:
 # as quite a lot of data is read in from the storage...)
 job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
+print(f"createMultipleLmdData: appending {len(config_paths)} jobs...")
+
 for config_path in config_paths:
     filelist_path = os.path.split(config_path)[0]
     input_path = os.path.split(filelist_path)[0]
@@ -169,15 +171,14 @@ for config_path in config_paths:
     resource_request.processors_per_node = 1
     resource_request.memory_in_mb = 2500
     # TODO: choose correct create data application
+    lmdScriptPath = os.environ["LMDFIT_BUILD_PATH"] + "../python/"
     job = Job(
         resource_request,
-        "./createLumiFitData.sh",
+        f"{lmdScriptPath}/createLumiFitData.sh",
         "createLumiFitData",
         config_path + "/createLumiFitData-%a.log",
-        # TODO: what is this? Job doesn't have array_indices
-        array_indices=list(range(1, num_filelists + 1)),
     )
-
+    job.array_indices = list(range(1, num_filelists + 1))
     job.exported_user_variables["numEv"] = args.num_events
     job.exported_user_variables["pbeam"] = args.lab_momentum[0]
     job.exported_user_variables["input_path"] = input_path
@@ -192,3 +193,5 @@ for config_path in config_paths:
     ] = args.elastic_cross_section
 
     job_manager.append(job)
+
+print(f"All done, waiting for job completion.")

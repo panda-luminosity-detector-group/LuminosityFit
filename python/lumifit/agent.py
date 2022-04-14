@@ -116,12 +116,16 @@ class Server(Agent):
         while True:
             # read entire pipe contents and try to deserialize json from it (close pipe!)
             thisOrder = self.receiveOrder()
-            logging.info(f"Received Order:\n{thisOrder}\n")
+            logging.info(
+                f"{datetime.datetime.now().isoformat(timespec='seconds')}: Received Order:\n{thisOrder}\n"
+            )
             # execute command as ordered
             returnOrder = self.execute(thisOrder)
 
             # return result
-            logging.info(f"Sent back result:\n{returnOrder}\n")
+            logging.info(
+                f"{datetime.datetime.now().isoformat(timespec='seconds')}: Sent back result:\n{returnOrder}\n"
+            )
             self.sendOrder(returnOrder)
 
     def execute(self, thisOrder: SlurmOrder) -> SlurmOrder:

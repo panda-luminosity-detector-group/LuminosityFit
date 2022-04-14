@@ -37,8 +37,9 @@ def getListOfDirectories(path):
                     return
 
 
-# filename_prefix = 'Lumi_TrksQA_'
-filename_prefix = "Koala_comp_"
+# TODO: Oh ffs, read that from scenario config, NOT hardcode!
+filename_prefix = "Lumi_TrksQA_"
+# filename_prefix = "Koala_comp_"
 
 
 def createFileListFile(output_url, list_of_files):
