@@ -446,7 +446,7 @@ def lumiDetermination(scen):
     print("processing scenario " + dir_path + " at step " + str(state))
 
     # TODO: Not sure if later on the lab momentum has to be extracted from the data
-    m = re.search("(\d*?\.\d*?)GeV", dir_path)
+    m = re.search(r"plab_(\d*?\.?\d*?)GeV", dir_path)
     momentum = float(m.group(1))
     scen.momentum = momentum
 

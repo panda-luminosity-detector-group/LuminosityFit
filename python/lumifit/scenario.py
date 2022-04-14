@@ -3,7 +3,7 @@ holds info about which scenario (LMD or KOALA) is run.
 """
 
 import math
-from alignment import AlignmentParameters
+from .alignment import AlignmentParameters
 from enum import Enum
 
 
