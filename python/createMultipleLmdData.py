@@ -171,7 +171,7 @@ for config_path in config_paths:
     resource_request.processors_per_node = 1
     resource_request.memory_in_mb = 2500
     # TODO: choose correct create data application
-    lmdScriptPath = os.environ["LMDFIT_BUILD_PATH"] + "../python/"
+    lmdScriptPath = os.environ["LMDFIT_BUILD_PATH"] + "/../python"
     job = Job(
         resource_request,
         f"{lmdScriptPath}/createLumiFitData.sh",
