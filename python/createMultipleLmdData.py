@@ -177,8 +177,8 @@ for config_path in config_paths:
         f"{lmdScriptPath}/createLumiFitData.sh",
         "createLumiFitData",
         config_path + "/createLumiFitData-%a.log",
+        array_indices=list(range(1, num_filelists + 1)),
     )
-    job.array_indices = list(range(1, num_filelists + 1))
     job.exported_user_variables["numEv"] = args.num_events
     job.exported_user_variables["pbeam"] = args.lab_momentum[0]
     job.exported_user_variables["input_path"] = input_path
