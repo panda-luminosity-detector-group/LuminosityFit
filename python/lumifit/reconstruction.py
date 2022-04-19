@@ -12,16 +12,15 @@ from typing import Tuple
 # TODO: solve the track_search_algorithms with Enum (or IntEnum for json serializability)
 #! wait there is even an enumEncoder, IntEnums may not be neccessary
 
+track_search_algorithms = ["CA", "Follow"]
+
 
 @attr.s
 class ReconstructionParameters:
-    def _validate_track_search_algo(self, instance, attribute, value):
-        if value not in self.track_search_algorithms:
-            raise ValueError(
-                f"Must be either of {self.track_search_algorithms}."
-            )
+    def _validate_track_search_algo(instance, attribute, value):
+        if value not in track_search_algorithms:
+            raise ValueError(f"Must be either of {track_search_algorithms}.")
 
-    track_search_algorithms = ["CA", "Follow"]
     num_events_per_sample: int = attr.ib(default=1000)
     num_samples: int = attr.ib(default=1)
     lab_momentum: float = attr.ib(default=1.5)
