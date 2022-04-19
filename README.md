@@ -62,3 +62,57 @@ In there, run the test simulation:
 ```bash
 python python runSimulationReconstruction.py simparams.conf recoparams.conf
 ```
+
+# Code Layout
+
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
+
+## Singularity Wrapper
+
+Some script parts need to be submitted to SLURM. Because the entire application only works inside the Singularity container from now on, it must be called with a special wrapper script:
+
+```mermaid
+flowchart LR
+id1[squeue COMMAND] --> id2[squeue ./singularityJob.sh COMMAND]
+```
+
+The script calls the container and sources the PandaRoot/KoalaSoft config.sh scripts necessary to set the needed env variables.
+
+## runSimulationReconstruction.py
+
+## determineLuminosity.py
+
+Can only be run if `LumiTrkQA_` files are already present.
+
+Minimum run example works without arguments, but searches a LOT of directories. It's genereally better to at least limit the search paths:
+
+```bash
+./determineLuminosity.py --base_output_data_dir /path/to/TrksQAFiles.root
+```
+
+The run sequence is as follows:
+
+```mermaid
+flowchart TD
+determineLuminosity.sh --> searchjDirs
+id1{{scenarioConfig.json}} -.-> determineLuminosity.sh
+```
+
+TODO: continue
+
+## Apps in `/bin/`
+
+### createLmdFitData
+
+
+### createKoaFitData
+
+Same but for the Koala Experiment
+
+### ExtractLuminosityValues

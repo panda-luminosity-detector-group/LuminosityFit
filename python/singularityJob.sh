@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#* usage: the first argument of this script is being run via Singularity
+#* in the lmdfit-mini.sif container. Neccessary env variables are set
+#* from the PandaRoot / KoalaSoft config.sh scripts (set $VMCWORKPATH
+#* accordingly). Shell expansion works as expected, even in the arguments.
+
 #Load the Singularity module
 module load tools/Singularity
 
@@ -9,5 +14,4 @@ export SINGULARITY_TMPDIR
 mkdir -p $SINGULARITY_TMPDIR
 LMDPATH=${LMDFIT_BUILD_DIR}/..
 
-# TODO: don't hardcode the path ffs, use environment variables
-singularity exec --env-file /home/roklasen/LuminosityFit/lmdEnvFile.env /home/roklasen/lmdfit-mini.sif bash -c ". \$VMCWORKDIR/build/config.sh -a ; python /home/roklasen/LuminosityFit/python/runLmdSimReco.py"
+singularity exec --env-file ${HOME}/LuminosityFit/lmdEnvFile.env ${HOME}/lmdfit-mini.sif bash -c ". \$VMCWORKDIR/build/config.sh -a ; ${1}"
