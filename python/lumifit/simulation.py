@@ -1,3 +1,4 @@
+from email.policy import default
 import math
 import os
 import random
@@ -29,10 +30,13 @@ class SimulationParameters:
             return SimulationType(value)
         raise TypeError("sim_type has to be of type SimulationType or str.")
 
-    sim_type: SimulationType = attr.ib(converter=simulation_type_converter)
-    num_events_per_sample: int = attr.ib()
-    num_samples: int = attr.ib()
-    lab_momentum: float = attr.ib()
+    sim_type: SimulationType = attr.ib(
+        default=SimulationType.PBARP_ELASTIC,
+        converter=simulation_type_converter,
+    )
+    num_events_per_sample: int = attr.ib(default=1000)
+    num_samples: int = attr.ib(default=1)
+    lab_momentum: float = attr.ib(default=1.5)
     low_index: int = attr.ib(default=1)
     output_dir: str = attr.ib(default="")
     lmd_geometry_filename: str = attr.ib(default="Luminosity-Detector.root")

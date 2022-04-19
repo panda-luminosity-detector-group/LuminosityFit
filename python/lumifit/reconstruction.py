@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from array import array
+from email.policy import default
 from .alignment import AlignmentParameters
 from .cluster import Job, JobResourceRequest, make_test_job_resource_request
 from .general import write_params_to_file
@@ -8,7 +9,7 @@ from .general import write_params_to_file
 import attr
 import errno
 import os
-from typing import Optional, Tuple
+from typing import Tuple
 
 track_search_algorithms = ["CA", "Follow"]
 
@@ -19,9 +20,9 @@ class ReconstructionParameters:
         if value not in track_search_algorithms:
             raise ValueError(f"Must be either of {track_search_algorithms}.")
 
-    num_events_per_sample: int = attr.ib()
-    num_samples: int = attr.ib()
-    lab_momentum: float = attr.ib()
+    num_events_per_sample: int = attr.ib(default=1000)
+    num_samples: int = attr.ib(default=1)
+    lab_momentum: float = attr.ib(default=1.5)
     low_index: int = attr.ib(default=1)
     output_dir: str = attr.ib(default="")
     lmd_geometry_filename: str = attr.ib(default="Luminosity-Detector.root")
@@ -30,9 +31,7 @@ class ReconstructionParameters:
     track_search_algo: str = attr.ib(
         default="CA", validator=_validate_track_search_algo
     )
-    reco_ip_offset: Optional[Tuple[float, float, float]] = attr.ib(
-        default=None
-    )
+    reco_ip_offset: Tuple[float, float, float] = attr.ib(default=[0, 0, 0])
 
 
 def generateRecoDirSuffix(
