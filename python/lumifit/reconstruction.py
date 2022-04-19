@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from array import array
-from email.policy import default
 from .alignment import AlignmentParameters
 from .cluster import Job, JobResourceRequest, make_test_job_resource_request
 from .general import write_params_to_file

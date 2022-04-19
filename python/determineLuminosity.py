@@ -94,7 +94,19 @@ def simulateDataOnHimster(scenario: Scenario):
     2:  ceate Data (bunch data objects)
         first thing it should do is create bunches/binning dirs.
         Then call createMultipleLmdData which looks for these dirs.
-        This currently doesn't work.
+        This also finds the reconstruted IP position from the TrksQA files.
+
+    3:  Now the IP position is known and can be used as a cut on the
+        reconstructed tracks. This performs the ENTIRE reconstruction
+        again using this IP position information.
+
+        TODO: This step currently doesnt work.
+
+    Parameters:
+    - dir_path: the path to the TrksQA files (e.g. 1-100_uncut/no_alignment_correction)
+    - state: integer from 1 to 4
+
+
     """
     tasks_to_remove = []
 
@@ -541,16 +553,21 @@ def lumiDetermination(scen):
         last_state += 1
 
     if state == 3:
-        # 3a. track filter the dpm data using the ip values and create ang
-        # dist objects
+
+        # state 3a:
+        # the IP position is now reconstructed. filter the DPM data again,
+        # this time using the newly determined IP position as a cut criterion.
         # (that again means bunch -> create -> merge)
         # 3b. generate acceptance and resolution with these reconstructed ip
         # values
         # (that means simulation + bunching + creating data objects + merging)
+        # because this data is now with a cut applied, the new directory is called
+        # something 1-100_xy_m_cut_real
         if len(scen.simulation_info_lists) == 0:
             scen.simulation_info_lists.append(["", "a", 1, 0])
             scen.simulation_info_lists.append(["", "er", 1, 0])
 
+        # all info needed for the COMPLETE reconstruction chain is here
         scen = simulateDataOnHimster(scen)
         if scen.is_broken:
             dead_scenario_stack.append(scen)
@@ -709,7 +726,7 @@ print(dirs)
 
 # at first assign each scenario the first step and push on the active stack
 for dir in dirs:
-    scen = Scenario(dir, experiment_type=ExperimentType.KOALA)
+    scen = Scenario(dir, experiment_type=ExperimentType.LUMI)
     print("creating scenario:", dir)
     if args.disable_xy_cut or (
         "/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir
