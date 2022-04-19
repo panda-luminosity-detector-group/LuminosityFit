@@ -1,12 +1,14 @@
-import errno
-import os
-from typing import Optional, Tuple
+#!/usr/bin/env python3
 
-import attr
-
+from array import array
 from .alignment import AlignmentParameters
 from .cluster import Job, JobResourceRequest, make_test_job_resource_request
 from .general import write_params_to_file
+
+import attr
+import errno
+import os
+from typing import Optional, Tuple
 
 track_search_algorithms = ["CA", "Follow"]
 
@@ -128,10 +130,9 @@ def create_reconstruction_job(
         application_url=application_command,
         name="lmd_reco_",
         logfile_url=pathname_full + "/reco-%a.log",
-    )
-
-    job.array_indices = list(
-        range(low_index_used, low_index_used + num_samples)
+        array_indices=list(
+            range(low_index_used, low_index_used + num_samples)
+        ),
     )
 
     job.exported_user_variables = {
