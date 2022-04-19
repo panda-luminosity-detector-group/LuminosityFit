@@ -15,12 +15,19 @@ import shlex
 import subprocess
 import stat
 import sys
+from enum import Enum
 from typing import Dict
 
 
 @attr.s(hash=True)
+class orderType(Enum):
+    META = "meta"
+    REGULAR = "regular"
+
+
+@attr.s(hash=True)
 class SlurmOrder:
-    orderType: str = attr.ib(default="regular")
+    orderType: orderType = attr.ib(default=orderType.REGULAR)
     cmd: str = attr.ib(default="id")
     returnCode: int = attr.ib(default=-1)
     stdout: str = attr.ib(default="")
@@ -129,7 +136,7 @@ class Server(Agent):
             self.sendOrder(returnOrder)
 
     def execute(self, thisOrder: SlurmOrder) -> SlurmOrder:
-        if thisOrder.orderType == "meta":
+        if thisOrder.orderType == orderType.META:
             if thisOrder.cmd == "exit":
                 self.bail()
             elif thisOrder.cmd == "test":
@@ -137,7 +144,7 @@ class Server(Agent):
                 thisOrder.returnCode = 0
                 return thisOrder
 
-        elif thisOrder.orderType == "regular":
+        elif thisOrder.orderType == orderType.REGULAR:
             # this returns a CompletedProcess
 
             if not thisOrder.runShell:
@@ -149,7 +156,6 @@ class Server(Agent):
                     shell=False,
                     encoding="utf-8",
                 )
-
             else:
                 process = subprocess.run(
                     thisOrder.cmd,
@@ -208,7 +214,7 @@ class Server(Agent):
 class Client(Agent):
     def checkConnection(self) -> None:
         testOrder = SlurmOrder()
-        testOrder.orderType = "meta"
+        testOrder.orderType = orderType.META
         testOrder.cmd = "test"
         self.sendOrder(testOrder)
         resultOrder = self.receiveOrder()
