@@ -9,15 +9,19 @@ import errno
 import os
 from typing import Tuple
 
-track_search_algorithms = ["CA", "Follow"]
+# TODO: solve the track_search_algorithms with Enum (or IntEnum for json serializability)
+#! wait there is even an enumEncoder, IntEnums may not be neccessary
 
 
 @attr.s
 class ReconstructionParameters:
-    def _validate_track_search_algo(instance, attribute, value):
-        if value not in track_search_algorithms:
-            raise ValueError(f"Must be either of {track_search_algorithms}.")
+    def _validate_track_search_algo(self, instance, attribute, value):
+        if value not in self.track_search_algorithms:
+            raise ValueError(
+                f"Must be either of {self.track_search_algorithms}."
+            )
 
+    track_search_algorithms = ["CA", "Follow"]
     num_events_per_sample: int = attr.ib(default=1000)
     num_samples: int = attr.ib(default=1)
     lab_momentum: float = attr.ib(default=1.5)
@@ -110,8 +114,12 @@ def create_reconstruction_job(
         if exception.errno != errno.EEXIST:
             print("error: thought dir does not exists but it does...")
 
-    write_params_to_file(reco_params, pathname_full, "reco_params.config")
-    write_params_to_file(align_params, pathname_full, "align_params.config")
+    write_params_to_file(
+        attr.asdict(reco_params), pathname_full, "reco_params.config"
+    )
+    write_params_to_file(
+        attr.asdict(align_params), pathname_full, "align_params.config"
+    )
 
     resource_request = JobResourceRequest(2 * 60)
     resource_request.number_of_nodes = 1
