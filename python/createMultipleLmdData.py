@@ -174,7 +174,7 @@ for config_path in config_paths:
     lmdScriptPath = os.environ["LMDFIT_BUILD_PATH"] + "/../python"
     job = Job(
         resource_request,
-        f"{lmdScriptPath}/createLumiFitData.sh",
+        f"{lmdScriptPath}singularityJob.sh {lmdScriptPath}/createLumiFitData.sh",
         "createLumiFitData",
         config_path + "/createLumiFitData-%a.log",
         array_indices=list(range(1, num_filelists + 1)),
