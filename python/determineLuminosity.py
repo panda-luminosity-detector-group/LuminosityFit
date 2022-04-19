@@ -12,13 +12,18 @@ import sys
 import time
 import socket
 
+import lumifit.general as general
+
 from lumifit import alignment
 from lumifit import himster
 from lumifit import reconstruction
+from lumifit.alignment import AlignmentParameters
+from lumifit.agent import Client
+from lumifit.cluster import ClusterJobManager
+from lumifit.gsi_virgo import create_virgo_job_handler
+from lumifit.himster import create_himster_job_handler
 from lumifit.scenario import Scenario, ExperimentType
 
-from lumifit.alignment import AlignmentParameters
-import lumifit.general as general
 from lumifit.reconstruction import (
     create_reconstruction_job,
     ReconstructionParameters,
@@ -28,10 +33,6 @@ from lumifit.simulation import (
     SimulationType,
     create_simulation_and_reconstruction_job,
 )
-from lumifit.agent import Client
-from lumifit.cluster import ClusterJobManager
-from lumifit.gsi_virgo import create_virgo_job_handler
-from lumifit.himster import create_himster_job_handler
 
 
 def wasSimulationSuccessful(
@@ -277,7 +278,8 @@ def simulateDataOnHimster(scenario: Scenario):
                         rec_par.num_samples = num_samples
                         sim_par.num_samples = num_samples
 
-                    # TODO: ALIGNMENT PARAMETERS
+                    # TODO: Load ALIGNMENT PARAMETERS from file
+                    align_par = AlignmentParameters()
 
                     dirname = os.path.dirname(scenario.dir_path)
                     (job, dir_path) = create_reconstruction_job(
