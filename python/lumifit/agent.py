@@ -21,8 +21,9 @@ from typing import Dict
 
 @attr.s(hash=True)
 class orderType(IntEnum):
-    META = "meta"
-    REGULAR = "regular"
+    # the actual values of these enums must be integers now!
+    META = 0
+    REGULAR = 1
 
 
 @attr.s(hash=True)
