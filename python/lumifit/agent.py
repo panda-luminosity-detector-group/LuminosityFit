@@ -15,12 +15,12 @@ import shlex
 import subprocess
 import stat
 import sys
-from enum import Enum
+from enum import IntEnum
 from typing import Dict
 
 
 @attr.s(hash=True)
-class orderType(Enum):
+class orderType(IntEnum):
     META = "meta"
     REGULAR = "regular"
 
