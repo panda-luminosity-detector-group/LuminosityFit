@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
-import random, os, sys
 import argparse
-from decimal import Decimal
+import random
+import os
+import lumifit.simulation as simulation
 import subprocess
 
-import general, simulation
+from decimal import Decimal
+
 
 base_out_dir = "/data/work/himspecf/pflueger/realistic_scenarios"
 os.environ["DATA_DIR"] = base_out_dir

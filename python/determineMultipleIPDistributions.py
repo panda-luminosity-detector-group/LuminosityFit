@@ -2,7 +2,7 @@
 
 import os
 import subprocess
-import general
+import lumifit.general as general
 
 import argparse
 

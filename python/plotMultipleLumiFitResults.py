@@ -3,7 +3,7 @@
 import os
 import subprocess
 import argparse
-import general
+import lumifit.general as general
 
 glob_pattern = "lmd_fitted_data.root"
 

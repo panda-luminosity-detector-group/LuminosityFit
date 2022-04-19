@@ -1,14 +1,9 @@
 # TODO:  add shebang
 import os
-import sys
 import re
-import errno
 import glob
-import time
-import glob
-import subprocess
-import general
-import himster
+import lumifit.general as general
+import lumifit.himster as himster
 import argparse
 
 dirs = []

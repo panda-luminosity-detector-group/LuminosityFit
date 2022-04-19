@@ -2,9 +2,9 @@
 
 import argparse
 
-import reconstruction
-import alignment
-import general
+import lumifit.alignment as alignment
+import lumifit.general as general
+import lumifit.reconstruction as reconstruction
 
 parser = argparse.ArgumentParser(
     description="Script for full reconstruction of the PANDA Luminosity"

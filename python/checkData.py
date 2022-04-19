@@ -1,9 +1,8 @@
 
 # TODO: port to python3, add shebang
-import os, sys, re, errno, glob, time, glob
-import subprocess
+import os, sys, glob
 import multiprocessing
-import general, himster
+import lumifit.general as general
 
 cpu_cores = multiprocessing.cpu_count()
 

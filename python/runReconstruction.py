@@ -4,9 +4,9 @@ import json
 import argparse
 import os
 
-import reconstruction
-import general
-import alignment
+import lumifit.alignment as alignment
+import lumifit.general as general
+import lumifit.reconstruction as reconstruction
 
 parser = argparse.ArgumentParser(
     description="Script to run a reconstruction of the PANDA "
