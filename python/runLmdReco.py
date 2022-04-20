@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import pathlib
 
 from lumifit.alignment import AlignmentParameters
 from lumifit.general import (
@@ -98,9 +99,8 @@ backPropAlgorithm = "Geane"
 # this is pretty ugly, but I don't know a better way yet. If they're not already here, the
 # macro will fail either way, so I guess it's no harm to copy it.
 searchPath = Path(pathToTrkQAFiles).parent.parent
-searcher = DirectorySearcher()
-searcher.searchListOfDirectories(searchPath, f"Lumi_digi_{start_evt}.root")
-pathToLumiDigi = searcher.getListOfDirectories()
+candidates = sorted(searchPath.glob(f"**/Lumi_digi_{start_evt}.root"))
+pathToLumiDigi = candidates[0]
 
 print(
     f"\n\nDEBUG\n:Copying {pathToLumiDigi} to {workpathname}/Lumi_digi_{start_evt}.root\n\n"
