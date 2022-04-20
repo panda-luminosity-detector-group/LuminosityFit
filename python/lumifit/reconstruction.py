@@ -76,7 +76,7 @@ def create_reconstruction_job(
     reco_params: ReconstructionParameters,
     align_params: AlignmentParameters,
     dirname,
-    application_command="runLmdReco.py",
+    application_command="",
     force_level=0,
     debug=False,
     use_devel_queue=False,
@@ -128,6 +128,11 @@ def create_reconstruction_job(
 
     if use_devel_queue:
         resource_request = make_test_job_resource_request()
+
+    lmdScriptPath = os.environ["LMDFIT_BUILD_PATH"] + "/../python"
+    application_command = (
+        f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdReco.py"
+    )
 
     job = Job(
         resource_request,
