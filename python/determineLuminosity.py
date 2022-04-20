@@ -298,7 +298,11 @@ def simulateDataOnHimster(scenario: Scenario):
                     # TODO: Load ALIGNMENT PARAMETERS from file
                     align_par = AlignmentParameters()
 
-                    dirname = os.path.dirname(scenario.dir_path)
+                    # this directory is .../100000/1-100_uncut/alignStuff, but we need the 100000
+                    # os.path.dirname() thinks this is a filename and gives 1-100_uncut back, which
+                    # is too high
+                    # dirname = os.path.dirname(scenario.dir_path) + "/../"
+                    dirname = scenario.dir_path + "/../../"
                     (job, dir_path) = create_reconstruction_job(
                         rec_par,
                         align_par,

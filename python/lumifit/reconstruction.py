@@ -100,6 +100,8 @@ def create_reconstruction_job(
         )
         num_samples = 1
 
+    print(f"dir name for this create_reconstruction_job is {dirname}")
+
     pathname_base = dirname
     path_mc_data = pathname_base + "/mc_data"
     dirname_full = dirname + "/" + dirname_filter_suffix
