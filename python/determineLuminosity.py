@@ -198,7 +198,7 @@ def simulateDataOnHimster(scenario: Scenario):
                     sim_par.phi_max_in_rad = scen.phi_max_in_rad
                     # TODO: ip offset for sim params?
 
-                    rec_par = reconstruction.ReconstructionParmaters(
+                    rec_par = ReconstructionParameters(
                         num_events_per_sample=box_num_events_per_sample,
                         num_samples=box_num_samples,
                         lab_momentum=lab_momentum,
@@ -302,6 +302,7 @@ def simulateDataOnHimster(scenario: Scenario):
                     # os.path.dirname() thinks this is a filename and gives 1-100_uncut back, which
                     # is too high
                     # dirname = os.path.dirname(scenario.dir_path) + "/../"
+                    # TODO: do this better, this way, the two /../ remain in the path!
                     dirname = scenario.dir_path + "/../../"
                     (job, dir_path) = create_reconstruction_job(
                         rec_par,
