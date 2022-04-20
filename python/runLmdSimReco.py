@@ -142,7 +142,7 @@ if (
 
     # copy the Lumi_Digi data to permanent storage, it's needed for IP cut for the LumiFit
     os.system(
-        f"cp {workpathname}/Lumi_Digi_{start_evt}.root {dirname}/Lumi_Digi_{start_evt}.root"
+        f"cp {workpathname}/Lumi_digi_{start_evt}.root {dirname}/Lumi_digi_{start_evt}.root"
     )
 
 os.chdir(scriptpath)
