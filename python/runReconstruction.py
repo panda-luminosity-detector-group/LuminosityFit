@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+#! =======================================================
+#! ====   DEPRECATED? NOT USED ANYWHERE!              ====
+#! =======================================================
+
 import json
 import argparse
 import os

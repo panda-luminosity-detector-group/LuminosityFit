@@ -14,9 +14,7 @@ import socket
 
 import lumifit.general as general
 
-from lumifit import alignment
 from lumifit import himster
-from lumifit import reconstruction
 from lumifit.alignment import AlignmentParameters
 from lumifit.agent import Client
 from lumifit.cluster import ClusterJobManager
@@ -214,7 +212,7 @@ def simulateDataOnHimster(scenario: Scenario):
                     # alignment part
                     # if alignement matrices were specified, we used them as a mis-alignment
                     # and alignment for the box simulations
-                    align_par = alignment.createAlignmentParameters()
+                    align_par = AlignmentParameters()
                     if scen.alignment_parameters.alignment_matrices_path:
                         align_par.misalignment_matrices_path = (
                             scen.alignment_parameters.alignment_matrices_path
