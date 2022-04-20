@@ -7,8 +7,8 @@ from lumifit.general import load_params_from_file, check_stage_success
 from lumifit.simulation import SimulationParameters, SimulationType
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
-macropath = os.environ["LMD_MACROPATH"]
-scriptpath = os.environ["LMD_SCRIPTPATH"]
+macropath = os.environ["LMDFIT_MACROPATH"]
+scriptpath = os.environ["LMDFIT_SCRIPTPATH"]
 
 dirname = os.environ["dirname"]
 path_mc_data = os.environ["path_mc_data"]

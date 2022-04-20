@@ -11,7 +11,7 @@ from lumifit.cluster import ClusterJobManager, Job, JobResourceRequest
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
 
-lmdScriptPath = os.environ["LMD_SCRIPTPATH"]
+lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
 
 parser = argparse.ArgumentParser(
     description="Script for going through whole directory trees and looking for bunches directories with filelists in them creating lmd data objects.",

@@ -16,7 +16,7 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
 dirname = os.environ["dirname"]
 path_mc_data = os.environ["path_mc_data"]
 pathname = os.environ["pathname"]
-macropath = os.environ["LMD_MACROPATH"]
+macropath = os.environ["LMDFIT_MACROPATH"]
 force_level = int(os.environ["force_level"])
 
 reco_param = ReconstructionParameters(

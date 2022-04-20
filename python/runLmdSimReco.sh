@@ -9,7 +9,7 @@ return
 #include some helper functions
 . ./bashFunctions.sh
 
-scriptpath=$LMD_SCRIPTPATH
+scriptpath=$LMDFIT_SCRIPTPATH
 macropath="${VMCWORKDIR}/macro/detectors/lmd"
 cd $macropath
 

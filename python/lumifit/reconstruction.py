@@ -14,7 +14,7 @@ from typing import Tuple
 
 track_search_algorithms = ["CA", "Follow"]
 
-lmdScriptPath = os.environ["LMD_SCRIPTPATH"]
+lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
 
 
 @attr.s

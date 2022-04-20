@@ -7,8 +7,8 @@ from lumifit.reconstruction import ReconstructionParameters
 
 # fixed for this installation
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
-macropath = os.environ["LMD_MACROPATH"]
-lmdScriptPath = os.environ["LMD_SCRIPTPATH"]
+macropath = os.environ["LMDFIT_MACROPATH"]
+lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
 
 # changed at runtime
 dirname = os.environ["dirname"]
