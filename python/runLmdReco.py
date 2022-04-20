@@ -87,10 +87,23 @@ trackFitAlgorithm = "Minuit"
 backPropAlgorithm = "Geane"
 
 
+# * ------------------- Special Case for xy Cut: -------------------
+# * the second time this script is run, the Lumi_Digi files are needed and must be copied
+# this is pretty ugly, but I don't know a better way yet. If they're not already here, the
+# macro will fail either way, so I guess it's no harm to copy it.
+if not check_stage_success(f"{workpathname}/Lumi_Digi_{start_evt}.root"):
+    if os.path.exists(pathname + f"Lumi_Digi_{start_evt}.root"):
+        # copy the Lumi_Digi data from permanent storage, it's needed for IP cut for the LumiFit
+        print(f"\n\nDEBUG\n:Copying Lumi_Digi_{start_evt}.root\n\n")
+        os.system(
+            f"cp {dirname}/Lumi_Digi_{start_evt}.root {workpathname}/Lumi_Digi_{start_evt}.root"
+        )
+
+
 os.chdir(macropath)
 # * ------------------- Reco Step -------------------
 if (
-    not check_stage_success(pathname + f"/Lumi_MC_{start_evt}.root")
+    not check_stage_success(pathname + f"/Lumi_reco_{start_evt}.root")
     or force_level == 1
 ):
     os.system(

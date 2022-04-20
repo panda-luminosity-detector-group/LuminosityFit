@@ -140,5 +140,10 @@ if (
             f"""root -l -b -q 'runLumiPixel1Digi.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}", "{ali_params.misalignment_matrices_path}", {1 if ali_params.use_point_transform_misalignment else 0}, {verbositylvl})'"""
         )
 
+    # copy the Lumi_Digi data to permanent storage, it's needed for IP cut for the LumiFit
+    os.system(
+        f"cp {workpathname}/Lumi_Digi_{start_evt}.root {dirname}/Lumi_Digi_{start_evt}.root"
+    )
+
 os.chdir(scriptpath)
 os.system("./runLmdReco.py")
