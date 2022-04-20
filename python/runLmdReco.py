@@ -91,12 +91,19 @@ backPropAlgorithm = "Geane"
 # * the second time this script is run, the Lumi_Digi files are needed and must be copied
 # this is pretty ugly, but I don't know a better way yet. If they're not already here, the
 # macro will fail either way, so I guess it's no harm to copy it.
-print(f"\n\nDEBUG\n:Copying Lumi_digi_{start_evt}.root\n\n")
+print(
+    f"\n\nDEBUG\n:Copying {pathToTrkQAFiles}/Lumi_digi_{start_evt}.root to {workpathname}/Lumi_digi_{start_evt}.root\n\n"
+)
+
 if not check_stage_success(f"{workpathname}/Lumi_digi_{start_evt}.root"):
-    if os.path.exists(pathToTrkQAFiles + f"Lumi_digi_{start_evt}.root"):
+    if os.path.exists(f"{pathToTrkQAFiles}/Lumi_digi_{start_evt}.root"):
+
+        # I'm not sure it exists yet
+        os.makedirs(workpathname)
+
         # copy the Lumi_Digi data from permanent storage, it's needed for IP cut for the LumiFit
         os.system(
-            f"cp {pathToTrkQAFiles}/Lumi_digi_{start_evt}.root {workpathname}/Lumi_digi_{start_evt}.root"
+            f"cp {pathToTrkQAFiles}/../../1-*_uncut/no*/Lumi_digi_{start_evt}.root {workpathname}/Lumi_digi_{start_evt}.root"
         )
 
 

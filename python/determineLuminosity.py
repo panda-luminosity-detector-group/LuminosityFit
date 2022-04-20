@@ -14,6 +14,8 @@ import socket
 
 import lumifit.general as general
 
+from pathlib import Path
+
 from lumifit import himster
 from lumifit.alignment import AlignmentParameters
 from lumifit.agent import Client
@@ -300,8 +302,10 @@ def simulateDataOnHimster(scenario: Scenario):
                     # os.path.dirname() thinks this is a filename and gives 1-100_uncut back, which
                     # is too high
                     # dirname = os.path.dirname(scenario.dir_path) + "/../"
-                    # TODO: do this better, this way, the two /../ remain in the path!
-                    dirname = scenario.dir_path + "/../../"
+                    dirname = str(Path(scenario.dir_path).parent.parent)
+
+                    print(f"DEBUG:\ndirname is {dirname}")
+
                     (job, dir_path) = create_reconstruction_job(
                         rec_par,
                         align_par,
