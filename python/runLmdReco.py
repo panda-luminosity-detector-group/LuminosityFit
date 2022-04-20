@@ -103,7 +103,7 @@ if not check_stage_success(f"{workpathname}/Lumi_digi_{start_evt}.root"):
 
         # copy the Lumi_Digi data from permanent storage, it's needed for IP cut for the LumiFit
         os.system(
-            f"cp {pathToTrkQAFiles}/../../1-*_uncut/no*/Lumi_digi_{start_evt}.root {workpathname}/Lumi_digi_{start_evt}.root"
+            f"cp {pathToTrkQAFiles}/../../1-{reco_params.num_samples}_uncut/no_alignment_correction/Lumi_digi_{start_evt}.root {workpathname}/Lumi_digi_{start_evt}.root"
         )
 
 

@@ -90,7 +90,7 @@ if (
     # if sim_params.reaction_type -eq -1:
     if sim_params.sim_type == SimulationType.BOX:
         os.system(
-            f"""root -l -b -q 'standaloneBoxGen.C({sim_params.lab_momentum}, {sim_params.num_events_per_sample}, {sim_params.theta_min_in_mrad}, {sim_params.theta_max_in_mrad},"{gen_filepath}", {sim_params.random_seed}, int({sim_params.neglect_recoil_momentum}))'"""
+            f"""root -l -b -q 'standaloneBoxGen.C({sim_params.lab_momentum}, {sim_params.num_events_per_sample}, {sim_params.theta_min_in_mrad}, {sim_params.theta_max_in_mrad},"{gen_filepath}", {sim_params.random_seed}, {int(sim_params.neglect_recoil_momentum)})'"""
         )
     elif sim_params.sim_type == SimulationType.PBARP_ELASTIC:
         os.system(
