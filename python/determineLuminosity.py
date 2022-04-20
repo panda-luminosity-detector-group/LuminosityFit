@@ -264,6 +264,11 @@ def simulateDataOnHimster(scenario: Scenario):
                     # TODO: save digi files instead of mc files!!
                     # we are either in the base dir or an "aligned" subdirectory,
                     # apply dirty hack here:
+
+                    print(
+                        f"\n\nDEBUG: this is this scenarios dir path:\n{scenario.dir_path}\n\n"
+                    )
+
                     simParamFile = scenario.dir_path + "/../sim_params.config"
                     if not os.path.exists(simParamFile):
                         simParamFile = (
@@ -722,7 +727,7 @@ dir_searcher.searchListOfDirectories(
 )
 dirs = dir_searcher.getListOfDirectories()
 
-print(dirs)
+print(f"\n\nINFO: found these dirs:\n{dirs}\n\n")
 
 # at first assign each scenario the first step and push on the active stack
 for dir in dirs:
