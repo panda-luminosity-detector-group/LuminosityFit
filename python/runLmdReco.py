@@ -3,8 +3,14 @@
 import os
 
 from lumifit.alignment import AlignmentParameters
-from lumifit.general import load_params_from_file, check_stage_success
+from lumifit.general import (
+    load_params_from_file,
+    check_stage_success,
+    DirectorySearcher,
+)
 from lumifit.reconstruction import ReconstructionParameters
+
+from pathlib import Path
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 LMDScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
@@ -91,19 +97,24 @@ backPropAlgorithm = "Geane"
 # * the second time this script is run, the Lumi_Digi files are needed and must be copied
 # this is pretty ugly, but I don't know a better way yet. If they're not already here, the
 # macro will fail either way, so I guess it's no harm to copy it.
+searchPath = Path(pathToTrkQAFiles).parent.parent
+searcher = DirectorySearcher()
+searcher.searchListOfDirectories(searchPath, f"Lumi_digi_{start_evt}.root")
+pathToLumiDigi = searcher.getListOfDirectories()
+
 print(
-    f"\n\nDEBUG\n:Copying {pathToTrkQAFiles}/Lumi_digi_{start_evt}.root to {workpathname}/Lumi_digi_{start_evt}.root\n\n"
+    f"\n\nDEBUG\n:Copying {pathToLumiDigi} to {workpathname}/Lumi_digi_{start_evt}.root\n\n"
 )
 
 if not check_stage_success(f"{workpathname}/Lumi_digi_{start_evt}.root"):
-    if os.path.exists(f"{pathToTrkQAFiles}/Lumi_digi_{start_evt}.root"):
-
+    if os.path.exists(f"{pathToLumiDigi}/Lumi_digi_{start_evt}.root"):
+        print("seems to exist, attempting copy")
         # I'm not sure it exists yet
         os.makedirs(workpathname)
 
         # copy the Lumi_Digi data from permanent storage, it's needed for IP cut for the LumiFit
         os.system(
-            f"cp {pathToTrkQAFiles}/../../1-{reco_params.num_samples}_uncut/no_alignment_correction/Lumi_digi_{start_evt}.root {workpathname}/Lumi_digi_{start_evt}.root"
+            f"cp {pathToLumiDigi} {workpathname}/Lumi_digi_{start_evt}.root"
         )
 
 
