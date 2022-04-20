@@ -5,12 +5,15 @@ from lumifit.alignment import AlignmentParameters
 from lumifit.general import load_params_from_file, check_stage_success
 from lumifit.reconstruction import ReconstructionParameters
 
+# fixed for this installation
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
-scriptpath = lmd_build_path + "../python"
+macropath = os.environ["LMD_MACROPATH"]
+lmdScriptPath = os.environ["LMD_SCRIPTPATH"]
+
+# changed at runtime
 dirname = os.environ["dirname"]
 path_mc_data = os.environ["path_mc_data"]
 pathname = os.environ["pathname"]
-macropath = os.environ["macropath"]
 force_level = int(os.environ["force_level"])
 
 debug = True
@@ -35,8 +38,6 @@ else:
     workpathname = f"/localscratch/{os.environ['SLURM_JOB_ID']}/{dirname}"
 
 gen_filepath = workpathname + "/gen_mc.root"
-scriptpath = os.getcwd()
-
 
 # switch on "missing plane" search algorithm
 misspl = True

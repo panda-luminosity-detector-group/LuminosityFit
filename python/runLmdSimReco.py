@@ -7,11 +7,12 @@ from lumifit.general import load_params_from_file, check_stage_success
 from lumifit.simulation import SimulationParameters, SimulationType
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
-scriptpath = lmd_build_path + "/../python"
+macropath = os.environ["LMD_MACROPATH"]
+scriptpath = os.environ["LMD_SCRIPTPATH"]
+
 dirname = os.environ["dirname"]
 path_mc_data = os.environ["path_mc_data"]
 pathname = os.environ["pathname"]
-macropath = os.environ["macropath"]
 force_level = int(os.environ["force_level"])
 
 # parser = argparse.ArgumentParser(

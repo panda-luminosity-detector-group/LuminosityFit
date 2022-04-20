@@ -14,6 +14,8 @@ from typing import Tuple
 
 track_search_algorithms = ["CA", "Follow"]
 
+lmdScriptPath = os.environ["LMD_SCRIPTPATH"]
+
 
 @attr.s
 class ReconstructionParameters:
@@ -129,7 +131,6 @@ def create_reconstruction_job(
     if use_devel_queue:
         resource_request = make_test_job_resource_request()
 
-    lmdScriptPath = os.environ["LMDFIT_BUILD_PATH"] + "/../python"
     application_command = (
         f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdReco.py"
     )

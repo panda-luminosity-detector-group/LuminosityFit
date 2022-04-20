@@ -11,6 +11,8 @@ from lumifit.cluster import ClusterJobManager, Job, JobResourceRequest
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
 
+lmdScriptPath = os.environ["LMD_SCRIPTPATH"]
+
 parser = argparse.ArgumentParser(
     description="Script for going through whole directory trees and looking for bunches directories with filelists in them creating lmd data objects.",
     formatter_class=argparse.RawTextHelpFormatter,
@@ -170,8 +172,7 @@ for config_path in config_paths:
     resource_request.number_of_nodes = 1
     resource_request.processors_per_node = 1
     resource_request.memory_in_mb = 2500
-    # TODO: choose correct create data application
-    lmdScriptPath = os.environ["LMDFIT_BUILD_PATH"] + "/../python"
+
     job = Job(
         resource_request,
         f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/createLumiFitData.sh",

@@ -7,11 +7,12 @@ from lumifit.general import load_params_from_file, check_stage_success
 from lumifit.reconstruction import ReconstructionParameters
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
-scriptpath = lmd_build_path + "/../python"
+lmdScriptPath = os.environ["LMD_SCRIPTPATH"]
+macropath = os.environ["LMD_MACROPATH"]
+
 dirname = os.environ["dirname"]
 path_mc_data = os.environ["path_mc_data"]
 pathname = os.environ["pathname"]
-macropath = os.environ["macropath"]
 force_level = int(os.environ["force_level"])
 
 debug = True
@@ -111,11 +112,6 @@ if (
     os.system(
         f"cp {workpathname}/Lumi_recoMerged_{start_evt}.root {pathname}/Lumi_recoMerged_{start_evt}.root"
     )
-
-# TODO: do this right here, not in some other scripts
-# os.chdir(scriptpath)
-# os.system("./runLmdPairFinder.sh")
-# os.system("./runLmdTrackFinder.sh")
 
 # * ------------------- Pair Finder Step -------------------
 
