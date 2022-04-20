@@ -7,12 +7,12 @@ from lumifit.general import load_params_from_file, check_stage_success
 from lumifit.simulation import SimulationParameters, SimulationType
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
-macropath = os.environ["LMDFIT_MACROPATH"]
-scriptpath = os.environ["LMDFIT_SCRIPTPATH"]
+PNDmacropath = os.environ["LMDFIT_MACROPATH"]
+LMDscriptpath = os.environ["LMDFIT_SCRIPTPATH"]
 
-dirname = os.environ["dirname"]
+pathToTrkQAFiles = os.environ["pathname"]
+relativeDirToTrksQAFiles = os.environ["dirname"]
 path_mc_data = os.environ["path_mc_data"]
-pathname = os.environ["pathname"]
 force_level = int(os.environ["force_level"])
 
 # parser = argparse.ArgumentParser(
@@ -52,10 +52,10 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
     debug = False
 
 if debug:
-    workpathname = pathname
+    workpathname = pathToTrkQAFiles
     path_mc_data = workpathname
 else:
-    workpathname = f"/localscratch/{os.environ['SLURM_JOB_ID']}/{dirname}"
+    workpathname = f"/localscratch/{os.environ['SLURM_JOB_ID']}/{relativeDirToTrksQAFiles}"
 
 if not os.path.isdir(workpathname):
     os.makedirs(workpathname)
@@ -76,7 +76,7 @@ start_evt: int = sim_params.num_events_per_sample * filename_index
 
 
 print(
-    f"\n\nINFO:\ndirname is {dirname}\npathname is {pathname}\nworkpathname is {workpathname}\n\n"
+    f"\n\nINFO:\ndirname is {relativeDirToTrksQAFiles}\npathname is {pathToTrkQAFiles}\nworkpathname is {workpathname}\n\n"
 )
 
 # * ------------------- MC Data Step -------------------
@@ -86,7 +86,7 @@ if (
 ):
 
     # * prepare box or dpm tracks
-    os.chdir(scriptpath)
+    os.chdir(LMDscriptpath)
     # if sim_params.reaction_type -eq -1:
     if sim_params.sim_type == SimulationType.BOX:
         os.system(
@@ -98,7 +98,7 @@ if (
         )
 
     # * run simBox or simDPM
-    os.chdir(macropath)
+    os.chdir(PNDmacropath)
     print("starting up a pandaroot simulation...")
 
     if sim_params.sim_type == SimulationType.NOISE:
@@ -146,8 +146,8 @@ if (
 
     # copy the Lumi_Digi data to permanent storage, it's needed for IP cut for the LumiFit
     os.system(
-        f"cp {workpathname}/Lumi_digi_{start_evt}.root {pathname}/Lumi_digi_{start_evt}.root"
+        f"cp {workpathname}/Lumi_digi_{start_evt}.root {pathToTrkQAFiles}/Lumi_digi_{start_evt}.root"
     )
 
-os.chdir(scriptpath)
+os.chdir(LMDscriptpath)
 os.system("./runLmdReco.py")

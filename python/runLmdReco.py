@@ -7,12 +7,12 @@ from lumifit.general import load_params_from_file, check_stage_success
 from lumifit.reconstruction import ReconstructionParameters
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
-lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
-macropath = os.environ["LMDFIT_MACROPATH"]
+LMDScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
+PNDmacropath = os.environ["LMDFIT_MACROPATH"]
 
-dirname = os.environ["dirname"]
+pathToTrkQAFiles = os.environ["pathname"]
+relativeDirToTrksQAFiles = os.environ["dirname"]
 path_mc_data = os.environ["path_mc_data"]
-pathname = os.environ["pathname"]
 force_level = int(os.environ["force_level"])
 
 debug = True
@@ -21,12 +21,12 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
     filename_index = int(os.environ["SLURM_ARRAY_TASK_ID"])
     debug = False
 
-if not os.path.isdir(pathname):
-    os.makedirs(pathname)
+if not os.path.isdir(pathToTrkQAFiles):
+    os.makedirs(pathToTrkQAFiles)
 
 # TODO: check if params are loaded correctly, shouldn't be the specified file name be used?
 reco_params = ReconstructionParameters(
-    **load_params_from_file(pathname + "/reco_params.config")
+    **load_params_from_file(pathToTrkQAFiles + "/reco_params.config")
 )
 
 # TODO: read alignment parameters correctly
@@ -36,10 +36,10 @@ verbositylvl: int = 0
 start_evt: int = reco_params.num_events_per_sample * filename_index
 
 if debug:
-    workpathname = pathname
+    workpathname = pathToTrkQAFiles
     path_mc_data = workpathname
 else:
-    workpathname = f"/localscratch/{os.environ['SLURM_JOB_ID']}/{dirname}"
+    workpathname = f"/localscratch/{os.environ['SLURM_JOB_ID']}/{relativeDirToTrksQAFiles}"
 
 gen_filepath = workpathname + "/gen_mc.root"
 
@@ -91,19 +91,19 @@ backPropAlgorithm = "Geane"
 # * the second time this script is run, the Lumi_Digi files are needed and must be copied
 # this is pretty ugly, but I don't know a better way yet. If they're not already here, the
 # macro will fail either way, so I guess it's no harm to copy it.
-if not check_stage_success(f"{workpathname}/Lumi_Digi_{start_evt}.root"):
-    if os.path.exists(pathname + f"Lumi_Digi_{start_evt}.root"):
+print(f"\n\nDEBUG\n:Copying Lumi_digi_{start_evt}.root\n\n")
+if not check_stage_success(f"{workpathname}/Lumi_digi_{start_evt}.root"):
+    if os.path.exists(pathToTrkQAFiles + f"Lumi_digi_{start_evt}.root"):
         # copy the Lumi_Digi data from permanent storage, it's needed for IP cut for the LumiFit
-        print(f"\n\nDEBUG\n:Copying Lumi_Digi_{start_evt}.root\n\n")
         os.system(
-            f"cp {dirname}/Lumi_Digi_{start_evt}.root {workpathname}/Lumi_Digi_{start_evt}.root"
+            f"cp {pathToTrkQAFiles}/Lumi_digi_{start_evt}.root {workpathname}/Lumi_digi_{start_evt}.root"
         )
 
 
-os.chdir(macropath)
+os.chdir(PNDmacropath)
 # * ------------------- Reco Step -------------------
 if (
-    not check_stage_success(pathname + f"/Lumi_reco_{start_evt}.root")
+    not check_stage_success(pathToTrkQAFiles + f"/Lumi_reco_{start_evt}.root")
     or force_level == 1
 ):
     os.system(
@@ -123,7 +123,7 @@ if (
 
     # copy Lumi_recoMerged_ for module aligner
     os.system(
-        f"cp {workpathname}/Lumi_recoMerged_{start_evt}.root {pathname}/Lumi_recoMerged_{start_evt}.root"
+        f"cp {workpathname}/Lumi_recoMerged_{start_evt}.root {pathToTrkQAFiles}/Lumi_recoMerged_{start_evt}.root"
     )
 
 # * ------------------- Pair Finder Step -------------------
@@ -136,7 +136,7 @@ if True:
     )
 
     os.system(
-        f"""cp {workpathname}/Lumi_Pairs_{start_evt}.root {pathname}/Lumi_Pairs_{start_evt}.root"""
+        f"""cp {workpathname}/Lumi_Pairs_{start_evt}.root {pathToTrkQAFiles}/Lumi_Pairs_{start_evt}.root"""
     )
 
 
@@ -169,7 +169,7 @@ if (
 
         # copy track file for module alignment
         os.system(
-            f"""cp {workpathname}/Lumi_Track_{start_evt}.root {pathname}/Lumi_Track_{start_evt}.root"""
+            f"""cp {workpathname}/Lumi_Track_{start_evt}.root {pathToTrkQAFiles}/Lumi_Track_{start_evt}.root"""
         )
 
         if prefilter:
@@ -210,7 +210,7 @@ if prefilter:
 
             # don't copy to permanent storage, but don't delete this comment just yet
             os.system(
-                f"""cp {workpathname}/Lumi_Track_{start_evt}.root {pathname}/Lumi_TrackFiltered_{start_evt}.root"""
+                f"""cp {workpathname}/Lumi_Track_{start_evt}.root {pathToTrkQAFiles}/Lumi_TrackFiltered_{start_evt}.root"""
             )
 
 # * ------------------- Pixel BackProp Step -------------------
@@ -244,7 +244,7 @@ if (
     )
     if not debug:
         os.system(
-            f"""cp {workpathname}/Lumi_TrksQA_{start_evt}.root {pathname}/Lumi_TrksQA_{start_evt}.root"""
+            f"""cp {workpathname}/Lumi_TrksQA_{start_evt}.root {pathToTrkQAFiles}/Lumi_TrksQA_{start_evt}.root"""
         )
 
 # * ------------------- Cleanup Step -------------------

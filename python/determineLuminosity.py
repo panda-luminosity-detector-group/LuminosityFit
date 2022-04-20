@@ -776,8 +776,8 @@ while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
     active_scenario_stack = []
     # if all scenarios are currently processed just wait a bit and check again
     if len(waiting_scenario_stack) > 0:
-        print("currently waiting for 10min to process scenarios again")
-        time.sleep(600)  # wait for 10min
+        print("currently waiting for 5min to process scenarios again")
+        time.sleep(300)  # wait for 5min
         active_scenario_stack = waiting_scenario_stack
         waiting_scenario_stack = []
 
