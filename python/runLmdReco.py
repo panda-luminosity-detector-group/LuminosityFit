@@ -107,7 +107,7 @@ print(
 )
 
 if not check_stage_success(f"{workpathname}/Lumi_digi_{start_evt}.root"):
-    if os.path.exists(f"{pathToLumiDigi}/Lumi_digi_{start_evt}.root"):
+    if os.path.exists(f"{pathToLumiDigi}"):
         print("seems to exist, attempting copy")
         # I'm not sure it exists yet
         os.makedirs(workpathname)
