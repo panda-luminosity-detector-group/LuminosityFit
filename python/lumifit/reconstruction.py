@@ -146,7 +146,9 @@ def create_reconstruction_job(
         "force_level": str(force_level),
     }
 
-    if os.environ["force_cut_disable"] == "True":
-        job.exported_user_variables["force_cut_disable"] = True
+    # TODO: set this in config file!
+    if "force_cut_disable" in os.environ:
+        if os.environ["force_cut_disable"] == "True":
+            job.exported_user_variables["force_cut_disable"] = True
 
     return (job, pathname_full)
