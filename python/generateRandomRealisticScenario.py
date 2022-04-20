@@ -106,7 +106,7 @@ bashcommand = (
     + " --track_search_algo CA "
     + str(args.num_events)
     + " "
-    + str(lab_momentum)
+    + f"{lab_momentum:.1f}"
     + " dpm_elastic"
 )
 returnvalue = subprocess.call(bashcommand.split())
