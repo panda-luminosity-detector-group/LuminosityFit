@@ -1,5 +1,11 @@
 #!/bin/sh
 
+#! =======================================================
+#! ====   DEPRECATED. DO NOT USE ANYMORE              ====
+#! =======================================================
+
+return
+
 # if scriptpath or workpathname is not set then this reco script was executed itself
 if [ -z $scriptpath ] || [ -z $workpathname ]; then
   #include some helper functions

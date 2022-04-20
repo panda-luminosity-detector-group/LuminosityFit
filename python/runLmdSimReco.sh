@@ -1,5 +1,11 @@
 #!/bin/sh
 
+#! =======================================================
+#! ====   DEPRECATED. DO NOT USE ANYMORE              ====
+#! =======================================================
+
+return
+
 #include some helper functions
 . ./bashFunctions.sh
 
