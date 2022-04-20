@@ -75,6 +75,10 @@ numTrks = 1  # should not be changed
 start_evt: int = sim_params.num_events_per_sample * filename_index
 
 
+print(
+    f"\n\nINFO:\ndirname is {dirname}\npathname is {pathname}\nworkpathname is {workpathname}\n\n"
+)
+
 # * ------------------- MC Data Step -------------------
 if (
     not check_stage_success(path_mc_data + f"/Lumi_MC_{start_evt}.root")
@@ -142,7 +146,7 @@ if (
 
     # copy the Lumi_Digi data to permanent storage, it's needed for IP cut for the LumiFit
     os.system(
-        f"cp {workpathname}/Lumi_digi_{start_evt}.root {dirname}/Lumi_digi_{start_evt}.root"
+        f"cp {workpathname}/Lumi_digi_{start_evt}.root {pathname}/Lumi_digi_{start_evt}.root"
     )
 
 os.chdir(scriptpath)

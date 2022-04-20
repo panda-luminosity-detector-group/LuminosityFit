@@ -5,6 +5,7 @@ Note: For future development I would recommend to port the necessary code python
 ## Installation
 
 ### Prerequisites
+
 Make sure your Pandaroot enviroment is set up correctly, more precisely that these environment variables are set:
 
 - SIMPATH
@@ -12,19 +13,21 @@ Make sure your Pandaroot enviroment is set up correctly, more precisely that the
 - FAIRROOTPATH
 - ROOTSYS
 
-Boost and the gsl library are two requirements, which are automatically included with fairsoft, so you already have them installed for sure. It is recommended to use the same boost, which was used to build the pandaroot enviroment. Use the *BOOST_ROOT* environment variable to hint cmake to correct boost location.
+Boost and the gsl library are two requirements, which are automatically included with fairsoft, so you already have them installed for sure. It is recommended to use the same boost, which was used to build the pandaroot enviroment. Use the _BOOST_ROOT_ environment variable to hint cmake to correct boost location.
 `export BOOST_ROOT=$SIMPATH`
 (No need to put that export in your bashrc, just run it in your shell before cmake call)
 
 ### Compilation
+
 Simply create a build directory, change into that build directory, and run `cmake {PATH_TO_YOUR_LUMINOSITY_FIT_SOURCE}`
 
 ## Using
+
 The binaries in the `./bin` subdirectory of the build path can be used directly. For more convenient use, especially for larger datasamples sizes it is recommended to use the python scripts in the [./scripts](https://github.com/spflueger/LuminosityFit/tree/master/scripts) subdirectory. However, to use these scripts several environment variables have to be exported.
 
 ```bash
 export LMDFIT_BUILD_PATH="path-to-your-luminosityfit-build-directory"   # e.g. $HOME/LuminosityFit/build
-export LMDFIT_SCRIPTPATH="path-to-your-luminosityfit-script-directory"          # e.g. $HOME/LuminosityFit/python
+export LMDFIT_SCRIPTPATH="path-to-your-luminosityfit-script-directory"  # e.g. $HOME/LuminosityFit/python
 export DATA_HOME="path-to-himspecf-data-storage"`
 export LMDFIT_DATA_DIR=$DATA_HOME/paluma/"directory-name-of-your-choice"
 ```
@@ -33,7 +36,7 @@ In order to have the full ROOT cling support, export the build library directory
 
 ```bash
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LMDFIT_BUILD_PATH/lib
-``` 
+```
 
 ## Using in Container with the Slurm Agent
 
@@ -88,6 +91,12 @@ The script calls the container and sources the PandaRoot/KoalaSoft config.sh scr
 
 ## runSimulationReconstruction.py
 
+Generates MC simulation data and performs the entire reconstruction chain. It needs a simulation parameters config file (simparams.conf) and a reconstruction parameters config file (recoparams.conf) to work. Examples of these files can be created with the script `create_sim_reco_pars.py`. Both are human-readable json files. The simulation is then:
+
+```bash
+./runSimulationReconstruction.py simparams.conf recoparams.conf
+```
+
 ## determineLuminosity.py
 
 Can only be run if `LumiTrkQA_` files are already present.
@@ -97,6 +106,10 @@ Minimum run example works without arguments, but searches a LOT of directories. 
 ```bash
 ./determineLuminosity.py --base_output_data_dir /path/to/TrksQAFiles.root
 ```
+
+### Details
+
+For details, please see the detailed readme in the `/python` folder.
 
 The run sequence is as follows:
 
@@ -111,7 +124,6 @@ TODO: continue
 ## Apps in `/bin/`
 
 ### createLmdFitData
-
 
 ### createKoaFitData
 
