@@ -102,13 +102,14 @@ backPropAlgorithm = "Geane"
 # pathToLumiDigi = candidates[0]
 
 
-# we always need the Lumi_Params file, no matter what
-print(
-    f"\n\nDEBUG\n:Copying {path_mc_data}/Lumi_Params_{start_evt}.root to {workpathname}/Lumi_Params_{start_evt}.root\n"
-)
-os.system(
-    f"cp {path_mc_data}/Lumi_Params_{start_evt}.root {workpathname}/Lumi_Params_{start_evt}.root "
-)
+# we always need the Lumi_Params file, no matter what (except if it already exists)
+if not os.path.exists(f"{workpathname}/Lumi_Params_{start_evt}.root"):
+    print(
+        f"\n\nDEBUG\n:Copying {path_mc_data}/Lumi_Params_{start_evt}.root to {workpathname}/Lumi_Params_{start_evt}.root\n"
+    )
+    os.system(
+        f"cp {path_mc_data}/Lumi_Params_{start_evt}.root {workpathname}/Lumi_Params_{start_evt}.root "
+    )
 
 print(
     f"\nDEBUG\n:Copying {path_mc_data}/Lumi_digi_{start_evt}.root to {workpathname}/Lumi_digi_{start_evt}.root\n\n"

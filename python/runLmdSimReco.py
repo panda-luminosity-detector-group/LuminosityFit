@@ -121,13 +121,13 @@ if (
 
 # if first stage was successful, copy MC data directly to compute node and don't generate new
 else:
-    if debug:
-        os.system(
-            f"cp {path_mc_data}/Lumi_MC_{start_evt}.root {workpathname}/Lumi_MC_{start_evt}.root"
-        )
-        os.system(
-            f"cp {path_mc_data}/Lumi_Params_{start_evt}.root {workpathname}/Lumi_Params_{start_evt}.root"
-        )
+    # if debug:
+    os.system(
+        f"cp {path_mc_data}/Lumi_MC_{start_evt}.root {workpathname}/Lumi_MC_{start_evt}.root"
+    )
+    os.system(
+        f"cp {path_mc_data}/Lumi_Params_{start_evt}.root {workpathname}/Lumi_Params_{start_evt}.root"
+    )
 
 # * ------------------- Digi Step -------------------
 if (
