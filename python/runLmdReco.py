@@ -134,6 +134,7 @@ if (
     not check_stage_success(pathToTrkQAFiles + f"/Lumi_reco_{start_evt}.root")
     or force_level == 1
 ):
+    os.chdir(PNDmacropath)
     os.system(
         f"""root -l -b -q 'runLumiPixel2Reco.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", "{ali_params.alignment_matrices_path}", "{ali_params.misalignment_matrices_path}", {1 if ali_params.use_point_transform_misalignment else 0}, {verbositylvl})'"""
     )
@@ -145,6 +146,7 @@ if (
     )
     or force_level == 1
 ):
+    os.chdir(PNDmacropath)
     os.system(
         f"""root -l -b -q 'runLumiPixel2bHitMerge.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl})'"""
     )
@@ -158,7 +160,7 @@ if (
 
 # TODO: store this in configuration, we don't always need hit pairs
 if True:
-
+    os.chdir(PNDmacropath)
     os.system(
         f"""root -l -b -q 'runLumiPixel2ePairFinder.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl})'"""
     )
@@ -173,6 +175,7 @@ if (
     not check_stage_success(f"{workpathname}/Lumi_TCand_{start_evt}.root")
     or force_level == 1
 ):
+    os.chdir(PNDmacropath)
     os.system(
         f"""root -l -b -q 'runLumiPixel3Finder.C({reco_params.num_events_per_sample},{start_evt},"{workpathname}",{verbositylvl},"{reco_params.track_search_algo}",{int(misspl)},{int(mergedHits)}, {int(trkcut)}, {reco_params.lab_momentum})'"""
     )
@@ -189,7 +192,7 @@ if (
         not check_stage_success(f"{workpathname}/Lumi_Track_{start_evt}.root")
         or force_level == 1
     ):
-
+        os.chdir(PNDmacropath)
         # this script outputs a Lumi_Track_... file. Rename that to the NotFiltered..
         os.system(
             f"""root -l -b -q 'runLumiPixel4Fitter.C({reco_params.num_events_per_sample}, {start_evt},"{workpathname}", {verbositylvl}, "{trackFitAlgorithm}", {int(mergedHits)})'"""
@@ -219,14 +222,13 @@ if prefilter:
             )
             or force_level == 1
         ):
-
             # this macro needs Lumi_Track_... file as input so we need to link the unfiltered file
             os.system(
                 f"""ln -sf {workpathname}/Lumi_TrackNotFiltered_{start_evt}.root {workpathname}/Lumi_Track_{start_evt}.root"""
             )
 
             reco_params.reco_ip_offset[0]
-
+            os.chdir(PNDmacropath)
             os.system(
                 f"""root -l -b -q 'runLumiPixel4aFilter.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {int(mergedHits)}, {reco_params.lab_momentum}, {int(KinematicsCut)}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
             )
@@ -246,6 +248,7 @@ if (
     not check_stage_success(f"{workpathname}/Lumi_Geane_{start_evt}.root")
     or force_level == 1
 ):
+    os.chdir(PNDmacropath)
     os.system(
         f"""root -l -b -q 'runLumiPixel5BackProp.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, "{backPropAlgorithm}", {int(mergedHits)}, {reco_params.lab_momentum}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]}, {reco_params.reco_ip_offset[2]}, {int(prefilter)})'"""
     )

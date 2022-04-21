@@ -86,9 +86,8 @@ if (
 ):
 
     # * prepare box or dpm tracks
-    os.chdir(LMDscriptpath)
-    # if sim_params.reaction_type -eq -1:
     if sim_params.sim_type == SimulationType.BOX:
+        os.chdir(LMDscriptpath)
         os.system(
             f"""root -l -b -q 'standaloneBoxGen.C({sim_params.lab_momentum}, {sim_params.num_events_per_sample}, {sim_params.theta_min_in_mrad}, {sim_params.theta_max_in_mrad}, {sim_params.phi_min_in_rad}, {sim_params.phi_max_in_rad},"{gen_filepath}", {sim_params.random_seed}, {int(sim_params.neglect_recoil_momentum)})'"""
         )
@@ -98,10 +97,10 @@ if (
         )
 
     # * run simBox or simDPM
-    os.chdir(PNDmacropath)
     print("starting up a pandaroot simulation...")
-
+    os.chdir(PNDmacropath)
     if sim_params.sim_type == SimulationType.NOISE:
+
         os.system(
             f"""root -l -b -q 'runLumiPixel0SimBox.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}",{verbositylvl},-2212,{sim_params.lab_momentum},{numTrks},{sim_params.random_seed})' > /dev/null 2>&1"""
         )
@@ -134,7 +133,7 @@ if (
     not check_stage_success(workpathname + f"/Lumi_digi_{start_evt}.root")
     or force_level == 2
 ):
-
+    os.chdir(PNDmacropath)
     if sim_params.sim_type == SimulationType.NOISE:
         os.system(
             f"""root -l -b -q 'runLumiPixel1bDigiNoise.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {sim_params.random_seed})'"""
