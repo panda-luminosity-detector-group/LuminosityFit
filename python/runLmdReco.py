@@ -120,8 +120,6 @@ print(
 
 if not check_stage_success(f"{workpathname}/Lumi_digi_{start_evt}.root"):
     if os.path.exists(f"{path_mc_data}/Lumi_digi_{start_evt}.root"):
-        print("seems to exist, attempting copy")
-
         # copy the Lumi_Digi data from permanent storage, it's needed for IP cut for the LumiFit
         os.system(
             f"cp {path_mc_data}/Lumi_digi_{start_evt}.root {workpathname}/Lumi_digi_{start_evt}.root"
