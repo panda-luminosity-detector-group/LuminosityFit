@@ -82,7 +82,6 @@ CleanSig = reco_params.use_m_cut  # off by default?
 
 # TODO check if the prefilter is off at any time, add to recoparams in that case
 
-
 KinematicsCut = reco_params.use_m_cut  # off by default?
 
 # track fit:
@@ -98,23 +97,32 @@ backPropAlgorithm = "Geane"
 # * the second time this script is run, the Lumi_Digi files are needed and must be copied
 # this is pretty ugly, but I don't know a better way yet. If they're not already here, the
 # macro will fail either way, so I guess it's no harm to copy it.
-searchPath = Path(pathToTrkQAFiles).parent.parent
-candidates = sorted(searchPath.glob(f"**/Lumi_digi_{start_evt}.root"))
-pathToLumiDigi = candidates[0]
+# searchPath = Path(pathToTrkQAFiles).parent.parent
+# candidates = sorted(searchPath.glob(f"**/Lumi_digi_{start_evt}.root"))
+# pathToLumiDigi = candidates[0]
+
+
+# we always need the Lumi_Params file, no matter what
+print(
+    f"\n\nDEBUG\n:Copying {path_mc_data}/Lumi_Params_{start_evt}.root to {workpathname}/Lumi_Params_{start_evt}.root\n"
+)
+os.system(
+    f"cp {path_mc_data}/Lumi_Params_{start_evt}.root {workpathname}/Lumi_Params_{start_evt}.root "
+)
 
 print(
-    f"\n\nDEBUG\n:Copying {pathToLumiDigi} to {workpathname}/Lumi_digi_{start_evt}.root\n\n"
+    f"\nDEBUG\n:Copying {path_mc_data}/Lumi_digi_{start_evt}.root to {workpathname}/Lumi_digi_{start_evt}.root\n\n"
 )
 
 if not check_stage_success(f"{workpathname}/Lumi_digi_{start_evt}.root"):
-    if os.path.exists(f"{pathToLumiDigi}"):
+    if os.path.exists(f"{path_mc_data}/Lumi_digi_{start_evt}.root"):
         print("seems to exist, attempting copy")
         # I'm not sure it exists yet
         os.makedirs(workpathname)
 
         # copy the Lumi_Digi data from permanent storage, it's needed for IP cut for the LumiFit
         os.system(
-            f"cp {pathToLumiDigi} {workpathname}/Lumi_digi_{start_evt}.root"
+            f"cp {path_mc_data}/Lumi_digi_{start_evt}.root {workpathname}/Lumi_digi_{start_evt}.root"
         )
 
 

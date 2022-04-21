@@ -110,14 +110,14 @@ if (
             f"""root -l -b -q 'runLumiPixel0SimDPM.C({sim_params.num_events_per_sample}, {start_evt}, {sim_params.lab_momentum}, "{gen_filepath}", "{workpathname}", {sim_params.ip_offset_x}, {sim_params.ip_offset_y}, {sim_params.ip_offset_z}, {sim_params.ip_spread_x}, {sim_params.ip_spread_y}, {sim_params.ip_spread_z}, {sim_params.beam_tilt_x}, {sim_params.beam_tilt_y}, {sim_params.beam_divergence_x}, {sim_params.beam_divergence_y}, "{sim_params.lmd_geometry_filename}", "{ali_params.misalignment_matrices_path}", {1 if ali_params.use_point_transform_misalignment else 0}, {verbositylvl})'"""
         )
 
-    # if debug mode, copy mc data from node to permanent storage
-    if debug:
-        os.system(
-            f"cp {workpathname}/Lumi_MC_{start_evt}.root {path_mc_data}/Lumi_MC_{start_evt}.root"
-        )
-        os.system(
-            f"cp {workpathname}/Lumi_Params_{start_evt}.root {path_mc_data}/Lumi_Params_{start_evt}.root"
-        )
+    # always copy mc data and params from node to permanent storage (params are needed for digi step with xy cut)
+    # if debug:
+    os.system(
+        f"cp {workpathname}/Lumi_MC_{start_evt}.root {path_mc_data}/Lumi_MC_{start_evt}.root"
+    )
+    os.system(
+        f"cp {workpathname}/Lumi_Params_{start_evt}.root {path_mc_data}/Lumi_Params_{start_evt}.root"
+    )
 
 # if first stage was successful, copy MC data directly to compute node and don't generate new
 else:
@@ -145,8 +145,9 @@ if (
         )
 
     # copy the Lumi_Digi data to permanent storage, it's needed for IP cut for the LumiFit
+    # MC path is better for this since digi data is "almost real data"
     os.system(
-        f"cp {workpathname}/Lumi_digi_{start_evt}.root {pathToTrkQAFiles}/Lumi_digi_{start_evt}.root"
+        f"cp {workpathname}/Lumi_digi_{start_evt}.root {path_mc_data}/Lumi_digi_{start_evt}.root"
     )
 
 os.chdir(LMDscriptpath)
