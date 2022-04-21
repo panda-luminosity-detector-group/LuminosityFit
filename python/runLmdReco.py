@@ -101,6 +101,9 @@ backPropAlgorithm = "Geane"
 # candidates = sorted(searchPath.glob(f"**/Lumi_digi_{start_evt}.root"))
 # pathToLumiDigi = candidates[0]
 
+# I'm not sure target path exists yet, but we need it to copy the lumu params file to
+if not os.path.isdir(workpathname):
+    os.makedirs(workpathname)
 
 # we always need the Lumi_Params file, no matter what (except if it already exists)
 if not os.path.exists(f"{workpathname}/Lumi_Params_{start_evt}.root"):
@@ -118,9 +121,6 @@ print(
 if not check_stage_success(f"{workpathname}/Lumi_digi_{start_evt}.root"):
     if os.path.exists(f"{path_mc_data}/Lumi_digi_{start_evt}.root"):
         print("seems to exist, attempting copy")
-        # I'm not sure it exists yet
-        if not os.path.isdir(workpathname):
-            os.makedirs(workpathname)
 
         # copy the Lumi_Digi data from permanent storage, it's needed for IP cut for the LumiFit
         os.system(
