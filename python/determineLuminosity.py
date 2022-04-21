@@ -59,7 +59,7 @@ def wasSimulationSuccessful(
         job_handler = create_himster_job_handler("himster2_exp")
 
     if files_percentage < required_files_percentage:
-        if job_handler.get_active_number_of_jobs > 0:
+        if job_handler.get_active_number_of_jobs() > 0:
             return_value = 1
         else:
             print(
