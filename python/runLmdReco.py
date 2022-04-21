@@ -203,42 +203,49 @@ if (
             f"""cp {workpathname}/Lumi_Track_{start_evt}.root {pathToTrkQAFiles}/Lumi_Track_{start_evt}.root"""
         )
 
-        if prefilter:
-            os.system(
-                f"""mv {workpathname}/Lumi_Track_{start_evt}.root {workpathname}/Lumi_TrackNotFiltered_{start_evt}.root"""
-            )
-
 # * ------------------- Pixel Filter Step -------------------
 # track filter (on number of hits and chi2 and optionally on track kinematics)
+# so yes, this is the kinematics and xy filter step. It's a little convoluted:
 if prefilter:
-    # TODO: if prefilter is on, the file Lumi_Track has been renamed to Lumi_TrackNotFiltered, so this one always fails!
+    """
+    This is a little convoluted, so here are the steps:
+    1. move Tracks filr to TrackNotFiltered
+    2, --removed--
+    3. check if TrackFiltered is already there (NOT TrackNotFiltered)
+    4. if not:
+        1. symlink TrackNotFiltered to Track (root macro needs this name)
+        2. run root macro, it creates a Lumi_TrackFiltered_ file
+        3. overwrite the previous symlink Lumi_Track so that it points to TrackFiltered_
+    """
+
+    os.system(
+        f"""mv {workpathname}/Lumi_Track_{start_evt}.root {workpathname}/Lumi_TrackNotFiltered_{start_evt}.root"""
+    )
+
     if (
-        not check_stage_success(f"{workpathname}/Lumi_Track_{start_evt}.root")
+        not check_stage_success(
+            f"{workpathname}/Lumi_TrackFiltered_{start_evt}.root"
+        )
         or force_level == 1
     ):
-        if (
-            not check_stage_success(
-                f"{workpathname}/Lumi_TrackNotFiltered_{start_evt}.root"
-            )
-            or force_level == 1
-        ):
-            # this macro needs Lumi_Track_... file as input so we need to link the unfiltered file
-            os.system(
-                f"""ln -sf {workpathname}/Lumi_TrackNotFiltered_{start_evt}.root {workpathname}/Lumi_Track_{start_evt}.root"""
-            )
+        # this macro needs Lumi_Track_... file as input so we need to link the unfiltered file
+        os.system(
+            f"""ln -sf {workpathname}/Lumi_TrackNotFiltered_{start_evt}.root {workpathname}/Lumi_Track_{start_evt}.root"""
+        )
 
-            reco_params.reco_ip_offset[0]
-            os.chdir(PNDmacropath)
-            os.system(
-                f"""root -l -b -q 'runLumiPixel4aFilter.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {int(mergedHits)}, {reco_params.lab_momentum}, {int(KinematicsCut)}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
-            )
+        reco_params.reco_ip_offset[0]
+        os.chdir(PNDmacropath)
+        os.system(
+            f"""root -l -b -q 'runLumiPixel4aFilter.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {int(mergedHits)}, {reco_params.lab_momentum}, {int(KinematicsCut)}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
+        )
 
-            # now overwrite the Lumi_Track_ sym link with the filtered version
-            os.system(
-                f"""ln -sf {workpathname}/Lumi_TrackFiltered_{start_evt}.root {workpathname}/Lumi_Track_{start_evt}.root"""
-            )
+        # now overwrite the Lumi_Track_ sym link with the filtered version
+        os.system(
+            f"""ln -sf {workpathname}/Lumi_TrackFiltered_{start_evt}.root {workpathname}/Lumi_Track_{start_evt}.root"""
+        )
 
-            # don't copy to permanent storage, but don't delete this comment just yet
+        # don't copy to permanent storage, but don't delete this comment just yet
+        if False:
             os.system(
                 f"""cp {workpathname}/Lumi_Track_{start_evt}.root {pathToTrkQAFiles}/Lumi_TrackFiltered_{start_evt}.root"""
             )
