@@ -7,10 +7,10 @@ import json
 import math
 import os
 import re
+import socket
 import subprocess
 import sys
 import time
-import socket
 
 import lumifit.general as general
 
@@ -52,8 +52,14 @@ def wasSimulationSuccessful(
         is_bunches=is_bunches,
     )[1]
 
+    full_hostname = socket.getfqdn()
+    if "gsi.de" in full_hostname:
+        job_handler = create_virgo_job_handler("long")
+    else:
+        job_handler = create_himster_job_handler("himster2_exp")
+
     if files_percentage < required_files_percentage:
-        if himster.get_num_jobs_on_himster() > 0:
+        if job_handler.get_active_number_of_jobs > 0:
             return_value = 1
         else:
             print(
