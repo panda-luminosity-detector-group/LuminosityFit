@@ -92,12 +92,42 @@ The LumiFit software then performs multiple individual steps, many of them on a 
 
 # Code Layout
 
+This is reduced overview. For simplicity, directly user-callable scripts are greenish, scripts (or binaries) that _can_ be run by a user but should not are reddish. Usually, the user-runnable scripts call these other scripts themselves:
+
 ```mermaid
-graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
+graph LR
+    id1[can be called by user, few parameters] --> id2[should not be called directly, lots of parameters]
+    style id1 fill:#3caea3
+    style id2 fill:#ed553b
+```
+
+There are only few convenience scripts and lots of "under the hood" scripts (and binaries, yellow). Rectangular nodes are scripts or programs, round nodes are data containers (like root files, json config files etc)
+
+```mermaid
+flowchart TD
+    determineLuminosity.py:::teal --> runLmdReco.py:::red
+    determineLuminosity.py --> runLmdSimReco.py:::red
+    runSimulationReconstruction.py:::teal --> runLmdSimReco.py
+    determineLuminosity.py --> LMDFitBinaries:::yellow
+    runLmdSimReco.py --> runLmdReco.py
+
+    runLmdSimReco.py --> simMacros[ROOT MC simulation macros]
+    runLmdReco.py --> recoMacros[ROOT reconstruction macros]
+
+    simMacros --> lumiMC([Lumi MC, Lumi Digi])
+    recoMacros --> lumiQA([Lumi_TrsQA])
+    lumiMC -.-> recoMacros
+    lumiQA -.-> LMDFitBinaries
+    LMDFitBinaries --> lumiValue([extrated luminosity]):::green
+
+    %% --- color some nodes
+    %% user callable
+
+    classDef red fill:#ed553b
+    classDef yellow fill:#f0a500
+    classDef green fill:#125b50
+    classDef teal fill:#3caea3
+
 ```
 
 ## Singularity Wrapper
@@ -138,7 +168,7 @@ The run sequence is as follows:
 ```mermaid
 flowchart TD
 determineLuminosity.sh --> searchjDirs
-id1{{scenarioConfig.json}} -.-> determineLuminosity.sh
+id1([scenarioConfig.json]) -.-> determineLuminosity.sh
 ```
 
 TODO: continue
