@@ -105,18 +105,15 @@ backPropAlgorithm = "Geane"
 if not os.path.isdir(workpathname):
     os.makedirs(workpathname)
 
-# we always need the Lumi_Params file, no matter what (except if it already exists)
-if not os.path.exists(f"{workpathname}/Lumi_Params_{start_evt}.root"):
-    print(
-        f"\n\nDEBUG\n:Copying {path_mc_data}/Lumi_Params_{start_evt}.root to {workpathname}/Lumi_Params_{start_evt}.root\n"
-    )
+# we always need the Lumi_(Params|MC) file, no matter what (except if it already exists)
+if not check_stage_success(f"{workpathname}/Lumi_Params_{start_evt}.root"):
     os.system(
         f"cp {path_mc_data}/Lumi_Params_{start_evt}.root {workpathname}/Lumi_Params_{start_evt}.root "
     )
+    os.system(
+        f"cp {path_mc_data}/Lumi_MC_{start_evt}.root {workpathname}/Lumi_MC_{start_evt}.root "
+    )
 
-print(
-    f"\nDEBUG\n:Copying {path_mc_data}/Lumi_digi_{start_evt}.root to {workpathname}/Lumi_digi_{start_evt}.root\n\n"
-)
 
 if not check_stage_success(f"{workpathname}/Lumi_digi_{start_evt}.root"):
     if os.path.exists(f"{path_mc_data}/Lumi_digi_{start_evt}.root"):
@@ -207,13 +204,13 @@ if (
 if prefilter:
     """
     This is a little convoluted, so here are the steps:
-    1. move Tracks filr to TrackNotFiltered
+    1. move (rename) Tracks file to TrackNotFiltered
     2, --removed--
-    3. check if TrackFiltered is already there (NOT TrackNotFiltered)
+    3. check if TrackFiltered (NOT TrackNotFiltered) is already there
     4. if not:
-        1. symlink TrackNotFiltered to Track (root macro needs this name)
+        1. create new symlink called TrackNotFiltered which points to Lumi_Track (root macro needs this name)
         2. run root macro, it creates a Lumi_TrackFiltered_ file
-        3. overwrite the previous symlink Lumi_Track so that it points to TrackFiltered_
+        3. overwrite the previous symlink Lumi_Track so that it now points to TrackFiltered_
     """
 
     os.system(
