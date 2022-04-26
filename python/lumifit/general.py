@@ -2,13 +2,21 @@ import glob
 import json
 import os
 import re
-from argparse import ArgumentDefaultsHelpFormatter, RawTextHelpFormatter
+from argparse import (
+    ArgumentParser,
+    ArgumentDefaultsHelpFormatter,
+    RawTextHelpFormatter,
+)
 from enum import Enum
+from typing import Any
 
 
 def getGoodFiles(
-    directory, glob_pattern, min_filesize_in_bytes=2000, is_bunches=False
-):
+    directory: str,
+    glob_pattern: str,
+    min_filesize_in_bytes: int = 2000,
+    is_bunches: bool = False,
+) -> list[Any]:
     found_files = glob.glob(directory + "/" + glob_pattern)
     good_files = []
     bad_files = []
@@ -19,11 +27,11 @@ def getGoodFiles(
             bad_files.append(file)
 
     if is_bunches:
-        m = re.search("\/bunches_(\d+)", directory)
-        num_sim_files = int(m.group(1))
+        m = re.search(r"\/bunches_(\d+)", directory)
+        num_sim_files = int(m.group(1))  # type: ignore
     else:
-        m = re.search("\/(\d+)-(\d+)_.+?cut", directory)
-        num_sim_files = int(m.group(2)) - int(m.group(1)) + 1
+        m = re.search(r"\/(\d+)-(\d+)_.+?cut", directory)
+        num_sim_files = int(m.group(2)) - int(m.group(1)) + 1  # type: ignore
 
     files_percentage = len(good_files) / num_sim_files
 
@@ -40,11 +48,11 @@ def check_stage_success(file_url: str) -> bool:
 
 
 class SmartFormatter(ArgumentDefaultsHelpFormatter):
-    def _split_lines(self, text, width):
+    def _split_lines(self, text: str, width: int) -> list[str]:
         return RawTextHelpFormatter._split_lines(self, text, width)
 
 
-def addDebugArgumentsToParser(parser):
+def addDebugArgumentsToParser(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
         "--force_level",
         metavar="force_level",
@@ -73,13 +81,13 @@ def addDebugArgumentsToParser(parser):
 
 
 class _EnumEncoder(json.JSONEncoder):
-    def default(self, obj):
+    def default(self, obj: Any) -> json.JSONEncoder:
         if isinstance(obj, Enum):
             return obj.value
         return json.JSONEncoder.default(self, obj)
 
 
-def write_params_to_file(params: dict, pathname: str, filename: str):
+def write_params_to_file(params: dict, pathname: str, filename: str) -> None:
     file_path = pathname + "/" + filename
     if not os.path.exists(file_path):
         print("creating config file: " + file_path)
@@ -101,15 +109,17 @@ def load_params_from_file(file_path: str) -> dict:
 
 
 class DirectorySearcher:
-    def __init__(self, patterns_, not_contain_pattern_=""):
+    def __init__(
+        self, patterns_: list[str], not_contain_pattern_: str = ""
+    ) -> None:
         self.patterns = patterns_
         self.not_contain_pattern = not_contain_pattern_
-        self.dirs = []
+        self.dirs: list[str] = []
 
-    def getListOfDirectories(self):
+    def getListOfDirectories(self) -> list[str]:
         return self.dirs
 
-    def searchListOfDirectories(self, path, glob_patterns):
+    def searchListOfDirectories(self, path: str, glob_patterns: str) -> None:
         # print("looking for files with pattern: ", glob_patterns)
         # print("dirpath forbidden patterns:", self.not_contain_pattern)
         # print("dirpath patterns:", self.patterns)
@@ -139,7 +149,9 @@ class DirectorySearcher:
                 # check if there are useful files here
                 found_files = False
                 if len(file_patterns) == 1:
-                    found_files = [x for x in files if glob_patterns in x]
+                    found_files = (
+                        len([x for x in files if glob_patterns in x]) > 0
+                    )
                 else:
                     for filename in files:
                         found_file = True
@@ -156,13 +168,13 @@ class DirectorySearcher:
 
 
 class ConfigModifier:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def loadConfig(self, config_file_path):
+    def loadConfig(self, config_file_path: str) -> Any:
         f = open(config_file_path, "r")
         return json.loads(f.read())
 
-    def writeConfigToPath(self, config, config_file_path):
+    def writeConfigToPath(self, config: Any, config_file_path: str) -> None:
         f = open(config_file_path, "w")
         f.write(json.dumps(config, indent=2, separators=(",", ": ")))
