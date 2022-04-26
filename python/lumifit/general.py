@@ -16,7 +16,7 @@ def getGoodFiles(
     glob_pattern: str,
     min_filesize_in_bytes: int = 2000,
     is_bunches: bool = False,
-) -> list[Any]:
+) -> list:
     found_files = glob.glob(directory + "/" + glob_pattern)
     good_files = []
     bad_files = []
@@ -48,7 +48,7 @@ def check_stage_success(file_url: str) -> bool:
 
 
 class SmartFormatter(ArgumentDefaultsHelpFormatter):
-    def _split_lines(self, text: str, width: int) -> list[str]:
+    def _split_lines(self, text: str, width: int) -> list:
         return RawTextHelpFormatter._split_lines(self, text, width)
 
 
@@ -110,18 +110,16 @@ def load_params_from_file(file_path: str) -> dict:
 
 class DirectorySearcher:
     def __init__(
-        self, patterns_: list[str], not_contain_pattern_: str = ""
+        self, patterns_: list, not_contain_pattern_: str = ""
     ) -> None:
         self.patterns = patterns_
         self.not_contain_pattern = not_contain_pattern_
         self.dirs: list[str] = []
 
-    def getListOfDirectories(self) -> list[str]:
+    def getListOfDirectories(self) -> list:
         return self.dirs
 
-    def searchListOfDirectories(
-        self, path: str, glob_patterns: (str | list[str])
-    ) -> None:
+    def searchListOfDirectories(self, path: str, glob_patterns) -> None:
         # print("looking for files with pattern: ", glob_patterns)
         # print("dirpath forbidden patterns:", self.not_contain_pattern)
         # print("dirpath patterns:", self.patterns)
