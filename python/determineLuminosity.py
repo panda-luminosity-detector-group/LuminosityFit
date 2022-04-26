@@ -12,8 +12,8 @@ import subprocess
 import sys
 import time
 
-import lumifit.general as general
 
+import lumifit.general as general
 from pathlib import Path
 
 from lumifit.alignment import AlignmentParameters
@@ -628,8 +628,9 @@ def lumiDetermination(scen: Scenario) -> None:
                 + lmd_fit_path
                 + "/"
                 + args.fit_config
-                + " "
-                + track_file_pattern
+                # apparently, this is no longer needed
+                # + " "
+                # + track_file_pattern
             )
             print(f"Bash command is:\n{bashcommand}")
             returnvalue = subprocess.call(bashcommand.split())

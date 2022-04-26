@@ -2,9 +2,14 @@
 import os
 import re
 import glob
+import socket
 import lumifit.general as general
-import lumifit.himster as himster
 import argparse
+
+from lumifit.cluster import ClusterJobManager, Job, JobResourceRequest
+from lumifit.gsi_virgo import create_virgo_job_handler
+from lumifit.himster import create_himster_job_handler
+
 
 dirs: list = []
 box_dirs: list = []
@@ -17,7 +22,7 @@ top_level_box_directory = ""
 LMDscriptpath = os.environ["LMDFIT_SCRIPTPATH"]
 
 
-def getListOfBoxDirectories(path):
+def getListOfBoxDirectories(path: str) -> None:
     if os.path.isdir(path):
         print("currently looking at directory " + path)
 
@@ -46,7 +51,7 @@ def getListOfBoxDirectories(path):
                 getListOfBoxDirectories(dirpath)
 
 
-def getTopBoxDirectory(path):
+def getTopBoxDirectory(path: str) -> None:
     if os.path.isdir(path):
         found = False
         for dir in next(os.walk(path))[1]:
@@ -59,7 +64,7 @@ def getTopBoxDirectory(path):
             getTopBoxDirectory(os.path.dirname(path))
 
 
-def findMatchingDirs(box_data_path):
+def findMatchingDirs(box_data_path: str) -> list:
     matching_dir_pairs = []
     if box_data_path == "":
         for dpm_dir in dirs:
@@ -70,13 +75,13 @@ def findMatchingDirs(box_data_path):
             )
             pattern = (
                 "^"
-                + match.group(1)
+                + match.group(1)  # type: ignore
                 + "box_.*?"
-                + match.group(2)
+                + match.group(2)  # type: ignore
                 + ".*"
-                + match.group(3)
+                + match.group(3)  # type: ignore
                 + "/.*"
-                + match.group(4)
+                + match.group(4)  # type: ignore
                 + "/merge_data$"
             )
             # print pattern
@@ -145,7 +150,7 @@ parser.add_argument(
     metavar="ref box gen data",
     type=str,
     default="",
-    help="If specified then this path will be used for all fits as the reference box gen data.",
+    help="If specified then this path will be used for all fits as the reference box gen data. WARNING: DOESN NOT WORK CURRENTLY.",
 )
 
 parser.add_argument(
@@ -177,7 +182,7 @@ dpm_glob_pattern = ["lmd_data_", "of", ".root"]
 patterns = [args.dirname_pattern[0], args.tail_dir_pattern]
 dir_searcher = general.DirectorySearcher(patterns)
 
-dir_searcher(args.dirname[0], dpm_glob_pattern)
+dir_searcher.searchListOfDirectories(args.dirname[0], dpm_glob_pattern)
 dirs = dir_searcher.getListOfDirectories()
 
 if args.forced_box_gen_data == "":
@@ -202,34 +207,43 @@ for match in matches:
     elastic_data_path = match[0]
     acc_res_data_path = match[1]
 
-    resource_request = himster.JobResourceRequest(12 * 60)
+    resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
     resource_request.number_of_nodes = 1
     resource_request.processors_per_node = number_of_threads
     resource_request.memory_in_mb = 2000
-    job = himster.Job(
+    job = Job(
         resource_request,
-        f"{LMDscriptpath}/singularityJob.sh {LMDscriptpath}/runLmdFit.sh",
-        "runLmdFit",
-        elastic_data_path + "/runLmdFit.log",
+        application_url=f"{LMDscriptpath}/singularityJob.sh {LMDscriptpath}/runLmdFit.sh",
+        name="runLmdFit",
+        logfile_url=elastic_data_path + "/runLmdFit.log",
+        array_indices=[1],
     )
-    job.set_job_array_indices([1])
 
-    job.add_exported_user_variable("config_url", args.config_url[0])
-    job.add_exported_user_variable("data_path", elastic_data_path)
-    job.add_exported_user_variable(
-        "acceptance_resolution_path", acc_res_data_path
-    )
-    job.add_exported_user_variable("number_of_threads", number_of_threads)
+    # TODO: handle this case
     if args.ref_box_gen_data != "":
         job.add_exported_user_variable(
             "reference_acceptance_path", args.ref_box_gen_data
         )
 
+    job.exported_user_variables = {
+        "config_url": args.config_url[0],
+        "data_path": elastic_data_path,
+        "acceptance_resolution_path": acc_res_data_path,
+        "number_of_threads": number_of_threads,
+    }
+
     joblist.append(job)
+
+# TODO: put this in scenario config, NOT here!
+full_hostname = socket.getfqdn()
+if "gsi.de" in full_hostname:
+    job_handler = create_virgo_job_handler("long")
+else:
+    job_handler = create_himster_job_handler("himster2_exp")
 
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
-job_manager = himster.HimsterJobManager(2500)
+job_manager = ClusterJobManager(job_handler, total_job_threshold=2500)
 
-job_manager.submit_jobs_to_himster(joblist)
-job_manager.manage_jobs()
+for job in joblist:
+    job_manager.append(job)
