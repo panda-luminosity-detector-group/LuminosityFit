@@ -114,7 +114,7 @@ class DirectorySearcher:
     ) -> None:
         self.patterns = patterns_
         self.not_contain_pattern = not_contain_pattern_
-        self.dirs: list[str] = []
+        self.dirs: list = []
 
     def getListOfDirectories(self) -> list:
         return self.dirs

@@ -1,4 +1,4 @@
-# TODO:  add shebang
+#!/usr/bin/env python3
 import os
 import re
 import glob
@@ -6,13 +6,15 @@ import lumifit.general as general
 import lumifit.himster as himster
 import argparse
 
-dirs = []
-box_dirs = []
+dirs: list = []
+box_dirs: list = []
 
 box_res_glob_pattern = ["lmd_res_data_", "of", ".root"]
 box_acc_glob_pattern = ["lmd_acc_data_", "of", ".root"]
 
 top_level_box_directory = ""
+
+LMDscriptpath = os.environ["LMDFIT_SCRIPTPATH"]
 
 
 def getListOfBoxDirectories(path):
@@ -63,7 +65,7 @@ def findMatchingDirs(box_data_path):
         for dpm_dir in dirs:
             print(dpm_dir)
             match = re.search(
-                "^(.*/)dpm_.*?/(ip_offset_XYZDXDYDZ_.*)/.*/\d*/\d*-\d*_(.*cut)/.*/(binning_\d*)/merge_data$",
+                r"^(.*/)dpm_.*?/(ip_offset_XYZDXDYDZ_.*)/.*/\d*/\d*-\d*_(.*cut)/.*/(binning_\d*)/merge_data$",
                 dpm_dir,
             )
             pattern = (
@@ -88,7 +90,7 @@ def findMatchingDirs(box_data_path):
         for dpm_dir in dirs:
             # attempt to find directory with same binning
             print("checking for matching directory for " + dpm_dir)
-            match = re.search("^.*(binning_\d*)/.*$", dpm_dir)
+            match = re.search(r"^.*(binning_\d*)/.*$", dpm_dir)
             if match:
                 dir_searcher = general.DirectorySearcher([match.group(1)])
                 dir_searcher.searchListOfDirectories(
@@ -175,7 +177,7 @@ dpm_glob_pattern = ["lmd_data_", "of", ".root"]
 patterns = [args.dirname_pattern[0], args.tail_dir_pattern]
 dir_searcher = general.DirectorySearcher(patterns)
 
-dir_searcher.searchListOfDirectories(args.dirname[0], dpm_glob_pattern)
+dir_searcher(args.dirname[0], dpm_glob_pattern)
 dirs = dir_searcher.getListOfDirectories()
 
 if args.forced_box_gen_data == "":
@@ -206,7 +208,7 @@ for match in matches:
     resource_request.memory_in_mb = 2000
     job = himster.Job(
         resource_request,
-        "./runLmdFit.sh",
+        f"{LMDscriptpath}/singularityJob.sh {LMDscriptpath}/runLmdFit.sh",
         "runLmdFit",
         elastic_data_path + "/runLmdFit.log",
     )

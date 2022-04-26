@@ -631,6 +631,7 @@ def lumiDetermination(scen: Scenario) -> None:
                 + " "
                 + track_file_pattern
             )
+            print(f"Bash command is:\n{bashcommand}")
             returnvalue = subprocess.call(bashcommand.split())
 
         print("this scenario is fully processed!!!")
