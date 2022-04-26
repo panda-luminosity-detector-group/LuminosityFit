@@ -16,7 +16,6 @@ import lumifit.general as general
 
 from pathlib import Path
 
-from lumifit import himster
 from lumifit.alignment import AlignmentParameters
 from lumifit.agent import Client
 from lumifit.cluster import ClusterJobManager
@@ -36,8 +35,11 @@ from lumifit.simulation import (
 
 
 def wasSimulationSuccessful(
-    directory, glob_pattern, min_filesize_in_bytes=10000, is_bunches=False
-):
+    directory: str,
+    glob_pattern: str,
+    min_filesize_in_bytes: int = 10000,
+    is_bunches: bool = False,
+) -> int:
     # return values:
     # 0: everything is fine
     # >0: its not finished processing, just keep waiting
@@ -83,7 +85,7 @@ waiting_scenario_stack = []
 dead_scenario_stack = []
 
 
-def simulateDataOnHimster(scenario: Scenario):
+def simulateDataOnHimster(scenario: Scenario) -> Scenario:
     """Determines the luminosity of a set of Lumi_TrksQA_* files.
 
     This is pretty complicated and uses a lot of intermediate steps.
@@ -472,7 +474,7 @@ def simulateDataOnHimster(scenario: Scenario):
     return scenario
 
 
-def lumiDetermination(scen):
+def lumiDetermination(scen: Scenario) -> None:
     dir_path = scen.dir_path
 
     state = scen.state

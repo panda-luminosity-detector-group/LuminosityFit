@@ -27,12 +27,15 @@ def make_test_job_resource_request() -> JobResourceRequest:
         memory_in_mb=500,
         virtual_memory_in_mb=500,
         node_scratch_filesize_in_mb=0,
+        is_dev_job=False,
     )
 
 
 @attr.s(hash=False)
 class Job:
-    def _validate_job_array_indices(instance, attribute, value):
+    def _validate_job_array_indices(
+        instance, attribute: Any, value: Any
+    ) -> None:
         if not isinstance(value, list):
             raise TypeError("Job array indices must be of type list")
         if not value:
@@ -96,7 +99,7 @@ class ClusterJobManager:
         self.__manage_thread = threading.Thread(target=self.__manage_jobs)
         self.__lock = threading.Lock()
 
-    def __manage_jobs(self):
+    def __manage_jobs(self) -> None:
         failed_jobs: Dict[Job, float] = {}
 
         while self.__jobs:
@@ -157,7 +160,7 @@ class ClusterJobManager:
     def is_active(self) -> bool:
         return self.__manage_thread.is_alive()
 
-    def append(self, job: Job):
+    def append(self, job: Job) -> None:
         """Append Job to this managers list of pending jobs.
 
         The manager submits the jobs as soon as there is capacity on the cluster,

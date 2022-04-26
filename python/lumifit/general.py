@@ -119,13 +119,16 @@ class DirectorySearcher:
     def getListOfDirectories(self) -> list[str]:
         return self.dirs
 
-    def searchListOfDirectories(self, path: str, glob_patterns: str) -> None:
+    def searchListOfDirectories(
+        self, path: str, glob_patterns: (str | list[str])
+    ) -> None:
         # print("looking for files with pattern: ", glob_patterns)
         # print("dirpath forbidden patterns:", self.not_contain_pattern)
         # print("dirpath patterns:", self.patterns)
-        file_patterns = [glob_patterns]
         if isinstance(glob_patterns, list):
             file_patterns = glob_patterns
+        else:
+            file_patterns = [glob_patterns]
 
         for dirpath, dirs, files in os.walk(path):
             # print('currently looking at directory', dirpath)
@@ -149,9 +152,8 @@ class DirectorySearcher:
                 # check if there are useful files here
                 found_files = False
                 if len(file_patterns) == 1:
-                    found_files = (
-                        len([x for x in files if glob_patterns in x]) > 0
-                    )
+                    # TODO: this line is highly dubious, but don't touch it for now.
+                    found_files = [x for x in files if glob_patterns in x]
                 else:
                     for filename in files:
                         found_file = True
