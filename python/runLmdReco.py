@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 
 import os
-import pathlib
 
 from lumifit.alignment import AlignmentParameters
 from lumifit.general import (
     load_params_from_file,
     check_stage_success,
-    DirectorySearcher,
 )
 from lumifit.reconstruction import ReconstructionParameters
+from lumifit.general import toCbool
 
-from pathlib import Path
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 LMDScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
@@ -71,6 +69,7 @@ radLength = 0.32
 prefilter = False
 
 # TODO: in the original, this was called KinematicsCut, but what is that?
+KinematicsCut = reco_params.use_m_cut  # off by default?
 if reco_params.use_xy_cut:  # off by default?
     prefilter = True
 
@@ -82,7 +81,6 @@ CleanSig = reco_params.use_m_cut  # off by default?
 
 # TODO check if the prefilter is off at any time, add to recoparams in that case
 
-KinematicsCut = reco_params.use_m_cut  # off by default?
 
 # track fit:
 # Possible options: "Minuit", "KalmanGeane", "KalmanRK"
@@ -131,7 +129,7 @@ if (
 ):
     os.chdir(PNDmacropath)
     os.system(
-        f"""root -l -b -q 'runLumiPixel2Reco.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", "{ali_params.alignment_matrices_path}", "{ali_params.misalignment_matrices_path}", {1 if ali_params.use_point_transform_misalignment else 0}, {verbositylvl})'"""
+        f"""root -l -b -q 'runLumiPixel2Reco.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", "{ali_params.alignment_matrices_path}", "{ali_params.misalignment_matrices_path}", {toCbool(ali_params.use_point_transform_misalignment)}, {verbositylvl})'"""
     )
 
 # * ------------------- Hit Merge Step -------------------
@@ -190,7 +188,7 @@ if (
         os.chdir(PNDmacropath)
         # this script outputs a Lumi_Track_... file. Rename that to the NotFiltered..
         os.system(
-            f"""root -l -b -q 'runLumiPixel4Fitter.C({reco_params.num_events_per_sample}, {start_evt},"{workpathname}", {verbositylvl}, "{trackFitAlgorithm}", {int(mergedHits)})'"""
+            f"""root -l -b -q 'runLumiPixel4Fitter.C({reco_params.num_events_per_sample}, {start_evt},"{workpathname}", {verbositylvl}, "{trackFitAlgorithm}", {toCbool(mergedHits)})'"""
         )
 
         # copy track file for module alignment
@@ -231,7 +229,7 @@ if prefilter:
         reco_params.reco_ip_offset[0]
         os.chdir(PNDmacropath)
         os.system(
-            f"""root -l -b -q 'runLumiPixel4aFilter.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {int(mergedHits)}, {reco_params.lab_momentum}, {int(KinematicsCut)}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
+            f"""root -l -b -q 'runLumiPixel4aFilter.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {toCbool(mergedHits)}, {reco_params.lab_momentum}, {toCbool(KinematicsCut)}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
         )
 
         # now overwrite the Lumi_Track_ sym link with the filtered version
@@ -252,7 +250,7 @@ if (
 ):
     os.chdir(PNDmacropath)
     os.system(
-        f"""root -l -b -q 'runLumiPixel5BackProp.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, "{backPropAlgorithm}", {int(mergedHits)}, {reco_params.lab_momentum}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]}, {reco_params.reco_ip_offset[2]}, {int(prefilter)})'"""
+        f"""root -l -b -q 'runLumiPixel5BackProp.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, "{backPropAlgorithm}", {toCbool(mergedHits)}, {reco_params.lab_momentum}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]}, {reco_params.reco_ip_offset[2]}, {toCbool(prefilter)})'"""
     )
 
 # * ------------------- Pixel CleanSig Step -------------------
@@ -273,7 +271,7 @@ if (
     or force_level == 1
 ):
     os.system(
-        f"""root -l -b -q 'runLumiPixel7TrksQA.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {reco_params.lab_momentum}, {int(WrAllMC)}, {int(KinematicsCut)}, {int(CleanSig)})'"""
+        f"""root -l -b -q 'runLumiPixel7TrksQA.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {reco_params.lab_momentum}, {toCbool(WrAllMC)}, {toCbool(reco_params.use_xy_cut)}, {toCbool(reco_params.use_m_cut)}, {toCbool(CleanSig)})'"""
     )
     if not debug:
         os.system(

@@ -11,6 +11,16 @@ from enum import Enum
 from typing import Any
 
 
+def toCbool(input: bool) -> str:
+    """
+    returns a string ("true|false") for ROOT macros from a Python bool
+    """
+    if input:
+        return "true"
+    else:
+        return "false"
+
+
 def getGoodFiles(
     directory: str,
     glob_pattern: str,
