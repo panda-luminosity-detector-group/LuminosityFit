@@ -38,11 +38,17 @@ class Scenario:
             self.phi_max_in_rad = 2 * math.pi
             self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdSimReco.py"
             self.Reco = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdReco.py"
-        else:
+            self.track_file_pattern = "Lumi_TrksQA_"
+            self.filenamePrefix = "Lumi_TrksQA_"
+        elif experiment_type == ExperimentType.KOALA:
             self.phi_min_in_rad = 0.9 * math.pi
             self.phi_max_in_rad = 1.3 * math.pi
             self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoalaSimReco.py"
             self.Reco = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoalaReco.py"
+            self.track_file_pattern = "Koala_Track_"
+            self.filename_prefix = "Koala_comp_"
+        else:
+            raise ValueError("Experiment Type not defined!")
 
         self.alignment_parameters: AlignmentParameters = AlignmentParameters()
 

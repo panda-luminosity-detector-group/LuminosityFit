@@ -108,7 +108,6 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
         reconstructed tracks. This performs the ENTIRE reconstruction
         again using this IP position information.
 
-        TODO: This step currently doesnt work.
 
     Parameters:
     - dir_path: the path to the TrksQA files (e.g. 1-100_uncut/no_alignment_correction)
@@ -213,11 +212,11 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     )
                     rec_par.use_xy_cut = scenario.use_xy_cut
                     rec_par.use_m_cut = scenario.use_m_cut
-                    rec_par.reco_ip_offset = [
+                    rec_par.reco_ip_offset = (
                         ip_info_dict["ip_offset_x"],
                         ip_info_dict["ip_offset_y"],
                         ip_info_dict["ip_offset_z"],
-                    ]
+                    )
 
                     # alignment part
                     # if alignement matrices were specified, we used them as a mis-alignment
@@ -722,6 +721,7 @@ client.checkConnection()
 
 experiment_type = ExperimentType.LUMI
 
+# TODO: read from scenario config file
 if experiment_type == ExperimentType.LUMI:
     track_file_pattern = "Lumi_TrksQA_"
 elif experiment_type == ExperimentType.KOALA:

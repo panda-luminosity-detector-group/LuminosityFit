@@ -162,6 +162,10 @@ job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
 print(f"createMultipleLmdData: appending {len(config_paths)} jobs...")
 
+# TODO: read experiment type from scenario config and adjust:
+# createLumiFitData.sh or
+# createKoaFitData.sh
+
 for config_path in config_paths:
     filelist_path = os.path.split(config_path)[0]
     input_path = os.path.split(filelist_path)[0]

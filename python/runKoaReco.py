@@ -76,5 +76,5 @@ if (
         + f"{verbositylvl})'"
     )
 
-os.chdir(scriptpath)
+os.chdir(lmdScriptPath)
 os.system("python runKoaTrack.py")
