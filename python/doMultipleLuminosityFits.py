@@ -234,7 +234,7 @@ for match in matches:
 
     joblist.append(job)
 
-# TODO: put this in scenario config, NOT here!
+# TODO: read from scenario config!
 full_hostname = socket.getfqdn()
 if "gsi.de" in full_hostname:
     job_handler = create_virgo_job_handler("long")

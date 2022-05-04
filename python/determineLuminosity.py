@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# TODO: check if this script works, it seems to be python3 at least
-
 import argparse
 import json
 import math
@@ -54,6 +52,7 @@ def wasSimulationSuccessful(
         is_bunches=is_bunches,
     )[1]
 
+    # TODO: read from scenario config!
     full_hostname = socket.getfqdn()
     if "gsi.de" in full_hostname:
         job_handler = create_virgo_job_handler("long")
@@ -381,7 +380,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                         + sim_type
                         + " "
                         + dir_path
-                        + " ../dataconfig_xy.json"
+                        + " ../dataconfig_xy.json"  # TODO: use absolute path here!
                     )
                     if el_cs:
                         bashcommand += " --elastic_cross_section " + str(el_cs)
@@ -396,7 +395,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                         + sim_type
                         + " "
                         + dir_path
-                        + " ../dataconfig_xy.json"
+                        + " ../dataconfig_xy.json"  # TODO: use absolute path here!
                     )
                     print(bashcommand)
                 returnvalue = subprocess.call(bashcommand.split())
@@ -767,7 +766,7 @@ for dir in dirs:
         scen.use_ip_determination = False
     active_scenario_stack.append(scen)
 
-
+# TODO: read from scenario config!
 full_hostname = socket.getfqdn()
 if "gsi.de" in full_hostname:
     job_handler = create_virgo_job_handler("long")

@@ -39,7 +39,7 @@ class SlurmOrder:
 
     # I think there is no real constructor overloading in python?
     @classmethod
-    def fromJson(cls, jsonString):
+    def fromJson(cls, jsonString: str):
         temp = cls()
         data = json.loads(jsonString)
         for key, value in data.items():
@@ -47,7 +47,7 @@ class SlurmOrder:
         return temp
 
     @classmethod
-    def fromDict(cls, jsonDict):
+    def fromDict(cls, jsonDict: dict):
         temp = cls()
         for key, value in jsonDict.items():
             setattr(temp, key, value)
@@ -62,7 +62,7 @@ class Agent:
     # this may even be accidental by some scripts
     universalPipePath = "/tmp/lmdfit"
 
-    def SlurmOrderExamples() -> None:
+    def SlurmOrderExamples(self) -> None:
         slurmOrder = SlurmOrder()
         print(f"This is the Slurm Order:\n{slurmOrder}\n")
         print(f"This is the Slurm Order as json:\n{slurmOrder.toJson()}\n")
@@ -84,7 +84,6 @@ class Agent:
             json.dump(thisOrder.toJson(), universalPipe)
 
     def receiveOrder(self) -> SlurmOrder:
-        # TODO: I don't know is this works for multi-line orders. check that!
         with open(
             self.universalPipePath, "r", encoding="utf-8"
         ) as universalPipe:

@@ -29,6 +29,7 @@ def run_simulation_and_reconstruction(sim_params, align_params, reco_params):
         # TODO: don't hardcode the script name, read from scenario config
         application_command="${HOME}/LuminosityFit/python/singularityJob.sh 'python ${HOME}/LuminosityFit/python/runLmdSimReco.py'",
     )
+    # TODO: read from scenario config!
     full_hostname = socket.getfqdn()
     if args.debug:
         job_handler = DebugJobHandler()
