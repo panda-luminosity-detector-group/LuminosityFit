@@ -118,8 +118,8 @@ flowchart TD
     runLmdSimReco.py --> simMacros[ROOT MC simulation macros]
     runLmdReco.py --> recoMacros[ROOT reconstruction macros]
 
-    simMacros --> lumiMC[Lumi MC, Lumi Digi]
-    recoMacros --> lumiQA([Lumi_TrsQA])
+    simMacros --> lumiMC{{Lumi MC, Lumi Digi}}
+    recoMacros --> lumiQA{{Lumi_TrsQA}}
     lumiMC -.-> recoMacros
     lumiQA -.-> LmdFitBinaries
     LmdFitBinaries --> lumiValue([extrated luminosity]):::green
@@ -216,6 +216,8 @@ simType2 --else--> createMulti
 createMulti --> incrementState
 state --3--> mergeData["mergeMultipleLmdData.py"]
 mergeData --> incrementState
+state ----4----> doMultiFit["doMultipleLuminosityFits.py"]
+doMultiFit ==> done["All done, lumi data\nis saved in lmd_fitted_data.root"]
 ```
 
 So basically, it does:
