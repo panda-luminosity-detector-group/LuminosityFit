@@ -118,7 +118,7 @@ flowchart TD
     runLmdSimReco.py --> simMacros[ROOT MC simulation macros]
     runLmdReco.py --> recoMacros[ROOT reconstruction macros]
 
-    simMacros --> lumiMC([Lumi MC, Lumi Digi])
+    simMacros --> lumiMC[Lumi MC, Lumi Digi]
     recoMacros --> lumiQA([Lumi_TrsQA])
     lumiMC -.-> recoMacros
     lumiQA -.-> LmdFitBinaries
@@ -177,18 +177,54 @@ id1([scenarioConfig.json]) -.-> determineLuminosity.py
 
 ### Function Call Diagram
 
-The function diagram is pretty complicated, and has lot's of internal states:
+The function diagram is pretty complicated, and has lot's of internal states. One very important class of objects is the `scenario` class, which holds a `state` variable. This variable controls the program flow. There can be multiple `scenario`s, each with their own `state`. A scenario object ist also passed to the `simulateDataOnHimster(scen: scenario)` function.
 
 ```mermaid
 flowchart TD
 start([Start]) --> setup[Parse arguments, check cluster,\n prepare jobManager, create Scenario stack]
 setup --> callLumi["lumiDetermination(scenario)"]
 callLumi --> state{Which State?}
-state --1--> simOnHim["Simulate on Himster"]
+state --1--> simOnHim["simulateDataOnHimster(scen: scenario)"]
+simOnHim --> incrementState[increment state]
 state --2--> recoIP["reconstruct IP position\nor use (0,0,0)"]
-recoIP --> incrementState[increment state]
-incrementState --> state
+recoIP --> incrementState
+incrementState ==> state
+state --3--> filterDPM["Filter DPM data\nwith IP position"]
+filterDPM --> simOnHim
 ```
+
+---
+
+The function `simulateDataOnHimster(scen: scenario)` needs it's own flowchart. It also has an internal `state` variable that determines its behavior.
+
+```mermaid
+flowchart TD
+start([Start]) --> simOnHim["some call to simulateDataOnHimster"]
+simOnHim --> prepare["output some debug data"]
+prepare --> state{Which State?}
+state --1--> simType{"Which\nsim_type?"}
+simType --a--> simRecoDPM["start MC simulation\nand reconstruction\n(with IP position cut)"]
+simType --er--> simRecoBOX["box gen for\nacc and res"]
+simRecoDPM --> incrementState["increment state"]
+simRecoBOX --> incrementState
+incrementState ==> state
+state --2--> makeMulti["makeMultipleFileListBunches.py"]
+makeMulti --> simType2{"Which\nsim_type?"}
+simType2 --a--> useCross["use cross section"]
+useCross --> createMulti["createMultipleLmdData.py"]
+simType2 --else--> createMulti
+createMulti --> incrementState
+state --3--> mergeData["mergeMultipleLmdData.py"]
+mergeData --> incrementState
+```
+
+So basically, it does:
+
+- simulation
+- reconstruction (with IP position cut)
+- box sim for acc and res data
+- create multiple LMD data
+- merge multiple LMD data
 
 ## doMultipleLuminosityFits.py
 
