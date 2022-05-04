@@ -149,7 +149,7 @@ for bins in range(
         config_modifier.writeConfigToPath(config, path + "/dataconfig.json")
         config_paths.append(path)
 
-
+# TODO: read from scenario config!
 full_hostname = socket.getfqdn()
 if "gsi.de" in full_hostname:
     job_handler = create_virgo_job_handler("long")
