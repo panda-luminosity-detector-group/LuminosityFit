@@ -24,6 +24,7 @@
 #pragma link C++ class PndLmdMapData + ;
 #pragma link C++ class EstimatorOptions + ;
 #pragma link C++ class DimensionRange + ;
+#pragma link C++ class DataStructs::DimensionRange + ;
 
 #pragma link C++ class std::vector < PndLmdAngularData> + ;
 #pragma link C++ class std::vector < PndLmdAcceptance> + ;
