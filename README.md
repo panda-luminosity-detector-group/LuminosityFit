@@ -14,7 +14,11 @@ Make sure your Pandaroot enviroment is set up correctly, more precisely that the
 - ROOTSYS
 
 Boost and the gsl library are two requirements, which are automatically included with fairsoft, so you already have them installed for sure. It is recommended to use the same boost, which was used to build the pandaroot enviroment. Use the _BOOST_ROOT_ environment variable to hint cmake to correct boost location.
-`export BOOST_ROOT=$SIMPATH`
+
+```bash
+export BOOST_ROOT=$SIMPATH
+```
+
 (No need to put that export in your bashrc, just run it in your shell before cmake call)
 
 ### Compilation
@@ -108,7 +112,7 @@ flowchart TD
     determineLuminosity.py:::teal --> runLmdReco.py:::red
     determineLuminosity.py --> runLmdSimReco.py:::red
     runSimulationReconstruction.py:::teal --> runLmdSimReco.py
-    determineLuminosity.py --> LMDFitBinaries:::yellow
+    determineLuminosity.py --> LmdFitBinaries:::yellow
     runLmdSimReco.py --> runLmdReco.py
 
     runLmdSimReco.py --> simMacros[ROOT MC simulation macros]
@@ -117,8 +121,8 @@ flowchart TD
     simMacros --> lumiMC([Lumi MC, Lumi Digi])
     recoMacros --> lumiQA([Lumi_TrsQA])
     lumiMC -.-> recoMacros
-    lumiQA -.-> LMDFitBinaries
-    LMDFitBinaries --> lumiValue([extrated luminosity]):::green
+    lumiQA -.-> LmdFitBinaries
+    LmdFitBinaries --> lumiValue([extrated luminosity]):::green
 
     %% --- color some nodes
     %% user callable
@@ -151,9 +155,9 @@ Generates MC simulation data and performs the entire reconstruction chain. It ne
 
 ## determineLuminosity.py
 
-Can only be run if `LumiTrkQA_` files are already present.
+Can only be run if `LumiTrkQA_` files for PandaRoot or `Koala_Track_` files for KoalaSoft are already present.
 
-Minimum run example works without arguments, but searches a LOT of directories. It's genereally better to at least limit the search paths:
+Minimum run example works without arguments, but searches a LOT of directories. It's generally better to at least limit the search paths:
 
 ```bash
 ./determineLuminosity.py --base_output_data_dir /path/to/TrksQAFiles.root
@@ -167,18 +171,47 @@ The run sequence is as follows:
 
 ```mermaid
 flowchart TD
-determineLuminosity.sh --> searchjDirs
-id1([scenarioConfig.json]) -.-> determineLuminosity.sh
+determineLuminosity.py --> searchjDirs
+id1([scenarioConfig.json]) -.-> determineLuminosity.py
 ```
 
-TODO: continue
+### Function Call Diagram
 
-## Apps in `/bin/`
+The function diagram is pretty complicated, and has lot's of internal states:
 
-### createLmdFitData
+```mermaid
+flowchart TD
+start([Start]) --> setup[Parse arguments, check cluster,\n prepare jobManager, create Scenario stack]
+setup --> callLumi["lumiDetermination(scenario)"]
+callLumi --> state{Which State?}
+state --1--> simOnHim["Simulate on Himster"]
+state --2--> recoIP["reconstruct IP position\nor use (0,0,0)"]
+recoIP --> incrementState[increment state]
+incrementState --> state
+```
 
-### createKoaFitData
+## doMultipleLuminosityFits.py
+
+Needs a `--forced_box_gen_data` path and a path to the firconfig (has no parameter, just the path). So it's `python doMultipleLuminosityFits.py --forced_box_gen_data path fitconfig.json`. A full working example is here:
+
+```bash
+python doMultipleLuminosityFits.py --forced_box_gen_data /lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_1.5GeV/box_theta_2.6900000000000004-13.01mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-500_xy_m_cut_real/no_alignment_correction /lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_1.5GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-100_xy_m_cut_real/no_alignment_correction xy_m_cut_real /home/roklasen/LuminosityFit/fitconfig-fast.json
+```
+
+# Apps in `/bin/`
+
+## createLmdFitData
+
+## createKoaFitData
 
 Same but for the Koala Experiment
 
-### ExtractLuminosityValues
+## ExtractLuminosityValues
+
+Is compiled to `extractLuminosity`. Needs only a path to the merge data, and extracts the fitted lumi from the `lmd_fitted_data.root`.
+
+```bash
+./extractLuminosity /lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_1.5GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-100_xy_m_cut_real/no_alignment_correction/bunches_10/binning_300/merge_data
+```
+
+Note: currently this doesn't seem to work because the `EstimatorOptions` aren't saved to the root file, this is a new problem.
