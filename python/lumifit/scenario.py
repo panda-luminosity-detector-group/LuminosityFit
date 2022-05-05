@@ -43,8 +43,8 @@ class Scenario:
         elif experiment_type == ExperimentType.KOALA:
             self.phi_min_in_rad = 0.9 * math.pi
             self.phi_max_in_rad = 1.3 * math.pi
-            self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoalaSimReco.py"
-            self.Reco = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoalaReco.py"
+            self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaSimReco.py"
+            self.Reco = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaReco.py"
             self.track_file_pattern = "Koala_Track_"
             self.filename_prefix = "Koala_comp_"
         else:
