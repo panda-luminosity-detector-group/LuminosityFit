@@ -85,7 +85,7 @@ class Agent:
         ) as universalPipe:
             json.dump(thisOrder.toJson(), universalPipe)
 
-    def receiveOrder(self) -> (SlurmOrder | None):
+    def receiveOrder(self):
         with open(
             self.universalPipePath, "r", encoding="utf-8"
         ) as universalPipe:

@@ -44,10 +44,10 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LMDFIT_BUILD_PATH/lib
 
 ## Using in Container with the Slurm Agent
 
-Start the agent with:
+Note: the agent currently needs Python 3.10 or higher. Start the agent with:
 
 ```bash
-module load lang/Python/3.9.6-GCCcore-11.2.0
+module load lang/Python/3.10.4-GCCcore-11.2.0
 python/lumifit/agent.py
 ```
 
