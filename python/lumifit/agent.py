@@ -16,12 +16,14 @@ import subprocess
 import stat
 import sys
 from enum import IntEnum
+from pathlib import Path
 from typing import Dict
 
 
 @attr.s(hash=True)
 class orderType(IntEnum):
     # the actual values of these enums must be integers now!
+    EXIT = -1
     META = 0
     REGULAR = 1
 
@@ -38,6 +40,7 @@ class SlurmOrder:
     version: int = attr.ib(default=1)
 
     # I think there is no real constructor overloading in python?
+    # TODO: I think there is a more modern way to do this
     @classmethod
     def fromJson(cls, jsonString: str):
         temp = cls()
@@ -46,6 +49,7 @@ class SlurmOrder:
             setattr(temp, key, value)
         return temp
 
+    # TODO: I think there is a more modern way to do this
     @classmethod
     def fromDict(cls, jsonDict: dict):
         temp = cls()
@@ -58,9 +62,7 @@ class SlurmOrder:
 
 
 class Agent:
-    # TODO: put this somewhere else, everybody can write to this!
-    # this may even be accidental by some scripts
-    universalPipePath = "/tmp/lmdfit"
+    universalPipePath: Path = Path(f"{os.getenv('HOME')}/tmp/lmdfit")
 
     def SlurmOrderExamples(self) -> None:
         slurmOrder = SlurmOrder()
@@ -83,13 +85,16 @@ class Agent:
         ) as universalPipe:
             json.dump(thisOrder.toJson(), universalPipe)
 
-    def receiveOrder(self) -> SlurmOrder:
+    def receiveOrder(self) -> (SlurmOrder | None):
         with open(
             self.universalPipePath, "r", encoding="utf-8"
         ) as universalPipe:
-
-            # this handles the entire pipe (encoding, newlines and all)
-            payload = json.load(universalPipe)
+            try:
+                # this handles the entire pipe (encoding, newlines and all)
+                payload = json.load(universalPipe)
+            except Exception:
+                print(f"error parsing json order from pipe!")
+                return None
 
         if isinstance(payload, str):
             # apparently, this is by design! if the json thing is interpreted as string, then a string is returned (and not a dict)!
@@ -103,20 +108,30 @@ class Agent:
 
 
 class Server(Agent):
-    def preparePipes(self) -> None:
-        if os.path.exists(self.universalPipePath):
+    """
+    checks:
+    - if pipe exists and is pipe. if yes, return. else:
+    - if its regular file, delete it. then:
+    - if parent path for pipe exists, if not, creates it. then make pipe
+    """
+
+    def preparePipe(self) -> None:
+        if self.universalPipePath.exists():
             if not stat.S_ISFIFO(os.stat(self.universalPipePath).st_mode):
                 print(
                     f"Warning! Path {self.universalPipePath} exists but is not a pipe. Deleting!"
                 )
-                os.unlink(self.universalPipePath)
+                self.universalPipePath.unlink()
+
+        if not self.universalPipePath.parent.exists():
+            self.universalPipePath.parent.mkdir()
 
         if not os.path.exists(self.universalPipePath):
             os.mkfifo(self.universalPipePath)
 
     def deletePipes(self) -> None:
-        if os.path.exists(self.universalPipePath):
-            os.unlink(self.universalPipePath)
+        if self.universalPipePath.exists():
+            self.universalPipePath.unlink()
 
     # continouosly read from pipe and execute, write output and return codes back
     def mainLoop(self) -> None:
@@ -126,29 +141,32 @@ class Server(Agent):
             logging.info(
                 f"{datetime.datetime.now().isoformat(timespec='seconds')}: Received Order:\n{thisOrder}\n"
             )
-            # execute command as ordered
-            returnOrder = self.execute(thisOrder)
 
-            # return result
-            logging.info(
-                f"{datetime.datetime.now().isoformat(timespec='seconds')}: Sent back result:\n{returnOrder}\n"
-            )
-            self.sendOrder(returnOrder)
+            if thisOrder is not None:
+
+                # execute command as ordered
+                returnOrder = self.execute(thisOrder)
+
+                # return result
+                logging.info(
+                    f"{datetime.datetime.now().isoformat(timespec='seconds')}: Sent back result:\n{returnOrder}\n"
+                )
+                self.sendOrder(returnOrder)
 
     def execute(self, thisOrder: SlurmOrder) -> SlurmOrder:
-        if thisOrder.orderType == orderType.META:
-            if thisOrder.cmd == "exit":
-                self.bail()
-            elif thisOrder.cmd == "test":
+        if thisOrder.orderType == orderType.EXIT:
+            self.bail()
+
+        elif thisOrder.orderType == orderType.META:
+            if thisOrder.cmd == "test":
                 thisOrder.stdout = "ok"
                 thisOrder.returnCode = 0
                 return thisOrder
 
         elif thisOrder.orderType == orderType.REGULAR:
-            # this returns a CompletedProcess
-
             if not thisOrder.runShell:
                 cmds = shlex.split(thisOrder.cmd)
+                # this returns a CompletedProcess
                 process = subprocess.run(
                     cmds,
                     env=thisOrder.env,
@@ -171,19 +189,17 @@ class Server(Agent):
             thisOrder.stderr = process.stderr
             return thisOrder
 
+        raise NotImplementedError(
+            f"order type {thisOrder.orderType} is not implemented!"
+        )
+
     def bail(self) -> None:
         print(f'Received "exit" command. Exiting now.')
         self.deletePipes()
         print("Have a nice day.")
         sys.exit(0)
 
-    def run() -> None:
-        welcome = """
-        Agent starting and forking to background.
-        Write "exit" to orderPipe to exit agent.
-        """
-
-        print(welcome)
+    def run(self) -> None:
 
         # fork to background
         try:
@@ -196,6 +212,16 @@ class Server(Agent):
             print(f"fork failed: {e.errno} ({e.strerror})")
             sys.exit(1)
 
+        welcome = """
+        Agent starting and forking to background. Write:
+
+        {"orderType": "meta", "cmd": "exit"}
+
+        to orderPipe to exit agent.
+        """
+
+        print(welcome)
+
         # preapare log
         logging.basicConfig(
             filename=f"agentLog-{datetime.datetime.now().isoformat()}.log",
@@ -206,9 +232,8 @@ class Server(Agent):
             f"Starting Log at {datetime.datetime.now().isoformat()}\n"
         )
 
-        thisServer = Server()
-        thisServer.preparePipes()
-        thisServer.mainLoop()
+        self.preparePipe()
+        self.mainLoop()
 
 
 class Client(Agent):
@@ -235,7 +260,8 @@ class Client(Agent):
 
 
 if __name__ == "__main__":
-    Server.run()
+    thisServer = Server()
+    thisServer.run()
 
     #! Uncomment this to see some basic examples
     # Agent.SlurmOrderExamples()

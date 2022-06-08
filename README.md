@@ -56,7 +56,7 @@ It will run in the background and wait for json-formatted `SlurmOrder`s in the n
 To exit the agent, pipe the exit meta-command to the pipe:
 
 ```bash
-echo '{"orderType": "meta", "cmd": "exit"}' > /tmp/lmdfit
+echo '{"orderType": -1}' > $HOME/tmp/lmdfit
 ```
 
 Start container (pipe in `/tmp` is automatically available in Singularity):
