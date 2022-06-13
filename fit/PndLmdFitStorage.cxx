@@ -8,11 +8,11 @@
 #include "PndLmdFitStorage.h"
 
 PndLmdFitStorage::PndLmdFitStorage() {
-  // TODO Auto-generated constructor stub
+  
 }
 
 PndLmdFitStorage::~PndLmdFitStorage() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 const std::map<PndLmdFitOptions, std::vector<ModelFitResult>> &

@@ -24,7 +24,12 @@ void displayInfo() {
   std::cout << "-u [upper theta boundary in mrad] (default: 12mrad)"
             << std::endl;
   std::cout << "-o [output filepath] (default: dpmgen.root)" << std::endl;
+  std::cout << "-n [lower phi boundary in rad] (default: 0)"
+            << std::endl;
+  std::cout << "-g [upper phi boundary in rad] (default: 2 * TMath::Pi())"
+            << std::endl;
   std::cout << "-s [random seed] (default: 12345)" << std::endl;
+  
 }
 
 int main(int argc, char *argv[]) {
@@ -32,9 +37,11 @@ int main(int argc, char *argv[]) {
   double upper_bound = 12.0;
   std::string output_filepath = "dpmgen.root";
   unsigned int seed = 12345;
+  double lower_phi = 0;
+  double upper_phi = 2 * TMath::Pi();
   int c;
 
-  while ((c = getopt(argc, argv, "hl:u:o:s:")) != -1) {
+  while ((c = getopt(argc, argv, "hl:u:o:n:g:s:")) != -1) {
     switch (c) {
     case 'o':
       output_filepath = optarg;
@@ -48,8 +55,14 @@ int main(int argc, char *argv[]) {
     case 'u':
       upper_bound = std::stod(optarg);
       break;
+    case 'n':
+      lower_phi = std::stod(optarg);
+      break;
+    case 'g':
+      upper_phi = std::stod(optarg);
+      break;
     case '?':
-      if (optopt == 'l' || optopt == 'u' || optopt == 'o' || optopt == 's')
+      if (optopt == 'l' || optopt == 'u' || optopt == 'o' || optopt == 'n' || optopt == 'g'|| optopt == 's' )
         std::cerr << "Option -" << optopt << " requires an argument."
                   << std::endl;
       else if (isprint(optopt))
@@ -69,7 +82,7 @@ int main(int argc, char *argv[]) {
     double momentum = std::stod(argv[optind]);
     unsigned int num_events = std::stoul(argv[optind + 1]);
     auto result = PbarPElasticScattering::generateEvents(
-        momentum, num_events, lower_bound, upper_bound, seed);
+        momentum, num_events, lower_bound, upper_bound, lower_phi, upper_phi, seed);
 
     if (num_events == 0) {
       boost::filesystem::path cs_filepath(output_filepath);

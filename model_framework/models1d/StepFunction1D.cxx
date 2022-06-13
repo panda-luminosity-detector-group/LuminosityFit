@@ -15,7 +15,7 @@ StepFunction1D::StepFunction1D(std::string name_, bool falling_edge_)
 }
 
 StepFunction1D::~StepFunction1D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 mydouble StepFunction1D::eval(const mydouble *x) const {

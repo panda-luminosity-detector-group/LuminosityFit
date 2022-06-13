@@ -12,11 +12,11 @@
 Model1D *IntegralStrategyGSL1D::current_model = 0;
 
 IntegralStrategyGSL1D::IntegralStrategyGSL1D() {
-  // TODO Auto-generated constructor stub
+  
 }
 
 IntegralStrategyGSL1D::~IntegralStrategyGSL1D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 mydouble IntegralStrategyGSL1D::Integral(Model1D *model1d, mydouble xlow,

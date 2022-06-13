@@ -7,7 +7,7 @@ CeresMinimizer::CeresMinimizer() :
 }
 
 CeresMinimizer::~CeresMinimizer() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 ModelFitResult CeresMinimizer::createModelFitResult() const {

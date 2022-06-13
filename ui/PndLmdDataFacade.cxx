@@ -20,7 +20,7 @@ PndLmdDataFacade::PndLmdDataFacade()
     : lmd_runtime_config(PndLmdRuntimeConfiguration::Instance()) {}
 
 PndLmdDataFacade::~PndLmdDataFacade() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void PndLmdDataFacade::initializeData(PndLmdAbstractData &data) const {

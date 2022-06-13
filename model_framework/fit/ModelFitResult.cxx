@@ -25,7 +25,7 @@ ModelFitResult::ModelFitResult(const ModelFitResult &fit_result) {
 }
 
 ModelFitResult::~ModelFitResult() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 unsigned int ModelFitResult::getNumberOfDataPoints() const {

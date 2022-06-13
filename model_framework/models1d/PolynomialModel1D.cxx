@@ -14,13 +14,13 @@
 
 PolynomialModel1D::PolynomialModel1D(std::string name_, unsigned int order_)
     : Model1D(name_) {
-  // TODO Auto-generated constructor stub
+  
   order = order_;
   initModelParameters();
 }
 
 PolynomialModel1D::~PolynomialModel1D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void PolynomialModel1D::initModelParameters() {

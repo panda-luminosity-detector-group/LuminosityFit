@@ -22,7 +22,7 @@ ModelEstimator::ModelEstimator(bool allow_initial_normalization_)
       allow_initial_normalization(allow_initial_normalization_) {}
 
 ModelEstimator::~ModelEstimator() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void ModelEstimator::setNumberOfThreads(unsigned int number_of_threads) {

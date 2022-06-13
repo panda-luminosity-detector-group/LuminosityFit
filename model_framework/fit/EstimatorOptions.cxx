@@ -13,7 +13,7 @@ EstimatorOptions::EstimatorOptions()
     : with_integral_scaling(true), fit_range_x(), fit_range_y() {}
 
 EstimatorOptions::~EstimatorOptions() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 bool EstimatorOptions::isWithIntegralScaling() const {

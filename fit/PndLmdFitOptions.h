@@ -39,9 +39,9 @@ private:
   // so this simpler option map was "developed"...
   std::map<std::string, std::string> model_opt_map;
 
-#ifndef __CINT__
+  // #ifndef __CINT__
   EstimatorOptions est_opt;
-#endif /* __CINT __ */
+  // #endif /* __CINT __ */
 
   LumiFit::LmdEstimatorType estimator_type;
 
@@ -54,9 +54,9 @@ public:
   boost::property_tree::ptree getModelOptionsPropertyTree() const;
 #endif /* __CINT __ */
 
-#ifndef __CINT__
+  // #ifndef __CINT__
   const EstimatorOptions &getEstimatorOptions() const;
-#endif /* __CINT __ */
+  // #endif /* __CINT __ */
   const std::set<std::string, ModelStructs::string_comp> &
   getFreeParameterSet() const;
 

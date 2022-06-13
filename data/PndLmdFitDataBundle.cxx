@@ -14,11 +14,11 @@
 ClassImp(PndLmdFitDataBundle)
 
     PndLmdFitDataBundle::PndLmdFitDataBundle() {
-  // TODO Auto-generated constructor stub
+  
 }
 
 PndLmdFitDataBundle::~PndLmdFitDataBundle() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 const std::vector<PndLmdElasticDataBundle> &

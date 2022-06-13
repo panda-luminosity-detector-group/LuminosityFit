@@ -10,7 +10,7 @@
 ModelMinimizer::ModelMinimizer() : control_parameter() {}
 
 ModelMinimizer::~ModelMinimizer() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 std::shared_ptr<ModelControlParameter>

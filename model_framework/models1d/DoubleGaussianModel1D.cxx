@@ -18,7 +18,7 @@ DoubleGaussianModel1D::DoubleGaussianModel1D(std::string name_)
 }
 
 DoubleGaussianModel1D::~DoubleGaussianModel1D() {
-  // TODO Auto-generated destructor stub
+  
 }
 /*
 void DoubleGaussianModel1D::initModelParameters() {

@@ -27,7 +27,7 @@ PndLmdDPMAngModel1D::PndLmdDPMAngModel1D(
 }
 
 PndLmdDPMAngModel1D::~PndLmdDPMAngModel1D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 mydouble PndLmdDPMAngModel1D::getMomentumTransferFromThetaCorrect(

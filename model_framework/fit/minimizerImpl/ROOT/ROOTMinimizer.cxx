@@ -30,7 +30,7 @@ ROOTMinimizer::ROOTMinimizer(int type) {
 }
 
 ROOTMinimizer::~ROOTMinimizer() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void ROOTMinimizer::increaseFunctionCallLimit() {

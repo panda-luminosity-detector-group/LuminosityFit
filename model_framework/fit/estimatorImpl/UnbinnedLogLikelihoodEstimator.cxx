@@ -8,11 +8,11 @@
 UnbinnedLogLikelihoodEstimator::UnbinnedLogLikelihoodEstimator()
     : ModelEstimator(true), last_integral(0.0), skip_integral(false),
       integral_skip_counter(0), integral_skip_amount(5) {
-  // TODO Auto-generated constructor stub
+  
 }
 
 UnbinnedLogLikelihoodEstimator::~UnbinnedLogLikelihoodEstimator() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 mydouble UnbinnedLogLikelihoodEstimator::eval(std::shared_ptr<Data> data) {

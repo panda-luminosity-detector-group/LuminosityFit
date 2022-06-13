@@ -19,7 +19,7 @@ PndLmdE760LikeModelParametrization::PndLmdE760LikeModelParametrization(
 }
 
 PndLmdE760LikeModelParametrization::~PndLmdE760LikeModelParametrization() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void PndLmdE760LikeModelParametrization::initParameters() {

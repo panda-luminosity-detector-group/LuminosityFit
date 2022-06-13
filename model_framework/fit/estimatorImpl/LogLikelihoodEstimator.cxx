@@ -5,11 +5,11 @@
 #include <cmath>
 
 LogLikelihoodEstimator::LogLikelihoodEstimator() : ModelEstimator(true) {
-  // TODO Auto-generated constructor stub
+  
 }
 
 LogLikelihoodEstimator::~LogLikelihoodEstimator() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 mydouble LogLikelihoodEstimator::eval(std::shared_ptr<Data> data) {

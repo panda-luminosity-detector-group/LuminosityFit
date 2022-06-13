@@ -17,7 +17,7 @@ GaussianModel2D::GaussianModel2D(std::string name_, mydouble num_sigmas_)
 }
 
 GaussianModel2D::~GaussianModel2D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 void GaussianModel2D::initModelParameters() {

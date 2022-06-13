@@ -11,11 +11,11 @@
 #include <cmath>
 
 IntegralStrategySR1D::IntegralStrategySR1D() {
-  // TODO Auto-generated constructor stub
+  
 }
 
 IntegralStrategySR1D::~IntegralStrategySR1D() {
-  // TODO Auto-generated destructor stub
+  
 }
 
 mydouble IntegralStrategySR1D::Integral(Model1D *model1d, mydouble xlow,
