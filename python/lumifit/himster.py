@@ -12,9 +12,6 @@ def create_himster_job_handler(
         # factor of 2. we want to allocate only real cpus, hence the
         # factors of 2 in the code below
         job.resource_request.processors_per_node *= 2
-        job.resource_request.memory_in_mb = int(
-            job.resource_request.memory_in_mb / 2
-        )
         return job
 
     return SlurmJobHandler(
