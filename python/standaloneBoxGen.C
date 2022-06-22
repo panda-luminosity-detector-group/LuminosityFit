@@ -35,7 +35,7 @@ void standaloneBoxGen(double plab, int nevents, double fThetaMinInMilliRad,
     // double phi = gRandom->Uniform(-C_PI, C_PI);
 
     double theta = gRandom->Uniform(fThetaMinInMilliRad, fThetaMaxInMilliRad) / 1000.0;
-    double phi = gRandom->Uniform(fPhiMinInRad, fPhiMaxInRad) * TMath::RadToDeg();
+    double phi = gRandom->Uniform(fPhiMinInRad, fPhiMaxInRad);
 
     double Er = 0.0;
     // if recoil energy should be taken into account
