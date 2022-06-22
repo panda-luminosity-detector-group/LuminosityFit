@@ -5,7 +5,7 @@
 #! ====   KEEP ONLY FOR REFERENCE, OR DELETE          ====
 #! =======================================================
 
-return
+exit 1
 
 #include some helper functions
 . ./bashFunctions.sh
