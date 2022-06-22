@@ -23,7 +23,17 @@ export BOOST_ROOT=$SIMPATH
 
 ### Compilation
 
-Simply create a build directory, change into that build directory, and run `cmake {PATH_TO_YOUR_LUMINOSITY_FIT_SOURCE}`
+Simply create a build directory, change into that build directory, and run `cmake {PATH_TO_YOUR_LUMINOSITY_FIT_SOURCE}`.
+
+**IMPORTANT!** This software works with either PandaRoot or KoalaSoft _only_. Either of these packages must be loaded prior to compilation, otherwise project-specific binaries will not be built! Use this example for PandaRoot:
+
+```bash
+. ~/PandaRoot/build/config.sh
+cd ~/LuminositySoft
+mkdir build && cd build
+cmake ../
+make -j16
+```
 
 ## Using
 
