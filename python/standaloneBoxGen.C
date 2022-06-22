@@ -24,9 +24,9 @@ void standaloneBoxGen(double plab, int nevents, double fThetaMinInMilliRad,
   double beta_lab_cms = plab / (mp + Elab);
   double gamma = (Elab + mp) / sqrt(S);
 
-  if (fPhiMax > 2 * TMath::Pi()) {
+  if (fPhiMaxInRad > 2 * TMath::Pi()) {
     cout << "phi max is too large. capping to 2 pi\n";
-    fPhiMax = 2 * TMath::Pi();
+    fPhiMaxInRad = 2 * TMath::Pi();
   }
 
   cout << "generating " << nevents << " ....\n";
@@ -34,8 +34,8 @@ void standaloneBoxGen(double plab, int nevents, double fThetaMinInMilliRad,
     // double theta = tmp->GetRandom(gen_range_low, gen_range_high) / 1000.0;
     // double phi = gRandom->Uniform(-C_PI, C_PI);
 
-    double theta = gRandom->Uniform(fThetaMin, fThetaMax) / 1000.0;
-    double phi = gRandom->Uniform(fPhiMin, fPhiMax) * TMath::RadToDeg();
+    double theta = gRandom->Uniform(fThetaMinInMilliRad, fThetaMaxInMilliRad) / 1000.0;
+    double phi = gRandom->Uniform(fPhiMinInRad, fPhiMaxInRad) * TMath::RadToDeg();
 
     double Er = 0.0;
     // if recoil energy should be taken into account
