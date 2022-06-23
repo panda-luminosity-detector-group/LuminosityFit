@@ -89,7 +89,7 @@ if (
     if sim_params.sim_type == SimulationType.BOX:
         os.chdir(LMDscriptpath)
         os.system(
-            f"""root -l -b -q 'standaloneBoxGen.C({sim_params.lab_momentum}, {sim_params.num_events_per_sample}, {sim_params.theta_min_in_mrad}, {sim_params.theta_max_in_mrad}, {sim_params.phi_min_in_rad}, {sim_params.phi_max_in_rad},"{gen_filepath}", {sim_params.random_seed}, {int(not sim_params.neglect_recoil_momentum)})'"""
+            f"""root -l -b -q 'standaloneBoxGen.C({sim_params.lab_momentum}, {sim_params.num_events_per_sample}, {sim_params.theta_min_in_mrad}, {sim_params.theta_max_in_mrad}, {sim_params.phi_min_in_rad}, {sim_params.phi_max_in_rad},"{gen_filepath}", 0, {int(not sim_params.neglect_recoil_momentum)})'"""
         )
     elif sim_params.sim_type == SimulationType.PBARP_ELASTIC:
         os.system(
