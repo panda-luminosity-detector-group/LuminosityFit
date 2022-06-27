@@ -34,7 +34,7 @@ class ReconstructionParameters:
     track_search_algo: str = attr.ib(
         default="CA", validator=_validate_track_search_algo
     )
-    reco_ip_offset: Tuple[float, float, float] = attr.ib(default=[0, 0, 0])
+    reco_ip_offset: Tuple[float, float, float] = attr.ib(default=(0, 0, 0))
 
 
 def generateRecoDirSuffix(
