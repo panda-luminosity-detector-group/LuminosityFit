@@ -56,7 +56,7 @@ if (
             + f"{sim_params.theta_max_in_mrad}, "
             + f"{sim_params.phi_min_in_rad}, "
             + f"{sim_params.phi_max_in_rad}, "
-            + f'"{gen_filepath}", {sim_params.random_seed}, '
+            + f'"{gen_filepath}", 0, '
             + f"{sim_params.neglect_recoil_momentum})'"
         )
     elif sim_params.sim_type == SimulationType.PBARP_ELASTIC:

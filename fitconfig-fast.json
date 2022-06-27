@@ -1,52 +1,39 @@
 {
-   "fit":
-   {	
+   "fit": {
       "estimator_type": "LOG_LIKELIHOOD",
-      
-      "estimator_options":
-      {
-        "with_integral_scaling": false,
-        
-        "fit_range_x_active": false,
-        "fit_range_x_low": 0.0025,
-        "fit_range_x_high": 0.01,
-        
-        "fit_range_y_active": false,
-        "fit_range_y_low": 0.0025,
-        "fit_range_y_high": 0.01
+      "estimator_options": {
+         "with_integral_scaling": false,
+         "fit_range_x_active": false,
+         "fit_range_x_low": 0.0025,
+         "fit_range_x_high": 0.01,
+         "fit_range_y_active": false,
+         "fit_range_y_low": 0.0025,
+         "fit_range_y_high": 0.01
       },
-      
-      "fit_model_options":
-      {
+      "fit_model_options": {
          "fit_dimension": 2,
          "dpm_elastic_parts": "ALL",
          "theta_t_trafo_option": "APPROX",
-	     
-	     "divergence_smearing_active": false,
-	     "fix_beam_divs": true,
-	     "beam_div_x": 0.0001,
-	     "beam_div_y": 0.0001,
-	     "elastic_data_input_directory": "",
-
-	     "fix_beam_tilts": false,
-	     "beam_tilt_x": 0.0,
-	     "beam_tilt_y": 0.0,
-	     
-	     "fix_ip_offsets": true,
-
-	     "acceptance_correction_active": true,
-	     "acceptance_interpolation": "CONSTANT",
-	     "automatic_acceptance_shifting_active": false,
-	     "clean_lower_acceptance": false,
-
-	     "resolution_smearing_active": true,
-	     
-	     "inelastic_background_model_active": true,
-	     "constant_background_source_model_active": true
+         "divergence_smearing_active": false,
+         "fix_beam_divs": true,
+         "beam_div_x": 0.0001,
+         "beam_div_y": 0.0001,
+         "elastic_data_input_directory": "",
+         "fix_beam_tilts": false,
+         "beam_tilt_x": 0.0,
+         "beam_tilt_y": 0.0,
+         "fix_ip_offsets": true,
+         "acceptance_correction_active": true,
+         "acceptance_interpolation": "CONSTANT",
+         "automatic_acceptance_boundary_finding_active": true,
+         "automatic_acceptance_shifting_active": false,
+         "clean_lower_acceptance": false,
+         "acceptance_bound_low": 0.002,
+         "acceptance_bound_high": 0.01,
+         "resolution_smearing_active": true,
+         "inelastic_background_model_active": true,
+         "constant_background_source_model_active": true
       },
-      
-      "free_parameter_names":
-      [
-      ]
+      "free_parameter_names": []
    }
 }
