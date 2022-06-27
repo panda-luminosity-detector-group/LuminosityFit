@@ -10,6 +10,8 @@ from argparse import (
 from enum import Enum
 from typing import Any
 
+import cattrs
+
 
 def toCbool(input: bool) -> str:
     """
@@ -109,10 +111,13 @@ def write_params_to_file(params: dict, pathname: str, filename: str) -> None:
         print(f"Config file {filename} already exists!")
 
 
-def load_params_from_file(file_path: str) -> dict:
+def load_params_from_file(file_path: str, asType: type) -> dict:
+    if asType is None:
+        raise NotImplementedError("Please specify the type to deserialize as.")
+
     if os.path.exists(file_path):
         with open(file_path, "r") as json_file:
-            return json.load(json_file)
+            return cattrs.structure(json.load(json_file), asType)
 
     print(f"file {file_path} does not exist!")
     return {}
