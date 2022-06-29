@@ -724,7 +724,7 @@ experiment_type = ExperimentType.LUMI
 if experiment_type == ExperimentType.LUMI:
     track_file_pattern = "Lumi_TrksQA_"
 elif experiment_type == ExperimentType.KOALA:
-    track_file_pattern = "Koala_Track_"
+    track_file_pattern = "Koala_IP_"
 
 lmd_fit_script_path = os.path.dirname(os.path.realpath(__file__))
 lmd_fit_path = os.path.dirname(lmd_fit_script_path)
