@@ -45,8 +45,8 @@ class Scenario:
             self.phi_max_in_rad = 1.3 * math.pi
             self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaSimReco.py"
             self.Reco = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaReco.py"
-            self.track_file_pattern = "Koala_Track_"
-            self.filename_prefix = "Koala_comp_"
+            self.track_file_pattern = "Koala_IP_"
+            self.filename_prefix = "Koala_IP_"
         else:
             raise ValueError("Experiment Type not defined!")
 

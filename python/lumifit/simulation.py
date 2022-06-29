@@ -136,7 +136,7 @@ def create_simulation_and_reconstruction_job(
     align_params: AlignmentParameters,
     reco_params: ReconstructionParameters,
     output_dir="",
-    application_command="./runLmdSimReco.sh",
+    application_command="./runKoaSimReco.sh",
     force_level=0,
     debug=False,
     use_devel_queue=False,
@@ -168,7 +168,7 @@ def create_simulation_and_reconstruction_job(
     dirname_full = dirname + "/" + dirname_filter_suffix
     pathname_full = lmdfit_data_dir + "/" + dirname_full
     # TODO: this path depends on KOALA/LUMI, so change it accroding to scenario type!
-    macropath_full = os.environ["VMCWORKDIR"] + "/macro/detectors/lmd"
+    macropath_full = os.environ["VMCWORKDIR"] + "/macro/koala"
 
     print("using output folder structure: " + pathname_full)
 
@@ -217,7 +217,7 @@ def create_simulation_and_reconstruction_job(
     job = Job(
         resource_request,
         application_url=application_command,
-        name="lmd_simreco_" + sim_params.sim_type.value,
+        name="koa_simreco_" + sim_params.sim_type.value,
         logfile_url=pathname_full + "/simreco-%a.log",
         array_indices=list(
             range(low_index_used, low_index_used + num_samples)

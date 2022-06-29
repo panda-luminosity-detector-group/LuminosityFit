@@ -27,7 +27,7 @@ def run_simulation_and_reconstruction(sim_params, align_params, reco_params):
         use_devel_queue=args.use_devel_queue,
         # application_command="./runKoaSimReco.sh"
         # TODO: don't hardcode the script name, read from scenario config
-        application_command="${HOME}/LuminosityFit/python/singularityJob.sh 'python ${HOME}/LuminosityFit/python/runLmdSimReco.py'",
+        application_command="${HOME}/LuminosityFit/python/singularityJob.sh 'python ${HOME}/LuminosityFit/python/runKoaSimReco.py'",
     )
     # TODO: read from scenario config!
     full_hostname = socket.getfqdn()

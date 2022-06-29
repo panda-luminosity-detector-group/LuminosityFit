@@ -134,13 +134,13 @@ def create_reconstruction_job(
         resource_request = make_test_job_resource_request()
 
     application_command = (
-        f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdReco.py"
+        f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaReco.py"
     )
 
     job = Job(
         resource_request,
         application_url=application_command,
-        name="lmd_reco_",
+        name="koa_reco_",
         logfile_url=pathname_full + "/reco-%a.log",
         array_indices=list(
             range(low_index_used, low_index_used + num_samples)
