@@ -80,6 +80,7 @@ if (KOALASOFT_FOUND)
         include_directories(${INCLUDE_DIRECTORIES})
 	
 	set(SRCS
+		KoaCombinedDataReader.cxx
 		KoaSeperateDataReader.cxx
 	)
 	add_library(LmdFitKoaDataIO SHARED ${SRCS})
