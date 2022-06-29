@@ -5,6 +5,7 @@ import os
 from lumifit.alignment import AlignmentParameters
 from lumifit.general import check_stage_success, load_params_from_file
 from lumifit.simulation import SimulationParameters, SimulationType
+from lumifit.general import toCbool
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 scriptpath = os.environ["LMDFIT_SCRIPTPATH"]
@@ -44,21 +45,21 @@ verbositylvl = 0
 start_evt: int = sim_params.num_events_per_sample * filename_index
 
 if (
-    not check_stage_success(path_mc_data + f"/Koala_MC_{start_evt}.root")
+    not check_stage_success(f"{path_mc_data} + /Koala_MC_{start_evt}.root")
     or force_level == 2
 ):
     os.chdir(scriptpath)
     if sim_params.sim_type == SimulationType.BOX:
         os.system(
-            f"root -l -b -q 'standaloneBoxGen.C({sim_params.lab_momentum}, "
-            + f"{sim_params.num_events_per_sample}, "
-            + f"{sim_params.theta_min_in_mrad}, "
-            + f"{sim_params.theta_max_in_mrad}, "
-            + f"{sim_params.phi_min_in_rad}, "
-            + f"{sim_params.phi_max_in_rad}, "
-            + f'"{gen_filepath}", 0, '
-            + f"{sim_params.neglect_recoil_momentum})'"
+            f"{lmd_build_path}/bin/generatePbarPElasticScattering"
+            + f" {sim_params.lab_momentum} {sim_params.num_events_per_sample}"
+            + f" -l {sim_params.theta_min_in_mrad}"
+            + f" -u {sim_params.theta_max_in_mrad}"
+            + f" -n {sim_params.phi_min_in_rad}"
+            + f" -g {sim_params.phi_max_in_rad} -s {sim_params.random_seed}"
+            + f" -o {gen_filepath}"
         )
+
     elif sim_params.sim_type == SimulationType.PBARP_ELASTIC:
         os.system(
             f"{lmd_build_path}/bin/generatePbarPElasticScattering"
@@ -83,13 +84,6 @@ if (
         # + f"{1 if ali_params.use_point_transform_misalignment else 0}, "
         + f"{verbositylvl})'"
     )
-    if not debug:
-        os.system(
-            f"cp {workpathname}/Koala_MC_{start_evt}.root {path_mc_data}/Koala_MC_{start_evt}.root"
-        )
-        os.system(
-            f"cp {workpathname}/Koala_Params_{start_evt}.root {path_mc_data}/Koala_Params_{start_evt}.root"
-        )
 else:
     if not debug:
         os.system(
@@ -111,6 +105,25 @@ if (
         # + f"{1 if ali_params.use_point_transform_misalignment else 0}, "
         + f"{verbositylvl})'"
     )
+if not debug:
+    os.system(
+        f"cp {workpathname}/Koala_MC_{start_evt}.root {path_mc_data}/Koala_MC_{start_evt}.root"
+    )
+    os.system(
+        f"cp {workpathname}/Koala_digi_{start_evt}.root {path_mc_data}/Koala_digi_{start_evt}.root"
+    )
+
+    os.system(
+        f"cp {workpathname}/Koala_Params_{start_evt}.root {path_mc_data}/Koala_Params_{start_evt}.root"
+    )
+else:
+    if not debug:
+        os.system(
+            f"cp {path_mc_data}/Koala_digi_{start_evt}.root {workpathname}/Koala_digi_{start_evt}.root"
+        )
+        os.system(
+            f"cp {path_mc_data}/Koala_Params_{start_evt}.root {workpathname}/Koala_Params_{start_evt}.root"
+        )
 
 os.chdir(scriptpath)
 os.system("./runKoaReco.py")
