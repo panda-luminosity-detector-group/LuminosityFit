@@ -95,8 +95,8 @@ if (
         f"cp {workpathname}/Koala_Track_{start_evt}.root {pathname}/Koala_Track_{start_evt}.root"
     )
 else:
-    if not debug:
-         os.system(
+    if not debug:      
+        os.system(
             f"cp {pathname}/Koala_Track_{start_evt}.root {workpathname}/Koala_Track_{start_evt}.root"
         )
 
