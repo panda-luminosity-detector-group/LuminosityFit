@@ -9,7 +9,7 @@
  * ./createLumiFitData -h
  */
 
-#include "data/KoaSeperateDataReader.h"
+#include "data/KoaCombinedDataReader.h"
 #include "ui/PndLmdDataFacade.h"
 #include "ui/PndLmdRuntimeConfiguration.h"
 #include <iostream>
@@ -50,7 +50,7 @@ void createKoaFitData(const std::string &input_dir_path,
 
   PndLmdDataFacade data_facade;
 
-  KoaSeperateDataReader data_reader;
+  KoaCombinedDataReader data_reader;
   if (!boost::filesystem::exists(lmd_runtime_config.getRawDataFilelistPath()))
     data_reader.addFilePath(lmd_runtime_config.getRawDataDirectory().string());
   else {
