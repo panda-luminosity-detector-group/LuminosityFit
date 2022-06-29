@@ -38,8 +38,8 @@ def getListOfDirectories(path):
 
 
 # TODO: Oh ffs, read that from scenario config, NOT hardcode!
-filename_prefix = "Lumi_TrksQA_"
-# filename_prefix = "Koala_comp_"
+#filename_prefix = "Lumi_TrksQA_"
+filename_prefix = "Koala_IP_"
 
 
 def createFileListFile(output_url, list_of_files):
