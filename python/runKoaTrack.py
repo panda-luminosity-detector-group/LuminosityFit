@@ -20,8 +20,8 @@ macropath = os.environ["LMDFIT_MACROPATH"]
 force_level = int(os.environ["force_level"])
 
 reco_param = ReconstructionParameters(
-        **load_params_from_file(pathname + "/reco_params.config")
-        )
+    **load_params_from_file(pathname + "/reco_params.config")
+    )
 ali_params = AlignmentParameters()
 
 verbositylvl: int = 0
@@ -95,8 +95,8 @@ if (
         f"cp {workpathname}/Koala_Track_{start_evt}.root {pathname}/Koala_Track_{start_evt}.root"
     )
 else:
-    if not debug:
-         os.system(
+    if not debug:      
+        os.system(
             f"cp {pathname}/Koala_Track_{start_evt}.root {workpathname}/Koala_Track_{start_evt}.root"
         )
 
