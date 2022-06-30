@@ -97,10 +97,10 @@ if (
 
     elif sim_params.sim_type == SimulationType.PBARP_ELASTIC:
 
+        cmd = f"{lmd_build_path}/bin/generatePbarPElasticScattering {sim_params.lab_momentum} {sim_params.num_events_per_sample} -l {sim_params.theta_min_in_mrad} -u {sim_params.theta_max_in_mrad} -s {sim_params.random_seed + start_evt} -o {gen_filepath}"
+
         print(f"\ncalling elastic P Pbar generator with:\n")
         print(cmd)
-
-        cmd = f"{lmd_build_path}/bin/generatePbarPElasticScattering {sim_params.lab_momentum} {sim_params.num_events_per_sample} -l {sim_params.theta_min_in_mrad} -u {sim_params.theta_max_in_mrad} -s {sim_params.random_seed + start_evt} -o {gen_filepath}"
 
         os.system(cmd)
 
