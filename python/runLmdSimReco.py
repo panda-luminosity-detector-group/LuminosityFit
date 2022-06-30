@@ -89,11 +89,11 @@ if (
     if sim_params.sim_type == SimulationType.BOX:
         os.chdir(LMDscriptpath)
         os.system(
-            f"""root -l -b -q 'standaloneBoxGen.C({sim_params.lab_momentum}, {sim_params.num_events_per_sample}, {sim_params.theta_min_in_mrad}, {sim_params.theta_max_in_mrad}, {sim_params.phi_min_in_rad}, {sim_params.phi_max_in_rad},"{gen_filepath}", 0, {int(not sim_params.neglect_recoil_momentum)})'"""
+            f"""root -l -b -q 'standaloneBoxGen.C({sim_params.lab_momentum}, {sim_params.num_events_per_sample}, {sim_params.theta_min_in_mrad}, {sim_params.theta_max_in_mrad}, {sim_params.phi_min_in_rad}, {sim_params.phi_max_in_rad},"{gen_filepath}", {sim_params.random_seed + start_evt}, {int(not sim_params.neglect_recoil_momentum)})'"""
         )
     elif sim_params.sim_type == SimulationType.PBARP_ELASTIC:
         os.system(
-            f"{lmd_build_path}/bin/generatePbarPElasticScattering {sim_params.lab_momentum} {sim_params.num_events_per_sample} -l {sim_params.theta_min_in_mrad} -u {sim_params.theta_max_in_mrad} -s {sim_params.random_seed} -o {gen_filepath}"
+            f"{lmd_build_path}/bin/generatePbarPElasticScattering {sim_params.lab_momentum} {sim_params.num_events_per_sample} -l {sim_params.theta_min_in_mrad} -u {sim_params.theta_max_in_mrad} -s {sim_params.random_seed + start_evt} -o {gen_filepath}"
         )
 
     # * run simBox or simDPM
@@ -102,7 +102,7 @@ if (
     if sim_params.sim_type == SimulationType.NOISE:
 
         os.system(
-            f"""root -l -b -q 'runLumiPixel0SimBox.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}",{verbositylvl},-2212,{sim_params.lab_momentum},{numTrks},{sim_params.random_seed})' > /dev/null 2>&1"""
+            f"""root -l -b -q 'runLumiPixel0SimBox.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}",{verbositylvl},-2212,{sim_params.lab_momentum},{numTrks},{sim_params.random_seed + start_evt})' > /dev/null 2>&1"""
         )
     else:
         os.system(
@@ -128,7 +128,7 @@ if (
     os.chdir(PNDmacropath)
     if sim_params.sim_type == SimulationType.NOISE:
         os.system(
-            f"""root -l -b -q 'runLumiPixel1bDigiNoise.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {sim_params.random_seed})'"""
+            f"""root -l -b -q 'runLumiPixel1bDigiNoise.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {sim_params.random_seed + start_evt})'"""
         )
     else:
         os.system(
