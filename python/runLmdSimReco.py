@@ -88,13 +88,21 @@ if (
     # * prepare box or dpm tracks
     if sim_params.sim_type == SimulationType.BOX:
         os.chdir(LMDscriptpath)
-        os.system(
-            f"""root -l -b -q 'standaloneBoxGen.C({sim_params.lab_momentum}, {sim_params.num_events_per_sample}, {sim_params.theta_min_in_mrad}, {sim_params.theta_max_in_mrad}, {sim_params.phi_min_in_rad}, {sim_params.phi_max_in_rad},"{gen_filepath}", {sim_params.random_seed + start_evt}, {int(not sim_params.neglect_recoil_momentum)})'"""
-        )
+
+        cmd = f"""root -l -b -q 'standaloneBoxGen.C({sim_params.lab_momentum}, {sim_params.num_events_per_sample}, {sim_params.theta_min_in_mrad}, {sim_params.theta_max_in_mrad}, {sim_params.phi_min_in_rad}, {sim_params.phi_max_in_rad},"{gen_filepath}", {sim_params.random_seed + start_evt}, {int(not sim_params.neglect_recoil_momentum)})'"""
+
+        print(f"\ncalling stand alone box gen with:\n")
+        print(cmd)
+        os.system(cmd)
+
     elif sim_params.sim_type == SimulationType.PBARP_ELASTIC:
-        os.system(
-            f"{lmd_build_path}/bin/generatePbarPElasticScattering {sim_params.lab_momentum} {sim_params.num_events_per_sample} -l {sim_params.theta_min_in_mrad} -u {sim_params.theta_max_in_mrad} -s {sim_params.random_seed + start_evt} -o {gen_filepath}"
-        )
+
+        print(f"\ncalling elastic P Pbar generator with:\n")
+        print(cmd)
+
+        cmd = f"{lmd_build_path}/bin/generatePbarPElasticScattering {sim_params.lab_momentum} {sim_params.num_events_per_sample} -l {sim_params.theta_min_in_mrad} -u {sim_params.theta_max_in_mrad} -s {sim_params.random_seed + start_evt} -o {gen_filepath}"
+
+        os.system(cmd)
 
     # * run simBox or simDPM
     print("starting up a pandaroot simulation...")

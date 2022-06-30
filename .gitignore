@@ -5,6 +5,7 @@
 *.pyc
 *.root
 *venv/
+test*/
 .vscode/
 .settings/
 .env
