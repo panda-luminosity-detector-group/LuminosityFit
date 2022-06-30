@@ -192,7 +192,7 @@ def create_simulation_and_reconstruction_job(
             + f" -u {sim_params.theta_max_in_mrad}"
             + f" -o {pathname_base}/elastic_cross_section.txt"
         )
-
+        print(f"\n\nGREPLINE:PBARPGEN:\n{bashcommand}\n")
         subprocess.call(bashcommand.split())
 
     write_params_to_file(
