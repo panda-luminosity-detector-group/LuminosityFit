@@ -1,6 +1,7 @@
 #include "data/PndLmdAngularData.h"
 #include "ui/PndLmdDataFacade.h"
 #include "ui/PndLmdFitFacade.h"
+#include "ui/PndLmdPlotter.h"
 #include "ui/PndLmdRuntimeConfiguration.h"
 
 #include <iostream>
@@ -164,6 +165,60 @@ void runLmdFit(string input_file_dir, string fit_config_path,
                        .count() /
                    60000.0
             << " min\n";
+
+  // write data to json here
+
+  //  This is surprisingly convoluted.
+
+  // we want the fit Result
+  // the stuff we're looking for is in a PndLmdElasticDataBundle
+  // we have a PndLmdFitDataBundle, but that contains multiple
+  // PndLmdElasticDataBundle
+  // and these contain the actual fit_result s again
+
+  auto elasticDataBundles = fit_result.getElasticDataBundles();
+
+  // this code is copied from extractLuminosityvalues.cxx
+
+  LumiFit::PndLmdPlotter lmd_plotter;
+
+  for (auto const &data_sample : elasticDataBundles) {
+    if (data_sample.getFitResults().size() > 0 &&
+        data_sample.getSelectorSet().size() == 0) {
+      PndLmdLumiFitResult final_fit_result;
+      for (auto const &fit_res_pair : data_sample.getFitResults()) {
+        bool div_smeared =
+            fit_res_pair.first.getModelOptionsPropertyTree().get<bool>(
+                "divergence_smearing_active");
+        for (auto const &fit_res : fit_res_pair.second) {
+          // usually there is just a single fit result
+          if (div_smeared) {
+            if (fit_res.getFitStatus() == 0) {
+              final_fit_result.setModelFitResult(fit_res);
+              break;
+            }
+          } else {
+            final_fit_result.setModelFitResult(fit_res);
+          }
+
+          std::pair<double, double> lumi =
+              lmd_plotter.calulateRelDiff(final_fit_result.getLuminosity(),
+                                          final_fit_result.getLuminosityError(),
+                                          data_sample.getReferenceLuminosity());
+
+          std::cout << "Luminosity Fit Result:\n";
+          std::cout << "measured luminosity:"
+                    << final_fit_result.getLuminosity() << "\n";
+          std::cout << "measured luminosity error:"
+                    << final_fit_result.getLuminosityError() << "\n";
+          std::cout << "generated luminosity:"
+                    << data_sample.getReferenceLuminosity() << "\n";
+          std::cout << "relative deviation (%):" << lumi.first << "\n";
+          std::cout << "relative deviation error (%):" << lumi.second << "\n";
+        }
+      }
+    }
+  }
 }
 
 void displayInfo() {
