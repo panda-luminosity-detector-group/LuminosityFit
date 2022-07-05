@@ -1,0 +1,2 @@
+
+export LD_LIBRARY_PATH=/mnt/work/LuminosityFit/build/lib:$LD_LIBRARY_PATH

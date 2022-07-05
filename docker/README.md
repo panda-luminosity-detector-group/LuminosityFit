@@ -4,10 +4,12 @@
 
 Depends on the PandaRoot docker image (in which KoalaSoft can be compiled and run as well).
 
-Build with:
+Go to the root directory of this repository.
+
+Build the Docker image with:
 
 ```
-docker build -t localhost:5000/lumifit .
+docker build -t localhost:5000/lumifit -f docker/Dockerfile .
 ```
 
 ### Setup local Docker Registry

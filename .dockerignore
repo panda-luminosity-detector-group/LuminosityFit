@@ -1,0 +1,3 @@
+*
+!docker/rc.append
+!requirements.txt
