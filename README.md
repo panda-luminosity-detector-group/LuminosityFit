@@ -4,7 +4,25 @@ Note: For future development I would recommend to port the necessary code python
 
 # Table of Contents
 
-{:toc}
+- [LuminosityFit](#luminosityfit)
+- [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+    - [Prerequisites](#prerequisites)
+    - [Compilation](#compilation)
+  - [Using](#using)
+  - [Using in Container with the Slurm Agent](#using-in-container-with-the-slurm-agent)
+- [Mode of Operation](#mode-of-operation)
+- [Code Layout](#code-layout)
+  - [Singularity Wrapper](#singularity-wrapper)
+  - [runSimulationReconstruction.py](#runsimulationreconstructionpy)
+  - [determineLuminosity.py](#determineluminositypy)
+    - [Details](#details)
+    - [Function Call Diagram](#function-call-diagram)
+  - [doMultipleLuminosityFits.py](#domultipleluminosityfitspy)
+- [Apps in `/bin/`](#apps-in-bin)
+  - [createLmdFitData](#createlmdfitdata)
+  - [createKoaFitData](#createkoafitdata)
+  - [ExtractLuminosityValues](#extractluminosityvalues)
 
 ## Installation
 
