@@ -9,6 +9,8 @@
 
 #define BOOST_CHRONO_HEADER_ONLY
 #include <boost/chrono/thread_clock.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 #include "TFile.h"
 
@@ -215,6 +217,19 @@ void runLmdFit(string input_file_dir, string fit_config_path,
                     << data_sample.getReferenceLuminosity() << "\n";
           std::cout << "relative deviation (%):" << lumi.first << "\n";
           std::cout << "relative deviation error (%):" << lumi.second << "\n";
+
+          // add this to json
+          boost::property_tree::ptree lumiJson;
+          lumiJson.put("measured_lumi", final_fit_result.getLuminosity());
+          lumiJson.put("measured_lumi_error",
+                       final_fit_result.getLuminosityError());
+          lumiJson.put("generated_lumi", data_sample.getReferenceLuminosity());
+          lumiJson.put("relative_deviation_in_percent", lumi.first);
+          lumiJson.put("relative_deviation_error_in_percent", lumi.second);
+          std::stringstream filename;
+          filename << input_file_dir;
+          filename << "/lumi-values.json";
+          boost::property_tree::write_json(filename.str(), lumiJson);
         }
       }
     }
