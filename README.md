@@ -12,6 +12,7 @@ Make sure your Pandaroot enviroment is set up correctly, more precisely that the
 - VMCWORKDIR
 - FAIRROOTPATH
 - ROOTSYS
+- LMD_DATA_DIR
 
 Boost and the gsl library are two requirements, which are automatically included with fairsoft, so you already have them installed for sure. It is recommended to use the same boost, which was used to build the pandaroot enviroment. Use the _BOOST_ROOT_ environment variable to hint cmake to correct boost location.
 
@@ -20,6 +21,14 @@ export BOOST_ROOT=$SIMPATH
 ```
 
 (No need to put that export in your bashrc, just run it in your shell before cmake call)
+
+### Generate Container
+
+You have to generate the Luminosity Fit singularity container before the software can be compiled and run.
+
+Please see [the docker/singularity documentation](docker/README.md).
+
+Run the following steps inside the container.
 
 ### Compilation
 
@@ -34,6 +43,16 @@ mkdir build && cd build
 cmake ../
 make -j16
 ```
+
+### First Run
+
+Simulation jobs are executed inside a Singularity container. To keep the (runtime) environment clean, all environment variables are unset in the container and have to be explicitly set. This is done via a `lmdEndFile.env`, which depends on the cluster, LmdFit installation details and used Software (PandaRoot or KoalaSoft). It must be generated only once _inside_ the Lmdfit singularity container with:
+
+```bash
+python3 genEnvVarFile.py
+```
+
+It's best if all env variables are already set
 
 ## Using
 

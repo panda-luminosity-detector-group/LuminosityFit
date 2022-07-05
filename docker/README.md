@@ -29,3 +29,12 @@ docker push localhost:5000/lumifit
 ```bash
 SINGULARITY_NOHTTPS=true singularity build lumifit.sif singularityRecipe.txt
 ```
+
+## Run the Software inside the Singularity Container
+
+You can now enter the container with:
+
+```
+module load tools/Singularity
+singularity run lmdfit-mini.sif
+```
