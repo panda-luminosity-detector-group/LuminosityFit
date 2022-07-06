@@ -718,7 +718,7 @@ args = parser.parse_args()
 client = Client()
 client.checkConnection()
 
-experiment_type = ExperimentType.LUMI
+experiment_type = ExperimentType.KOALA
 
 # TODO: read from scenario config file
 if experiment_type == ExperimentType.LUMI:
