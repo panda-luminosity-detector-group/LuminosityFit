@@ -747,7 +747,7 @@ print(f"\n\nINFO: found these dirs:\n{dirs}\n\n")
 
 # at first assign each scenario the first step and push on the active stack
 for dir in dirs:
-    scen = Scenario(dir, experiment_type=ExperimentType.LUMI)
+    scen = Scenario(dir, experiment_type=ExperimentType.KOALA)
     print("creating scenario:", dir)
     if args.disable_xy_cut or (
         "/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir
