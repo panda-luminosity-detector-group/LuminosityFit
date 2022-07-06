@@ -158,10 +158,10 @@ KoaCombinedDataReader::getEntry(unsigned int i) {
 		     
 		     track_info.MCLMD.Position = {LmdX, LmdY, LmdZ};
 		     track_info.MCLMD.Momentum = {LmdpX, LmdpY, LmdpZ};
-																                 }
-													         }
-         }
-  }
+	     }
+     }
+         
+    }
 
     track_pairs.push_back(track_info);
   }
