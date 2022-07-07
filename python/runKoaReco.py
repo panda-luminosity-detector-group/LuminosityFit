@@ -85,6 +85,7 @@ if not check_stage_success(f"{workpathname}/Koala_digi_{start_evt}.root"):
 
 os.chdir(macropath)
 
+
 # check_stage_success "workpathname + "/Koala_MC_${start_evt}.root""
 if (
     not check_stage_success(pathname + f"/Koala_Track_{start_evt}.root")
