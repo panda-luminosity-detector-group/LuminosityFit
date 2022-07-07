@@ -215,7 +215,7 @@ class Server(Agent):
         welcome = """
         Agent starting and forking to background. Write:
 
-        {"orderType": "meta", "cmd": "exit"}
+        {"orderType": -1}
 
         to orderPipe to exit agent.
         """
