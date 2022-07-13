@@ -63,6 +63,7 @@ public:
   const std::vector<PndLmdElasticDataBundle> &getElasticDataBundles() const;
   const std::vector<PndLmdAcceptance> &getUsedAcceptancesPool() const;
   const std::vector<PndLmdMapData> &getUsedResolutionsPool() const;
+  const PndLmdElasticDataBundle &getCurrentElasticBundle() const;
 
   void addFittedElasticData(const PndLmdAngularData &elastic_data);
   void attachAcceptanceToCurrentData(const PndLmdAcceptance &acceptance);
