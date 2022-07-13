@@ -2,6 +2,11 @@
 
 In case the luminosity fit doesn't work or the results are unexpected, refer to this guide.
 
+## TL;DR
+
+- `lumi-values.json` contains fit values
+- look at `lmd_fitted_data`, examples below
+
 # Fit Won't Start / Software Issues
 
 TBD. Most software issues must be solved with tedious debugging I'm afraid.
@@ -55,7 +60,93 @@ There should be several files.
 > dpm_angular_2d:tilt_y     = -7.26898e-06         +/-  1.10232e-06
 > ```
 
+## `lumi-values.json`
+
+If the fit converged (event to the wrong value), a resultant json file is created. This is the fit result in easily readable format. All values have a very descriptive name:
+
+```
+{
+    "measured_lumi": "3222826.6926976354",
+    "measured_lumi_error": "2311.5297427984856",
+    "generated_lumi": "3110795.5585158942",
+    "relative_deviation_in_percent": "3.6013660195396846",
+    "relative_deviation_error_in_percent": "0.074306707056675747"
+}
+```
+
+Don't ask why the actual values are strings and not floats, which json would also support. Nobody knows, and at this piont everybody is too afraid to ask (and a lot of code would have to be re-written).
+
+## `lmd_fitted_data.root`
+
+> :warning: Look at the 2D histogram!
+
+This contains a serialized instance of the `PndLmdFitDataBundle` after the fit. That means the C++ object was written to the ROOT file and be read out again (must be cast to `PndLmdFitDataBundle` by hand though). Inside, there is an elastic data bundle that inherits from some other classes and contains a 2D Histogram. That is important.
+
+In a TBrowser, it should look like this:
+
+![goodFit](lmd_fit_good.png)
+
+You should clearly see the detector acceptance:
+- clearly defined inner hole
+- clearly defined outer shape due to sensor shapes
+- little gaps inside from missing sensor acceptance (lumi is built this way, that's normal)
+- x/y axes are some theta angle parametrization, details are not important. only the intensity distribution is important.
+
+Again, in large:
+
+![lmd fit](good-15.0.png)
+
+If the lumi fit data looks different from this, it is likely wrong.
+
+### Examples of wrong Fit Results
+
+Here are some examples of wrong fits:
+
+> :error: These are wrong! The lumi fit should not look like this.
+
+Everything is wrong here, no clear detector acceptance and some yellow peaks in the acceptance that shouldn't be there:
+
+![@1.5GeV](bad-1.5.png)
+
+This looks slightly better, but the acceptance is not clear enough and the peak still visible.
+
+![@4.06GeV](bad-4.1.png)
+
+If your results look like that, look inside the `lmd_data_1of1.root`.
+
+
 ## `lmd_data_1of1.root`
 
 The `lmd_data_1of1.root` contains the merged resolution and acceptance calculations. That's why it's in the `merge_data` folder. It contains the data that is used by the fit and two histograms, which indicate if the resolution and acceptance calculations were successful.
 
+It looks like this in a `TBrowser`:
+
+![lmd data](lmd_data_good.png)
+
+The 2D histogram of the `reco` class should look almost like the successful lmd fit histogram (including resolution smearing which results in these Moiree-like patterns):
+
+![mc reco](reco-15.0-good.png)
+
+If it doesn't, check the `mc_th` and `mc_acc` histograms.
+
+The `mc_th` histogram is the reconstructed theta angle distribution, so it should be our basic DPM model data. Much data at the very center and a decreasing amount of data further away from the beam axis. It should be uniform in phi (around the beam axis):
+
+![mc distribution](mc_th-15.0-good.png)
+
+> :warning: Attention! Since the acceptance data depends on the angular distribution of theta, this must `mc_th` data be correct. Otherwise, the acceptance will be wrong and the fit will also be wrong.
+
+The `mc_acc` is the reconstructed detector acceptance. Apart from some strays it should be the ideal projection of the detector geometry, *without* resolution effects (these Moiree-like patterns visible in the lmd fit histograms). Since it's a reduction of the `mc_th` data *by* the acceptance, any patterns visible in the `mc_th` data must *also* be visible in the `mc_acc` data (but uniformity pretty much always looks the same):
+
+![mc acceptance](mc_acc-15.0-good.png)
+
+### Examples for wrong Angular Distributions
+
+Here the RNG wasn't setup properly, resulting a each of the 100 datasets containing identical data:
+
+![theta wrong](mc_th-wrong.png)
+
+As a result, the accecptance is also wrong:
+
+![acceptance wrong](mc_acc-wrong.png)
+
+Here, the maximum phi angle was set incorrectly, so that onlt tracks were only genereated in a small phi segment:
