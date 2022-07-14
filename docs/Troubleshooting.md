@@ -5,6 +5,7 @@ In case the luminosity fit doesn't work or the results are unexpected, refer to 
 ## TL;DR
 
 - `lumi-values.json` contains fit values
+- look in the `runLmdFit.log` to see if it's realistic
 - look at `lmd_fitted_data`, examples below
 
 # Fit Won't Start / Software Issues
@@ -38,7 +39,7 @@ The fitted result is typically accurate to about 1%. If the fit results deviate 
 
 ## Resultant Files
 
-Remember the two subdirectories for dpm data and res/acc test data. Refer to [DataLocations.md] if needed.
+Remember the two subdirectories for dpm data and res/acc test data. Refer to the [Datalocations documentation](DataLocations.md) if needed.
 
 If the fit software seemed to work and the `bunches_10/binning_300/merge_data` paths in the DPM subdirectory have been created, look inside the `merge_data` folder.
 
@@ -60,21 +61,55 @@ There should be several files.
 > dpm_angular_2d:tilt_y     = -7.26898e-06         +/-  1.10232e-06
 > ```
 
+> :attention: Just before that, there are the Minuit2 minimization paramters of the last fit iteration. Look at these!
+
+The Minuit2 fit results look like this:
+
+```
+Minuit2Minimizer : Valid minimum - status = 0
+FVAL  = -18.9016298462902341
+Edm   = 7.31274390665479216e-06
+Nfcn  = 58
+```
+
+The first line indicates of Minuit thinks it landed in a valid minimum. If it didn't the fit didn't converge and we can skip directly to looking at the [data files](#lmddata1of1root).
+
+If the `status` is `= 0`, then at least the fir converges. Next is the value of the cost function `FVAL` during the last iteration. It's negative and should be as close to 0 as possible. For a good fit, this value can be anywhere betweeen -1000 to -10. Smaller (larger negative) values usually indicate a problem. For example, this output is from a lumi fit with over 3% error:
+
+```
+Minuit2Minimizer : Valid minimum - status = 0
+FVAL  = -28446.9999882550765
+Edm   = 2.957320159233945e-06
+Nfcn  = 65
+```
+
+The value for `FVAL` is much too small at over -28 thousand, and the fit is therefore not reliable even though it converged.
+
 ## `lumi-values.json`
 
 If the fit converged (event to the wrong value), a resultant json file is created. This is the fit result in easily readable format. All values have a very descriptive name:
 
 ```
 {
-    "measured_lumi": "3222826.6926976354",
-    "measured_lumi_error": "2311.5297427984856",
-    "generated_lumi": "3110795.5585158942",
-    "relative_deviation_in_percent": "3.6013660195396846",
-    "relative_deviation_error_in_percent": "0.074306707056675747"
+    "measured_lumi": [
+        "2958081.134770026"
+    ],
+    "measured_lumi_error": [
+        "2016.2376004325522"
+    ],
+    "generated_lumi": [
+        "2956970.1700849244"
+    ],
+    "relative_deviation_in_percent": [
+        "0.0375710481066375"
+    ],
+    "relative_deviation_error_in_percent": [
+        "0.06818592966646822"
+    ]
 }
 ```
 
-Don't ask why the actual values are strings and not floats, which json would also support. Nobody knows, and at this piont everybody is too afraid to ask (and a lot of code would have to be re-written).
+Don't ask why the actual values are strings and not floats, which json would also support. Nobody knows, and at this point everybody is too afraid to ask (and a lot of code would have to be re-written). Also, in older versions the values are in a list (these suqare brackets `[]`), but that's not necessary anymore.
 
 ## `lmd_fitted_data.root`
 

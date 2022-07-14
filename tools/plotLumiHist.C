@@ -13,5 +13,5 @@ void plotLumiHist(std::string inFileName, std::string outname) {
   } else {
     cout << "nej on the hist\n";
   }
-  c->Print(outname.c_str());
+  c->Print(outname.c_str() + TString(".png"));
 }

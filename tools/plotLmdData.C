@@ -1,6 +1,5 @@
 void plotLmdData(std::string inFileName, std::string outname) {
-  
-  
+
   TFile *f = new TFile(inFileName.c_str());
 
   auto histNames = {"mc_th", "mc_acc", "reco"};
@@ -19,7 +18,8 @@ void plotLmdData(std::string inFileName, std::string outname) {
       } else {
         cout << "nej on the hist\n";
       }
-      c->Print(TString(histName) + TString("-") + TString(outname));
+      c->Print(TString(outname) + TString("-") + TString(histName) +
+               TString(".png"));
     }
 
     else {
