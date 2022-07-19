@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from hashlib import new
 from attrs import asdict
 from lumifit.general import write_params_to_file, load_params_from_file
 from lumifit.reconstruction import ReconstructionParameters
