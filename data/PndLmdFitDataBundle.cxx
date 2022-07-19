@@ -158,3 +158,7 @@ void PndLmdFitDataBundle::printInfo() const {
               << elastic_data.getUsedResolutionIndices().size() << std::endl;
   }
 }
+
+const PndLmdElasticDataBundle & PndLmdFitDataBundle::getCurrentElasticBundle() const{
+  return current_elastic_data_bundle;
+}
