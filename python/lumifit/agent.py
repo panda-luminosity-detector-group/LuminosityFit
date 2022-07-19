@@ -81,11 +81,16 @@ class Agent:
         )
         sys.exit(0)
 
-    def sendOrder(self, thisOrder: SlurmOrder) -> None:
+    def sendOrder(self, thisOrder: SlurmOrder) -> bool:
         proc = mp.Process(target=self.sendOrderSP, args=(thisOrder,))
         proc.start()
-        # writing shouldn't take long, but command execution may take a second
-        proc.join(10)
+        # writing alone shouldn't take long
+        proc.join(3)
+
+        if proc.is_alive():
+            proc.terminate()
+            raise TimeoutError("Could not write to pipe! Is the agent listening?")
+        return True
 
     def sendOrderSP(self, thisOrder: SlurmOrder) -> None:
         with open(
