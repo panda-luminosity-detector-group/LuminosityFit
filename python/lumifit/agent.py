@@ -7,9 +7,11 @@ the structure of the order and return object is governd by the SlurmOrder Class.
 """
 
 import attr
+import cattrs
 import datetime
 import json
 import logging
+import multiprocessing as mp
 import os
 import shlex
 import subprocess
@@ -80,6 +82,12 @@ class Agent:
         sys.exit(0)
 
     def sendOrder(self, thisOrder: SlurmOrder) -> None:
+        proc = mp.Process(target=self.sendOrderSP, args=(thisOrder,))
+        proc.start()
+        # writing shouldn't take long, but command execution may take a second
+        proc.join(10)
+
+    def sendOrderSP(self, thisOrder: SlurmOrder) -> None:
         with open(
             self.universalPipePath, "w", encoding="utf-8"
         ) as universalPipe:
@@ -97,10 +105,7 @@ class Agent:
                 return None
 
         if isinstance(payload, str):
-            # apparently, this is by design! if the json thing is interpreted as string, then a string is returned (and not a dict)!
-            # so just remove the output and parse again so that it becomes a dict
-            # TODO: find out how you can force this dict-behaviour
-            # could be https://stackoverflow.com/questions/71397342/how-to-use-pythons-jsondecoder
+            # wait there is an error here, the json is encapsulated with quotes? check the sendOrder function
             payload = json.loads(payload)
 
         # python json's are actually dicts
@@ -212,12 +217,11 @@ class Server(Agent):
             print(f"fork failed: {e.errno} ({e.strerror})")
             sys.exit(1)
 
-        welcome = """
-        Agent starting and forking to background. Write:
+        welcome = f"""
+        Agent starting and forking to background. Write: {{"orderType": -1}} to orderPipe to exit agent.
+        Or, just copy this command:
 
-        {"orderType": -1}
-
-        to orderPipe to exit agent.
+        echo '{{"orderType":-1 }}' > {self.universalPipePath}
         """
 
         print(welcome)
@@ -237,7 +241,7 @@ class Server(Agent):
 
 
 class Client(Agent):
-    def checkConnection(self) -> None:
+    def checkConnection(self) -> bool:
         testOrder = SlurmOrder()
         testOrder.orderType = orderType.META
         testOrder.cmd = "test"
@@ -246,6 +250,7 @@ class Client(Agent):
         assert (
             resultOrder.stdout == "ok"
         ), "Agent not running or not accepting commands!"
+        return True
 
     def __init__(self) -> None:
         super().__init__()
