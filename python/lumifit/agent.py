@@ -84,7 +84,7 @@ class Agent:
         with open(
             self.universalPipePath, "w", encoding="utf-8"
         ) as universalPipe:
-            payload = attr.asdict(thisOrder)
+            payload = thisOrder.__dict__
             json.dump(payload, universalPipe)
 
     def receiveOrder(self) -> None:
@@ -236,9 +236,7 @@ class Client(Agent):
         testOrder.cmd = "test"
         self.sendOrder(testOrder)
         resultOrder = self.receiveOrder()
-        assert (
-            resultOrder.stdout == "ok"
-        ), "Unexpected answer!"
+        assert resultOrder.stdout == "ok", "Unexpected answer!"
         return True
 
     def __init__(self) -> None:
