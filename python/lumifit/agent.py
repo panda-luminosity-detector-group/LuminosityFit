@@ -7,7 +7,6 @@ the structure of the order and return object is governd by the SlurmOrder Class.
 """
 
 import attr
-import cattrs
 import datetime
 import json
 import logging
@@ -41,26 +40,13 @@ class SlurmOrder:
     runShell: bool = attr.ib(default=False)
     version: int = attr.ib(default=1)
 
-    # I think there is no real constructor overloading in python?
-    # TODO: I think there is a more modern way to do this
-    @classmethod
-    def fromJson(cls, jsonString: str):
-        temp = cls()
-        data = json.loads(jsonString)
-        for key, value in data.items():
-            setattr(temp, key, value)
-        return temp
-
-    # TODO: I think there is a more modern way to do this
+    # TODO: I think there is a more modern way to do this, but cattrs is still too flakey
     @classmethod
     def fromDict(cls, jsonDict: dict):
         temp = cls()
         for key, value in jsonDict.items():
             setattr(temp, key, value)
         return temp
-
-    def toJson(self) -> str:
-        return json.dumps(self.__dict__)
 
 
 class Agent:
@@ -81,37 +67,35 @@ class Agent:
         )
         sys.exit(0)
 
-    def sendOrder(self, thisOrder: SlurmOrder) -> bool:
+    def sendOrder(self, thisOrder: SlurmOrder, timeout: float = 3.0) -> bool:
         proc = mp.Process(target=self.sendOrderSP, args=(thisOrder,))
         proc.start()
         # writing alone shouldn't take long
-        proc.join(3)
+        proc.join(timeout)
 
         if proc.is_alive():
             proc.terminate()
-            raise TimeoutError("Could not write to pipe! Is the agent listening?")
+            raise TimeoutError(
+                "Could not write to pipe! Is the agent listening?"
+            )
         return True
 
     def sendOrderSP(self, thisOrder: SlurmOrder) -> None:
         with open(
             self.universalPipePath, "w", encoding="utf-8"
         ) as universalPipe:
-            json.dump(thisOrder.toJson(), universalPipe)
+            payload = attr.asdict(thisOrder)
+            json.dump(payload, universalPipe)
 
-    def receiveOrder(self):
+    def receiveOrder(self) -> None:
         with open(
             self.universalPipePath, "r", encoding="utf-8"
         ) as universalPipe:
             try:
-                # this handles the entire pipe (encoding, newlines and all)
                 payload = json.load(universalPipe)
             except Exception:
                 print(f"error parsing json order from pipe!")
                 return None
-
-        if isinstance(payload, str):
-            # wait there is an error here, the json is encapsulated with quotes? check the sendOrder function
-            payload = json.loads(payload)
 
         # python json's are actually dicts
         return SlurmOrder.fromDict(payload)
@@ -254,7 +238,7 @@ class Client(Agent):
         resultOrder = self.receiveOrder()
         assert (
             resultOrder.stdout == "ok"
-        ), "Agent not running or not accepting commands!"
+        ), "Unexpected answer!"
         return True
 
     def __init__(self) -> None:
