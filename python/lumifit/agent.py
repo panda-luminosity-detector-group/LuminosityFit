@@ -10,6 +10,7 @@ import attr
 import datetime
 import json
 import logging
+import multiprocessing as mp
 import os
 import shlex
 import subprocess
@@ -39,26 +40,13 @@ class SlurmOrder:
     runShell: bool = attr.ib(default=False)
     version: int = attr.ib(default=1)
 
-    # I think there is no real constructor overloading in python?
-    # TODO: I think there is a more modern way to do this
-    @classmethod
-    def fromJson(cls, jsonString: str):
-        temp = cls()
-        data = json.loads(jsonString)
-        for key, value in data.items():
-            setattr(temp, key, value)
-        return temp
-
-    # TODO: I think there is a more modern way to do this
+    # TODO: I think there is a more modern way to do this, but cattrs is still too flakey
     @classmethod
     def fromDict(cls, jsonDict: dict):
         temp = cls()
         for key, value in jsonDict.items():
             setattr(temp, key, value)
         return temp
-
-    def toJson(self) -> str:
-        return json.dumps(self.__dict__)
 
 
 class Agent:
@@ -79,29 +67,35 @@ class Agent:
         )
         sys.exit(0)
 
-    def sendOrder(self, thisOrder: SlurmOrder) -> None:
+    def sendOrder(self, thisOrder: SlurmOrder, timeout: float = 3.0) -> bool:
+        proc = mp.Process(target=self.sendOrderSP, args=(thisOrder,))
+        proc.start()
+        # writing alone shouldn't take long
+        proc.join(timeout)
+
+        if proc.is_alive():
+            proc.terminate()
+            raise TimeoutError(
+                "Could not write to pipe! Is the agent listening?"
+            )
+        return True
+
+    def sendOrderSP(self, thisOrder: SlurmOrder) -> None:
         with open(
             self.universalPipePath, "w", encoding="utf-8"
         ) as universalPipe:
-            json.dump(thisOrder.toJson(), universalPipe)
+            payload = thisOrder.__dict__
+            json.dump(payload, universalPipe)
 
-    def receiveOrder(self):
+    def receiveOrder(self) -> None:
         with open(
             self.universalPipePath, "r", encoding="utf-8"
         ) as universalPipe:
             try:
-                # this handles the entire pipe (encoding, newlines and all)
                 payload = json.load(universalPipe)
             except Exception:
                 print(f"error parsing json order from pipe!")
                 return None
-
-        if isinstance(payload, str):
-            # apparently, this is by design! if the json thing is interpreted as string, then a string is returned (and not a dict)!
-            # so just remove the output and parse again so that it becomes a dict
-            # TODO: find out how you can force this dict-behaviour
-            # could be https://stackoverflow.com/questions/71397342/how-to-use-pythons-jsondecoder
-            payload = json.loads(payload)
 
         # python json's are actually dicts
         return SlurmOrder.fromDict(payload)
@@ -212,12 +206,11 @@ class Server(Agent):
             print(f"fork failed: {e.errno} ({e.strerror})")
             sys.exit(1)
 
-        welcome = """
-        Agent starting and forking to background. Write:
+        welcome = f"""
+        Agent starting and forking to background. Write: {{"orderType": -1}} to orderPipe to exit agent.
+        Or, just copy this command:
 
-        {"orderType": -1}
-
-        to orderPipe to exit agent.
+        echo '{{"orderType":-1 }}' > {self.universalPipePath}
         """
 
         print(welcome)
@@ -237,15 +230,14 @@ class Server(Agent):
 
 
 class Client(Agent):
-    def checkConnection(self) -> None:
+    def checkConnection(self) -> bool:
         testOrder = SlurmOrder()
         testOrder.orderType = orderType.META
         testOrder.cmd = "test"
         self.sendOrder(testOrder)
         resultOrder = self.receiveOrder()
-        assert (
-            resultOrder.stdout == "ok"
-        ), "Agent not running or not accepting commands!"
+        assert resultOrder.stdout == "ok", "Unexpected answer!"
+        return True
 
     def __init__(self) -> None:
         super().__init__()
