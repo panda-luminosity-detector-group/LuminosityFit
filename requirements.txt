@@ -1,6 +1,7 @@
 autopep8
 attrs
 black
+cattrs
 flake8
 isort
 mypy
