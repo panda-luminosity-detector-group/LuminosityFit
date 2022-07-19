@@ -117,7 +117,7 @@ Don't ask why the actual values are strings and not floats, which json would als
 
 This contains a serialized instance of the `PndLmdFitDataBundle` after the fit. That means the C++ object was written to the ROOT file and be read out again (must be cast to `PndLmdFitDataBundle` by hand though). Inside, there is an elastic data bundle that inherits from some other classes and contains a 2D Histogram. That is important.
 
-In a TBrowser, it should look like this:
+In a TBrowser, it should look like this (for 15.0 GeV):
 
 ![goodFit](lmd_fit_good.png)
 
@@ -133,21 +133,17 @@ Again, in large:
 
 If the lumi fit data looks different from this, it is likely wrong.
 
-### Examples of wrong Fit Results
+### Beam Momentum Dependence
 
-Here are some examples of wrong fits:
-
-> :error: These are wrong! The lumi fit should not look like this.
-
-Everything is wrong here, no clear detector acceptance and some yellow peaks in the acceptance that shouldn't be there:
+Attention! Because of the 40mrad beam kink, the image will look distored at lower beam momenta. This is what it looks like at 1.5 GeV
 
 ![@1.5GeV](bad-1.5.png)
 
-This looks slightly better, but the acceptance is not clear enough and the peak still visible.
+And this at 4.06 GeV:
 
 ![@4.06GeV](bad-4.1.png)
 
-If your results look like that, look inside the `lmd_data_1of1.root`.
+If your results look completely different, look inside the `lmd_data_1of1.root`.
 
 
 ## `lmd_data_1of1.root`
