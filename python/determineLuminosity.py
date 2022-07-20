@@ -1,30 +1,30 @@
 #!/usr/bin/env python3
 
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path="../lmdEnvFile.env", verbose=True)
+
 import argparse
 import json
 import math
 import os
-import re
-import socket
 import subprocess
 import sys
 import time
-
-
-import lumifit.general as general
 from pathlib import Path
 
-from lumifit.alignment import AlignmentParameters
+import lumifit.general as general
 from lumifit.agent import Client
+from lumifit.alignment import AlignmentParameters
 from lumifit.cluster import ClusterJobManager
+from lumifit.experiment import ClusterEnvironment, Experiment
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
-from lumifit.scenario import Scenario, ExperimentType
-
 from lumifit.reconstruction import (
-    create_reconstruction_job,
     ReconstructionParameters,
+    create_reconstruction_job,
 )
+from lumifit.scenario import Scenario
 from lumifit.simulation import (
     SimulationParameters,
     SimulationType,
@@ -33,6 +33,7 @@ from lumifit.simulation import (
 
 
 def wasSimulationSuccessful(
+    experiment: Experiment,
     directory: str,
     glob_pattern: str,
     min_filesize_in_bytes: int = 10000,
@@ -52,13 +53,15 @@ def wasSimulationSuccessful(
         is_bunches=is_bunches,
     )[1]
 
-    # TODO: read from scenario config!
-    full_hostname = socket.getfqdn()
-    if "gsi.de" in full_hostname:
+    if experiment.cluster == ClusterEnvironment.VIRGO:
         job_handler = create_virgo_job_handler("long")
-    else:
-        job_handler = create_himster_job_handler("himster2_exp")
+    elif experiment.cluster == ClusterEnvironment.HIMSTER:
+        if args.use_devel_queue:
+            job_handler = create_himster_job_handler("devel")
+        else:
+            job_handler = create_himster_job_handler("himster2_exp")
 
+    # TODO: I think there is a bug here, sometimes files are ready AFTER this check, this leads to a wrong lumi
     if files_percentage < required_files_percentage:
         if job_handler.get_active_number_of_jobs() > 0:
             return_value = 1
@@ -200,8 +203,8 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     )
                     sim_par.theta_min_in_mrad -= max_xy_shift
                     sim_par.theta_max_in_mrad += max_xy_shift
-                    sim_par.phi_min_in_rad = scen.phi_min_in_rad
-                    sim_par.phi_max_in_rad = scen.phi_max_in_rad
+                    sim_par.phi_min_in_rad = scenario.phi_min_in_rad
+                    sim_par.phi_max_in_rad = scenario.phi_max_in_rad
                     # TODO: ip offset for sim params?
 
                     rec_par = ReconstructionParameters(
@@ -221,12 +224,12 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     # if alignement matrices were specified, we used them as a mis-alignment
                     # and alignment for the box simulations
                     align_par = AlignmentParameters()
-                    if scen.alignment_parameters.alignment_matrices_path:
+                    if scenario.alignment_parameters.alignment_matrices_path:
                         align_par.misalignment_matrices_path = (
-                            scen.alignment_parameters.alignment_matrices_path
+                            scenario.alignment_parameters.alignment_matrices_path
                         )
                         align_par.alignment_matrices_path = (
-                            scen.alignment_parameters.alignment_matrices_path
+                            scenario.alignment_parameters.alignment_matrices_path
                         )
                     # update the sim and reco par dicts
 
@@ -275,6 +278,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                         f"\n\nDEBUG: this is this scenarios dir path:\n{scenario.dir_path}\n\n"
                     )
 
+                    # TODO: Wait, why do we need sim params here at all? There won't be any sim params during the actual experiment
                     simParamFile = scenario.dir_path + "/../sim_params.config"
                     if not os.path.exists(simParamFile):
                         simParamFile = (
@@ -322,7 +326,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     job_manager.append(job)
 
                     simulation_task[0] = dir_path
-                    scen.filtered_dir_path = dir_path
+                    scenario.filtered_dir_path = dir_path
                     last_state += 1
             else:
                 # just skip simulation for vertex data... we always have that..
@@ -472,7 +476,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
     return scenario
 
 
-def lumiDetermination(scen: Scenario) -> None:
+def lumiDetermination(experiment: Experiment, scen: Scenario) -> None:
     dir_path = scen.dir_path
 
     state = scen.state
@@ -494,11 +498,6 @@ def lumiDetermination(scen: Scenario) -> None:
         sys.exit()
 
     print("processing scenario " + dir_path + " at step " + str(state))
-
-    # TODO: Not sure if later on the lab momentum has to be extracted from the data
-    m = re.search(r"plab_(\d*?\.?\d*?)GeV", dir_path)
-    momentum = float(m.group(1))
-    scen.momentum = momentum
 
     scen.alignment_parameters = AlignmentParameters(
         **general.load_params_from_file(scen.dir_path + "/align_params.config")
@@ -625,7 +624,7 @@ def lumiDetermination(scen: Scenario) -> None:
                 + cut_keyword
                 + lmd_fit_path
                 + "/"
-                + args.fit_config
+                + experiment.fitConfigPath
                 # apparently, this is no longer needed
                 # + " "
                 # + track_file_pattern
@@ -644,44 +643,48 @@ def lumiDetermination(scen: Scenario) -> None:
         waiting_scenario_stack.append(scen)
 
 
+#! --------------------------------------------------
+#!             script part starts here
+#! --------------------------------------------------
+
 parser = argparse.ArgumentParser(
     description="Lmd One Button Script", formatter_class=general.SmartFormatter
 )
 
-parser.add_argument(
-    "--base_output_data_dir",
-    metavar="base_output_data_dir",
-    type=str,
-    default=os.getenv("LMDFIT_DATA_DIR"),
-    help="Base directory for output files created by this script.\n",
-)
-parser.add_argument(
-    "--fit_config",
-    metavar="fit_config",
-    type=str,
-    default="fitconfig-fast.json",
-)
-parser.add_argument(
-    "--box_num_events_per_sample",
-    metavar="box_num_events_per_sample",
-    type=int,
-    default=100000,
-    help="number of events per sample to simulate",
-)
-parser.add_argument(
-    "--box_num_samples",
-    metavar="box_num_samples",
-    type=int,
-    default=500,
-    help="number of samples to simulate",
-)
-parser.add_argument(
-    "--num_samples",
-    metavar="num_samples",
-    type=int,
-    default=100,
-    help="number of elastic data files to reconstruct" " (-1 means all)",
-)
+# parser.add_argument(
+#     "--base_output_data_dir",
+#     metavar="base_output_data_dir",
+#     type=str,
+#     default=os.getenv("LMDFIT_DATA_DIR"),
+#     help="Base directory for output files created by this script.\n",
+# )
+# parser.add_argument(
+#     "--fit_config",
+#     metavar="fit_config",
+#     type=str,
+#     default="fitconfig-fast.json",
+# )
+# parser.add_argument(
+#     "--box_num_events_per_sample",
+#     metavar="box_num_events_per_sample",
+#     type=int,
+#     default=100000,
+#     help="number of events per sample to simulate",
+# )
+# parser.add_argument(
+#     "--box_num_samples",
+#     metavar="box_num_samples",
+#     type=int,
+#     default=500,
+#     help="number of samples to simulate",
+# )
+# parser.add_argument(
+#     "--num_samples",
+#     metavar="num_samples",
+#     type=int,
+#     default=100,
+#     help="number of elastic data files to reconstruct" " (-1 means all)",
+# )
 parser.add_argument(
     "--bootstrapped_num_samples",
     type=int,
@@ -712,69 +715,91 @@ parser.add_argument(
     help="If flag is set, the devel queue is used",
 )
 
+parser.add_argument(
+    "-e",
+    "--experiment_config",
+    metavar="ExperimentConfigFile",
+    type=Path,
+    help="The Experiment.config file that holds all info.",
+    required=True,
+)
+
 args = parser.parse_args()
 
 # check if slurm agent is running
 client = Client()
 client.checkConnection()
 
-experiment_type = ExperimentType.LUMI
+# load experiment config
+experiment: Experiment = general.load_params_from_file(
+    args.ExperimentConfigFile, Experiment
+)
 
-# TODO: read from scenario config file
-if experiment_type == ExperimentType.LUMI:
-    track_file_pattern = "Lumi_TrksQA_"
-elif experiment_type == ExperimentType.KOALA:
-    track_file_pattern = "Koala_Track_"
+# prepare data for Scenario
+experiment_type = experiment.ExperimentType
+# TODO: there is nothing in here yet. Write some example experiment configs! (or make scritp for that)
+baseDataOutputDir = experiment.baseDataOutputDir
 
-lmd_fit_script_path = os.path.dirname(os.path.realpath(__file__))
+# make scenario config
+thisScenario = Scenario(baseDataOutputDir, experiment_type)
+thisScenario.momentum = experiment.recoParams.lab_momentum
+
+# pattern depends on experiment type
+track_file_pattern = thisScenario.track_file_pattern
+
+lmd_fit_script_path = os.environ["LMDFIT_SCRIPTPATH"]
 lmd_fit_path = os.path.dirname(lmd_fit_script_path)
 lmd_fit_bin_path = os.getenv("LMDFIT_BUILD_PATH") + "/bin"
 
-num_samples = args.num_samples
+# set via command line argument, usually 1
 bootstrapped_num_samples = args.bootstrapped_num_samples
-box_num_samples = args.box_num_samples
-box_num_events_per_sample = args.box_num_events_per_sample
+
+# these are set in experiment.config
+num_samples = experiment.recoParams.num_samples
+box_num_samples = experiment.recoParams.num_box_samples
+box_num_events_per_sample = experiment.recoParams.num_events_per_box_sample
 
 # first lets try to find all directories and their status/step
 dir_searcher = general.DirectorySearcher(["dpm_elastic", "uncut"])
 
-dir_searcher.searchListOfDirectories(
-    args.base_output_data_dir, track_file_pattern
-)
+dir_searcher.searchListOfDirectories(baseDataOutputDir, track_file_pattern)
 dirs = dir_searcher.getListOfDirectories()
 
 print(f"\n\nINFO: found these dirs:\n{dirs}\n\n")
 
-# at first assign each scenario the first step and push on the active stack
-for dir in dirs:
-    scen = Scenario(dir, experiment_type=ExperimentType.LUMI)
-    print("creating scenario:", dir)
-    if args.disable_xy_cut or (
-        "/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir
-    ):
-        print("Disabling xy cut!")
-        scen.use_xy_cut = False  # for testing purposes
-    if args.disable_m_cut or (
-        "/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir
-    ):
-        print("Disabling m cut!")
-        scen.use_m_cut = False  # for testing purposes
-    if args.disable_ip_determination or (
-        "/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir
-    ):
-        print("Disabling IP determination!")
-        scen.use_ip_determination = False
-    active_scenario_stack.append(scen)
+if len(dirs) != 1:
+    print(f"found {len(dirs)} directory candidates, something is wrong!")
 
-# TODO: read from scenario config!
-full_hostname = socket.getfqdn()
-if "gsi.de" in full_hostname:
+# at first assign each scenario the first step and push on the active stack
+# NOPE, only one dir and only one scenario (sorry Stefan)
+# for dir in dirs:
+# scen = Scenario(dir, experiment_type=ExperimentType.LUMI)
+print("creating scenario:", dir)
+if args.disable_xy_cut or (
+    "/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir
+):
+    print("Disabling xy cut!")
+    thisScenario.use_xy_cut = False  # for testing purposes
+if args.disable_m_cut or (
+    "/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir
+):
+    print("Disabling m cut!")
+    thisScenario.use_m_cut = False  # for testing purposes
+if args.disable_ip_determination or (
+    "/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir
+):
+    print("Disabling IP determination!")
+    thisScenario.use_ip_determination = False
+# active_scenario_stack.append(thisScenario)
+
+if experiment.cluster == ClusterEnvironment.VIRGO:
     job_handler = create_virgo_job_handler("long")
-else:
+elif experiment.cluster == ClusterEnvironment.HIMSTER:
     if args.use_devel_queue:
         job_handler = create_himster_job_handler("devel")
     else:
         job_handler = create_himster_job_handler("himster2_exp")
+
 
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
@@ -782,16 +807,21 @@ job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
 
 # now just keep processing the active_stack
-while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
-    for scen in active_scenario_stack:
-        lumiDetermination(scen)
+# NOPE, ONE experiment, ONE scentario
 
-    active_scenario_stack = []
-    # if all scenarios are currently processed just wait a bit and check again
-    if len(waiting_scenario_stack) > 0:
-        print("currently waiting for 5min to process scenarios again")
-        time.sleep(300)  # wait for 5min
-        active_scenario_stack = waiting_scenario_stack
-        waiting_scenario_stack = []
+lumiDetermination(experiment, thisScenario)
+
+# while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
+#     for scen in active_scenario_stack:
+#         lumiDetermination(experiment, scen)
+
+#     active_scenario_stack = []
+#     # if all scenarios are currently processed just wait a bit and check again
+#     # TODO: I think it would be better to wait for a real signal and not just "wenn enough files are there"
+#     if len(waiting_scenario_stack) > 0:
+#         print("currently waiting for 5min to process scenarios again")
+#         time.sleep(300)  # wait for 5min
+#         active_scenario_stack = waiting_scenario_stack
+#         waiting_scenario_stack = []
 
 # ------------------------------------------------------------------------------------------

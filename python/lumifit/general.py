@@ -3,8 +3,8 @@ import json
 import os
 import re
 from argparse import (
-    ArgumentParser,
     ArgumentDefaultsHelpFormatter,
+    ArgumentParser,
     RawTextHelpFormatter,
 )
 from enum import Enum
@@ -111,7 +111,7 @@ def write_params_to_file(params: dict, pathname: str, filename: str) -> None:
         print(f"Config file {filename} already exists!")
 
 
-def load_params_from_file(file_path: str, asType: type) -> dict:
+def load_params_from_file(file_path: str, asType: type):
     if asType is None:
         raise NotImplementedError("Please specify the type to deserialize as.")
 
