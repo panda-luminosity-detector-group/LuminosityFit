@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
-from .alignment import AlignmentParameters
-from .cluster import Job, JobResourceRequest, make_test_job_resource_request
-from .general import write_params_to_file
 
-import attr
 import errno
 import os
 from typing import Tuple
+
+import attr
+
+from .alignment import AlignmentParameters
+from .cluster import Job, JobResourceRequest, make_test_job_resource_request
+from .general import write_params_to_file
 
 # TODO: solve the track_search_algorithms with Enum (or IntEnum for json serializability)
 #! wait there is even an enumEncoder, IntEnums may not be neccessary

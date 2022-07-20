@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-from .simulation import SimulationParameters
-from .reconstruction import ReconstructionParameters
-from .alignment import AlignmentParameters
-
 from enum import Enum
+
 from attrs import define
+
+from .alignment import AlignmentParameters
+from .reconstruction import ReconstructionParameters
+from .simulation import SimulationParameters
 
 
 class ExperimentType(Enum):

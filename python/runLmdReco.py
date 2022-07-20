@@ -3,13 +3,8 @@
 import os
 
 from lumifit.alignment import AlignmentParameters
-from lumifit.general import (
-    load_params_from_file,
-    check_stage_success,
-)
+from lumifit.general import check_stage_success, load_params_from_file, toCbool
 from lumifit.reconstruction import ReconstructionParameters
-from lumifit.general import toCbool
-
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 LMDScriptPath = os.environ["LMDFIT_SCRIPTPATH"]

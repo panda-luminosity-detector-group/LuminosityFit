@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import os
-
 import subprocess
+
 from lumifit.alignment import AlignmentParameters
-from lumifit.general import load_params_from_file, check_stage_success
+from lumifit.general import check_stage_success, load_params_from_file
 from lumifit.reconstruction import ReconstructionParameters
 
 debug = True

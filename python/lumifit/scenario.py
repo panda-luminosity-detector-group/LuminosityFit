@@ -3,9 +3,10 @@ container class for a data set found b determineLuminosity.py.
 """
 
 import math
+import os
+
 from .alignment import AlignmentParameters
 from .experiment import ExperimentType
-import os
 
 lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
 

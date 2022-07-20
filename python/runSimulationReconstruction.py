@@ -3,8 +3,8 @@
 import argparse
 import socket
 
-from lumifit.alignment import AlignmentParameters
 from lumifit.agent import Client
+from lumifit.alignment import AlignmentParameters
 from lumifit.cluster import ClusterJobManager, DebugJobHandler
 from lumifit.experiment import Experiment
 from lumifit.general import addDebugArgumentsToParser, load_params_from_file
