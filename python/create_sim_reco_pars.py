@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 
-from attrs import asdict
-from lumifit.general import write_params_to_file, load_params_from_file
-from lumifit.reconstruction import ReconstructionParameters
-from lumifit.simulation import SimulationParameters
-from lumifit.experiment import Experiment, ExperimentType, ClusterEnvironment
-from lumifit.alignment import AlignmentParameters
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path="../lmdEnvFile.env", verbose=True)
 
 import cattrs
+from attrs import asdict
+from lumifit.alignment import AlignmentParameters
+from lumifit.experiment import ClusterEnvironment, Experiment, ExperimentType
+from lumifit.general import load_params_from_file, write_params_to_file
+from lumifit.reconstruction import ReconstructionParameters
+from lumifit.simulation import SimulationParameters
 
 simpars = SimulationParameters()
 recopars = ReconstructionParameters()
