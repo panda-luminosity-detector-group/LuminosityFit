@@ -82,9 +82,12 @@ def wasSimulationSuccessful(
 # ----------------------------------------------------------------------------
 # ok we do it in such a way we have a step state for each directory and stacks
 # we try to process
-active_scenario_stack = []
+#! nope, ONE scenario, ONE experiment
+# active_scenario_stack = []
+#! oh shit, I think this is still needed because the function is executed multiple times,
+#! with different internal states (which is just, just horrible)
 waiting_scenario_stack = []
-dead_scenario_stack = []
+# dead_scenario_stack = []
 
 
 def simulateDataOnHimster(scenario: Scenario) -> Scenario:
@@ -368,7 +371,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     + " "
                     + dir_path
                 )
-                returnvalue = subprocess.call(bashcommand.split())
+                _ = subprocess.call(bashcommand.split())
                 # create data
                 if "a" in sim_type:
                     el_cs = (
@@ -402,7 +405,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                         + " ../dataconfig_xy.json"  # TODO: use absolute path here!
                     )
                     print(bashcommand)
-                returnvalue = subprocess.call(bashcommand.split())
+                _ = subprocess.call(bashcommand.split())
                 last_state = last_state + 1
 
             if status_code == 0:
@@ -456,7 +459,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                         + " "
                         + dir_path
                     )
-                returnvalue = subprocess.call(bashcommand.split())
+                _ = subprocess.call(bashcommand.split())
             state = 4
 
         simulation_task[2] = state
@@ -476,18 +479,20 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
     return scenario
 
 
-def lumiDetermination(experiment: Experiment, scen: Scenario) -> None:
-    dir_path = scen.dir_path
+def lumiDetermination(
+    thisExperiment: Experiment, thisScenario: Scenario
+) -> None:
+    dir_path = thisScenario.dir_path
 
-    state = scen.state
-    last_state = scen.last_state
+    state = thisScenario.state
+    last_state = thisScenario.last_state
 
     # open file
     if os.path.exists(dir_path + "/../../elastic_cross_section.txt"):
         print("Found an elastic cross section file!")
         with open(dir_path + "/../../elastic_cross_section.txt") as f:
             content = f.readlines()
-            scen.elastic_pbarp_integrated_cross_secion_in_mb = float(
+            thisScenario.elastic_pbarp_integrated_cross_secion_in_mb = float(
                 content[0]
             )
             f.close()
@@ -499,27 +504,32 @@ def lumiDetermination(experiment: Experiment, scen: Scenario) -> None:
 
     print("processing scenario " + dir_path + " at step " + str(state))
 
-    scen.alignment_parameters = AlignmentParameters(
-        **general.load_params_from_file(scen.dir_path + "/align_params.config")
+    thisScenario.alignment_parameters = AlignmentParameters(
+        **general.load_params_from_file(
+            thisScenario.dir_path + "/align_params.config"
+        )
     )
 
     finished = False
     # 1. create vertex data (that means bunch data, create data objects and merge)
     if state == 1:
-        if len(scen.simulation_info_lists) == 0:
-            scen.simulation_info_lists.append([dir_path, "v", 1, 0])
+        if len(thisScenario.simulation_info_lists) == 0:
+            thisScenario.simulation_info_lists.append([dir_path, "v", 1, 0])
 
-        scen = simulateDataOnHimster(scen)
-        if scen.is_broken:
-            dead_scenario_stack.append(scen)
+        thisScenario = simulateDataOnHimster(thisScenario)
+        if thisScenario.is_broken:
+            print(
+                f"ERROR! Scenario is broken! debug scenario info:\n{thisScenario}"
+            )
+            # dead_scenario_stack.append(scen)
             return
-        if len(scen.simulation_info_lists) == 0:
+        if len(thisScenario.simulation_info_lists) == 0:
             state += 1
             last_state += 1
 
     if state == 2:
         # check if ip was already determined
-        if scen.use_ip_determination:
+        if thisScenario.use_ip_determination:
             temp_dir_searcher = general.DirectorySearcher(
                 ["merge_data", "binning_300"]
             )
@@ -541,7 +551,7 @@ def lumiDetermination(experiment: Experiment, scen: Scenario) -> None:
                     + " -c "
                     + "../../vertex_fitconfig.json"
                 )
-                returnvalue = subprocess.call(bashcommand.split())
+                _ = subprocess.call(bashcommand.split())
                 ip_rec_file = found_dirs[0] + "/reco_ip.json"
             else:
                 ip_rec_file = found_dirs[0] + "/reco_ip.json"
@@ -549,21 +559,21 @@ def lumiDetermination(experiment: Experiment, scen: Scenario) -> None:
             file_content = open(ip_rec_file)
             ip_rec_data = json.load(file_content)
 
-            scen.rec_ip_info["ip_offset_x"] = float(
+            thisScenario.rec_ip_info["ip_offset_x"] = float(
                 "{0:.3f}".format(round(float(ip_rec_data["ip_x"]), 3))
             )  # in cm
-            scen.rec_ip_info["ip_offset_y"] = float(
+            thisScenario.rec_ip_info["ip_offset_y"] = float(
                 "{0:.3f}".format(round(float(ip_rec_data["ip_y"]), 3))
             )
-            scen.rec_ip_info["ip_offset_z"] = float(
+            thisScenario.rec_ip_info["ip_offset_z"] = float(
                 "{0:.3f}".format(round(float(ip_rec_data["ip_z"]), 3))
             )
 
             print("Finished IP determination for this scenario!")
         else:
-            scen.rec_ip_info["ip_offset_x"] = 0.0
-            scen.rec_ip_info["ip_offset_y"] = 0.0
-            scen.rec_ip_info["ip_offset_z"] = 0.0
+            thisScenario.rec_ip_info["ip_offset_x"] = 0.0
+            thisScenario.rec_ip_info["ip_offset_y"] = 0.0
+            thisScenario.rec_ip_info["ip_offset_z"] = 0.0
             print("Skipped IP determination for this scenario!")
 
         state += 1
@@ -580,17 +590,20 @@ def lumiDetermination(experiment: Experiment, scen: Scenario) -> None:
         # (that means simulation + bunching + creating data objects + merging)
         # because this data is now with a cut applied, the new directory is called
         # something 1-100_xy_m_cut_real
-        if len(scen.simulation_info_lists) == 0:
-            scen.simulation_info_lists.append(["", "a", 1, 0])
-            scen.simulation_info_lists.append(["", "er", 1, 0])
+        if len(thisScenario.simulation_info_lists) == 0:
+            thisScenario.simulation_info_lists.append(["", "a", 1, 0])
+            thisScenario.simulation_info_lists.append(["", "er", 1, 0])
 
         # all info needed for the COMPLETE reconstruction chain is here
-        scen = simulateDataOnHimster(scen)
-        if scen.is_broken:
-            dead_scenario_stack.append(scen)
+        thisScenario = simulateDataOnHimster(thisScenario)
+        if thisScenario.is_broken:
+            print(
+                f"ERROR! Scenario is broken! debug scenario info:\n{thisScenario}"
+            )
+            # dead_scenario_stack.append(thisScenario)
             return
 
-        if len(scen.simulation_info_lists) == 0:
+        if len(thisScenario.simulation_info_lists) == 0:
             state += 1
             last_state += 1
 
@@ -600,16 +613,16 @@ def lumiDetermination(experiment: Experiment, scen: Scenario) -> None:
             ["merge_data", "binning_300"]
         )
         temp_dir_searcher.searchListOfDirectories(
-            scen.filtered_dir_path, "lmd_fitted_data"
+            thisScenario.filtered_dir_path, "lmd_fitted_data"
         )
         found_dirs = temp_dir_searcher.getListOfDirectories()
         if not found_dirs:
             os.chdir(lmd_fit_script_path)
             print("running lmdfit!")
             cut_keyword = ""
-            if scen.use_xy_cut:
+            if thisScenario.use_xy_cut:
                 cut_keyword += "xy_"
-            if scen.use_m_cut:
+            if thisScenario.use_m_cut:
                 cut_keyword += "m_"
             if cut_keyword == "":
                 cut_keyword += "un"
@@ -617,30 +630,34 @@ def lumiDetermination(experiment: Experiment, scen: Scenario) -> None:
             bashcommand = (
                 "python doMultipleLuminosityFits.py "
                 "--forced_box_gen_data "
-                + scen.acc_and_res_dir_path
+                + thisScenario.acc_and_res_dir_path
                 + " "
-                + scen.filtered_dir_path
+                + thisScenario.filtered_dir_path
                 + " "
                 + cut_keyword
                 + lmd_fit_path
                 + "/"
-                + experiment.fitConfigPath
+                + thisExperiment.fitConfigPath
                 # apparently, this is no longer needed
                 # + " "
                 # + track_file_pattern
             )
             print(f"Bash command is:\n{bashcommand}")
-            returnvalue = subprocess.call(bashcommand.split())
+            _ = subprocess.call(bashcommand.split())
 
         print("this scenario is fully processed!!!")
         finished = True
 
     # if we are in an intermediate step then push on the waiting stack and
     # increase step state
+    #! I don't think we should ever reach this point?
     if not finished:
-        scen.state = state
-        scen.last_state = last_state
-        waiting_scenario_stack.append(scen)
+        thisScenario.state = state
+        thisScenario.last_state = last_state
+        print(
+            f"WARNING! Scenario is not finished, but apparently this loop must be done multiple times?"
+        )
+        waiting_scenario_stack.append(thisScenario)
 
 
 #! --------------------------------------------------
@@ -799,6 +816,8 @@ elif experiment.cluster == ClusterEnvironment.HIMSTER:
         job_handler = create_himster_job_handler("devel")
     else:
         job_handler = create_himster_job_handler("himster2_exp")
+else:
+    raise NotImplementedError("This cluster type is not implemented!")
 
 
 # job threshold of this type (too many jobs could generate to much io load
@@ -807,21 +826,24 @@ job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
 
 # now just keep processing the active_stack
-# NOPE, ONE experiment, ONE scentario
+# NOPE, ONE experiment, ONE scenario
 
 lumiDetermination(experiment, thisScenario)
 
+# TODO: okay this is tricky, sometimes scenarios are pushed to the waiting stack,
+# and then they are run again? let's see if we can do this some other way.
 # while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
-#     for scen in active_scenario_stack:
-#         lumiDetermination(experiment, scen)
+while len(waiting_scenario_stack) > 0:
+    # for scen in active_scenario_stack:
+    #     lumiDetermination(experiment, scen)
 
-#     active_scenario_stack = []
-#     # if all scenarios are currently processed just wait a bit and check again
-#     # TODO: I think it would be better to wait for a real signal and not just "wenn enough files are there"
-#     if len(waiting_scenario_stack) > 0:
-#         print("currently waiting for 5min to process scenarios again")
-#         time.sleep(300)  # wait for 5min
-#         active_scenario_stack = waiting_scenario_stack
-#         waiting_scenario_stack = []
+    # active_scenario_stack = []
+    # if all scenarios are currently processed just wait a bit and check again
+    # TODO: I think it would be better to wait for a real signal and not just "when enough files are there"
+    if len(waiting_scenario_stack) > 0:
+        print("currently waiting for 5min to process scenarios again")
+        time.sleep(300)  # wait for 5min
+        active_scenario_stack = waiting_scenario_stack
+        waiting_scenario_stack = []
 
 # ------------------------------------------------------------------------------------------
