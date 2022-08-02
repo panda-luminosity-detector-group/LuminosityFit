@@ -30,6 +30,8 @@ def genExperimentConfig(momentum: float, experimentType: Experiment):
     recopars.lab_momentum = momentum
     recopars.num_samples = 100
     recopars.num_events_per_sample = 100000
+    recopars.num_box_samples = 500
+    recopars.num_events_per_box_sample = 100000
 
     experiment = Experiment(
         experimentType,
