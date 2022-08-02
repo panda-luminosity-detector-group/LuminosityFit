@@ -755,7 +755,7 @@ experiment: Experiment = general.load_params_from_file(
 # prepare data for Scenario
 experiment_type = experiment.experimentType
 # TODO: there is nothing in here yet. Write some example experiment configs! (or make scritp for that)
-baseDataOutputDir = str(experiment.baseDataOutputDir) + "/"
+baseDataOutputDir = str(experiment.baseDataOutputDir)
 
 # make scenario config
 thisScenario = Scenario(baseDataOutputDir, experiment_type)
@@ -794,6 +794,9 @@ if len(dirs) != 1:
 
 # great, "dir" was shadowed
 thisDir = dirs[0]
+
+# shadow the previous thisScenario
+thisScenario = Scenario(thisDir, experiment.experimentType)
 
 print("creating scenario:", thisDir)
 if args.disable_xy_cut or (
