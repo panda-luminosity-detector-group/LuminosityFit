@@ -812,8 +812,8 @@ if len(dirs) != 1:
 # great, "dir" was shadowed
 thisDir = dirs[0]
 
-# shadow the previous thisScenario
-thisScenario = Scenario(thisDir, experiment.experimentType)
+# path has changed now for the newly found dir
+thisScenario.dir_path = thisDir
 
 print("creating scenario:", thisDir)
 if args.disable_xy_cut or (
