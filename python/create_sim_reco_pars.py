@@ -37,7 +37,7 @@ def genExperimentConfig(momentum: float, experimentType: Experiment):
         simpars,
         recopars,
         alignpars,
-        "/lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_4.1GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000",
+        Path("/lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_4.1GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000"),
     )
     return experiment
 

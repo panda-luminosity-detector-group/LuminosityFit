@@ -28,4 +28,4 @@ class Experiment:
     recoParams: ReconstructionParameters
     alignParams: AlignmentParameters
     baseDataOutputDir: Path
-    fitConfigPath: str = field(default="fitconfig-fast.json")
+    fitConfigPath: Path = field(default=Path("fitconfig-fast.json"))

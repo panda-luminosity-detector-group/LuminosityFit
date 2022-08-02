@@ -8,9 +8,13 @@ from argparse import (
     RawTextHelpFormatter,
 )
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 import cattrs
+
+cattrs.register_structure_hook(Path, lambda d, t: Path(d))
+cattrs.register_unstructure_hook(Path, lambda d: str(d))
 
 
 def toCbool(input: bool) -> str:
