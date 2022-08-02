@@ -38,7 +38,7 @@ class ReconstructionParameters:
     )
     reco_ip_offset: Tuple[float, float, float] = attr.ib(default=(0, 0, 0))
     num_box_samples: int = attr.ib(default=500)
-    num_events_per_box_sample: int = attr.ib(default=500)
+    num_events_per_box_sample: int = attr.ib(default=10000)
 
 
 def generateRecoDirSuffix(
