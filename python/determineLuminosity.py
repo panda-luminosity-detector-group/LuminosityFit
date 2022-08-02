@@ -755,7 +755,7 @@ experiment: Experiment = general.load_params_from_file(
 # prepare data for Scenario
 experiment_type = experiment.experimentType
 # TODO: there is nothing in here yet. Write some example experiment configs! (or make scritp for that)
-baseDataOutputDir = str(experiment.baseDataOutputDir)
+baseDataOutputDir = str(experiment.baseDataOutputDir) + "/"
 
 # make scenario config
 thisScenario = Scenario(baseDataOutputDir, experiment_type)
@@ -792,22 +792,25 @@ if len(dirs) != 1:
 # for dir in dirs:
 # scen = Scenario(dir, experiment_type=ExperimentType.LUMI)
 
-#great, "dir" was shadowed
+# great, "dir" was shadowed
 thisDir = dirs[0]
 
 print("creating scenario:", thisDir)
 if args.disable_xy_cut or (
-    "/no_alignment_correction" in thisDir and "no_geo_misalignment/" not in thisDir
+    "/no_alignment_correction" in thisDir
+    and "no_geo_misalignment/" not in thisDir
 ):
     print("Disabling xy cut!")
     thisScenario.use_xy_cut = False  # for testing purposes
 if args.disable_m_cut or (
-    "/no_alignment_correction" in thisDir and "no_geo_misalignment/" not in thisDir
+    "/no_alignment_correction" in thisDir
+    and "no_geo_misalignment/" not in thisDir
 ):
     print("Disabling m cut!")
     thisScenario.use_m_cut = False  # for testing purposes
 if args.disable_ip_determination or (
-    "/no_alignment_correction" in thisDir and "no_geo_misalignment/" not in thisDir
+    "/no_alignment_correction" in thisDir
+    and "no_geo_misalignment/" not in thisDir
 ):
     print("Disabling IP determination!")
     thisScenario.use_ip_determination = False
