@@ -735,7 +735,7 @@ parser.add_argument(
 parser.add_argument(
     "-e",
     "--experiment_config",
-    metavar="ExperimentConfigFile",
+    dest="ExperimentConfigFile",
     type=Path,
     help="The Experiment.config file that holds all info.",
     required=True,
