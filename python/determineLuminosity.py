@@ -791,19 +791,23 @@ if len(dirs) != 1:
 # NOPE, only one dir and only one scenario (sorry Stefan)
 # for dir in dirs:
 # scen = Scenario(dir, experiment_type=ExperimentType.LUMI)
-print("creating scenario:", dir)
+
+#great, "dir" was shadowed
+thisDir = dirs[0]
+
+print("creating scenario:", thisDir)
 if args.disable_xy_cut or (
-    "/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir
+    "/no_alignment_correction" in thisDir and "no_geo_misalignment/" not in thisDir
 ):
     print("Disabling xy cut!")
     thisScenario.use_xy_cut = False  # for testing purposes
 if args.disable_m_cut or (
-    "/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir
+    "/no_alignment_correction" in thisDir and "no_geo_misalignment/" not in thisDir
 ):
     print("Disabling m cut!")
     thisScenario.use_m_cut = False  # for testing purposes
 if args.disable_ip_determination or (
-    "/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir
+    "/no_alignment_correction" in thisDir and "no_geo_misalignment/" not in thisDir
 ):
     print("Disabling IP determination!")
     thisScenario.use_ip_determination = False
