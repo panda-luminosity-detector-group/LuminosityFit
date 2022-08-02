@@ -48,7 +48,7 @@ confPath.mkdir(parents=True, exist_ok=True)
 
 for mom in (1.5, 4.06, 8.1, 11.09, 15):
 
-    experiment = genExperimentConfig(mom, ClusterEnvironment.HIMSTER)
+    experiment = genExperimentConfig(mom, ExperimentType.LUMI)
 
     write_params_to_file(
         cattrs.unstructure(experiment), ".", f"{confPath}/{mom}.config"
