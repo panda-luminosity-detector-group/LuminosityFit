@@ -231,7 +231,9 @@ def simulateDataOnHimster(
                     # if alignement matrices were specified, we used them as a mis-alignment
                     # and alignment for the box simulations
                     align_par = AlignmentParameters()
-                    if thisScenario.alignment_parameters.alignment_matrices_path:
+                    if (
+                        thisScenario.alignment_parameters.alignment_matrices_path
+                    ):
                         align_par.misalignment_matrices_path = (
                             thisScenario.alignment_parameters.alignment_matrices_path
                         )
@@ -266,7 +268,9 @@ def simulateDataOnHimster(
                     found_dirs = temp_dir_searcher.getListOfDirectories()
                 if found_dirs:
                     status_code = wasSimulationSuccessful(
-                        found_dirs[0], track_file_pattern + "*.root"
+                        thisExperiment,
+                        found_dirs[0],
+                        track_file_pattern + "*.root",
                     )
 
                 elif last_state < state:
@@ -286,7 +290,9 @@ def simulateDataOnHimster(
                     )
 
                     # TODO: Wait, why do we need sim params here at all? There won't be any sim params during the actual experiment
-                    simParamFile = thisScenario.dir_path + "/../sim_params.config"
+                    simParamFile = (
+                        thisScenario.dir_path + "/../sim_params.config"
+                    )
                     if not os.path.exists(simParamFile):
                         simParamFile = (
                             thisScenario.dir_path + "/../../sim_params.config"
@@ -367,7 +373,10 @@ def simulateDataOnHimster(
             status_code = 1
             if found_dirs:
                 status_code = wasSimulationSuccessful(
-                    found_dirs[0], data_pattern + "*", is_bunches=True
+                    thisExperiment,
+                    found_dirs[0],
+                    data_pattern + "*",
+                    is_bunches=True,
                 )
             elif last_state < state:
                 os.chdir(lmd_fit_script_path)
