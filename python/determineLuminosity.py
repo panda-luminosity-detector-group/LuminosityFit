@@ -288,15 +288,19 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                             scenario.dir_path + "/../../sim_params.config"
                         )
 
-                    sim_par = SimulationParameters(
-                        **general.load_params_from_file(simParamFile, SimulationParameters)
-                    )
-
-                    rec_par = ReconstructionParameters(
-                        **general.load_params_from_file(
-                            scenario.dir_path + "/reco_params.config", ReconstructionParameters
+                    sim_par: SimulationParameters = (
+                        general.load_params_from_file(
+                            simParamFile, SimulationParameters
                         )
                     )
+
+                    rec_par: ReconstructionParameters = (
+                        general.load_params_from_file(
+                            scenario.dir_path + "/reco_params.config",
+                            ReconstructionParameters,
+                        )
+                    )
+
                     rec_par.use_xy_cut = scenario.use_xy_cut
                     rec_par.use_m_cut = scenario.use_m_cut
                     rec_par.reco_ip_offset = [
@@ -504,8 +508,8 @@ def lumiDetermination(
 
     print("processing scenario " + dir_path + " at step " + str(state))
 
-    thisScenario.alignment_parameters = AlignmentParameters(
-        **general.load_params_from_file(
+    thisScenario.alignment_parameters: AlignmentParameters = (
+        general.load_params_from_file(
             thisScenario.dir_path + "/align_params.config", AlignmentParameters
         )
     )
