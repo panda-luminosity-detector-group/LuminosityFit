@@ -753,7 +753,7 @@ experiment: Experiment = general.load_params_from_file(
 )
 
 # prepare data for Scenario
-experiment_type = experiment.ExperimentType
+experiment_type = experiment.experimentType
 # TODO: there is nothing in here yet. Write some example experiment configs! (or make scritp for that)
 baseDataOutputDir = experiment.baseDataOutputDir
 
