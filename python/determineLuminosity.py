@@ -90,7 +90,9 @@ waiting_scenario_stack = []
 # dead_scenario_stack = []
 
 
-def simulateDataOnHimster(scenario: Scenario) -> Scenario:
+def simulateDataOnHimster(
+    thisExperiment: Experiment, thisScenario: Scenario
+) -> Scenario:
     """Determines the luminosity of a set of Lumi_TrksQA_* files.
 
     This is pretty complicated and uses a lot of intermediate steps.
@@ -122,8 +124,8 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
     """
     tasks_to_remove = []
 
-    lab_momentum = scenario.momentum
-    for simulation_task in scenario.simulation_info_lists:
+    lab_momentum = thisScenario.momentum
+    for simulation_task in thisScenario.simulation_info_lists:
         dir_path = simulation_task[0]
         sim_type = simulation_task[1]
         state = simulation_task[2]
@@ -144,9 +146,9 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
         data_pattern = ""
 
         cut_keyword = ""
-        if scenario.use_xy_cut:
+        if thisScenario.use_xy_cut:
             cut_keyword += "xy_"
-        if scenario.use_m_cut:
+        if thisScenario.use_m_cut:
             cut_keyword += "m_"
         if cut_keyword == "":
             cut_keyword += "un"
@@ -180,7 +182,9 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
 
                 if found_dirs:
                     status_code = wasSimulationSuccessful(
-                        found_dirs[0], track_file_pattern + "*.root"
+                        thisExperiment,
+                        found_dirs[0],
+                        track_file_pattern + "*.root",
                     )
                 elif last_state < 1:
                     # then lets simulate!
@@ -189,7 +193,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     # for this sample
                     # note: beam tilt and divergence are not necessary here,
                     # because that is handled completely by the model
-                    ip_info_dict = scenario.rec_ip_info
+                    ip_info_dict = thisScenario.rec_ip_info
                     max_xy_shift = math.sqrt(
                         ip_info_dict["ip_offset_x"] ** 2
                         + ip_info_dict["ip_offset_y"] ** 2
@@ -206,8 +210,8 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     )
                     sim_par.theta_min_in_mrad -= max_xy_shift
                     sim_par.theta_max_in_mrad += max_xy_shift
-                    sim_par.phi_min_in_rad = scenario.phi_min_in_rad
-                    sim_par.phi_max_in_rad = scenario.phi_max_in_rad
+                    sim_par.phi_min_in_rad = thisScenario.phi_min_in_rad
+                    sim_par.phi_max_in_rad = thisScenario.phi_max_in_rad
                     # TODO: ip offset for sim params?
 
                     rec_par = ReconstructionParameters(
@@ -215,8 +219,8 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                         num_samples=box_num_samples,
                         lab_momentum=lab_momentum,
                     )
-                    rec_par.use_xy_cut = scenario.use_xy_cut
-                    rec_par.use_m_cut = scenario.use_m_cut
+                    rec_par.use_xy_cut = thisScenario.use_xy_cut
+                    rec_par.use_m_cut = thisScenario.use_m_cut
                     rec_par.reco_ip_offset = (
                         ip_info_dict["ip_offset_x"],
                         ip_info_dict["ip_offset_y"],
@@ -227,12 +231,12 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     # if alignement matrices were specified, we used them as a mis-alignment
                     # and alignment for the box simulations
                     align_par = AlignmentParameters()
-                    if scenario.alignment_parameters.alignment_matrices_path:
+                    if thisScenario.alignment_parameters.alignment_matrices_path:
                         align_par.misalignment_matrices_path = (
-                            scenario.alignment_parameters.alignment_matrices_path
+                            thisScenario.alignment_parameters.alignment_matrices_path
                         )
                         align_par.alignment_matrices_path = (
-                            scenario.alignment_parameters.alignment_matrices_path
+                            thisScenario.alignment_parameters.alignment_matrices_path
                         )
                     # update the sim and reco par dicts
 
@@ -240,13 +244,13 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                         sim_par,
                         align_par,
                         rec_par,
-                        application_command=scenario.Sim,
+                        application_command=thisScenario.Sim,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
 
                     simulation_task[0] = dir_path
-                    scenario.acc_and_res_dir_path = dir_path
+                    thisScenario.acc_and_res_dir_path = dir_path
                     last_state += 1
 
             elif "a" in sim_type:
@@ -271,21 +275,21 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     # elastic scattering data with the estimated ip position
                     # note: beam tilt and divergence are not used here because
                     # only the last reco steps are rerun of the track reco
-                    ip_info_dict = scenario.rec_ip_info
+                    ip_info_dict = thisScenario.rec_ip_info
 
                     # TODO: save digi files instead of mc files!!
                     # we are either in the base dir or an "aligned" subdirectory,
                     # apply dirty hack here:
 
                     print(
-                        f"\n\nDEBUG: this is this scenarios dir path:\n{scenario.dir_path}\n\n"
+                        f"\n\nDEBUG: this is this scenarios dir path:\n{thisScenario.dir_path}\n\n"
                     )
 
                     # TODO: Wait, why do we need sim params here at all? There won't be any sim params during the actual experiment
-                    simParamFile = scenario.dir_path + "/../sim_params.config"
+                    simParamFile = thisScenario.dir_path + "/../sim_params.config"
                     if not os.path.exists(simParamFile):
                         simParamFile = (
-                            scenario.dir_path + "/../../sim_params.config"
+                            thisScenario.dir_path + "/../../sim_params.config"
                         )
 
                     sim_par: SimulationParameters = (
@@ -296,13 +300,13 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
 
                     rec_par: ReconstructionParameters = (
                         general.load_params_from_file(
-                            scenario.dir_path + "/reco_params.config",
+                            thisScenario.dir_path + "/reco_params.config",
                             ReconstructionParameters,
                         )
                     )
 
-                    rec_par.use_xy_cut = scenario.use_xy_cut
-                    rec_par.use_m_cut = scenario.use_m_cut
+                    rec_par.use_xy_cut = thisScenario.use_xy_cut
+                    rec_par.use_m_cut = thisScenario.use_m_cut
                     rec_par.reco_ip_offset = [
                         ip_info_dict["ip_offset_x"],
                         ip_info_dict["ip_offset_y"],
@@ -319,7 +323,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     # os.path.dirname() thinks this is a filename and gives 1-100_uncut back, which
                     # is too high
                     # dirname = os.path.dirname(scenario.dir_path) + "/../"
-                    dirname = str(Path(scenario.dir_path).parent.parent)
+                    dirname = str(Path(thisScenario.dir_path).parent.parent)
 
                     print(f"DEBUG:\ndirname is {dirname}")
 
@@ -327,13 +331,13 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                         rec_par,
                         align_par,
                         dirname,
-                        application_command=scenario.Reco,
+                        application_command=thisScenario.Reco,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
 
                     simulation_task[0] = dir_path
-                    scenario.filtered_dir_path = dir_path
+                    thisScenario.filtered_dir_path = dir_path
                     last_state += 1
             else:
                 # just skip simulation for vertex data... we always have that..
@@ -379,7 +383,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                 # create data
                 if "a" in sim_type:
                     el_cs = (
-                        scenario.elastic_pbarp_integrated_cross_secion_in_mb
+                        thisScenario.elastic_pbarp_integrated_cross_secion_in_mb
                     )
                     bashcommand = (
                         "python createMultipleLmdData.py "
@@ -470,17 +474,17 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
         simulation_task[3] = last_state
 
         if simulation_task[3] == -1:
-            scenario.is_broken = True
+            thisScenario.is_broken = True
             break
         if simulation_task[2] == 4:
             tasks_to_remove.append(simulation_task)
             print("Task is finished and will be removed from list!")
 
     for x in tasks_to_remove:
-        del scenario.simulation_info_lists[
-            scenario.simulation_info_lists.index(x)
+        del thisScenario.simulation_info_lists[
+            thisScenario.simulation_info_lists.index(x)
         ]
-    return scenario
+    return thisScenario
 
 
 def lumiDetermination(
@@ -520,7 +524,7 @@ def lumiDetermination(
         if len(thisScenario.simulation_info_lists) == 0:
             thisScenario.simulation_info_lists.append([dir_path, "v", 1, 0])
 
-        thisScenario = simulateDataOnHimster(thisScenario)
+        thisScenario = simulateDataOnHimster(thisExperiment, thisScenario)
         if thisScenario.is_broken:
             print(
                 f"ERROR! Scenario is broken! debug scenario info:\n{thisScenario}"
@@ -599,7 +603,7 @@ def lumiDetermination(
             thisScenario.simulation_info_lists.append(["", "er", 1, 0])
 
         # all info needed for the COMPLETE reconstruction chain is here
-        thisScenario = simulateDataOnHimster(thisScenario)
+        thisScenario = simulateDataOnHimster(thisExperiment, thisScenario)
         if thisScenario.is_broken:
             print(
                 f"ERROR! Scenario is broken! debug scenario info:\n{thisScenario}"
