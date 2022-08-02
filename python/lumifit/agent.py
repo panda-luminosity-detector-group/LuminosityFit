@@ -6,19 +6,20 @@ in a named pipe and returns their outputs and return code in the same way.
 the structure of the order and return object is governd by the SlurmOrder Class.
 """
 
-import attr
 import datetime
 import json
 import logging
 import multiprocessing as mp
 import os
 import shlex
-import subprocess
 import stat
+import subprocess
 import sys
 from enum import IntEnum
 from pathlib import Path
 from typing import Dict
+
+import attr
 
 
 @attr.s(hash=True)
@@ -67,7 +68,7 @@ class Agent:
         )
         sys.exit(0)
 
-    def sendOrder(self, thisOrder: SlurmOrder, timeout: float = 3.0) -> bool:
+    def sendOrder(self, thisOrder: SlurmOrder, timeout: float = 30.0) -> bool:
         proc = mp.Process(target=self.sendOrderSP, args=(thisOrder,))
         proc.start()
         # writing alone shouldn't take long
