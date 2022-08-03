@@ -83,7 +83,7 @@ def wasSimulationSuccessful(
 # ok we do it in such a way we have a step state for each directory and stacks
 # we try to process
 #! nope, ONE scenario, ONE experiment
-# active_scenario_stack = []
+active_scenario_stack = []
 #! oh shit, I think this is still needed because the function is executed multiple times,
 #! with different internal states (which is just, just horrible)
 waiting_scenario_stack = []
@@ -126,6 +126,8 @@ def simulateDataOnHimster(
 
     lab_momentum = thisScenario.momentum
     for simulation_task in thisScenario.simulation_info_lists:
+
+        # what what what
         dir_path = simulation_task[0]
         sim_type = simulation_task[1]
         state = simulation_task[2]
@@ -861,8 +863,8 @@ lumiDetermination(experiment, thisScenario)
 # and then they are run again? let's see if we can do this some other way.
 # while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
 while len(waiting_scenario_stack) > 0:
-    # for scen in active_scenario_stack:
-    #     lumiDetermination(experiment, scen)
+    for scen in active_scenario_stack:
+        lumiDetermination(experiment, scen)
 
     # active_scenario_stack = []
     # if all scenarios are currently processed just wait a bit and check again

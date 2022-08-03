@@ -51,6 +51,7 @@ class Scenario:
         self.state = 1
         self.last_state = 0
 
+        # what the hell is this?
         self.simulation_info_lists: list = []
 
         self.is_broken = False
