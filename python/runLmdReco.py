@@ -25,9 +25,10 @@ if not os.path.isdir(pathToTrkQAFiles):
     os.makedirs(pathToTrkQAFiles)
 
 # TODO: check if params are loaded correctly, shouldn't be the specified file name be used?
-reco_params = ReconstructionParameters(
-    **load_params_from_file(pathToTrkQAFiles + "/reco_params.config")
+reco_params: ReconstructionParameters = load_params_from_file(
+    pathToTrkQAFiles + "/reco_params.config", ReconstructionParameters
 )
+
 
 # TODO: read alignment parameters correctly
 ali_params = AlignmentParameters()

@@ -80,18 +80,16 @@ parser = addDebugArgumentsToParser(parser)
 
 args = parser.parse_args()
 
-sim_params = SimulationParameters(**load_params_from_file(args.sim_params[0]))
+sim_params : SimulationParameters=load_params_from_file(args.sim_params[0], SimulationParameters)
 
-reco_params = ReconstructionParameters(
-    **load_params_from_file(args.reco_params[0])
+reco_params : ReconstructionParameters = load_params_from_file(args.reco_params[0])
 )
 
 align_params = AlignmentParameters()
 
 if args.align_params:
-    align_params = AlignmentParameters(
-        **load_params_from_file(args.align_params)
-    )
+    align_params : AlignmentParameters =       load_params_from_file(args.align_params, AlignmentParameters)
+    
 
 # check if the slurm argent is running
 client = Client()

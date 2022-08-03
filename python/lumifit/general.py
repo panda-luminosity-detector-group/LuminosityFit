@@ -116,6 +116,9 @@ def write_params_to_file(params: dict, pathname: str, filename: str) -> None:
 
 
 def load_params_from_file(file_path: str, asType: type):
+    """
+    Uses cattrs to deserialize a json file to a python object. Requires target type
+    """
     if asType is None:
         raise NotImplementedError("Please specify the type to deserialize as.")
 

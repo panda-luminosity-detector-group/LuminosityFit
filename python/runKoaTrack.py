@@ -19,8 +19,8 @@ pathname = os.environ["pathname"]
 macropath = os.environ["LMDFIT_MACROPATH"]
 force_level = int(os.environ["force_level"])
 
-reco_param = ReconstructionParameters(
-    **load_params_from_file(pathname + "/reco_params.config")
+reco_param: ReconstructionParameters = load_params_from_file(
+    pathname + "/reco_params.config", ReconstructionParameters
 )
 ali_params = AlignmentParameters()
 
