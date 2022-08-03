@@ -71,6 +71,8 @@ class Agent:
         sys.exit(0)
 
     def sendOrder(self, thisOrder: SlurmOrder, timeout: float = 5.0) -> bool:
+        self.sendOrderBlocking(thisOrder)
+        return True
         # proc = mp.Process(target=self.sendOrderBlocking, args=(thisOrder,))
         proc = th.Thread(target=self.sendOrderBlocking, args=(thisOrder,))
         proc.start()
