@@ -96,7 +96,7 @@ class SlurmJobHandler(JobHandler):
             thisOrder = SlurmOrder()
             thisOrder.cmd = bashcommand
             thisOrder.runShell = True
-            # default output to zero, doesn't work otheriwse
+            # default output to zero, doesn't work otherwise
             thisOrder.stdout = "0"
             thisOrder.env = os.environ.copy()
             client.sendOrder(thisOrder, 30)  # this may take some time
