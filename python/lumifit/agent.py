@@ -68,8 +68,8 @@ class Agent:
         )
         sys.exit(0)
 
-    def sendOrder(self, thisOrder: SlurmOrder, timeout: float = 30.0) -> bool:
-        proc = mp.Process(target=self.sendOrderSP, args=(thisOrder,))
+    def sendOrder(self, thisOrder: SlurmOrder, timeout: float = 5.0) -> bool:
+        proc = mp.Process(target=self.sendOrderBlocking, args=(thisOrder,))
         proc.start()
         # writing alone shouldn't take long
         proc.join(timeout)
@@ -81,7 +81,7 @@ class Agent:
             )
         return True
 
-    def sendOrderSP(self, thisOrder: SlurmOrder) -> None:
+    def sendOrderBlocking(self, thisOrder: SlurmOrder) -> None:
         with open(
             self.universalPipePath, "w", encoding="utf-8"
         ) as universalPipe:
