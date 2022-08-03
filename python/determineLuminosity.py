@@ -31,11 +31,21 @@ from lumifit.simulation import (
     create_simulation_and_reconstruction_job,
 )
 
+"""
+This file needs one major rewrite, thats for sure.
+- job_manager (and other objects) are defined globally and used in functions
+- agent is not thead safe, but multiple job_manager are created
+- job supervision is based on number of files;
+- but its not momitored if a given job has crashed 
+- and the entire thing is declarative, when object orientation would be better suited
+"""
+
 
 def wasSimulationSuccessful(
     experiment: Experiment,
     directory: str,
     glob_pattern: str,
+    # job_handler: JobHandler,  # there is a global job_handler, but this needs fixing anyway
     min_filesize_in_bytes: int = 10000,
     is_bunches: bool = False,
 ) -> int:
@@ -53,13 +63,14 @@ def wasSimulationSuccessful(
         is_bunches=is_bunches,
     )[1]
 
-    if experiment.cluster == ClusterEnvironment.VIRGO:
-        job_handler = create_virgo_job_handler("long")
-    elif experiment.cluster == ClusterEnvironment.HIMSTER:
-        if args.use_devel_queue:
-            job_handler = create_himster_job_handler("devel")
-        else:
-            job_handler = create_himster_job_handler("himster2_exp")
+    #! NEVER CREATE ANOTHER JOB HANDLER, THEY DEADLOCK THE SLURM AGENT
+    # if experiment.cluster == ClusterEnvironment.VIRGO:
+    #     job_handler = create_virgo_job_handler("long")
+    # elif experiment.cluster == ClusterEnvironment.HIMSTER:
+    #     if args.use_devel_queue:
+    #         job_handler = create_himster_job_handler("devel")
+    #     else:
+    #         job_handler = create_himster_job_handler("himster2_exp")
 
     # TODO: I think there is a bug here, sometimes files are ready AFTER this check, this leads to a wrong lumi
     if files_percentage < required_files_percentage:

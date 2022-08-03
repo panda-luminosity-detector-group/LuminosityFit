@@ -77,6 +77,9 @@ class ClusterJobManager:
 
     The jobs are pending in a queue until the number of jobs running on the
     cluster is below a certain threshold.
+
+    WARNING: This object is multithreaded, use locks when needed and be
+    mindful when querying the agent (the agent is not thread-safe)!
     """
 
     def __init__(
