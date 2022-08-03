@@ -9,12 +9,14 @@ the structure of the order and return object is governd by the SlurmOrder Class.
 import datetime
 import json
 import logging
-import multiprocessing as mp
 import os
 import shlex
 import stat
 import subprocess
 import sys
+
+# import multiprocessing as mp
+import threading as th
 from enum import IntEnum
 from pathlib import Path
 from typing import Dict
@@ -69,7 +71,8 @@ class Agent:
         sys.exit(0)
 
     def sendOrder(self, thisOrder: SlurmOrder, timeout: float = 5.0) -> bool:
-        proc = mp.Process(target=self.sendOrderBlocking, args=(thisOrder,))
+        # proc = mp.Process(target=self.sendOrderBlocking, args=(thisOrder,))
+        proc = th.Thread(target=self.sendOrderBlocking, args=(thisOrder,))
         proc.start()
         # writing alone shouldn't take long
         proc.join(timeout)
