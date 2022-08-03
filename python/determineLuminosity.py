@@ -861,8 +861,8 @@ lumiDetermination(experiment, thisScenario)
 
 # TODO: okay this is tricky, sometimes scenarios are pushed to the waiting stack,
 # and then they are run again? let's see if we can do this some other way.
-# while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
-while len(waiting_scenario_stack) > 0:
+# while len(waiting_scenario_stack) > 0:
+while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
     for scen in active_scenario_stack:
         lumiDetermination(experiment, scen)
 
