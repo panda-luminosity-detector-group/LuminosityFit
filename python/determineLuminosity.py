@@ -34,9 +34,9 @@ from lumifit.simulation import (
 """
 This file needs one major rewrite, thats for sure.
 - job_manager (and other objects) are defined globally and used in functions
-- agent is not thead safe, but multiple job_manager are created
+- agent is not thead safe, but multiple job_managers are created
 - job supervision is based on number of files;
-- but its not momitored if a given job has crashed 
+- but its not momitored if a given job has crashed
 - and the entire thing is declarative, when object orientation would be better suited
 """
 
@@ -657,7 +657,7 @@ def lumiDetermination(
             if cut_keyword == "":
                 cut_keyword += "un"
             cut_keyword += "cut_real "
-            bashcommand = (
+            bashcommand: str = (
                 "python doMultipleLuminosityFits.py "
                 "--forced_box_gen_data "
                 + thisScenario.acc_and_res_dir_path
@@ -667,7 +667,7 @@ def lumiDetermination(
                 + cut_keyword
                 + lmd_fit_path
                 + "/"
-                + thisExperiment.fitConfigPath
+                + str(thisExperiment.fitConfigPath)
                 # apparently, this is no longer needed
                 # + " "
                 # + track_file_pattern
