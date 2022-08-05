@@ -823,6 +823,10 @@ if len(dirs) != 1:
 # scen = Scenario(dir, experiment_type=ExperimentType.LUMI)
 
 # great, "dir" was shadowed
+if len(dirs) < 1:
+    print("ERROR! No dirs found!")
+    sys.exit()
+
 thisDir = dirs[0]
 
 # path has changed now for the newly found dir
