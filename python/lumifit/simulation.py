@@ -136,7 +136,7 @@ def create_simulation_and_reconstruction_job(
     align_params: AlignmentParameters,
     reco_params: ReconstructionParameters,
     output_dir="",
-    application_command="./runLmdSimReco.sh",
+    application_command="",
     force_level=0,
     debug=False,
     use_devel_queue=False,
@@ -146,6 +146,10 @@ def create_simulation_and_reconstruction_job(
         + f"{reco_params.low_index} - "
         + f"{reco_params.low_index + reco_params.num_samples - 1}"
     )
+
+    if application_command == '':
+        print(f"ERROR! no application command given!")
+        return (None, None)
 
     dirname = generateDirectory(sim_params, align_params, output_dir)
     dirname_filter_suffix = generateRecoDirSuffix(reco_params, align_params)
