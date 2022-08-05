@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv(dotenv_path="../lmdEnvFile.env", verbose=True)
 
+import os
 from pathlib import Path
 
 import cattrs
@@ -11,7 +12,7 @@ from lumifit.alignment import AlignmentParameters
 from lumifit.experiment import ClusterEnvironment, Experiment, ExperimentType
 from lumifit.general import write_params_to_file
 from lumifit.reconstruction import ReconstructionParameters
-from lumifit.simulation import SimulationParameters
+from lumifit.simulation import SimulationParameters, generateDirectory
 
 # write_params_to_file(asdict(simpars), ".", "simparams.config")
 # write_params_to_file(asdict(recopars), ".", "recoparams.config")
@@ -33,25 +34,35 @@ def genExperimentConfig(momentum: float, experimentType: Experiment):
     recopars.num_box_samples = 500
     recopars.num_events_per_box_sample = 100000
 
+    lmdfit_data_dir = os.getenv("LMDFIT_DATA_DIR")
+    dirname = generateDirectory(simpars, alignpars)
+
     experiment = Experiment(
         experimentType,
         ClusterEnvironment.HIMSTER,
         simpars,
         recopars,
         alignpars,
-        Path("/lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_4.1GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000"),
+        Path(lmdfit_data_dir + "/" + dirname),
     )
+
     return experiment
 
 
-confPath = Path("expConfigs/PANDA/")
-confPath.mkdir(parents=True, exist_ok=True)
-
+confPathPanda = Path("expConfigs/PANDA/")
+confPathPanda.mkdir(parents=True, exist_ok=True)
+confPathKoala = Path("expConfigs/KOALA/")
+confPathKoala.mkdir(parents=True, exist_ok=True)
 
 for mom in (1.5, 4.06, 8.1, 11.09, 15):
 
     experiment = genExperimentConfig(mom, ExperimentType.LUMI)
 
     write_params_to_file(
-        cattrs.unstructure(experiment), ".", f"{confPath}/{mom}.config"
+        cattrs.unstructure(experiment), ".", f"{confPathPanda}/{mom}.config"
+    )
+
+    experiment = genExperimentConfig(mom, ExperimentType.KOALA)
+    write_params_to_file(
+        cattrs.unstructure(experiment), ".", f"{confPathKoala}/{mom}.config"
     )
