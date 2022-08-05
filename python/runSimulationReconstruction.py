@@ -70,7 +70,7 @@ parser = addDebugArgumentsToParser(parser)
 args = parser.parse_args()
 
 thisExperiment: Experiment = load_params_from_file(
-    args.experimentConfig, Experiment
+    args.experimentConfig[0], Experiment
 )
 
 run_simulation_and_reconstruction(thisExperiment)
