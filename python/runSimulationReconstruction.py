@@ -6,7 +6,7 @@ This script is only run by a user, not any other script!
 
 import argparse
 
-from lumifit.cluster import ClusterJobManager, DebugJobHandler
+from lumifit.cluster import ClusterJobManager, DebugJobHandler, JobHandler
 from lumifit.experiment import ClusterEnvironment, Experiment
 from lumifit.general import addDebugArgumentsToParser, load_params_from_file
 from lumifit.gsi_virgo import create_virgo_job_handler
@@ -18,7 +18,7 @@ from lumifit.simulation import create_simulation_and_reconstruction_job
 def run_simulation_and_reconstruction(thisExperiment: Experiment):
 
     # temporary to get sim command
-    scen = Scenario("", thisExperiment)
+    scen = Scenario("", thisExperiment.experimentType)
 
     job, _ = create_simulation_and_reconstruction_job(
         thisExperiment.simParams,
@@ -30,6 +30,7 @@ def run_simulation_and_reconstruction(thisExperiment: Experiment):
         application_command=scen.Sim,
     )
 
+    job_handler: JobHandler
     if args.debug:
         job_handler = DebugJobHandler()
 

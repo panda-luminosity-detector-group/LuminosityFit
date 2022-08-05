@@ -147,7 +147,7 @@ def create_simulation_and_reconstruction_job(
         + f"{reco_params.low_index + reco_params.num_samples - 1}"
     )
 
-    if application_command == '':
+    if application_command == "":
         print(f"ERROR! no application command given!")
         return (None, None)
 
