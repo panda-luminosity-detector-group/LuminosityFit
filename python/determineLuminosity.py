@@ -117,10 +117,10 @@ def simulateDataOnHimster(
         tracks. This is the same as what the runSimulationReconstruction
         script does.
 
-    2:  ceate Data (bunch data objects)
+    2:  create Data (bunch data objects)
         first thing it should do is create bunches/binning dirs.
         Then call createMultipleLmdData which looks for these dirs.
-        This also finds the reconstruted IP position from the TrksQA files.
+        This also finds the reconstructed IP position from the TrksQA files.
 
     3:  Now the IP position is known and can be used as a cut on the
         reconstructed tracks. This performs the ENTIRE reconstruction
@@ -877,7 +877,9 @@ while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
     for scen in active_scenario_stack:
         lumiDetermination(experiment, scen)
 
-    # active_scenario_stack = []
+    # clear active stack, if the sceenario needs to be processed again,
+    # it will be placed in the waiting stack
+    active_scenario_stack = []
     # if all scenarios are currently processed just wait a bit and check again
     # TODO: I think it would be better to wait for a real signal and not just "when enough files are there"
     if len(waiting_scenario_stack) > 0:
