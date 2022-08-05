@@ -883,8 +883,8 @@ while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
     # if all scenarios are currently processed just wait a bit and check again
     # TODO: I think it would be better to wait for a real signal and not just "when enough files are there"
     if len(waiting_scenario_stack) > 0:
-        print("currently waiting for 5min to process scenarios again")
-        # wait, thats not really robust. shouldnt we actually monitor the jobs?
+        print("currently waiting for 15 min to process scenarios again")
+        # wait, thats not really robust. shouldn't we actually monitor the jobs?
         time.sleep(900)  # wait for 15min
         active_scenario_stack = waiting_scenario_stack
         waiting_scenario_stack = []

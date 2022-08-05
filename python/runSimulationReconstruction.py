@@ -6,7 +6,6 @@ import socket
 from lumifit.agent import Client
 from lumifit.alignment import AlignmentParameters
 from lumifit.cluster import ClusterJobManager, DebugJobHandler
-from lumifit.experiment import Experiment
 from lumifit.general import addDebugArgumentsToParser, load_params_from_file
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
@@ -80,16 +79,21 @@ parser = addDebugArgumentsToParser(parser)
 
 args = parser.parse_args()
 
-sim_params : SimulationParameters=load_params_from_file(args.sim_params[0], SimulationParameters)
+sim_params: SimulationParameters = load_params_from_file(
+    args.sim_params[0], SimulationParameters
+)
 
-reco_params : ReconstructionParameters = load_params_from_file(args.reco_params[0])
+reco_params: ReconstructionParameters = load_params_from_file(
+    args.reco_params[0], ReconstructionParameters
 )
 
 align_params = AlignmentParameters()
 
 if args.align_params:
-    align_params : AlignmentParameters =       load_params_from_file(args.align_params, AlignmentParameters)
-    
+    align_params: AlignmentParameters = load_params_from_file(
+        args.align_params, AlignmentParameters
+    )
+
 
 # check if the slurm argent is running
 client = Client()
