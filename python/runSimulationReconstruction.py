@@ -7,12 +7,12 @@ This script is only run by a user, not any other script!
 import argparse
 
 from lumifit.cluster import ClusterJobManager, DebugJobHandler
+from lumifit.experiment import ClusterEnvironment, Experiment
 from lumifit.general import addDebugArgumentsToParser, load_params_from_file
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
+from lumifit.scenario import Scenario
 from lumifit.simulation import create_simulation_and_reconstruction_job
-from python.lumifit.experiment import ClusterEnvironment, Experiment
-from python.lumifit.scenario import Scenario
 
 
 def run_simulation_and_reconstruction(thisExperiment: Experiment):
@@ -62,6 +62,7 @@ parser.add_argument(
     dest="experimentConfig",
     type=str,
     nargs=1,
+    required=True,
     help="Path to experiment.config file\n",
 )
 
