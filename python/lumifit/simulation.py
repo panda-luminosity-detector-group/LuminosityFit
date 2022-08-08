@@ -86,7 +86,7 @@ def generateDirectory(
     if output_dir == "":
         # generate output directory name
         # lets generate a folder structure based on the input
-        dirname = f"plab_{sim_params.lab_momentum:.1f}GeV"
+        dirname = f"plab_{sim_params.lab_momentum:.2f}GeV"
         gen_part = (
             f"{sim_params.sim_type.value}_theta_"
             + f"{sim_params.theta_min_in_mrad}-"

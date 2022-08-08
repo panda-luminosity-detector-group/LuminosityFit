@@ -413,7 +413,7 @@ def simulateDataOnHimster(
                         + " --dir_pattern "
                         + data_keywords[0]
                         + " "
-                        + f"{lab_momentum:.1f}"
+                        + f"{lab_momentum:.2f}"
                         + " "
                         + sim_type
                         + " "
@@ -428,7 +428,7 @@ def simulateDataOnHimster(
                         + "--dir_pattern "
                         + data_keywords[0]
                         + " "
-                        + f"{lab_momentum:.1f}"
+                        + f"{lab_momentum:.2f}"
                         + " "
                         + sim_type
                         + " "
