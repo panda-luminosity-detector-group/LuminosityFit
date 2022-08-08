@@ -27,6 +27,7 @@ def toCbool(input: bool) -> str:
         return "false"
 
 
+# TODO: overhaul this function
 def getGoodFiles(
     directory: str,
     glob_pattern: str,
