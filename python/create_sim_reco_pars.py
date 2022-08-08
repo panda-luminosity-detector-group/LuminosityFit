@@ -54,7 +54,7 @@ confPathPanda.mkdir(parents=True, exist_ok=True)
 confPathKoala = Path("expConfigs/KOALA/")
 confPathKoala.mkdir(parents=True, exist_ok=True)
 
-for mom in (1.5, 4.06, 8.1, 11.09, 15):
+for mom in (1.5, 4.06, 8.9, 11.91, 15):
 
     experiment = genExperimentConfig(mom, ExperimentType.LUMI)
 
