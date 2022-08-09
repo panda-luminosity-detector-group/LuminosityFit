@@ -212,7 +212,7 @@ def create_simulation_and_reconstruction_job(
     resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
     resource_request.number_of_nodes = 1
     resource_request.processors_per_node = 1
-    resource_request.memory_in_mb = 3000
+    resource_request.memory_in_mb = 3500
     resource_request.node_scratch_filesize_in_mb = 0
 
     if use_devel_queue:
