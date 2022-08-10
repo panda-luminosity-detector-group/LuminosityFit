@@ -80,7 +80,7 @@ def genEnvs():
     # * --------------
     vars["LMDFIT_MACROPATH"] = ask(
         "LMDFIT_MACROPATH",
-        f"{vars['VMCWORKDIR']}/macro/detectors/lmd",
+        f"{vars['VMCWORKDIR']}/macro/lmd",
         "This should be where the run macros for PandaRoot / KoalaSoft are.",
     )
 
