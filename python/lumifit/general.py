@@ -3,12 +3,18 @@ import json
 import os
 import re
 from argparse import (
-    ArgumentParser,
     ArgumentDefaultsHelpFormatter,
+    ArgumentParser,
     RawTextHelpFormatter,
 )
 from enum import Enum
+from pathlib import Path
 from typing import Any
+
+import cattrs
+
+cattrs.register_structure_hook(Path, lambda d, t: Path(d))
+cattrs.register_unstructure_hook(Path, lambda d: str(d))
 
 
 def toCbool(input: bool) -> str:
@@ -21,6 +27,7 @@ def toCbool(input: bool) -> str:
         return "false"
 
 
+# TODO: overhaul this function
 def getGoodFiles(
     directory: str,
     glob_pattern: str,
@@ -109,10 +116,16 @@ def write_params_to_file(params: dict, pathname: str, filename: str) -> None:
         print(f"Config file {filename} already exists!")
 
 
-def load_params_from_file(file_path: str) -> dict:
+def load_params_from_file(file_path: str, asType: type):
+    """
+    Uses cattrs to deserialize a json file to a python object. Requires target type
+    """
+    if asType is None:
+        raise NotImplementedError("Please specify the type to deserialize as.")
+
     if os.path.exists(file_path):
         with open(file_path, "r") as json_file:
-            return json.load(json_file)
+            return cattrs.structure(json.load(json_file), asType)
 
     print(f"file {file_path} does not exist!")
     return {}

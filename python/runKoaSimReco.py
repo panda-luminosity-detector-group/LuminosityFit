@@ -3,7 +3,7 @@
 import os
 
 from lumifit.alignment import AlignmentParameters
-from lumifit.general import load_params_from_file, check_stage_success
+from lumifit.general import check_stage_success, load_params_from_file
 from lumifit.simulation import SimulationParameters, SimulationType
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
@@ -23,8 +23,8 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
     debug = False
 
 # TODO: check if params are loaded correctly, shouldn't be the specified file name be used?
-sim_params = SimulationParameters(
-    **load_params_from_file(path_mc_data + "/../sim_params.config")
+sim_params: SimulationParameters = load_params_from_file(
+    path_mc_data + "/../sim_params.config", SimulationParameters
 )
 
 ali_params = AlignmentParameters()

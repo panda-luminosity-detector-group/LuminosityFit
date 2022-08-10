@@ -3,13 +3,8 @@
 import os
 
 from lumifit.alignment import AlignmentParameters
-from lumifit.general import (
-    load_params_from_file,
-    check_stage_success,
-)
+from lumifit.general import check_stage_success, load_params_from_file, toCbool
 from lumifit.reconstruction import ReconstructionParameters
-from lumifit.general import toCbool
-
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 LMDScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
@@ -30,9 +25,10 @@ if not os.path.isdir(pathToTrkQAFiles):
     os.makedirs(pathToTrkQAFiles)
 
 # TODO: check if params are loaded correctly, shouldn't be the specified file name be used?
-reco_params = ReconstructionParameters(
-    **load_params_from_file(pathToTrkQAFiles + "/reco_params.config")
+reco_params: ReconstructionParameters = load_params_from_file(
+    pathToTrkQAFiles + "/reco_params.config", ReconstructionParameters
 )
+
 
 # TODO: read alignment parameters correctly
 ali_params = AlignmentParameters()

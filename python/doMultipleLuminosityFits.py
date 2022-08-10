@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
+import argparse
+import glob
 import os
 import re
-import glob
 import socket
-import lumifit.general as general
-import argparse
 
+import lumifit.general as general
 from lumifit.cluster import ClusterJobManager, Job, JobResourceRequest
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
-
 
 dirs: list = []
 box_dirs: list = []
@@ -64,6 +63,7 @@ def getTopBoxDirectory(path: str) -> None:
             getTopBoxDirectory(os.path.dirname(path))
 
 
+# TODO: holy shit, DONT MAKE UP REGEX PATTERN ON THE FLY
 def findMatchingDirs(box_data_path: str) -> list:
     matching_dir_pairs = []
     if box_data_path == "":

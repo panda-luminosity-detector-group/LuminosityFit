@@ -13,8 +13,8 @@ class JobResourceRequest:
     walltime_in_minutes: int = attr.ib()
     number_of_nodes: int = attr.ib(default=1)
     processors_per_node: int = attr.ib(default=1)
-    memory_in_mb: int = attr.ib(default=1000)
-    virtual_memory_in_mb: int = attr.ib(default=1000)
+    memory_in_mb: int = attr.ib(default=2000)
+    virtual_memory_in_mb: int = attr.ib(default=2000)
     node_scratch_filesize_in_mb: int = attr.ib(default=0)
     is_dev_job: bool = attr.ib(default=False)
 
@@ -77,6 +77,9 @@ class ClusterJobManager:
 
     The jobs are pending in a queue until the number of jobs running on the
     cluster is below a certain threshold.
+
+    WARNING: This object is multithreaded, use locks when needed and be
+    mindful when querying the agent (the agent is not thread-safe)!
     """
 
     def __init__(

@@ -1,40 +1,51 @@
 #!/usr/bin/env python3
 
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path="../lmdEnvFile.env", verbose=True)
+
 import argparse
 import json
 import math
 import os
-import re
-import socket
 import subprocess
 import sys
 import time
-
-
-import lumifit.general as general
 from pathlib import Path
 
-from lumifit.alignment import AlignmentParameters
+import lumifit.general as general
 from lumifit.agent import Client
+from lumifit.alignment import AlignmentParameters
 from lumifit.cluster import ClusterJobManager
+from lumifit.experiment import ClusterEnvironment, Experiment
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
-from lumifit.scenario import Scenario, ExperimentType
-
 from lumifit.reconstruction import (
-    create_reconstruction_job,
     ReconstructionParameters,
+    create_reconstruction_job,
 )
+from lumifit.scenario import Scenario
 from lumifit.simulation import (
     SimulationParameters,
     SimulationType,
     create_simulation_and_reconstruction_job,
 )
 
+"""
+This file needs one major rewrite, thats for sure.
+- job_manager (and other objects) are defined globally and used in functions
+- agent is not thead safe, but multiple job_managers are created
+- job supervision is based on number of files;
+- but its not momitored if a given job has crashed
+- and the entire thing is declarative, when object orientation would be better suited
+"""
+
 
 def wasSimulationSuccessful(
+    experiment: Experiment,
     directory: str,
     glob_pattern: str,
+    # job_handler: JobHandler,  # there is a global job_handler, but this needs fixing anyway
     min_filesize_in_bytes: int = 10000,
     is_bunches: bool = False,
 ) -> int:
@@ -52,13 +63,16 @@ def wasSimulationSuccessful(
         is_bunches=is_bunches,
     )[1]
 
-    # TODO: read from scenario config!
-    full_hostname = socket.getfqdn()
-    if "gsi.de" in full_hostname:
-        job_handler = create_virgo_job_handler("long")
-    else:
-        job_handler = create_himster_job_handler("himster2_exp")
+    #! NEVER CREATE ANOTHER JOB HANDLER, THEY DEADLOCK THE SLURM AGENT
+    # if experiment.cluster == ClusterEnvironment.VIRGO:
+    #     job_handler = create_virgo_job_handler("long")
+    # elif experiment.cluster == ClusterEnvironment.HIMSTER:
+    #     if args.use_devel_queue:
+    #         job_handler = create_himster_job_handler("devel")
+    #     else:
+    #         job_handler = create_himster_job_handler("himster2_exp")
 
+    # TODO: I think there is a bug here, sometimes files are ready AFTER this check, this leads to a wrong lumi
     if files_percentage < required_files_percentage:
         if job_handler.get_active_number_of_jobs() > 0:
             return_value = 1
@@ -79,12 +93,17 @@ def wasSimulationSuccessful(
 # ----------------------------------------------------------------------------
 # ok we do it in such a way we have a step state for each directory and stacks
 # we try to process
+#! nope, ONE scenario, ONE experiment
 active_scenario_stack = []
+#! oh shit, I think this is still needed because the function is executed multiple times,
+#! with different internal states (which is just, just horrible)
 waiting_scenario_stack = []
-dead_scenario_stack = []
+# dead_scenario_stack = []
 
 
-def simulateDataOnHimster(scenario: Scenario) -> Scenario:
+def simulateDataOnHimster(
+    thisExperiment: Experiment, thisScenario: Scenario
+) -> Scenario:
     """Determines the luminosity of a set of Lumi_TrksQA_* files.
 
     This is pretty complicated and uses a lot of intermediate steps.
@@ -98,10 +117,10 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
         tracks. This is the same as what the runSimulationReconstruction
         script does.
 
-    2:  ceate Data (bunch data objects)
+    2:  create Data (bunch data objects)
         first thing it should do is create bunches/binning dirs.
         Then call createMultipleLmdData which looks for these dirs.
-        This also finds the reconstruted IP position from the TrksQA files.
+        This also finds the reconstructed IP position from the TrksQA files.
 
     3:  Now the IP position is known and can be used as a cut on the
         reconstructed tracks. This performs the ENTIRE reconstruction
@@ -116,8 +135,10 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
     """
     tasks_to_remove = []
 
-    lab_momentum = scenario.momentum
-    for simulation_task in scenario.simulation_info_lists:
+    lab_momentum = thisScenario.momentum
+    for simulation_task in thisScenario.simulation_info_lists:
+
+        # what what what
         dir_path = simulation_task[0]
         sim_type = simulation_task[1]
         state = simulation_task[2]
@@ -138,9 +159,9 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
         data_pattern = ""
 
         cut_keyword = ""
-        if scenario.use_xy_cut:
+        if thisScenario.use_xy_cut:
             cut_keyword += "xy_"
-        if scenario.use_m_cut:
+        if thisScenario.use_m_cut:
             cut_keyword += "m_"
         if cut_keyword == "":
             cut_keyword += "un"
@@ -174,7 +195,9 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
 
                 if found_dirs:
                     status_code = wasSimulationSuccessful(
-                        found_dirs[0], track_file_pattern + "*.root"
+                        thisExperiment,
+                        found_dirs[0],
+                        track_file_pattern + "*.root",
                     )
                 elif last_state < 1:
                     # then lets simulate!
@@ -183,7 +206,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     # for this sample
                     # note: beam tilt and divergence are not necessary here,
                     # because that is handled completely by the model
-                    ip_info_dict = scenario.rec_ip_info
+                    ip_info_dict = thisScenario.rec_ip_info
                     max_xy_shift = math.sqrt(
                         ip_info_dict["ip_offset_x"] ** 2
                         + ip_info_dict["ip_offset_y"] ** 2
@@ -200,8 +223,8 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     )
                     sim_par.theta_min_in_mrad -= max_xy_shift
                     sim_par.theta_max_in_mrad += max_xy_shift
-                    sim_par.phi_min_in_rad = scen.phi_min_in_rad
-                    sim_par.phi_max_in_rad = scen.phi_max_in_rad
+                    sim_par.phi_min_in_rad = thisScenario.phi_min_in_rad
+                    sim_par.phi_max_in_rad = thisScenario.phi_max_in_rad
                     # TODO: ip offset for sim params?
 
                     rec_par = ReconstructionParameters(
@@ -209,8 +232,8 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                         num_samples=box_num_samples,
                         lab_momentum=lab_momentum,
                     )
-                    rec_par.use_xy_cut = scenario.use_xy_cut
-                    rec_par.use_m_cut = scenario.use_m_cut
+                    rec_par.use_xy_cut = thisScenario.use_xy_cut
+                    rec_par.use_m_cut = thisScenario.use_m_cut
                     rec_par.reco_ip_offset = (
                         ip_info_dict["ip_offset_x"],
                         ip_info_dict["ip_offset_y"],
@@ -221,12 +244,14 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     # if alignement matrices were specified, we used them as a mis-alignment
                     # and alignment for the box simulations
                     align_par = AlignmentParameters()
-                    if scen.alignment_parameters.alignment_matrices_path:
+                    if (
+                        thisScenario.alignment_parameters.alignment_matrices_path
+                    ):
                         align_par.misalignment_matrices_path = (
-                            scen.alignment_parameters.alignment_matrices_path
+                            thisScenario.alignment_parameters.alignment_matrices_path
                         )
                         align_par.alignment_matrices_path = (
-                            scen.alignment_parameters.alignment_matrices_path
+                            thisScenario.alignment_parameters.alignment_matrices_path
                         )
                     # update the sim and reco par dicts
 
@@ -234,13 +259,13 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                         sim_par,
                         align_par,
                         rec_par,
-                        application_command=scenario.Sim,
+                        application_command=thisScenario.Sim,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
 
                     simulation_task[0] = dir_path
-                    scenario.acc_and_res_dir_path = dir_path
+                    thisScenario.acc_and_res_dir_path = dir_path
                     last_state += 1
 
             elif "a" in sim_type:
@@ -256,7 +281,9 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     found_dirs = temp_dir_searcher.getListOfDirectories()
                 if found_dirs:
                     status_code = wasSimulationSuccessful(
-                        found_dirs[0], track_file_pattern + "*.root"
+                        thisExperiment,
+                        found_dirs[0],
+                        track_file_pattern + "*.root",
                     )
 
                 elif last_state < state:
@@ -265,33 +292,40 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     # elastic scattering data with the estimated ip position
                     # note: beam tilt and divergence are not used here because
                     # only the last reco steps are rerun of the track reco
-                    ip_info_dict = scenario.rec_ip_info
+                    ip_info_dict = thisScenario.rec_ip_info
 
                     # TODO: save digi files instead of mc files!!
                     # we are either in the base dir or an "aligned" subdirectory,
                     # apply dirty hack here:
 
                     print(
-                        f"\n\nDEBUG: this is this scenarios dir path:\n{scenario.dir_path}\n\n"
+                        f"\n\nDEBUG: this is this scenarios dir path:\n{thisScenario.dir_path}\n\n"
                     )
 
-                    simParamFile = scenario.dir_path + "/../sim_params.config"
+                    # TODO: Wait, why do we need sim params here at all? There won't be any sim params during the actual experiment
+                    simParamFile = (
+                        thisScenario.dir_path + "/../sim_params.config"
+                    )
                     if not os.path.exists(simParamFile):
                         simParamFile = (
-                            scenario.dir_path + "/../../sim_params.config"
+                            thisScenario.dir_path + "/../../sim_params.config"
                         )
 
-                    sim_par = SimulationParameters(
-                        **general.load_params_from_file(simParamFile)
-                    )
-
-                    rec_par = ReconstructionParameters(
-                        **general.load_params_from_file(
-                            scenario.dir_path + "/reco_params.config"
+                    sim_par: SimulationParameters = (
+                        general.load_params_from_file(
+                            simParamFile, SimulationParameters
                         )
                     )
-                    rec_par.use_xy_cut = scenario.use_xy_cut
-                    rec_par.use_m_cut = scenario.use_m_cut
+
+                    rec_par: ReconstructionParameters = (
+                        general.load_params_from_file(
+                            thisScenario.dir_path + "/reco_params.config",
+                            ReconstructionParameters,
+                        )
+                    )
+
+                    rec_par.use_xy_cut = thisScenario.use_xy_cut
+                    rec_par.use_m_cut = thisScenario.use_m_cut
                     rec_par.reco_ip_offset = [
                         ip_info_dict["ip_offset_x"],
                         ip_info_dict["ip_offset_y"],
@@ -308,7 +342,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     # os.path.dirname() thinks this is a filename and gives 1-100_uncut back, which
                     # is too high
                     # dirname = os.path.dirname(scenario.dir_path) + "/../"
-                    dirname = str(Path(scenario.dir_path).parent.parent)
+                    dirname = str(Path(thisScenario.dir_path).parent.parent)
 
                     print(f"DEBUG:\ndirname is {dirname}")
 
@@ -316,13 +350,13 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                         rec_par,
                         align_par,
                         dirname,
-                        application_command=scenario.Reco,
+                        application_command=thisScenario.Reco,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
 
                     simulation_task[0] = dir_path
-                    scen.filtered_dir_path = dir_path
+                    thisScenario.filtered_dir_path = dir_path
                     last_state += 1
             else:
                 # just skip simulation for vertex data... we always have that..
@@ -352,11 +386,15 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
             status_code = 1
             if found_dirs:
                 status_code = wasSimulationSuccessful(
-                    found_dirs[0], data_pattern + "*", is_bunches=True
+                    thisExperiment,
+                    found_dirs[0],
+                    data_pattern + "*",
+                    is_bunches=True,
                 )
             elif last_state < state:
                 os.chdir(lmd_fit_script_path)
                 # bunch data
+                #TODO: pass experiment config, or better yet, make class instead of script
                 bashcommand = (
                     "python makeMultipleFileListBunches.py "
                     "--files_per_bunch 10 --maximum_number_of_files "
@@ -364,18 +402,18 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                     + " "
                     + dir_path
                 )
-                returnvalue = subprocess.call(bashcommand.split())
+                _ = subprocess.call(bashcommand.split())
                 # create data
                 if "a" in sim_type:
                     el_cs = (
-                        scenario.elastic_pbarp_integrated_cross_secion_in_mb
+                        thisScenario.elastic_pbarp_integrated_cross_secion_in_mb
                     )
                     bashcommand = (
                         "python createMultipleLmdData.py "
                         + " --dir_pattern "
                         + data_keywords[0]
                         + " "
-                        + f"{lab_momentum:.1f}"
+                        + f"{lab_momentum:.2f}"
                         + " "
                         + sim_type
                         + " "
@@ -390,7 +428,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                         + "--dir_pattern "
                         + data_keywords[0]
                         + " "
-                        + f"{lab_momentum:.1f}"
+                        + f"{lab_momentum:.2f}"
                         + " "
                         + sim_type
                         + " "
@@ -398,7 +436,7 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                         + " ../dataconfig_xy.json"  # TODO: use absolute path here!
                     )
                     print(bashcommand)
-                returnvalue = subprocess.call(bashcommand.split())
+                _ = subprocess.call(bashcommand.split())
                 last_state = last_state + 1
 
             if status_code == 0:
@@ -452,38 +490,40 @@ def simulateDataOnHimster(scenario: Scenario) -> Scenario:
                         + " "
                         + dir_path
                     )
-                returnvalue = subprocess.call(bashcommand.split())
+                _ = subprocess.call(bashcommand.split())
             state = 4
 
         simulation_task[2] = state
         simulation_task[3] = last_state
 
         if simulation_task[3] == -1:
-            scenario.is_broken = True
+            thisScenario.is_broken = True
             break
         if simulation_task[2] == 4:
             tasks_to_remove.append(simulation_task)
             print("Task is finished and will be removed from list!")
 
     for x in tasks_to_remove:
-        del scenario.simulation_info_lists[
-            scenario.simulation_info_lists.index(x)
+        del thisScenario.simulation_info_lists[
+            thisScenario.simulation_info_lists.index(x)
         ]
-    return scenario
+    return thisScenario
 
 
-def lumiDetermination(scen: Scenario) -> None:
-    dir_path = scen.dir_path
+def lumiDetermination(
+    thisExperiment: Experiment, thisScenario: Scenario
+) -> None:
+    dir_path = thisScenario.dir_path
 
-    state = scen.state
-    last_state = scen.last_state
+    state = thisScenario.state
+    last_state = thisScenario.last_state
 
     # open file
     if os.path.exists(dir_path + "/../../elastic_cross_section.txt"):
         print("Found an elastic cross section file!")
         with open(dir_path + "/../../elastic_cross_section.txt") as f:
             content = f.readlines()
-            scen.elastic_pbarp_integrated_cross_secion_in_mb = float(
+            thisScenario.elastic_pbarp_integrated_cross_secion_in_mb = float(
                 content[0]
             )
             f.close()
@@ -495,32 +535,32 @@ def lumiDetermination(scen: Scenario) -> None:
 
     print("processing scenario " + dir_path + " at step " + str(state))
 
-    # TODO: Not sure if later on the lab momentum has to be extracted from the data
-    m = re.search(r"plab_(\d*?\.?\d*?)GeV", dir_path)
-    momentum = float(m.group(1))
-    scen.momentum = momentum
-
-    scen.alignment_parameters = AlignmentParameters(
-        **general.load_params_from_file(scen.dir_path + "/align_params.config")
+    thisScenario.alignment_parameters: AlignmentParameters = (
+        general.load_params_from_file(
+            thisScenario.dir_path + "/align_params.config", AlignmentParameters
+        )
     )
 
     finished = False
     # 1. create vertex data (that means bunch data, create data objects and merge)
     if state == 1:
-        if len(scen.simulation_info_lists) == 0:
-            scen.simulation_info_lists.append([dir_path, "v", 1, 0])
+        if len(thisScenario.simulation_info_lists) == 0:
+            thisScenario.simulation_info_lists.append([dir_path, "v", 1, 0])
 
-        scen = simulateDataOnHimster(scen)
-        if scen.is_broken:
-            dead_scenario_stack.append(scen)
+        thisScenario = simulateDataOnHimster(thisExperiment, thisScenario)
+        if thisScenario.is_broken:
+            print(
+                f"ERROR! Scenario is broken! debug scenario info:\n{thisScenario}"
+            )
+            # dead_scenario_stack.append(scen)
             return
-        if len(scen.simulation_info_lists) == 0:
+        if len(thisScenario.simulation_info_lists) == 0:
             state += 1
             last_state += 1
 
     if state == 2:
         # check if ip was already determined
-        if scen.use_ip_determination:
+        if thisScenario.use_ip_determination:
             temp_dir_searcher = general.DirectorySearcher(
                 ["merge_data", "binning_300"]
             )
@@ -542,7 +582,7 @@ def lumiDetermination(scen: Scenario) -> None:
                     + " -c "
                     + "../../vertex_fitconfig.json"
                 )
-                returnvalue = subprocess.call(bashcommand.split())
+                _ = subprocess.call(bashcommand.split())
                 ip_rec_file = found_dirs[0] + "/reco_ip.json"
             else:
                 ip_rec_file = found_dirs[0] + "/reco_ip.json"
@@ -550,21 +590,21 @@ def lumiDetermination(scen: Scenario) -> None:
             file_content = open(ip_rec_file)
             ip_rec_data = json.load(file_content)
 
-            scen.rec_ip_info["ip_offset_x"] = float(
+            thisScenario.rec_ip_info["ip_offset_x"] = float(
                 "{0:.3f}".format(round(float(ip_rec_data["ip_x"]), 3))
             )  # in cm
-            scen.rec_ip_info["ip_offset_y"] = float(
+            thisScenario.rec_ip_info["ip_offset_y"] = float(
                 "{0:.3f}".format(round(float(ip_rec_data["ip_y"]), 3))
             )
-            scen.rec_ip_info["ip_offset_z"] = float(
+            thisScenario.rec_ip_info["ip_offset_z"] = float(
                 "{0:.3f}".format(round(float(ip_rec_data["ip_z"]), 3))
             )
 
             print("Finished IP determination for this scenario!")
         else:
-            scen.rec_ip_info["ip_offset_x"] = 0.0
-            scen.rec_ip_info["ip_offset_y"] = 0.0
-            scen.rec_ip_info["ip_offset_z"] = 0.0
+            thisScenario.rec_ip_info["ip_offset_x"] = 0.0
+            thisScenario.rec_ip_info["ip_offset_y"] = 0.0
+            thisScenario.rec_ip_info["ip_offset_z"] = 0.0
             print("Skipped IP determination for this scenario!")
 
         state += 1
@@ -581,17 +621,20 @@ def lumiDetermination(scen: Scenario) -> None:
         # (that means simulation + bunching + creating data objects + merging)
         # because this data is now with a cut applied, the new directory is called
         # something 1-100_xy_m_cut_real
-        if len(scen.simulation_info_lists) == 0:
-            scen.simulation_info_lists.append(["", "a", 1, 0])
-            scen.simulation_info_lists.append(["", "er", 1, 0])
+        if len(thisScenario.simulation_info_lists) == 0:
+            thisScenario.simulation_info_lists.append(["", "a", 1, 0])
+            thisScenario.simulation_info_lists.append(["", "er", 1, 0])
 
         # all info needed for the COMPLETE reconstruction chain is here
-        scen = simulateDataOnHimster(scen)
-        if scen.is_broken:
-            dead_scenario_stack.append(scen)
+        thisScenario = simulateDataOnHimster(thisExperiment, thisScenario)
+        if thisScenario.is_broken:
+            print(
+                f"ERROR! Scenario is broken! debug scenario info:\n{thisScenario}"
+            )
+            # dead_scenario_stack.append(thisScenario)
             return
 
-        if len(scen.simulation_info_lists) == 0:
+        if len(thisScenario.simulation_info_lists) == 0:
             state += 1
             last_state += 1
 
@@ -601,87 +644,95 @@ def lumiDetermination(scen: Scenario) -> None:
             ["merge_data", "binning_300"]
         )
         temp_dir_searcher.searchListOfDirectories(
-            scen.filtered_dir_path, "lmd_fitted_data"
+            thisScenario.filtered_dir_path, "lmd_fitted_data"
         )
         found_dirs = temp_dir_searcher.getListOfDirectories()
         if not found_dirs:
             os.chdir(lmd_fit_script_path)
             print("running lmdfit!")
             cut_keyword = ""
-            if scen.use_xy_cut:
+            if thisScenario.use_xy_cut:
                 cut_keyword += "xy_"
-            if scen.use_m_cut:
+            if thisScenario.use_m_cut:
                 cut_keyword += "m_"
             if cut_keyword == "":
                 cut_keyword += "un"
             cut_keyword += "cut_real "
-            bashcommand = (
+            bashcommand: str = (
                 "python doMultipleLuminosityFits.py "
                 "--forced_box_gen_data "
-                + scen.acc_and_res_dir_path
+                + thisScenario.acc_and_res_dir_path
                 + " "
-                + scen.filtered_dir_path
+                + thisScenario.filtered_dir_path
                 + " "
                 + cut_keyword
                 + lmd_fit_path
                 + "/"
-                + args.fit_config
+                + str(thisExperiment.fitConfigPath)
                 # apparently, this is no longer needed
                 # + " "
                 # + track_file_pattern
             )
             print(f"Bash command is:\n{bashcommand}")
-            returnvalue = subprocess.call(bashcommand.split())
+            _ = subprocess.call(bashcommand.split())
 
         print("this scenario is fully processed!!!")
         finished = True
 
     # if we are in an intermediate step then push on the waiting stack and
     # increase step state
+    #! I don't think we should ever reach this point?
     if not finished:
-        scen.state = state
-        scen.last_state = last_state
-        waiting_scenario_stack.append(scen)
+        thisScenario.state = state
+        thisScenario.last_state = last_state
+        print(
+            f"WARNING! Scenario is not finished, but apparently this loop must be done multiple times?"
+        )
+        waiting_scenario_stack.append(thisScenario)
 
+
+#! --------------------------------------------------
+#!             script part starts here
+#! --------------------------------------------------
 
 parser = argparse.ArgumentParser(
     description="Lmd One Button Script", formatter_class=general.SmartFormatter
 )
 
-parser.add_argument(
-    "--base_output_data_dir",
-    metavar="base_output_data_dir",
-    type=str,
-    default=os.getenv("LMDFIT_DATA_DIR"),
-    help="Base directory for output files created by this script.\n",
-)
-parser.add_argument(
-    "--fit_config",
-    metavar="fit_config",
-    type=str,
-    default="fitconfig-fast.json",
-)
-parser.add_argument(
-    "--box_num_events_per_sample",
-    metavar="box_num_events_per_sample",
-    type=int,
-    default=100000,
-    help="number of events per sample to simulate",
-)
-parser.add_argument(
-    "--box_num_samples",
-    metavar="box_num_samples",
-    type=int,
-    default=500,
-    help="number of samples to simulate",
-)
-parser.add_argument(
-    "--num_samples",
-    metavar="num_samples",
-    type=int,
-    default=100,
-    help="number of elastic data files to reconstruct" " (-1 means all)",
-)
+# parser.add_argument(
+#     "--base_output_data_dir",
+#     metavar="base_output_data_dir",
+#     type=str,
+#     default=os.getenv("LMDFIT_DATA_DIR"),
+#     help="Base directory for output files created by this script.\n",
+# )
+# parser.add_argument(
+#     "--fit_config",
+#     metavar="fit_config",
+#     type=str,
+#     default="fitconfig-fast.json",
+# )
+# parser.add_argument(
+#     "--box_num_events_per_sample",
+#     metavar="box_num_events_per_sample",
+#     type=int,
+#     default=100000,
+#     help="number of events per sample to simulate",
+# )
+# parser.add_argument(
+#     "--box_num_samples",
+#     metavar="box_num_samples",
+#     type=int,
+#     default=500,
+#     help="number of samples to simulate",
+# )
+# parser.add_argument(
+#     "--num_samples",
+#     metavar="num_samples",
+#     type=int,
+#     default=100,
+#     help="number of elastic data files to reconstruct" " (-1 means all)",
+# )
 parser.add_argument(
     "--bootstrapped_num_samples",
     type=int,
@@ -712,69 +763,107 @@ parser.add_argument(
     help="If flag is set, the devel queue is used",
 )
 
+parser.add_argument(
+    "-e",
+    "--experiment_config",
+    dest="ExperimentConfigFile",
+    type=Path,
+    help="The Experiment.config file that holds all info.",
+    required=True,
+)
+
 args = parser.parse_args()
 
 # check if slurm agent is running
 client = Client()
 client.checkConnection()
 
-experiment_type = ExperimentType.LUMI
+# load experiment config
+experiment: Experiment = general.load_params_from_file(
+    args.ExperimentConfigFile, Experiment
+)
 
-# TODO: read from scenario config file
-if experiment_type == ExperimentType.LUMI:
-    track_file_pattern = "Lumi_TrksQA_"
-elif experiment_type == ExperimentType.KOALA:
-    track_file_pattern = "Koala_Track_"
+# prepare data for Scenario
+experiment_type = experiment.experimentType
+# TODO: there is nothing in here yet. Write some example experiment configs! (or make scritp for that)
+baseDataOutputDir = str(experiment.baseDataOutputDir)
 
-lmd_fit_script_path = os.path.dirname(os.path.realpath(__file__))
+# make scenario config
+thisScenario = Scenario(baseDataOutputDir, experiment_type)
+thisScenario.momentum = experiment.recoParams.lab_momentum
+
+# pattern depends on experiment type
+track_file_pattern = thisScenario.track_file_pattern
+
+lmd_fit_script_path = os.environ["LMDFIT_SCRIPTPATH"]
 lmd_fit_path = os.path.dirname(lmd_fit_script_path)
 lmd_fit_bin_path = os.getenv("LMDFIT_BUILD_PATH") + "/bin"
 
-num_samples = args.num_samples
+# set via command line argument, usually 1
 bootstrapped_num_samples = args.bootstrapped_num_samples
-box_num_samples = args.box_num_samples
-box_num_events_per_sample = args.box_num_events_per_sample
+
+# these are set in experiment.config
+num_samples = experiment.recoParams.num_samples
+box_num_samples = experiment.recoParams.num_box_samples
+box_num_events_per_sample = experiment.recoParams.num_events_per_box_sample
 
 # first lets try to find all directories and their status/step
 dir_searcher = general.DirectorySearcher(["dpm_elastic", "uncut"])
 
-dir_searcher.searchListOfDirectories(
-    args.base_output_data_dir, track_file_pattern
-)
+dir_searcher.searchListOfDirectories(baseDataOutputDir, track_file_pattern)
 dirs = dir_searcher.getListOfDirectories()
 
 print(f"\n\nINFO: found these dirs:\n{dirs}\n\n")
 
-# at first assign each scenario the first step and push on the active stack
-for dir in dirs:
-    scen = Scenario(dir, experiment_type=ExperimentType.LUMI)
-    print("creating scenario:", dir)
-    if args.disable_xy_cut or (
-        "/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir
-    ):
-        print("Disabling xy cut!")
-        scen.use_xy_cut = False  # for testing purposes
-    if args.disable_m_cut or (
-        "/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir
-    ):
-        print("Disabling m cut!")
-        scen.use_m_cut = False  # for testing purposes
-    if args.disable_ip_determination or (
-        "/no_alignment_correction" in dir and "no_geo_misalignment/" not in dir
-    ):
-        print("Disabling IP determination!")
-        scen.use_ip_determination = False
-    active_scenario_stack.append(scen)
+if len(dirs) != 1:
+    print(f"found {len(dirs)} directory candidates, something is wrong!")
 
-# TODO: read from scenario config!
-full_hostname = socket.getfqdn()
-if "gsi.de" in full_hostname:
+# at first assign each scenario the first step and push on the active stack
+# NOPE, only one dir and only one scenario (sorry Stefan)
+# for dir in dirs:
+# scen = Scenario(dir, experiment_type=ExperimentType.LUMI)
+
+# great, "dir" was shadowed
+if len(dirs) < 1:
+    print("ERROR! No dirs found!")
+    sys.exit()
+
+thisDir = dirs[0]
+
+# path has changed now for the newly found dir
+thisScenario.dir_path = thisDir
+
+print("creating scenario:", thisDir)
+if args.disable_xy_cut or (
+    "/no_alignment_correction" in thisDir
+    and "no_geo_misalignment/" not in thisDir
+):
+    print("Disabling xy cut!")
+    thisScenario.use_xy_cut = False  # for testing purposes
+if args.disable_m_cut or (
+    "/no_alignment_correction" in thisDir
+    and "no_geo_misalignment/" not in thisDir
+):
+    print("Disabling m cut!")
+    thisScenario.use_m_cut = False  # for testing purposes
+if args.disable_ip_determination or (
+    "/no_alignment_correction" in thisDir
+    and "no_geo_misalignment/" not in thisDir
+):
+    print("Disabling IP determination!")
+    thisScenario.use_ip_determination = False
+# active_scenario_stack.append(thisScenario)
+
+if experiment.cluster == ClusterEnvironment.VIRGO:
     job_handler = create_virgo_job_handler("long")
-else:
+elif experiment.cluster == ClusterEnvironment.HIMSTER:
     if args.use_devel_queue:
         job_handler = create_himster_job_handler("devel")
     else:
         job_handler = create_himster_job_handler("himster2_exp")
+else:
+    raise NotImplementedError("This cluster type is not implemented!")
+
 
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
@@ -782,15 +871,26 @@ job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
 
 # now just keep processing the active_stack
+# NOPE, ONE experiment, ONE scenario
+
+lumiDetermination(experiment, thisScenario)
+
+# TODO: okay this is tricky, sometimes scenarios are pushed to the waiting stack,
+# and then they are run again? let's see if we can do this some other way.
+# while len(waiting_scenario_stack) > 0:
 while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
     for scen in active_scenario_stack:
-        lumiDetermination(scen)
+        lumiDetermination(experiment, scen)
 
+    # clear active stack, if the sceenario needs to be processed again,
+    # it will be placed in the waiting stack
     active_scenario_stack = []
     # if all scenarios are currently processed just wait a bit and check again
+    # TODO: I think it would be better to wait for a real signal and not just "when enough files are there"
     if len(waiting_scenario_stack) > 0:
-        print("currently waiting for 5min to process scenarios again")
-        time.sleep(300)  # wait for 5min
+        print("currently waiting for 15 min to process scenarios again")
+        # wait, thats not really robust. shouldn't we actually monitor the jobs?
+        time.sleep(900)  # wait for 15min
         active_scenario_stack = waiting_scenario_stack
         waiting_scenario_stack = []
 

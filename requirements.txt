@@ -1,8 +1,10 @@
 autopep8
-attr
+attrs
 black
+cattrs
 flake8
 isort
 mypy
 pycodestyle
 pytest
+python-dotenv

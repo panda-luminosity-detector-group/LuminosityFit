@@ -6,19 +6,22 @@ in a named pipe and returns their outputs and return code in the same way.
 the structure of the order and return object is governd by the SlurmOrder Class.
 """
 
-import attr
 import datetime
 import json
 import logging
-import multiprocessing as mp
 import os
 import shlex
-import subprocess
 import stat
+import subprocess
 import sys
+
+# import multiprocessing as mp
+import threading as th
 from enum import IntEnum
 from pathlib import Path
 from typing import Dict
+
+import attr
 
 
 @attr.s(hash=True)
@@ -67,8 +70,11 @@ class Agent:
         )
         sys.exit(0)
 
-    def sendOrder(self, thisOrder: SlurmOrder, timeout: float = 3.0) -> bool:
-        proc = mp.Process(target=self.sendOrderSP, args=(thisOrder,))
+    def sendOrder(self, thisOrder: SlurmOrder, timeout: float = 5.0) -> bool:
+        self.sendOrderBlocking(thisOrder)
+        return True
+        # proc = mp.Process(target=self.sendOrderBlocking, args=(thisOrder,))
+        proc = th.Thread(target=self.sendOrderBlocking, args=(thisOrder,))
         proc.start()
         # writing alone shouldn't take long
         proc.join(timeout)
@@ -80,14 +86,14 @@ class Agent:
             )
         return True
 
-    def sendOrderSP(self, thisOrder: SlurmOrder) -> None:
+    def sendOrderBlocking(self, thisOrder: SlurmOrder) -> None:
         with open(
             self.universalPipePath, "w", encoding="utf-8"
         ) as universalPipe:
             payload = thisOrder.__dict__
             json.dump(payload, universalPipe)
 
-    def receiveOrder(self) -> None:
+    def receiveOrder(self) -> SlurmOrder:
         with open(
             self.universalPipePath, "r", encoding="utf-8"
         ) as universalPipe:
@@ -133,6 +139,11 @@ class Server(Agent):
             # read entire pipe contents and try to deserialize json from it (close pipe!)
             thisOrder = self.receiveOrder()
             logging.info(
+                f"{datetime.datetime.now().isoformat(timespec='seconds')}: Received Order:"
+            )
+            logging.info(f"cmd: {thisOrder.cmd}")
+
+            logging.debug(
                 f"{datetime.datetime.now().isoformat(timespec='seconds')}: Received Order:\n{thisOrder}\n"
             )
 
@@ -143,6 +154,11 @@ class Server(Agent):
 
                 # return result
                 logging.info(
+                    f"{datetime.datetime.now().isoformat(timespec='seconds')}: Sent back result:"
+                )
+                logging.info(f"stdout: {returnOrder.stdout}")
+
+                logging.debug(
                     f"{datetime.datetime.now().isoformat(timespec='seconds')}: Sent back result:\n{returnOrder}\n"
                 )
                 self.sendOrder(returnOrder)
@@ -193,7 +209,7 @@ class Server(Agent):
         print("Have a nice day.")
         sys.exit(0)
 
-    def run(self) -> None:
+    def run(self, debug=False) -> None:
 
         # fork to background
         try:
@@ -215,11 +231,17 @@ class Server(Agent):
 
         print(welcome)
 
+        if debug:
+            print("DEBUG MODE")
+            logLevel = logging.DEBUG
+        else:
+            logLevel = logging.INFO
+
         # preapare log
         logging.basicConfig(
             filename=f"agentLog-{datetime.datetime.now().isoformat()}.log",
             encoding="utf-8",
-            level=logging.INFO,
+            level=logLevel,
         )
         logging.info(
             f"Starting Log at {datetime.datetime.now().isoformat()}\n"
@@ -253,7 +275,11 @@ class Client(Agent):
 
 if __name__ == "__main__":
     thisServer = Server()
-    thisServer.run()
+
+    if "--debug" in sys.argv:
+        thisServer.run(debug=True)
+    else:
+        thisServer.run()
 
     #! Uncomment this to see some basic examples
     # Agent.SlurmOrderExamples()

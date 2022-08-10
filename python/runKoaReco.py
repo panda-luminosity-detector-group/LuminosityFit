@@ -2,7 +2,7 @@
 import os
 
 from lumifit.alignment import AlignmentParameters
-from lumifit.general import load_params_from_file, check_stage_success
+from lumifit.general import check_stage_success, load_params_from_file
 from lumifit.reconstruction import ReconstructionParameters
 
 # fixed for this installation
@@ -23,8 +23,8 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
     debug = False
 
 # TODO: check if params are loaded correctly, shouldn't be the specified file name be used?
-reco_params = ReconstructionParameters(
-    **load_params_from_file(pathname + "/reco_params.config")
+reco_params: ReconstructionParameters = load_params_from_file(
+    pathname + "/reco_params.config", ReconstructionParameters
 )
 ali_params = AlignmentParameters()
 

@@ -8,7 +8,9 @@ Note: For future development I would recommend to port the necessary code python
 - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
+    - [Generate Container](#generate-container)
     - [Compilation](#compilation)
+    - [First Run](#first-run)
   - [Using](#using)
   - [Using in Container with the Slurm Agent](#using-in-container-with-the-slurm-agent)
 - [Mode of Operation](#mode-of-operation)
@@ -28,7 +30,7 @@ Note: For future development I would recommend to port the necessary code python
 
 ### Prerequisites
 
-Make sure your Pandaroot enviroment is set up correctly, more precisely that these environment variables are set:
+Make sure your Pandaroot environment is set up correctly, more precisely that these environment variables are set:
 
 - SIMPATH
 - VMCWORKDIR
@@ -228,11 +230,24 @@ id1([scenarioConfig.json]) -.-> determineLuminosity.py
 
 ### Function Call Diagram
 
-The function diagram is pretty complicated, and has lot's of internal states. One very important class of objects is the `scenario` class, which holds a `state` variable. This variable controls the program flow. There can be multiple `scenario`s, each with their own `state`. A scenario object ist also passed to the `simulateDataOnHimster(scen: scenario)` function.
+The function diagram is pretty complicated, and has lot's of internal states. One very important class of objects is the `scenario` class, which holds a `state` variable (and a list with more states and working directories). These variables controls the program flow. There can be multiple `scenario`s, each with their own `state`. A scenario object ist also passed to the `simulateDataOnHimster(scen: scenario)` function.
+
+The `lumiDetermination` function is called once at the beginning, and then sometimes again if the waiting stack is not empty.
 
 ```mermaid
 flowchart TD
-start([Start]) --> setup[Parse arguments, check cluster,\n prepare jobManager, create Scenario stack]
+start([lumiDetermination]) --> append["append to wait stack\n(changed internal state\)"]
+append --> wstack
+wstack["while(waiting stack > 0)"] ---> lumiDetermination --> finished["finished?"]
+finished --no --> append
+finished --yes--> done(["Done!"])
+```
+
+The `lumiDetermination` function is very complicated and needs its own diagram:
+
+```mermaid
+flowchart TD
+start([lumiDetermination]) --> setup[Parse arguments, check cluster,\n prepare jobManager, create Scenario stack]
 setup --> callLumi["lumiDetermination(scenario)"]
 callLumi --> state{Which State?}
 state --1--> simOnHim["simulateDataOnHimster(scen: scenario)"]

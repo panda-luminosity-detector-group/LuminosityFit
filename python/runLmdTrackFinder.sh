@@ -1,10 +1,12 @@
 #!/bin/sh
 
-#! =======================================================
-#! ====   DEPRECATED. DO NOT USE ANYMORE              ====
-#! =======================================================
+echo =======================================================
+echo ====   DEPRECATED. DO NOT USE ANYMORE              ====
+echo ====   KEEP ONLY FOR REFERENCE, OR DELETE          ====
+echo =======================================================
 
-return
+exit 1
+
 
 # if scriptpath or workpathname is not set then this reco script was executed itself
 if [ -z $scriptpath ] || [ -z $workpathname ]; then

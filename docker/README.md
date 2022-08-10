@@ -27,7 +27,7 @@ docker push localhost:5000/lumifit
 ## Convert to Singularity Image
 
 ```bash
-SINGULARITY_NOHTTPS=true singularity build lumifit.sif singularityRecipe.txt
+SINGULARITY_NOHTTPS=true singularity build lumifit.sif docker/singularityRecipe.txt
 ```
 
 ## Run the Software inside the Singularity Container

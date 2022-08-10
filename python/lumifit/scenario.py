@@ -1,18 +1,14 @@
 """
-holds info about which scenario (LMD or KOALA) is run.
+container class for a data set found b determineLuminosity.py.
 """
 
 import math
-from .alignment import AlignmentParameters
 import os
-from enum import Enum
+
+from .alignment import AlignmentParameters
+from .experiment import ExperimentType
 
 lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
-
-
-class ExperimentType(Enum):
-    LUMI = "LUMI"
-    KOALA = "KOALA"
 
 
 class Scenario:
@@ -55,6 +51,7 @@ class Scenario:
         self.state = 1
         self.last_state = 0
 
+        # what the hell is this?
         self.simulation_info_lists: list = []
 
         self.is_broken = False

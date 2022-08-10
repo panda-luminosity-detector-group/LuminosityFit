@@ -4,8 +4,8 @@ import os
 import subprocess
 from typing import Callable, Optional
 
-from .cluster import Job, JobHandler, JobResourceRequest
 from .agent import Client, SlurmOrder
+from .cluster import Job, JobHandler, JobResourceRequest
 
 
 def _stringify(job_resource_request: JobResourceRequest):
@@ -96,10 +96,10 @@ class SlurmJobHandler(JobHandler):
             thisOrder = SlurmOrder()
             thisOrder.cmd = bashcommand
             thisOrder.runShell = True
-            # default output to zero, doesn't work otheriwse
+            # default output to zero, doesn't work otherwise
             thisOrder.stdout = "0"
             thisOrder.env = os.environ.copy()
-            client.sendOrder(thisOrder)
+            client.sendOrder(thisOrder, 30)  # this may take some time
             resultOrder = client.receiveOrder()
             resultOut = resultOrder.stdout
             return int(resultOut)

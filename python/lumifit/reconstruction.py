@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
-from .alignment import AlignmentParameters
-from .cluster import Job, JobResourceRequest, make_test_job_resource_request
-from .general import write_params_to_file
 
-import attr
 import errno
 import os
 from typing import Tuple
+
+import attr
+
+from .alignment import AlignmentParameters
+from .cluster import Job, JobResourceRequest, make_test_job_resource_request
+from .general import write_params_to_file
 
 # TODO: solve the track_search_algorithms with Enum (or IntEnum for json serializability)
 #! wait there is even an enumEncoder, IntEnums may not be neccessary
@@ -34,7 +36,9 @@ class ReconstructionParameters:
     track_search_algo: str = attr.ib(
         default="CA", validator=_validate_track_search_algo
     )
-    reco_ip_offset: Tuple[float, float, float] = attr.ib(default=[0, 0, 0])
+    reco_ip_offset: Tuple[float, float, float] = attr.ib(default=(0, 0, 0))
+    num_box_samples: int = attr.ib(default=500)
+    num_events_per_box_sample: int = attr.ib(default=10000)
 
 
 def generateRecoDirSuffix(
@@ -127,7 +131,7 @@ def create_reconstruction_job(
     resource_request = JobResourceRequest(2 * 60)
     resource_request.number_of_nodes = 1
     resource_request.processors_per_node = 1
-    resource_request.memory_in_mb = 3000
+    resource_request.memory_in_mb = 3500
     resource_request.node_scratch_filesize_in_mb = 0
 
     if use_devel_queue:
