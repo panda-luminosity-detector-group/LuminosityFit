@@ -3,8 +3,8 @@
 import argparse
 import errno
 import glob
-import socket
 import os
+import socket
 
 import lumifit.general as general
 from lumifit.cluster import ClusterJobManager, Job, JobResourceRequest
@@ -94,6 +94,11 @@ parser.add_argument(
     help="binning of data stepsize",
 )
 
+parser.add_argument(
+    "--jobCommand",
+    help="either createLumiFitData or createKoaFitData (via singularity job)",
+    required=True,
+)
 
 args = parser.parse_args()
 
@@ -108,6 +113,8 @@ config_modifier = general.ConfigModifier()
 config = config_modifier.loadConfig(args.config_url[0])
 
 config_paths = []
+
+jobCommand = args.jobCommand
 
 for bins in range(
     args.general_dimension_bins_low,
@@ -179,9 +186,9 @@ for config_path in config_paths:
 
     job = Job(
         resource_request,
-        f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/createLumiFitData.sh",
-        "createKoaFitData",
-        config_path + "/createLumiFitData-%a.log",
+        jobCommand,
+        "createFitData",
+        config_path + "/createFitData-%a.log",
         array_indices=list(range(1, num_filelists + 1)),
     )
     job.exported_user_variables["numEv"] = args.num_events

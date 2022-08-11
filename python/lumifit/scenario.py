@@ -13,8 +13,8 @@ lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
 
 class Scenario:
     """
-    Scenarios are always simualted on a cluster, so for now, the singularityJob.sh
-    wrappre can be here. this means we need env variables, which means we need os...
+    Scenarios are always simulated on a cluster, so for now, the singularityJob.sh
+    wrapper can be here. this means we need env variables, which means we need os...
     """
 
     def __init__(self, dir_path_: str, experiment_type: ExperimentType):
@@ -34,12 +34,14 @@ class Scenario:
             self.phi_max_in_rad = 2 * math.pi
             self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdSimReco.py"
             self.Reco = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdReco.py"
+            self.LmdData = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/createLumiFitData.sh"
             self.track_file_pattern = "Lumi_TrksQA_"
         elif experiment_type == ExperimentType.KOALA:
             self.phi_min_in_rad = 0.9 * math.pi
             self.phi_max_in_rad = 1.3 * math.pi
             self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaSimReco.py"
             self.Reco = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaReco.py"
+            self.LmdData = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/createKoaFitData.sh"
             self.track_file_pattern = "Koala_IP_"
         else:
             raise ValueError("Experiment Type not defined!")
