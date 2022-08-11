@@ -394,10 +394,11 @@ def simulateDataOnHimster(
             elif last_state < state:
                 os.chdir(lmd_fit_script_path)
                 # bunch data
-                #TODO: pass experiment config, or better yet, make class instead of script
+                # TODO: pass experiment config, or better yet, make class instead of script
                 bashcommand = (
                     "python makeMultipleFileListBunches.py "
-                    "--files_per_bunch 10 --maximum_number_of_files "
+                    + f"--filenamePrefix {thisScenario.track_file_pattern}"
+                    + "--files_per_bunch 10 --maximum_number_of_files "
                     + str(num_samples)
                     + " "
                     + dir_path

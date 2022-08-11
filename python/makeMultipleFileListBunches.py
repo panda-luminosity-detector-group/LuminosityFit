@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
-import os
-import re
+import argparse
 import errno
 import multiprocessing
-import argparse
+import os
+import re
+
 from lumifit.general import getGoodFiles
 
 cpu_cores = multiprocessing.cpu_count()
@@ -35,11 +36,6 @@ def getListOfDirectories(path):
                     if match_dir_pattern:
                         dirs.append(path)
                     return
-
-
-# TODO: Oh ffs, read that from scenario config, NOT hardcode!
-#filename_prefix = "Lumi_TrksQA_"
-filename_prefix = "Koala_IP_"
 
 
 def createFileListFile(output_url, list_of_files):
@@ -128,9 +124,14 @@ parser.add_argument(
 )
 parser.add_argument("--force", action="store_true", help="force recreation")
 
+parser.add_argument(
+    "--filenamePrefix", type=str, help="Either Lumi_TrksQA_ or Koala_IP_"
+)
+
 args = parser.parse_args()
 
 pattern = args.directory_pattern
+filename_prefix = args.filenamePrefix
 
 getListOfDirectories(args.dirname[0])
 

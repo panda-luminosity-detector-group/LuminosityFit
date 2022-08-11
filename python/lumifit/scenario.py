@@ -35,14 +35,12 @@ class Scenario:
             self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdSimReco.py"
             self.Reco = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdReco.py"
             self.track_file_pattern = "Lumi_TrksQA_"
-            self.filenamePrefix = "Lumi_TrksQA_"
         elif experiment_type == ExperimentType.KOALA:
             self.phi_min_in_rad = 0.9 * math.pi
             self.phi_max_in_rad = 1.3 * math.pi
             self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaSimReco.py"
             self.Reco = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaReco.py"
             self.track_file_pattern = "Koala_IP_"
-            self.filename_prefix = "Koala_IP_"
         else:
             raise ValueError("Experiment Type not defined!")
 
