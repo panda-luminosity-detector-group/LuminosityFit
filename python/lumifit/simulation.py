@@ -6,12 +6,14 @@ from enum import Enum
 from typing import Any, Tuple
 
 import attr
+from dotenv import load_dotenv
 
 from .alignment import AlignmentParameters
 from .cluster import Job, JobResourceRequest, make_test_job_resource_request
 from .general import write_params_to_file
 from .reconstruction import ReconstructionParameters, generateRecoDirSuffix
 
+load_dotenv(dotenv_path="../lmdEnvFile.env", verbose=True)
 
 class SimulationType(Enum):
     BOX = "box"
@@ -171,8 +173,8 @@ def create_simulation_and_reconstruction_job(
     path_mc_data = pathname_base + "/mc_data"
     dirname_full = dirname + "/" + dirname_filter_suffix
     pathname_full = lmdfit_data_dir + "/" + dirname_full
-    # TODO: this path depends on KOALA/LUMI, so change it accroding to scenario type!
-    macropath_full = os.environ["VMCWORKDIR"] + "/macro/koala"
+    # this is stored in lmdEnvVar and read with dotenv
+    macropath_full = os.environ["LMDFIT_MACROPATH"]
 
     print("using output folder structure: " + pathname_full)
 
@@ -221,7 +223,7 @@ def create_simulation_and_reconstruction_job(
     job = Job(
         resource_request,
         application_url=application_command,
-        name="koa_simreco_" + sim_params.sim_type.value,
+        name="simreco_" + sim_params.sim_type.value,
         logfile_url=pathname_full + "/simreco-%a.log",
         array_indices=list(
             range(low_index_used, low_index_used + num_samples)
