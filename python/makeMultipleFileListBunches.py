@@ -125,7 +125,10 @@ parser.add_argument(
 parser.add_argument("--force", action="store_true", help="force recreation")
 
 parser.add_argument(
-    "--filenamePrefix", type=str, help="Either Lumi_TrksQA_ or Koala_IP_"
+    "--filenamePrefix",
+    type=str,
+    help="Either Lumi_TrksQA_ or Koala_IP_",
+    required=True,
 )
 
 args = parser.parse_args()
