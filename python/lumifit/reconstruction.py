@@ -82,7 +82,7 @@ def create_reconstruction_job(
     reco_params: ReconstructionParameters,
     align_params: AlignmentParameters,
     dirname,
-    application_command="",
+    application_command,
     force_level=0,
     debug=False,
     use_devel_queue=False,
@@ -137,14 +137,10 @@ def create_reconstruction_job(
     if use_devel_queue:
         resource_request = make_test_job_resource_request()
 
-    application_command = (
-        f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdReco.py"
-    )
-
     job = Job(
         resource_request,
         application_url=application_command,
-        name="lmd_reco_",
+        name="reco_",
         logfile_url=pathname_full + "/reco-%a.log",
         array_indices=list(
             range(low_index_used, low_index_used + num_samples)
