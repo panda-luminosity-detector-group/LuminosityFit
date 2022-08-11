@@ -397,8 +397,8 @@ def simulateDataOnHimster(
                 # TODO: pass experiment config, or better yet, make class instead of script
                 bashcommand = (
                     "python makeMultipleFileListBunches.py "
-                    + f"--filenamePrefix {thisScenario.track_file_pattern}"
-                    + "--files_per_bunch 10 --maximum_number_of_files "
+                    + f" --filenamePrefix {thisScenario.track_file_pattern}"
+                    + " --files_per_bunch 10 --maximum_number_of_files "
                     + str(num_samples)
                     + " "
                     + dir_path
@@ -411,7 +411,7 @@ def simulateDataOnHimster(
                     )
                     bashcommand = (
                         "python createMultipleLmdData.py "
-                        + f"--jobCommand {thisScenario.LmdData}"
+                        + f" --jobCommand '{thisScenario.LmdData}'"
                         + " --dir_pattern "
                         + data_keywords[0]
                         + " "
@@ -427,8 +427,8 @@ def simulateDataOnHimster(
                 else:
                     bashcommand = (
                         "python createMultipleLmdData.py "
-                        + f"--jobCommand {thisScenario.LmdData}"
-                        + "--dir_pattern "
+                        + f" --jobCommand '{thisScenario.LmdData}'"
+                        + " --dir_pattern "
                         + data_keywords[0]
                         + " "
                         + f"{lab_momentum:.2f}"
