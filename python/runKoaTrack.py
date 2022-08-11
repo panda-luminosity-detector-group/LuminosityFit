@@ -73,7 +73,7 @@ if (
     or force_level == 1
 ):
     os.chdir(macropath)
-    os.chdir(macropath)
+    
     os.system(
         f"root -l -b -q 'KoaPixel3Finder.C({reco_param.num_events_per_sample},"
         + f"{start_evt},"
@@ -106,7 +106,7 @@ if (
     or force_level == 1
 ):
     os.chdir(macropath)
-    os.chdir(macropath)
+    
     returnvalue = subprocess.run(
         f"root -l -b -q 'KoaPixel5BackProp.C({reco_param.num_events_per_sample},{start_evt},"
         + f'"{workpathname}",{verbositylvl},'
@@ -121,7 +121,7 @@ if (
     )
 
     os.chdir(macropath)
-    os.chdir(macropath)
+    
     os.system(
         f"root -l -b -q 'KoaPixel6Compare.C({reco_param.num_events_per_sample},{start_evt},"
         + f'"{workpathname}",{verbositylvl},'
