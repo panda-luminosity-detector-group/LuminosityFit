@@ -138,17 +138,17 @@ class Server(Agent):
         while True:
             # read entire pipe contents and try to deserialize json from it (close pipe!)
             thisOrder = self.receiveOrder()
-            logging.info(
-                f"{datetime.datetime.now().isoformat(timespec='seconds')}: Received Order:"
-            )
-            logging.info(f"cmd: {thisOrder.cmd}")
-
-            logging.debug(
-                f"{datetime.datetime.now().isoformat(timespec='seconds')}: Received Order:\n{thisOrder}\n"
-            )
 
             if thisOrder is not None:
+                logging.info(
+                    f"{datetime.datetime.now().isoformat(timespec='seconds')}: Received Order:"
+                )
+                logging.info(f"cmd: {thisOrder.cmd}")
 
+                logging.debug(
+                    f"{datetime.datetime.now().isoformat(timespec='seconds')}: Received Order:\n{thisOrder}\n"
+                )
+                
                 # execute command as ordered
                 returnOrder = self.execute(thisOrder)
 
