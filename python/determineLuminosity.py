@@ -411,9 +411,9 @@ def simulateDataOnHimster(
                     )
                     bashcommand = (
                         "python createMultipleLmdData.py "
-                        + f" --jobCommand '{thisScenario.LmdData}'"
                         + " --dir_pattern "
                         + data_keywords[0]
+                        + f" --jobCommand '{thisScenario.LmdData}'"
                         + " "
                         + f"{lab_momentum:.2f}"
                         + " "
@@ -427,9 +427,9 @@ def simulateDataOnHimster(
                 else:
                     bashcommand = (
                         "python createMultipleLmdData.py "
-                        + f" --jobCommand '{thisScenario.LmdData}'"
                         + " --dir_pattern "
                         + data_keywords[0]
+                        + f" --jobCommand '{thisScenario.LmdData}'"
                         + " "
                         + f"{lab_momentum:.2f}"
                         + " "
