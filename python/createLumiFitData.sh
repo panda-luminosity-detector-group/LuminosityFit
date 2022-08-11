@@ -25,18 +25,18 @@ fi
 
 # if {filelist_url} is empty, the createLmdFitData binary must be run
 if [ -z ${filelist_url} ]; then
-  echo ${LMDFIT_BUILD_PATH}/bin/createKoaFitData -m $pbeam -t $type -c ${config_path} -d ${input_path} -n ${numEv} -e ${elastic_cross_section}
+  echo ${LMDFIT_BUILD_PATH}/bin/createLmdFitData -m $pbeam -t $type -c ${config_path} -d ${input_path} -n ${numEv} -e ${elastic_cross_section}
   if [ $batchjob -eq "0" ]; then
-    ${LMDFIT_BUILD_PATH}/bin/createKoaFitData -m $pbeam -t $type -c ${config_path} -d ${input_path} -n ${numEv} -e ${elastic_cross_section} 2>&1 >> ${data_path}/createLumiFitData.log
+    ${LMDFIT_BUILD_PATH}/bin/createLmdFitData -m $pbeam -t $type -c ${config_path} -d ${input_path} -n ${numEv} -e ${elastic_cross_section} 2>&1 >> ${data_path}/createLumiFitData.log
   else
-    ${LMDFIT_BUILD_PATH}/bin/createKoaFitData -m $pbeam -t $type -c ${config_path} -d ${input_path} -n ${numEv} -e ${elastic_cross_section}
+    ${LMDFIT_BUILD_PATH}/bin/createLmdFitData -m $pbeam -t $type -c ${config_path} -d ${input_path} -n ${numEv} -e ${elastic_cross_section}
   fi
 else
-  echo $/build/bin/createKoaFitData -m $pbeam -t $type -c ${config_path} -d ${input_path} -f ${filelist_url} -o ${output_path} -n ${numEv} -e ${elastic_cross_section}
+  echo $/build/bin/createLmdFitData -m $pbeam -t $type -c ${config_path} -d ${input_path} -f ${filelist_url} -o ${output_path} -n ${numEv} -e ${elastic_cross_section}
   if [ $batchjob -eq "0" ]; then
-    ${LMDFIT_BUILD_PATH}/bin/createKoaFitData -m $pbeam -t $type -c ${config_path} -d ${input_path} -f ${filelist_url} -o ${output_path} -n ${numEv} -e ${elastic_cross_section} 2>&1 >> ${data_path}/createLumiFitData.log
+    ${LMDFIT_BUILD_PATH}/bin/createLmdFitData -m $pbeam -t $type -c ${config_path} -d ${input_path} -f ${filelist_url} -o ${output_path} -n ${numEv} -e ${elastic_cross_section} 2>&1 >> ${data_path}/createLumiFitData.log
   else
-    ${LMDFIT_BUILD_PATH}/bin/createKoaFitData -m $pbeam -t $type -c ${config_path} -d ${input_path} -f ${filelist_url} -o ${output_path} -n ${numEv} -e ${elastic_cross_section}
+    ${LMDFIT_BUILD_PATH}/bin/createLmdFitData -m $pbeam -t $type -c ${config_path} -d ${input_path} -f ${filelist_url} -o ${output_path} -n ${numEv} -e ${elastic_cross_section}
   fi
 fi
   
