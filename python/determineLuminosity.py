@@ -134,6 +134,7 @@ def simulateDataOnHimster(
 
     """
     tasks_to_remove = []
+    bashArgs = []
 
     lab_momentum = thisScenario.momentum
     for simulation_task in thisScenario.simulation_info_lists:
@@ -409,37 +410,59 @@ def simulateDataOnHimster(
                     el_cs = (
                         thisScenario.elastic_pbarp_integrated_cross_secion_in_mb
                     )
-                    bashcommand = (
-                        "python createMultipleLmdData.py "
-                        + " --dir_pattern "
-                        + data_keywords[0]
-                        + f" --jobCommand '{thisScenario.LmdData}'"
-                        + " "
-                        + f"{lab_momentum:.2f}"
-                        + " "
-                        + sim_type
-                        + " "
-                        + dir_path
-                        + " ../dataconfig_xy.json"  # TODO: use absolute path here!
-                    )
+                    bashArgs.append("python")
+                    bashArgs.append("createMultipleLmdData.py")
+                    bashArgs.append("--dir_pattern")
+                    bashArgs.append(data_keywords[0])
+                    bashArgs.append("--jobCommand ")
+                    bashArgs.append(thisScenario.LmdData)
+                    bashArgs.append(f"{lab_momentum:.2f}")
+                    bashArgs.append(sim_type)
+                    bashArgs.append(dir_path)
+                    bashArgs.append('../dataconfig_xy.json"')
+                    # bashcommand = (
+                    #     "python createMultipleLmdData.py "
+                    #     + " --dir_pattern "
+                    #     + data_keywords[0]
+                    #     + f" --jobCommand '{thisScenario.LmdData}'"
+                    #     + " "
+                    #     + f"{lab_momentum:.2f}"
+                    #     + " "
+                    #     + sim_type
+                    #     + " "
+                    #     + dir_path
+                    #     + " ../dataconfig_xy.json"  # TODO: use absolute path here!
+                    # )
                     if el_cs:
-                        bashcommand += " --elastic_cross_section " + str(el_cs)
+                        bashArgs.append("--elastic_cross_section")
+                        bashArgs.append(str(el_cs))
+                        # bashcommand += " --elastic_cross_section " + str(el_cs)
                 else:
-                    bashcommand = (
-                        "python createMultipleLmdData.py "
-                        + " --dir_pattern "
-                        + data_keywords[0]
-                        + f" --jobCommand '{thisScenario.LmdData}'"
-                        + " "
-                        + f"{lab_momentum:.2f}"
-                        + " "
-                        + sim_type
-                        + " "
-                        + dir_path
-                        + " ../dataconfig_xy.json"  # TODO: use absolute path here!
-                    )
-                    print(bashcommand)
-                _ = subprocess.call(bashcommand.split())
+                    bashArgs.append("python")
+                    bashArgs.append("createMultipleLmdData.py")
+                    bashArgs.append("--dir_pattern")
+                    bashArgs.append(data_keywords[0])
+                    bashArgs.append("--jobCommand ")
+                    bashArgs.append(thisScenario.LmdData)
+                    bashArgs.append(f"{lab_momentum:.2f}")
+                    bashArgs.append(sim_type)
+                    bashArgs.append(dir_path)
+                    bashArgs.append('../dataconfig_xy.json"')
+                    # bashcommand = (
+                    #     "python createMultipleLmdData.py "
+                    #     + " --dir_pattern "
+                    #     + data_keywords[0]
+                    #     + f" --jobCommand '{thisScenario.LmdData}'"
+                    #     + " "
+                    #     + f"{lab_momentum:.2f}"
+                    #     + " "
+                    #     + sim_type
+                    #     + " "
+                    #     + dir_path
+                    #     + " ../dataconfig_xy.json"  # TODO: use absolute path here!
+                    # )
+                print(bashArgs)
+                _ = subprocess.call(bashArgs)
                 last_state = last_state + 1
 
             if status_code == 0:
