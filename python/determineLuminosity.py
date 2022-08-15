@@ -414,12 +414,12 @@ def simulateDataOnHimster(
                     bashArgs.append("createMultipleLmdData.py")
                     bashArgs.append("--dir_pattern")
                     bashArgs.append(data_keywords[0])
-                    bashArgs.append("--jobCommand ")
+                    bashArgs.append("--jobCommand")
                     bashArgs.append(thisScenario.LmdData)
                     bashArgs.append(f"{lab_momentum:.2f}")
                     bashArgs.append(sim_type)
                     bashArgs.append(dir_path)
-                    bashArgs.append('../dataconfig_xy.json"')
+                    bashArgs.append("../dataconfig_xy.json")
                     # bashcommand = (
                     #     "python createMultipleLmdData.py "
                     #     + " --dir_pattern "
@@ -442,12 +442,12 @@ def simulateDataOnHimster(
                     bashArgs.append("createMultipleLmdData.py")
                     bashArgs.append("--dir_pattern")
                     bashArgs.append(data_keywords[0])
-                    bashArgs.append("--jobCommand ")
+                    bashArgs.append("--jobCommand")
                     bashArgs.append(thisScenario.LmdData)
                     bashArgs.append(f"{lab_momentum:.2f}")
                     bashArgs.append(sim_type)
                     bashArgs.append(dir_path)
-                    bashArgs.append('../dataconfig_xy.json"')
+                    bashArgs.append("../dataconfig_xy.json")
                     # bashcommand = (
                     #     "python createMultipleLmdData.py "
                     #     + " --dir_pattern "
