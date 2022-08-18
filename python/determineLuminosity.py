@@ -404,7 +404,9 @@ def simulateDataOnHimster(
                     + " "
                     + dir_path
                 )
+                print(f'Bash command for bunch creation:\n{bashcommand}\n')
                 _ = subprocess.call(bashcommand.split())
+                # TODO: pass experiment config, or better yet, make class instead of script
                 # create data
                 if "a" in sim_type:
                     el_cs = (
