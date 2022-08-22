@@ -16,11 +16,7 @@ Note: For future development I would recommend to port the necessary code python
 - [Mode of Operation](#mode-of-operation)
 - [Code Layout](#code-layout)
   - [Singularity Wrapper](#singularity-wrapper)
-  - [runSimulationReconstruction.py](#runsimulationreconstructionpy)
-  - [determineLuminosity.py](#determineluminositypy)
-    - [Details](#details)
-    - [Function Call Diagram](#function-call-diagram)
-  - [doMultipleLuminosityFits.py](#domultipleluminosityfitspy)
+- [Scripts](#scripts)
 - [Apps in `/bin/`](#apps-in-bin)
   - [createLmdFitData](#createlmdfitdata)
   - [createKoaFitData](#createkoafitdata)
@@ -198,109 +194,11 @@ id1[squeue COMMAND] --> id2[squeue ./singularityJob.sh COMMAND]
 
 The script calls the container and sources the PandaRoot/KoalaSoft config.sh scripts necessary to set the needed env variables.
 
-## runSimulationReconstruction.py
+# Scripts
 
-Generates MC simulation data and performs the entire reconstruction chain. It needs a simulation parameters config file (simparams.conf) and a reconstruction parameters config file (recoparams.conf) to work. Examples of these files can be created with the script `create_sim_reco_pars.py`. Both are human-readable json files. The simulation is then:
-
-```bash
-./runSimulationReconstruction.py simparams.conf recoparams.conf
-```
-
-## determineLuminosity.py
-
-Can only be run if `LumiTrkQA_` files for PandaRoot or `Koala_Track_` files for KoalaSoft are already present.
-
-Minimum run example works without arguments, but searches a LOT of directories. It's generally better to at least limit the search paths:
-
-```bash
-./determineLuminosity.py --base_output_data_dir /path/to/TrksQAFiles.root
-```
-
-### Details
-
-For details, please see the detailed readme in the `/python` folder.
-
-The run sequence is as follows:
-
-```mermaid
-flowchart TD
-determineLuminosity.py --> searchjDirs
-id1([scenarioConfig.json]) -.-> determineLuminosity.py
-```
-
-### Function Call Diagram
-
-The function diagram is pretty complicated, and has lot's of internal states. One very important class of objects is the `scenario` class, which holds a `state` variable (and a list with more states and working directories). These variables controls the program flow. There can be multiple `scenario`s, each with their own `state`. A scenario object ist also passed to the `simulateDataOnHimster(scen: scenario)` function.
-
-The `lumiDetermination` function is called once at the beginning, and then sometimes again if the waiting stack is not empty.
-
-```mermaid
-flowchart TD
-start([lumiDetermination]) --> append["append to wait stack\n(changed internal state\)"]
-append --> wstack
-wstack["while(waiting stack > 0)"] ---> lumiDetermination --> finished["finished?"]
-finished --no --> append
-finished --yes--> done(["Done!"])
-```
-
-The `lumiDetermination` function is very complicated and needs its own diagram:
-
-```mermaid
-flowchart TD
-start([lumiDetermination]) --> setup[Parse arguments, check cluster,\n prepare jobManager, create Scenario stack]
-setup --> callLumi["lumiDetermination(scenario)"]
-callLumi --> state{Which State?}
-state --1--> simOnHim["simulateDataOnHimster(scen: scenario)"]
-simOnHim --> incrementState[increment state]
-state --2--> recoIP["reconstruct IP position\nor use (0,0,0)"]
-recoIP --> incrementState
-incrementState ==> state
-state --3--> filterDPM["Filter DPM data\nwith IP position"]
-filterDPM --> simOnHim
-```
-
----
-
-The function `simulateDataOnHimster(scen: scenario)` needs it's own flowchart. It also has an internal `state` variable that determines its behavior.
-
-```mermaid
-flowchart TD
-start([Start]) --> simOnHim["some call to simulateDataOnHimster"]
-simOnHim --> prepare["output some debug data"]
-prepare --> state{Which State?}
-state --1--> simType{"Which\nsim_type?"}
-simType --a--> simRecoDPM["start MC simulation\nand reconstruction\n(with IP position cut)"]
-simType --er--> simRecoBOX["box gen for\nacc and res"]
-simRecoDPM --> incrementState["increment state"]
-simRecoBOX --> incrementState
-incrementState ==> state
-state --2--> makeMulti["makeMultipleFileListBunches.py"]
-makeMulti --> simType2{"Which\nsim_type?"}
-simType2 --a--> useCross["use cross section"]
-useCross --> createMulti["createMultipleLmdData.py"]
-simType2 --else--> createMulti
-createMulti --> incrementState
-state --3--> mergeData["mergeMultipleLmdData.py"]
-mergeData --> incrementState
-state ----4----> doMultiFit["doMultipleLuminosityFits.py"]
-doMultiFit ==> done["All done, lumi data\nis saved in lmd_fitted_data.root"]
-```
-
-So basically, it does:
-
-- simulation
-- reconstruction (with IP position cut)
-- box sim for acc and res data
-- create multiple LMD data
-- merge multiple LMD data
-
-## doMultipleLuminosityFits.py
-
-Needs a `--forced_box_gen_data` path and a path to the firconfig (has no parameter, just the path). So it's `python doMultipleLuminosityFits.py --forced_box_gen_data path fitconfig.json`. A full working example is here:
-
-```bash
-python doMultipleLuminosityFits.py --forced_box_gen_data /lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_1.5GeV/box_theta_2.6900000000000004-13.01mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-500_xy_m_cut_real/no_alignment_correction /lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_1.5GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-100_xy_m_cut_real/no_alignment_correction xy_m_cut_real /home/roklasen/LuminosityFit/fitconfig-fast.json
-```
+- [runSimulationReconstruction.py](docs/runSimulationRecoinstruction.md)
+- [determineLuminosity.py](docs/determineLuminosity.md)
+- [doMultipleLuminosityFits.py](docs/doMultipleLuminosityFits.md)
 
 # Apps in `/bin/`
 
