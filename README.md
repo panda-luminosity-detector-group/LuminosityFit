@@ -145,7 +145,7 @@ The LumiFit software then performs multiple individual steps, many of them on a 
 
 # Code Layout
 
-This is reduced overview. For simplicity, directly user-callable scripts are greenish, scripts (or binaries) that _can_ be run by a user but should not are reddish. Usually, the user-runnable scripts call these other scripts themselves:
+This is reduced overview. For simplicity, directly user-callable scripts are teal, scripts (or binaries) that _can_ be run by a user but should not are reddish. Usually, the user-runnable scripts call these other scripts themselves:
 
 ```mermaid
 graph LR

@@ -134,7 +134,6 @@ def simulateDataOnHimster(
 
     """
     tasks_to_remove = []
-    bashArgs = []
 
     lab_momentum = thisScenario.momentum
     for simulation_task in thisScenario.simulation_info_lists:
@@ -404,10 +403,11 @@ def simulateDataOnHimster(
                     + " "
                     + dir_path
                 )
-                print(f'Bash command for bunch creation:\n{bashcommand}\n')
+                print(f"Bash command for bunch creation:\n{bashcommand}\n")
                 _ = subprocess.call(bashcommand.split())
                 # TODO: pass experiment config, or better yet, make class instead of script
                 # create data
+                bashArgs = []
                 if "a" in sim_type:
                     el_cs = (
                         thisScenario.elastic_pbarp_integrated_cross_secion_in_mb
@@ -466,6 +466,7 @@ def simulateDataOnHimster(
                 print(bashArgs)
                 _ = subprocess.call(bashArgs)
                 last_state = last_state + 1
+                bashArgs.clear()
 
             if status_code == 0:
                 print("skipping bunching and data object creation...")
