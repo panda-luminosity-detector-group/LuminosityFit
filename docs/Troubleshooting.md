@@ -1,4 +1,4 @@
-# Troubleshooting
+ Troubleshooting
 
 In case the luminosity fit doesn't work or the results are unexpected, refer to this guide.
 
@@ -119,7 +119,7 @@ This contains a serialized instance of the `PndLmdFitDataBundle` after the fit. 
 
 In a TBrowser, it should look like this (for 15.0 GeV):
 
-![goodFit](lmd_fit_good.png)
+![goodFit](images/lmd_fit_good.png)
 
 You should clearly see the detector acceptance:
 - clearly defined inner hole
@@ -129,7 +129,7 @@ You should clearly see the detector acceptance:
 
 Again, in large:
 
-![lmd fit](good-15.0.png)
+![lmd fit](images/good-15.0.png)
 
 If the lumi fit data looks different from this, it is likely wrong.
 
@@ -137,11 +137,11 @@ If the lumi fit data looks different from this, it is likely wrong.
 
 Attention! Because of the 40mrad beam kink, the image will look distored at lower beam momenta. This is what it looks like at 1.5 GeV
 
-![@1.5GeV](bad-1.5.png)
+![@1.5GeV](images/bad-1.5.png)
 
 And this at 4.06 GeV:
 
-![@4.06GeV](bad-4.1.png)
+![@4.06GeV](images/bad-4.1.png)
 
 If your results look completely different, look inside the `lmd_data_1of1.root`.
 
@@ -152,32 +152,32 @@ The `lmd_data_1of1.root` contains the merged resolution and acceptance calculati
 
 It looks like this in a `TBrowser`:
 
-![lmd data](lmd_data_good.png)
+![lmd data](images/lmd_data_good.png)
 
 The 2D histogram of the `reco` class should look almost like the successful lmd fit histogram (including resolution smearing which results in these Moiree-like patterns):
 
-![mc reco](reco-15.0-good.png)
+![mc reco](images/reco-15.0-good.png)
 
 If it doesn't, check the `mc_th` and `mc_acc` histograms.
 
 The `mc_th` histogram is the reconstructed theta angle distribution, so it should be our basic DPM model data. Much data at the very center and a decreasing amount of data further away from the beam axis. It should be uniform in phi (around the beam axis):
 
-![mc distribution](mc_th-15.0-good.png)
+![mc distribution](images/mc_th-15.0-good.png)
 
 > :warning: Attention! Since the acceptance data depends on the angular distribution of theta, this must `mc_th` data be correct. Otherwise, the acceptance will be wrong and the fit will also be wrong.
 
 The `mc_acc` is the reconstructed detector acceptance. Apart from some strays it should be the ideal projection of the detector geometry, *without* resolution effects (these Moiree-like patterns visible in the lmd fit histograms). Since it's a reduction of the `mc_th` data *by* the acceptance, any patterns visible in the `mc_th` data must *also* be visible in the `mc_acc` data (but uniformity pretty much always looks the same):
 
-![mc acceptance](mc_acc-15.0-good.png)
+![mc acceptance](images/mc_acc-15.0-good.png)
 
 ### Examples for wrong Angular Distributions
 
 Here the RNG wasn't setup properly, resulting a each of the 100 datasets containing identical data:
 
-![theta wrong](mc_th-wrong.png)
+![theta wrong](images/mc_th-wrong.png)
 
 As a result, the accecptance is also wrong:
 
-![acceptance wrong](mc_acc-wrong.png)
+![acceptance wrong](images/mc_acc-wrong.png)
 
 Here, the maximum phi angle was set incorrectly, so that onlt tracks were only genereated in a small phi segment:
