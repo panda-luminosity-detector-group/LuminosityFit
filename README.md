@@ -196,9 +196,9 @@ The script calls the container and sources the PandaRoot/KoalaSoft config.sh scr
 
 # Scripts
 
-- [runSimulationReconstruction.py](docs/runSimulationRecoinstruction.md)
-- [determineLuminosity.py](docs/determineLuminosity.md)
-- [doMultipleLuminosityFits.py](docs/doMultipleLuminosityFits.md)
+- [runSimulationReconstruction.py](docs/scripts/runSimulationRecoinstruction.md)
+- [determineLuminosity.py](docs/scripts/determineLuminosity.md)
+- [doMultipleLuminosityFits.py](docs/scripts/doMultipleLuminosityFits.md)
 
 # Apps in `/bin/`
 
