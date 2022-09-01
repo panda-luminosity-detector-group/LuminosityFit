@@ -10,10 +10,19 @@ Except for mc data generation and reonstruction, all merge and fit steps can be 
 - Access to HPC system (HimsterII tested, Virgo coming soon)
 - A set of reconstructed mc data (use [runSimulationReconstruction.py](scripts/runSimulationRecoinstruction.md) to generate this)
 
+## TL;DR
+
+- Have reconstructed data
+- Determine IP for cut
+- Reconstruct again, with IP cut
+- Generate box data for acceptance and resolution
+- Perform Fit
+
 ## Individual Steps
 
 - [Performing the Luminosity Fit "Manually"](#performing-the-luminosity-fit-manually)
   - [Prerequisites](#prerequisites)
+  - [TL;DR](#tldr)
   - [Individual Steps](#individual-steps)
 - [Determine IP from Reconstructed data to reconstruct data with IP cut](#determine-ip-from-reconstructed-data-to-reconstruct-data-with-ip-cut)
 - [Generate detector resolution and acceptance plots](#generate-detector-resolution-and-acceptance-plots)
@@ -29,7 +38,7 @@ Except for mc data generation and reonstruction, all merge and fit steps can be 
   - [Create LMD Data from File Lists](#create-lmd-data-from-file-lists)
   - [Merge LMD Data](#merge-lmd-data-1)
 - [Fit reco data (with cuts) to angular data with resolution and acceptance considered](#fit-reco-data-with-cuts-to-angular-data-with-resolution-and-acceptance-considered)
-- [Result](#result)
+  - [Result](#result)
 
 For each sub step a short explanation and the example command is given.
 
@@ -65,7 +74,11 @@ cp ~/LuminosityFit/dataconfig_xy.json binning_300/dataconfig.json
 
 For details, see [createLmdFitData](apps/createLmdFitData.md)
 
-Create fit data, data types `e` and `r` (efficiency and resolution):
+Create fit data, data types `e` and `r` (efficiency and resolution). These data typed don't depend on the cross section, but the program needs this parameter. So we can just use `-e 1.0`.
+
+This must be done for each `filelist_*.txt`, so ten times in this example:
+
+:attention: Read the commands carefully and substitute your own paths!
 
 ```
 ./createLmdFitData -m 4.06 -t er -c /mnt/work/himsterData/LumiFit/plab_4.06GeV/box_theta_2.6900000000000004-13.01mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-500_xy_m_cut_real/no_alignment_correction/bunches_10/binning_300/dataconfig.json -d /mnt/work/himsterData/LumiFit/plab_4.06GeV/box_theta_2.6900000000000004-13.01mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-500_xy_m_cut_real/no_alignment_correction -f /mnt/work/himsterData/LumiFit/plab_4.06GeV/box_theta_2.6900000000000004-13.01mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-500_xy_m_cut_real/no_alignment_correction/bunches_10/filelist_1.txt -o /mnt/work/himsterData/LumiFit/plab_4.06GeV/box_theta_2.6900000000000004-13.01mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-500_xy_m_cut_real/no_alignment_correction/bunches_10/binning_300 -n 0 -e 1.0 &&
@@ -127,7 +140,9 @@ cp ~/LuminosityFit/dataconfig_xy.json binning_300/dataconfig.json
 
 ## Create LMD Data from File Lists
 
-LMD Data erstellen (ACHTUNG! Diesmal mit korrektem WW und type `a`):
+Create LMD data erstellen (attention! The type is now `a` and we have to use the correct cross section):
+
+:attention: Read the commands carefully and substitute your own paths!
 
 ```
 ./createLmdFitData -m 4.06 -t a \
@@ -192,8 +207,6 @@ LMD Data erstellen (ACHTUNG! Diesmal mit korrektem WW und type `a`):
 -n 0 -e 2.73242
 ```
 
-Okay, Dateigrößen sehen gut aus.
-
 ## Merge LMD Data
 
 Mergen:
@@ -204,14 +217,27 @@ Mergen:
 
 # Fit reco data (with cuts) to angular data with resolution and acceptance considered
 
-Fit:
+The fit needs a `fitconfig` or `fitconfig-fast`, the merged acc and res data (the `-a` argument), and of course the merged reconstructed data from the measurement (the `-d` argument). The `-m` is for multi threading.
+
+Perform the fit:
 
 ```
-./runLmdFit -c /mnt/work/LuminosityFit/fitconfig-fast.json -m 16 -d /mnt/work/himsterData/LumiFit/plab_4.06GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-100_xy_m_cut_real/no_alignment_correction/bunches_10/binning_300/merge_data -a /mnt/work/himsterData/LumiFit/plab_4.06GeV/box_theta_2.6900000000000004-13.01mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-500_xy_m_cut_real/no_alignment_correction/bunches_10/binning_300/merge_data > ../../../himsterData/LumiFit/plab_4.06GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-100_xy_m_cut_real/no_alignment_correction/bunches_10/binning_300/m
+./runLmdFit \
+-c /mnt/work/LuminosityFit/fitconfig-fast.json \
+-m 16 \
+-d /mnt/work/himsterData/LumiFit/plab_4.06GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-100_xy_m_cut_real/no_alignment_correction/bunches_10/binning_300/merge_data \
+-a /mnt/work/himsterData/LumiFit/plab_4.06GeV/box_theta_2.6900000000000004-13.01mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-500_xy_m_cut_real/no_alignment_correction/bunches_10/binning_300/merge_data \
+> ../../../himsterData/LumiFit/plab_4.06GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-100_xy_m_cut_real/no_alignment_correction/bunches_10/binning_300/m
 erge_data/runLmdFit.log
 ```
 
-# Result
+## Result
+
+As the very first step, the fit program calculates a "target" luminosity from the cross section and the reconstructed number of events. The cross section should be calculated with the LumiFit programm, because it depends on the assumed events per time. The formula is then very simple:
+
+$L = \frac{N_{events}}{\sigma}$
+
+The `FVAL` should be as close to zero as possible. It is an indicator of how far the fit result is from the calculated start value.
 
 ```
 FVAL  = -1163.70603413403296
