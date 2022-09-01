@@ -12,6 +12,7 @@ Note: For future development I would recommend to port the necessary code python
     - [Compilation](#compilation)
     - [First Run](#first-run)
 - [My First MC Simulation, Reconstruction and Luminosirt Fit](#my-first-mc-simulation-reconstruction-and-luminosirt-fit)
+  - [Doing this Manually](#doing-this-manually)
   - [Details](#details)
 - [Using in Container with the Slurm Agent](#using-in-container-with-the-slurm-agent)
 - [Mode of Operation](#mode-of-operation)
@@ -79,15 +80,21 @@ It's best if all env variables are already set.
 
 For many studies we need lots of simulation data from different boundary conditions (rest gas, misalignment and so on), automated reconstruction and luminosity fits. For these, we've included two scripts that automate almost everything in the `python` directory.
 
-If you just want to generate simulation data, have it reconstructed and perform the lumi fit, run these:
+If you just want to generate simulation data, have it reconstructed and perform the lumi fit, run these (on Himster/Virgo):
 
 ```
 ./runSimulationReconstruction.py -e expConfig/PANDA/1.5.config
 ```
 
+This script is done pretty fast, but it does submit a lot of jobs. Check on these with `squeue -u YOUR_USERNAME`. Once all are done, run:
+
 ```
 ./determineLuminosity.py -e expConfig/PANDA/1.5.config
 ```
+
+This may take a few hours.
+
+## Doing this Manually
 
 If these break in the future and/or you want to do this manually, follow the [manual instructions](docs/ManualLuminosityFit.md).
 

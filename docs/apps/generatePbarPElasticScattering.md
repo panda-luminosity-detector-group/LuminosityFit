@@ -20,7 +20,7 @@ The beam momentum and number of events are *always* required. If the number of e
 ./generatePbarPElasticScattering 8.9 0 -l 2.7 -u 13.0 -o ./sigma-8.9.txt
 ```
 
-:note: It doesn't really matter what file name you specify, i.e. `-o ./sigma-8.9.txt`. The file will always be called `elastic_cross_section.txt` anyway. But the path is respected (and also very important).
+> :note: It doesn't really matter what file name you specify, i.e. `-o ./sigma-8.9.txt`. The file will always be called `elastic_cross_section.txt` anyway. But the path is respected (and also very important).
 
 ## Example Output
 
@@ -63,7 +63,7 @@ Integrated total elastic cross section in theta range [2.7 - 13] -> t [0.0005774
 
 The resultant cross section is `2.2201 mb`.
 
-:note: If the lower and upper bounds are omitted, the result is `2.33462 mb`. It is very important to generate the DPM data and the cross section with the same parameters.
+> :note: If the lower and upper bounds are omitted, the result is `2.33462 mb`. It is very important to generate the DPM data and the cross section with the same parameters.
 
 ## Why do we need lower and upper bounds at all?
 
