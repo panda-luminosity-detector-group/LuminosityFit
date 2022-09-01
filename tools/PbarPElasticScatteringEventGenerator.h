@@ -92,6 +92,8 @@ namespace PbarPElasticScattering {
 
   std::cout << "using seed: " << seed << "\n";
   TRandom3 RandomGen(seed);
+  
+  //TODO: why are these numbers hard coded? 
   TRandom3 RandomGen2(seed + 123456);
   TRandom3 RandomGen3(seed + 1234);
 
