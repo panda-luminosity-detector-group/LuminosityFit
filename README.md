@@ -11,16 +11,17 @@ Note: For future development I would recommend to port the necessary code python
     - [Generate Container](#generate-container)
     - [Compilation](#compilation)
     - [First Run](#first-run)
-  - [Using](#using)
-  - [Using in Container with the Slurm Agent](#using-in-container-with-the-slurm-agent)
+- [My First MC Simulation, Reconstruction and Luminosirt Fit](#my-first-mc-simulation-reconstruction-and-luminosirt-fit)
+  - [Details](#details)
+- [Using in Container with the Slurm Agent](#using-in-container-with-the-slurm-agent)
 - [Mode of Operation](#mode-of-operation)
 - [Code Layout](#code-layout)
-  - [Singularity Wrapper](#singularity-wrapper)
-- [Scripts](#scripts)
-- [Apps in `/bin/`](#apps-in-bin)
-  - [createLmdFitData](#createlmdfitdata)
-  - [createKoaFitData](#createkoafitdata)
-  - [ExtractLuminosityValues](#extractluminosityvalues)
+  - [Scripts](#scripts)
+  - [Apps in `/bin/`](#apps-in-bin)
+    - [createLmdFitData](#createlmdfitdata)
+    - [createKoaFitData](#createkoafitdata)
+    - [ExtractLuminosityValues](#extractluminosityvalues)
+- [Singularity Wrapper](#singularity-wrapper)
 
 ## Installation
 
@@ -72,9 +73,25 @@ Simulation jobs are executed inside a Singularity container. To keep the (runtim
 python3 genEnvVarFile.py
 ```
 
-It's best if all env variables are already set
+It's best if all env variables are already set.
 
-## Using
+# My First MC Simulation, Reconstruction and Luminosirt Fit
+
+For many studies we need lots of simulation data from different boundary conditions (rest gas, misalignment and so on), automated reconstruction and luminosity fits. For these, we've included two scripts that automate almost everything in the `python` directory.
+
+If you just want to generate simulation data, have it reconstructed and perform the lumi fit, run these:
+
+```
+./runSimulationReconstruction.py -e expConfig/PANDA/1.5.config
+```
+
+```
+./determineLuminosity.py -e expConfig/PANDA/1.5.config
+```
+
+If these break in the future and/or you want to do this manually, follow the [manual instructions](docs/ManualLuminosityFit.md).
+
+## Details
 
 The binaries in the `./bin` subdirectory of the build path can be used directly. For more convenient use, especially for larger datasamples sizes it is recommended to use the python scripts in the [./scripts](https://github.com/spflueger/LuminosityFit/tree/master/scripts) subdirectory. However, to use these scripts several environment variables have to be exported.
 
@@ -91,7 +108,7 @@ In order to have the full ROOT cling support, export the build library directory
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LMDFIT_BUILD_PATH/lib
 ```
 
-## Using in Container with the Slurm Agent
+# Using in Container with the Slurm Agent
 
 Note: the agent currently needs Python 3.10 or higher. Start the agent with:
 
@@ -123,25 +140,7 @@ python python runSimulationReconstruction.py simparams.conf recoparams.conf
 
 # Mode of Operation
 
-The luminosity extraction can only happen if one or multiple Lumi_TrksQA files are available (For now, a Lumi_Params file must also be present, I don't know yet what's in this file. It's created during MC generation step, but we don't have MC data in the actual experiment).
-
-The LumiFit software then performs multiple individual steps, many of them on a cluster via slurm job.
-
-1. Lumi_TrkQA files are already there
-   - Determine IP Position from them
-   - determine (or read?) total cross section and save to file
-2. Now, two things happen at the same time (they are independent of each other):
-   - With that IP position, apply xy and momentum cuts on tracks. That is a complete reco chain! This is done with DPM, just like the MC data gen.
-     - copy Lumi_Params and Lumi_Digi from previous simulation
-     - run reco, erecomerge, track find, track fit macros again
-     - then, run trackFilter macro (this is the actual cut)
-     - then, back propagation and Lumi_TrkQA again
-   - The second thing is resolution and acceptance simulation, so have a realistic detector model
-     - this is done with the BOX generator, not the DPM
-     - but basically the same, complete MC data generation
-     - and reconstruction WITH cuts (it's gotta be realistic)
-     - which results in Lumi_TrksQA (but stored elsewhere, only relevant for resolution and acceptance!)
-3. the script waits if all jobs are finished and merges the Lumi_TrkQA files from the Box gen sample, to merge the acc and res files. these are important for the LumiFit.
+Because the Lumi Fit software is quite complex and performs a lot of steps, [the detailled mode of operation can be found here](docs/HowThisSoftwareWorks.md).
 
 # Code Layout
 
@@ -183,7 +182,33 @@ flowchart TD
 
 ```
 
-## Singularity Wrapper
+## Scripts
+
+- [runSimulationReconstruction.py](docs/scripts/runSimulationRecoinstruction.md)
+- [determineLuminosity.py](docs/scripts/determineLuminosity.md)
+- [doMultipleLuminosityFits.py](docs/scripts/doMultipleLuminosityFits.md)
+
+## Apps in `/bin/`
+
+### createLmdFitData
+
+### createKoaFitData
+
+Same but for the Koala Experiment
+
+### ExtractLuminosityValues
+
+:warning: This app is deprecated and no longer needed.
+
+Is compiled to `extractLuminosity`. Needs only a path to the merge data, and extracts the fitted lumi from the `lmd_fitted_data.root`.
+
+```bash
+./extractLuminosity /lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_1.5GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-100_xy_m_cut_real/no_alignment_correction/bunches_10/binning_300/merge_data
+```
+
+Note: currently this doesn't seem to work because the `EstimatorOptions` aren't saved to the root file, this is a new problem.
+
+# Singularity Wrapper
 
 Some script parts need to be submitted to SLURM. Because the entire application only works inside the Singularity container from now on, it must be called with a special wrapper script:
 
@@ -193,27 +218,3 @@ id1[squeue COMMAND] --> id2[squeue ./singularityJob.sh COMMAND]
 ```
 
 The script calls the container and sources the PandaRoot/KoalaSoft config.sh scripts necessary to set the needed env variables.
-
-# Scripts
-
-- [runSimulationReconstruction.py](docs/scripts/runSimulationRecoinstruction.md)
-- [determineLuminosity.py](docs/scripts/determineLuminosity.md)
-- [doMultipleLuminosityFits.py](docs/scripts/doMultipleLuminosityFits.md)
-
-# Apps in `/bin/`
-
-## createLmdFitData
-
-## createKoaFitData
-
-Same but for the Koala Experiment
-
-## ExtractLuminosityValues
-
-Is compiled to `extractLuminosity`. Needs only a path to the merge data, and extracts the fitted lumi from the `lmd_fitted_data.root`.
-
-```bash
-./extractLuminosity /lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_1.5GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-100_xy_m_cut_real/no_alignment_correction/bunches_10/binning_300/merge_data
-```
-
-Note: currently this doesn't seem to work because the `EstimatorOptions` aren't saved to the root file, this is a new problem.

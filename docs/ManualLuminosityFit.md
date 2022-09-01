@@ -18,11 +18,18 @@ Except for mc data generation and reonstruction, all merge and fit steps can be 
 - Generate box data for acceptance and resolution
 - Perform Fit
 
+Many of these steps have multiple sub-steps, so it's probably best to read the detailled [Very detailled TL;DR](#very-detailled-tldr) as well.
+
+## Very detailled TL;DR
+
+Because the Lumi Fit software is quite complex and performs a lot of steps, [the detailled mode of operation can be found here](HowThisSoftwareWorks.md).
+
 ## Individual Steps
 
 - [Performing the Luminosity Fit "Manually"](#performing-the-luminosity-fit-manually)
   - [Prerequisites](#prerequisites)
   - [TL;DR](#tldr)
+  - [Very detailled TL;DR](#very-detailled-tldr)
   - [Individual Steps](#individual-steps)
 - [Determine IP from Reconstructed data to reconstruct data with IP cut](#determine-ip-from-reconstructed-data-to-reconstruct-data-with-ip-cut)
 - [Generate detector resolution and acceptance plots](#generate-detector-resolution-and-acceptance-plots)
