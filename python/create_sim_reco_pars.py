@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv(dotenv_path="../lmdEnvFile.env", verbose=True)
 
+import argparse
 import os
 from pathlib import Path
 
@@ -48,13 +49,23 @@ def genExperimentConfig(momentum: float, experimentType: Experiment):
 
     return experiment
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-b', dest='inBetweenMomenta', action=argparse._StoreTrueAction)
+
+
+args = parser.parse_args()
 
 confPathPanda = Path("expConfigs/PANDA/")
 confPathPanda.mkdir(parents=True, exist_ok=True)
 confPathKoala = Path("expConfigs/KOALA/")
 confPathKoala.mkdir(parents=True, exist_ok=True)
 
-for mom in (1.5, 4.06, 8.9, 11.91, 15):
+if args.inBetweenMomenta:
+    momenta = (1.75, 3.5, 9.5, 13)
+else:
+    momenta = (1.5, 4.06, 8.9, 11.91, 15)
+
+for mom in momenta:
 
     experiment = genExperimentConfig(mom, ExperimentType.LUMI)
 
