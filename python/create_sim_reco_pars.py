@@ -85,7 +85,7 @@ for mom in momenta:
         cattrs.unstructure(experiment), ".", f"{confPathPanda}/{mom}.config"
     )
 
-    experiment = genExperimentConfig(mom, theta_min[0], theta_max[0], phi_min[0], phi_max[0], ExperimentType.KOALA)
+    experiment = genExperimentConfig(mom, theta_min[1], theta_max[1], phi_min[0], phi_max[0], ExperimentType.KOALA)
 
     write_params_to_file(
         cattrs.unstructure(experiment), ".", f"{confPathKoala}/{mom}.config"
