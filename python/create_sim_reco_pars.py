@@ -70,8 +70,8 @@ confPathKoala.mkdir(parents=True, exist_ok=True)
 
 theta_min = (2.7, 4.8)
 theta_max = (13.0, 20.0)
-phi_min = (0.0, 0.1)
-phi_max = (6.28318531718, 7.0)
+phi_min = (0.0, 0.0)
+phi_max = (6.28318531718, 6.28318531718)
 if args.inBetweenMomenta:
     momenta = (1.75, 3.5, 9.5, 13)
 else:
@@ -85,7 +85,7 @@ for mom in momenta:
         cattrs.unstructure(experiment), ".", f"{confPathPanda}/{mom}.config"
     )
 
-    experiment = genExperimentConfig(mom, theta_min[1], theta_max[1], phi_min[0], phi_max[0], ExperimentType.KOALA)
+    experiment = genExperimentConfig(mom, theta_min[1], theta_max[1], phi_min[1], phi_max[1], ExperimentType.KOALA)
 
     write_params_to_file(
         cattrs.unstructure(experiment), ".", f"{confPathKoala}/{mom}.config"
