@@ -11,12 +11,18 @@ from .experiment import ExperimentType
 # this should be set during construction
 # lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
 
+
 class Scenario:
     """
     Scenarios are always simulated on a cluster, but all runtime parameters are set during construction!
     """
 
-    def __init__(self, dir_path_: str, experiment_type: ExperimentType, lmdScriptPath: str):
+    def __init__(
+        self,
+        dir_path_: str,
+        experiment_type: ExperimentType,
+        lmdScriptPath: str,
+    ):
         self.momentum = 0.0
 
         self.dir_path = dir_path_
@@ -30,7 +36,7 @@ class Scenario:
         self.Lumi = True
         if experiment_type == ExperimentType.LUMI:
 
-            #* these should be in scenrio at all, they are config parameters!
+            # * these should be in scenrio at all, they are config parameters!
             # self.phi_min_in_rad = 0.0
             # self.phi_max_in_rad = 2 * math.pi
 
@@ -40,7 +46,7 @@ class Scenario:
             self.track_file_pattern = "Lumi_TrksQA_"
         elif experiment_type == ExperimentType.KOALA:
 
-            #* these should be in scenrio at all, they are config parameters!
+            # * these should be in scenrio at all, they are config parameters!
             # self.phi_min_in_rad = 0.9 * math.pi
             # self.phi_max_in_rad = 1.3 * math.pi
 

@@ -15,6 +15,7 @@ from .reconstruction import ReconstructionParameters, generateRecoDirSuffix
 
 load_dotenv(dotenv_path="../lmdEnvFile.env", verbose=True)
 
+
 class SimulationType(Enum):
     BOX = "box"
     PBARP_ELASTIC = "dpm_elastic"
