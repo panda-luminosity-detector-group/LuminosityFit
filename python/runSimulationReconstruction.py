@@ -5,6 +5,7 @@ This script is only run by a user, not any other script!
 """
 
 import argparse
+import os
 
 from lumifit.cluster import ClusterJobManager, DebugJobHandler, JobHandler
 from lumifit.experiment import ClusterEnvironment, Experiment
@@ -18,7 +19,8 @@ from lumifit.simulation import create_simulation_and_reconstruction_job
 def run_simulation_and_reconstruction(thisExperiment: Experiment):
 
     # temporary to get sim command
-    scen = Scenario("", thisExperiment.experimentType)
+    lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
+    scen = Scenario("", thisExperiment.experimentType, lmdScriptPath)
 
     job, _ = create_simulation_and_reconstruction_job(
         thisExperiment.simParams,
