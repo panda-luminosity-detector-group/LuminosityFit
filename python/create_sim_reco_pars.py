@@ -49,8 +49,11 @@ def genExperimentConfig(momentum: float, experimentType: Experiment):
 
     return experiment
 
+
 parser = argparse.ArgumentParser()
-parser.add_argument('-b', dest='inBetweenMomenta', action=argparse._StoreTrueAction)
+parser.add_argument(
+    "-b", dest="inBetweenMomenta", action=argparse._StoreTrueAction
+)
 
 
 args = parser.parse_args()
