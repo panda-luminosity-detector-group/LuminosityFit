@@ -27,7 +27,6 @@ from lumifit.reconstruction import (
 from lumifit.scenario import Scenario
 from lumifit.simulation import (
     SimulationParameters,
-    SimulationType,
     create_simulation_and_reconstruction_job,
 )
 
@@ -215,44 +214,68 @@ def simulateDataOnHimster(
                         "{0:.2f}".format(round(float(max_xy_shift), 2))
                     )
 
-                    sim_par = SimulationParameters(
-                        sim_type=SimulationType.BOX,
-                        num_events_per_sample=box_num_events_per_sample,
-                        num_samples=box_num_samples,
-                        lab_momentum=lab_momentum,
-                    )
+                    # sim_par = SimulationParameters(
+                    #     sim_type=SimulationType.BOX,
+                    #     num_events_per_sample=box_num_events_per_sample,
+                    #     num_samples=box_num_samples,
+                    #     lab_momentum=lab_momentum,
+                    # )
+
+                    #! these mus be applied again, because they change at run time
+                    # (the config on disk doesn't change and doesn't know this)
                     sim_par.theta_min_in_mrad -= max_xy_shift
                     sim_par.theta_max_in_mrad += max_xy_shift
-                    sim_par.phi_min_in_rad = thisScenario.phi_min_in_rad
-                    sim_par.phi_max_in_rad = thisScenario.phi_max_in_rad
-                    # TODO: ip offset for sim params?
 
-                    rec_par = ReconstructionParameters(
-                        num_events_per_sample=box_num_events_per_sample,
-                        num_samples=box_num_samples,
-                        lab_momentum=lab_momentum,
-                    )
+                    #* these should be in scenrio at all, they are config parameters
+                    # sim_par.phi_min_in_rad = thisScenario.phi_min_in_rad
+                    # sim_par.phi_max_in_rad = thisScenario.phi_max_in_rad
+                    # # TODO: ip offset for sim params?
+
+
+                    # TODO: make sure this object has the correct parameters!
+                    sim_par = thisExperiment.simParams
+
+                    # rec_par = ReconstructionParameters(
+                    #     num_events_per_sample=box_num_events_per_sample,
+                    #     num_samples=box_num_samples,
+                    #     lab_momentum=lab_momentum,
+                    # )
+
+                    #! these mus be applied again, because they can be overridden at command time
+                    # (the config on disk doesn't change and doesn't know this)
                     rec_par.use_xy_cut = thisScenario.use_xy_cut
                     rec_par.use_m_cut = thisScenario.use_m_cut
-                    rec_par.reco_ip_offset = (
-                        ip_info_dict["ip_offset_x"],
-                        ip_info_dict["ip_offset_y"],
-                        ip_info_dict["ip_offset_z"],
-                    )
+
+                    
+                    # rec_par.reco_ip_offset = (
+                    #     ip_info_dict["ip_offset_x"],
+                    #     ip_info_dict["ip_offset_y"],
+                    #     ip_info_dict["ip_offset_z"],
+                    # )
+
+
+                    # TODO: make sure this object has the correct parameters!
+                    rec_par = thisExperiment.recoParams
+                    
 
                     # alignment part
                     # if alignement matrices were specified, we used them as a mis-alignment
                     # and alignment for the box simulations
-                    align_par = AlignmentParameters()
-                    if (
-                        thisScenario.alignment_parameters.alignment_matrices_path
-                    ):
-                        align_par.misalignment_matrices_path = (
-                            thisScenario.alignment_parameters.alignment_matrices_path
-                        )
-                        align_par.alignment_matrices_path = (
-                            thisScenario.alignment_parameters.alignment_matrices_path
-                        )
+                    # align_par = AlignmentParameters()
+                    # if (
+                    #     thisScenario.alignment_parameters.alignment_matrices_path
+                    # ):
+                    #     align_par.misalignment_matrices_path = (
+                    #         thisScenario.alignment_parameters.alignment_matrices_path
+                    #     )
+                    #     align_par.alignment_matrices_path = (
+                    #         thisScenario.alignment_parameters.alignment_matrices_path
+                    #     )
+                    
+                    # TODO: make sure this object has the correct parameters!
+                    align_par = thisExperiment.alignParams
+                    
+                    
                     # update the sim and reco par dicts
 
                     (job, dir_path) = create_simulation_and_reconstruction_job(
@@ -311,19 +334,27 @@ def simulateDataOnHimster(
                             thisScenario.dir_path + "/../../sim_params.config"
                         )
 
-                    sim_par: SimulationParameters = (
-                        general.load_params_from_file(
-                            simParamFile, SimulationParameters
-                        )
-                    )
+                    # TODO why is this read again?! Has it changed?
+                    # TODO It was read right at the beginning to the experiment/thisExperiment object
+                    # sim_par: SimulationParameters = (
+                    #     general.load_params_from_file(
+                    #         simParamFile, SimulationParameters
+                    #     )
+                    # )
+                    sim_par = thisExperiment.simParams
 
-                    rec_par: ReconstructionParameters = (
-                        general.load_params_from_file(
-                            thisScenario.dir_path + "/reco_params.config",
-                            ReconstructionParameters,
-                        )
-                    )
+                    # TODO why is this read again?! Has it changed?
+                    # TODO It was read right at the beginning to the experiment/thisExperiment object
+                    # rec_par: ReconstructionParameters = (
+                    #     general.load_params_from_file(
+                    #         thisScenario.dir_path + "/reco_params.config",
+                    #         ReconstructionParameters,
+                    #     )
+                    # )
+                    rec_par = thisExperiment.recoParams
 
+
+                    # why are these newly assigned? Have they changed? 
                     rec_par.use_xy_cut = thisScenario.use_xy_cut
                     rec_par.use_m_cut = thisScenario.use_m_cut
                     rec_par.reco_ip_offset = [
@@ -336,7 +367,10 @@ def simulateDataOnHimster(
                         sim_par.num_samples = num_samples
 
                     # TODO: Load ALIGNMENT PARAMETERS from file
-                    align_par = AlignmentParameters()
+                    # TODO why is this read again?! Has it changed?
+                    # TODO It was read right at the beginning to the experiment/thisExperiment object
+                    # align_par = AlignmentParameters()
+                    align_par = thisExperiment.alignParams
 
                     # this directory is .../100000/1-100_uncut/alignStuff, but we need the 100000
                     # os.path.dirname() thinks this is a filename and gives 1-100_uncut back, which
@@ -564,11 +598,14 @@ def lumiDetermination(
 
     print("processing scenario " + dir_path + " at step " + str(state))
 
-    thisScenario.alignment_parameters: AlignmentParameters = (
-        general.load_params_from_file(
-            thisScenario.dir_path + "/align_params.config", AlignmentParameters
-        )
-    )
+    # TODO why is this read again?! Has it changed?
+    # TODO It was read right at the beginning to the experiment/thisExperiment object
+    # thisScenario.alignment_parameters: AlignmentParameters = (
+    #     general.load_params_from_file(
+    #         thisScenario.dir_path + "/align_params.config", AlignmentParameters
+    #     )
+    # )
+    thisScenario.alignment_parameters = thisExperiment.alignParams
 
     finished = False
     # 1. create vertex data (that means bunch data, create data objects and merge)
@@ -817,16 +854,17 @@ experiment_type = experiment.experimentType
 # TODO: there is nothing in here yet. Write some example experiment configs! (or make scritp for that)
 baseDataOutputDir = str(experiment.baseDataOutputDir)
 
+# read environ settings
+lmd_fit_script_path = os.environ["LMDFIT_SCRIPTPATH"]
+lmd_fit_path = os.path.dirname(lmd_fit_script_path)
+lmd_fit_bin_path = os.getenv("LMDFIT_BUILD_PATH") + "/bin"
+
 # make scenario config
-thisScenario = Scenario(baseDataOutputDir, experiment_type)
+thisScenario = Scenario(baseDataOutputDir, experiment_type, lmd_fit_script_path)
 thisScenario.momentum = experiment.recoParams.lab_momentum
 
 # pattern depends on experiment type
 track_file_pattern = thisScenario.track_file_pattern
-
-lmd_fit_script_path = os.environ["LMDFIT_SCRIPTPATH"]
-lmd_fit_path = os.path.dirname(lmd_fit_script_path)
-lmd_fit_bin_path = os.getenv("LMDFIT_BUILD_PATH") + "/bin"
 
 # set via command line argument, usually 1
 bootstrapped_num_samples = args.bootstrapped_num_samples
