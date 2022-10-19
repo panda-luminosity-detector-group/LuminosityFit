@@ -20,7 +20,7 @@ from lumifit.simulation import SimulationParameters, generateDirectory
 # write_params_to_file(cattrs.unstructure(experiment), ".", "experiment.config")
 
 
-def genExperimentConfig(momentum: float, experimentType: Experiment):
+def genExperimentConfig(momentum: float, theta_min: float, theta_max: float, phi_min: float, phi_max: float, experimentType: Experiment):
     simpars = SimulationParameters()
     recopars = ReconstructionParameters()
     alignpars = AlignmentParameters()
@@ -28,6 +28,10 @@ def genExperimentConfig(momentum: float, experimentType: Experiment):
     simpars.lab_momentum = momentum
     simpars.num_samples = 100
     simpars.num_events_per_sample = 100000
+    simpars.theta_min_in_mrad = theta_min
+    simpars.theta_max_in_mrad = theta_max
+    simpars.phi_min_in_rad = phi_min
+    simpars.phi_max_in_rad = phi_max
 
     recopars.lab_momentum = momentum
     recopars.num_samples = 100
@@ -63,6 +67,11 @@ confPathPanda.mkdir(parents=True, exist_ok=True)
 confPathKoala = Path("expConfigs/KOALA/")
 confPathKoala.mkdir(parents=True, exist_ok=True)
 
+
+theta_min = (2.7, 4.8)
+theta_max = (13.0, 20.0)
+phi_min = 0.0
+phi_max = 6.28318531718
 if args.inBetweenMomenta:
     momenta = (1.75, 3.5, 9.5, 13)
 else:
@@ -70,13 +79,14 @@ else:
 
 for mom in momenta:
 
-    experiment = genExperimentConfig(mom, ExperimentType.LUMI)
+    experiment = genExperimentConfig(mom, theta_min[0], theta_max[0], ExperimentType.LUMI)
 
     write_params_to_file(
         cattrs.unstructure(experiment), ".", f"{confPathPanda}/{mom}.config"
     )
 
-    experiment = genExperimentConfig(mom, ExperimentType.KOALA)
+    experiment = genExperimentConfig(mom, theta_min[0], theta_max[0], ExperimentType.KOALA)
+
     write_params_to_file(
         cattrs.unstructure(experiment), ".", f"{confPathKoala}/{mom}.config"
     )
