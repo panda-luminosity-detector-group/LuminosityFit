@@ -214,6 +214,8 @@ def simulateDataOnHimster(
                         "{0:.2f}".format(round(float(max_xy_shift), 2))
                     )
 
+                    # TODO why is this read again?! Has it changed?
+                    # TODO It was read right at the beginning to the experiment/thisExperiment object
                     # sim_par = SimulationParameters(
                     #     sim_type=SimulationType.BOX,
                     #     num_events_per_sample=box_num_events_per_sample,
@@ -221,42 +223,39 @@ def simulateDataOnHimster(
                     #     lab_momentum=lab_momentum,
                     # )
 
+                    # TODO: make sure this object has the correct parameters!
+                    sim_par = thisExperiment.simParams
                     #! these mus be applied again, because they change at run time
                     # (the config on disk doesn't change and doesn't know this)
                     sim_par.theta_min_in_mrad -= max_xy_shift
                     sim_par.theta_max_in_mrad += max_xy_shift
 
-                    #* these should be in scenrio at all, they are config parameters
+                    # * these should be in scenrio at all, they are config parameters
                     # sim_par.phi_min_in_rad = thisScenario.phi_min_in_rad
                     # sim_par.phi_max_in_rad = thisScenario.phi_max_in_rad
                     # # TODO: ip offset for sim params?
 
-
-                    # TODO: make sure this object has the correct parameters!
-                    sim_par = thisExperiment.simParams
-
+                    # TODO why is this read again?! Has it changed?
+                    # TODO It was read right at the beginning to the experiment/thisExperiment object
                     # rec_par = ReconstructionParameters(
                     #     num_events_per_sample=box_num_events_per_sample,
                     #     num_samples=box_num_samples,
                     #     lab_momentum=lab_momentum,
                     # )
 
+                    # TODO: make sure this object has the correct parameters!
+                    rec_par = thisExperiment.recoParams
+
                     #! these mus be applied again, because they can be overridden at command time
                     # (the config on disk doesn't change and doesn't know this)
                     rec_par.use_xy_cut = thisScenario.use_xy_cut
                     rec_par.use_m_cut = thisScenario.use_m_cut
 
-                    
                     # rec_par.reco_ip_offset = (
                     #     ip_info_dict["ip_offset_x"],
                     #     ip_info_dict["ip_offset_y"],
                     #     ip_info_dict["ip_offset_z"],
                     # )
-
-
-                    # TODO: make sure this object has the correct parameters!
-                    rec_par = thisExperiment.recoParams
-                    
 
                     # alignment part
                     # if alignement matrices were specified, we used them as a mis-alignment
@@ -271,11 +270,10 @@ def simulateDataOnHimster(
                     #     align_par.alignment_matrices_path = (
                     #         thisScenario.alignment_parameters.alignment_matrices_path
                     #     )
-                    
+
                     # TODO: make sure this object has the correct parameters!
                     align_par = thisExperiment.alignParams
-                    
-                    
+
                     # update the sim and reco par dicts
 
                     (job, dir_path) = create_simulation_and_reconstruction_job(
@@ -353,8 +351,7 @@ def simulateDataOnHimster(
                     # )
                     rec_par = thisExperiment.recoParams
 
-
-                    # why are these newly assigned? Have they changed? 
+                    # why are these newly assigned? Have they changed?
                     rec_par.use_xy_cut = thisScenario.use_xy_cut
                     rec_par.use_m_cut = thisScenario.use_m_cut
                     rec_par.reco_ip_offset = [
@@ -724,7 +721,7 @@ def lumiDetermination(
             if cut_keyword == "":
                 cut_keyword += "un"
             cut_keyword += "cut_real "
-            bashcommand: str = (
+            bashcommand = (
                 "python doMultipleLuminosityFits.py "
                 "--forced_box_gen_data "
                 + thisScenario.acc_and_res_dir_path
@@ -857,10 +854,12 @@ baseDataOutputDir = str(experiment.baseDataOutputDir)
 # read environ settings
 lmd_fit_script_path = os.environ["LMDFIT_SCRIPTPATH"]
 lmd_fit_path = os.path.dirname(lmd_fit_script_path)
-lmd_fit_bin_path = os.getenv("LMDFIT_BUILD_PATH") + "/bin"
+lmd_fit_bin_path = os.environ["LMDFIT_BUILD_PATH"] + "/bin"
 
 # make scenario config
-thisScenario = Scenario(baseDataOutputDir, experiment_type, lmd_fit_script_path)
+thisScenario = Scenario(
+    baseDataOutputDir, experiment_type, lmd_fit_script_path
+)
 thisScenario.momentum = experiment.recoParams.lab_momentum
 
 # pattern depends on experiment type
