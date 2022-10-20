@@ -26,8 +26,8 @@ def genExperimentConfig(
     theta_max: float,
     phi_min: float,
     phi_max: float,
-    experimentType: Experiment,
-):
+    experimentType: ExperimentType,
+) -> Experiment:
     simpars = SimulationParameters()
     recopars = ReconstructionParameters()
     alignpars = AlignmentParameters()
@@ -47,6 +47,10 @@ def genExperimentConfig(
     recopars.num_events_per_box_sample = 100000
 
     lmdfit_data_dir = os.getenv("LMDFIT_DATA_DIR")
+
+    if lmdfit_data_dir is None:
+        raise ValueError('Please set $LMDFIT_DATA_DIR!')
+
     dirname = generateDirectory(simpars, alignpars)
 
     experiment = Experiment(
@@ -81,9 +85,9 @@ phi_min = (0.0, 0.0)
 phi_max = (6.28318531718, 6.28318531718)
 
 if args.inBetweenMomenta:
-    momenta = (1.75, 3.5, 9.5, 13)
+    momenta = [1.75, 3.5, 9.5, 13.0]
 else:
-    momenta = (1.5, 4.06, 8.9, 11.91, 15)
+    momenta = [1.5, 4.06, 8.9, 11.91, 15.0]
 
 for mom in momenta:
 

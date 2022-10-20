@@ -3,7 +3,7 @@
 
 import errno
 import os
-from typing import Tuple
+from typing import Any, Tuple
 
 import attr
 
@@ -21,7 +21,7 @@ lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
 
 @attr.s
 class ReconstructionParameters:
-    def _validate_track_search_algo(instance, attribute, value):
+    def _validate_track_search_algo(instance: Any, _: Any, value: Any) -> None:
         if value not in track_search_algorithms:
             raise ValueError(f"Must be either of {track_search_algorithms}.")
 
@@ -43,7 +43,7 @@ class ReconstructionParameters:
 
 def generateRecoDirSuffix(
     reco_params: ReconstructionParameters, align_params: AlignmentParameters
-):
+) -> str:
     reco_dirname_suffix = (
         f"{reco_params.low_index}-"
         + f"{reco_params.low_index + reco_params.num_samples - 1}_"
@@ -81,11 +81,11 @@ def generateRecoDirSuffix(
 def create_reconstruction_job(
     reco_params: ReconstructionParameters,
     align_params: AlignmentParameters,
-    dirname,
-    application_command,
-    force_level=0,
-    debug=False,
-    use_devel_queue=False,
+    dirname: str,
+    application_command: str,
+    force_level: int = 0,
+    debug: bool = False,
+    use_devel_queue: bool = False,
 ) -> Tuple[Job, str]:
     print(
         "preparing reconstruction in index range "
@@ -121,12 +121,13 @@ def create_reconstruction_job(
         if exception.errno != errno.EEXIST:
             print("error: thought dir does not exists but it does...")
 
-    write_params_to_file(
-        attr.asdict(reco_params), pathname_full, "reco_params.config"
-    )
-    write_params_to_file(
-        attr.asdict(align_params), pathname_full, "align_params.config"
-    )
+    # * Those are already in the experiment config, no need to write them again
+    # write_params_to_file(
+    #     attr.asdict(reco_params), pathname_full, "reco_params.config"
+    # )
+    # write_params_to_file(
+    #     attr.asdict(align_params), pathname_full, "align_params.config"
+    # )
 
     resource_request = JobResourceRequest(2 * 60)
     resource_request.number_of_nodes = 1

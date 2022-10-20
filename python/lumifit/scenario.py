@@ -28,7 +28,7 @@ class Scenario:
         self.dir_path = dir_path_
         self.filtered_dir_path = ""
         self.acc_and_res_dir_path = ""
-        self.rec_ip_info: dict = {}
+        self.rec_ip_info = {}
         self.elastic_pbarp_integrated_cross_secion_in_mb = None
         self.use_m_cut = True
         self.use_xy_cut = True
@@ -64,6 +64,6 @@ class Scenario:
         self.last_state = 0
 
         # what the hell is this?
-        self.simulation_info_lists: list = []
+        self.simulation_info_lists = []
 
         self.is_broken = False
