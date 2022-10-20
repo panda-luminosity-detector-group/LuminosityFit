@@ -100,20 +100,23 @@ def generateDirectory(
 
         dirname += "/" + gen_part
 
-        if not _check_ip_params_zero(sim_params):
-            dirname += (
-                "/ip_offset_XYZDXDYDZ_"
-                + f"{sim_params.ip_offset_x}_{sim_params.ip_offset_y}_"
-                + f"{sim_params.ip_offset_z}_{sim_params.ip_spread_x}_"
-                + f"{sim_params.ip_spread_y}_{sim_params.ip_spread_z}"
-            )
-        if not _check_beam_params_zero(sim_params):
-            dirname += (
-                "/beam_grad_XYDXDY_"
-                + f"{sim_params.beam_tilt_x}_{sim_params.beam_tilt_y}_"
-                + f"{sim_params.beam_divergence_x}_"
-                + f"{sim_params.beam_divergence_y}"
-            )
+        # if not _check_ip_params_zero(sim_params):
+        #* always write that
+        dirname += (
+            "/ip_offset_XYZDXDYDZ_"
+            + f"{sim_params.ip_offset_x}_{sim_params.ip_offset_y}_"
+            + f"{sim_params.ip_offset_z}_{sim_params.ip_spread_x}_"
+            + f"{sim_params.ip_spread_y}_{sim_params.ip_spread_z}"
+        )
+
+        #* always write that
+        # if not _check_beam_params_zero(sim_params):
+        dirname += (
+            "/beam_grad_XYDXDY_"
+            + f"{sim_params.beam_tilt_x}_{sim_params.beam_tilt_y}_"
+            + f"{sim_params.beam_divergence_x}_"
+            + f"{sim_params.beam_divergence_y}"
+        )
 
         if (
             align_params.use_point_transform_misalignment

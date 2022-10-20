@@ -251,11 +251,11 @@ def simulateDataOnHimster(
                     rec_par.use_xy_cut = thisScenario.use_xy_cut
                     rec_par.use_m_cut = thisScenario.use_m_cut
 
-                    # rec_par.reco_ip_offset = (
-                    #     ip_info_dict["ip_offset_x"],
-                    #     ip_info_dict["ip_offset_y"],
-                    #     ip_info_dict["ip_offset_z"],
-                    # )
+                    rec_par.reco_ip_offset = (
+                        ip_info_dict["ip_offset_x"],
+                        ip_info_dict["ip_offset_y"],
+                        ip_info_dict["ip_offset_z"],
+                    )
 
                     # alignment part
                     # if alignement matrices were specified, we used them as a mis-alignment
