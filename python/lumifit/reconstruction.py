@@ -122,12 +122,12 @@ def create_reconstruction_job(
             print("error: thought dir does not exists but it does...")
 
     # * Those are already in the experiment config, no need to write them again
-    # write_params_to_file(
-    #     attr.asdict(reco_params), pathname_full, "reco_params.config"
-    # )
-    # write_params_to_file(
-    #     attr.asdict(align_params), pathname_full, "align_params.config"
-    # )
+    write_params_to_file(
+        attr.asdict(reco_params), pathname_full, "reco_params.config"
+    )
+    write_params_to_file(
+        attr.asdict(align_params), pathname_full, "align_params.config"
+    )
 
     resource_request = JobResourceRequest(2 * 60)
     resource_request.number_of_nodes = 1
