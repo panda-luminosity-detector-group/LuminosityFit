@@ -27,6 +27,7 @@ from lumifit.reconstruction import (
 from lumifit.scenario import Scenario
 from lumifit.simulation import (
     SimulationParameters,
+#    SimulationType,
     create_simulation_and_reconstruction_job,
 )
 
@@ -227,6 +228,9 @@ def simulateDataOnHimster(
                     sim_par = thisExperiment.simParams
                     #! these mus be applied again, because they change at run time
                     # (the config on disk doesn't change and doesn't know this)
+                    sim_par.sim_type=rec_type
+                    sim_par.num_events_per_sample=box_num_events_per_sample
+                    sim_par.num_samples=box_num_samples
                     sim_par.theta_min_in_mrad -= max_xy_shift
                     sim_par.theta_max_in_mrad += max_xy_shift
 
@@ -248,13 +252,15 @@ def simulateDataOnHimster(
 
                     #! these mus be applied again, because they can be overridden at command time
                     # (the config on disk doesn't change and doesn't know this)
+                    rec_par.num_events_per_sample=box_num_events_per_sample
+                    rec_par.num_samples=box_num_samples
                     rec_par.use_xy_cut = thisScenario.use_xy_cut
                     rec_par.use_m_cut = thisScenario.use_m_cut
 
                     rec_par.reco_ip_offset = (
                         ip_info_dict["ip_offset_x"],
                         ip_info_dict["ip_offset_y"],
-                        ip_info_dict["ip_offset_z"],
+                        ipz,
                     )
 
                     # alignment part
@@ -357,7 +363,7 @@ def simulateDataOnHimster(
                     rec_par.reco_ip_offset = [
                         ip_info_dict["ip_offset_x"],
                         ip_info_dict["ip_offset_y"],
-                        ip_info_dict["ip_offset_z"],
+                        ipz,
                     ]
                     if num_samples > 0 and rec_par.num_samples > num_samples:
                         rec_par.num_samples = num_samples
@@ -872,6 +878,8 @@ bootstrapped_num_samples = args.bootstrapped_num_samples
 num_samples = experiment.recoParams.num_samples
 box_num_samples = experiment.recoParams.num_box_samples
 box_num_events_per_sample = experiment.recoParams.num_events_per_box_sample
+rec_type = experiment.recoParams.rec_type
+ipz = experiment.simParams.ip_offset_z
 
 # first lets try to find all directories and their status/step
 dir_searcher = general.DirectorySearcher(["dpm_elastic", "uncut"])
