@@ -12,7 +12,7 @@ import cattrs
 from lumifit.alignment import AlignmentParameters
 from lumifit.experiment import ClusterEnvironment, Experiment, ExperimentType
 from lumifit.general import write_params_to_file
-from lumifit.reconstruction import ReconstructionParameters
+from lumifit.reconstruction import ReconstructionParameters,ReconstructionType
 from lumifit.simulation import SimulationParameters, generateDirectory
 
 # write_params_to_file(asdict(simpars), ".", "simparams.config")
@@ -27,6 +27,7 @@ def genExperimentConfig(
     phi_min: float,
     phi_max: float,
     experimentType: ExperimentType,
+    reconstructionType: ReconstructionType,
 ) -> Experiment:
     simpars = SimulationParameters()
     recopars = ReconstructionParameters()
@@ -45,6 +46,7 @@ def genExperimentConfig(
     recopars.num_events_per_sample = 100000
     recopars.num_box_samples = 500
     recopars.num_events_per_box_sample = 100000
+    recopars.rec_type = reconstructionType
 
     lmdfit_data_dir = os.getenv("LMDFIT_DATA_DIR")
 
@@ -98,6 +100,7 @@ for mom in momenta:
         phi_min[0],
         phi_max[0],
         ExperimentType.LUMI,
+        ReconstructionType.BOX,
     )
 
     write_params_to_file(
@@ -111,6 +114,7 @@ for mom in momenta:
         phi_min[1],
         phi_max[1],
         ExperimentType.KOALA,
+        ReconstructionType.PBARP_ELASTIC,
     )
 
     write_params_to_file(

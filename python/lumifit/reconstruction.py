@@ -4,6 +4,7 @@
 import errno
 import os
 from typing import Any, Tuple
+from enum import Enum
 
 import attr
 
@@ -18,6 +19,9 @@ track_search_algorithms = ["CA", "Follow"]
 
 lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
 
+class ReconstructionType(Enum):
+    BOX = "box"
+    PBARP_ELASTIC = "dpm_elastic"
 
 @attr.s
 class ReconstructionParameters:
@@ -25,6 +29,7 @@ class ReconstructionParameters:
         if value not in track_search_algorithms:
             raise ValueError(f"Must be either of {track_search_algorithms}.")
 
+    rec_type: ReconstructionType = attr.ib(default=ReconstructionType.BOX)
     num_events_per_sample: int = attr.ib(default=1000)
     num_samples: int = attr.ib(default=1)
     lab_momentum: float = attr.ib(default=1.5)
