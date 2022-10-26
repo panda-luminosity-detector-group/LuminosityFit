@@ -1,8 +1,9 @@
+#!/usr/bin/env python3
+
 import math
 import os
 import random
 import subprocess
-from enum import Enum
 from typing import Any, Tuple
 
 import attr
@@ -12,15 +13,9 @@ from .alignment import AlignmentParameters
 from .cluster import Job, JobResourceRequest, make_test_job_resource_request
 from .general import write_params_to_file
 from .reconstruction import ReconstructionParameters, generateRecoDirSuffix
+from .simulationTypes import SimulationType
 
 load_dotenv(dotenv_path="../lmdEnvFile.env", verbose=True)
-
-
-class SimulationType(Enum):
-    BOX = "box"
-    PBARP_ELASTIC = "dpm_elastic"
-    PBARP = "dpm_elastic_inelastic"
-    NOISE = "noise"
 
 
 @attr.s
@@ -101,7 +96,7 @@ def generateDirectory(
         dirname += "/" + gen_part
 
         # if not _check_ip_params_zero(sim_params):
-        #* always write that
+        # * always write that
         dirname += (
             "/ip_offset_XYZDXDYDZ_"
             + f"{sim_params.ip_offset_x}_{sim_params.ip_offset_y}_"
@@ -109,7 +104,7 @@ def generateDirectory(
             + f"{sim_params.ip_spread_y}_{sim_params.ip_spread_z}"
         )
 
-        #* always write that
+        # * always write that
         # if not _check_beam_params_zero(sim_params):
         dirname += (
             "/beam_grad_XYDXDY_"

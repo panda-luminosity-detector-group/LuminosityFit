@@ -3,9 +3,9 @@
 import os
 
 from lumifit.alignment import AlignmentParameters
-from lumifit.general import check_stage_success, load_params_from_file
-from lumifit.simulation import SimulationParameters, SimulationType
-from lumifit.general import toCbool
+from lumifit.general import check_stage_success, load_params_from_file, toCbool
+from lumifit.simulation import SimulationParameters
+from lumifit.simulationTypes import SimulationType
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 scriptpath = os.environ["LMDFIT_SCRIPTPATH"]
@@ -49,7 +49,10 @@ if (
     or force_level == 2
 ):
     os.chdir(scriptpath)
-    if sim_params.sim_type == SimulationType.BOX:
+    if (
+        sim_params.sim_type == SimulationType.BOX
+        or sim_params.sim_type == SimulationType.RESACCBOX
+    ):
         os.system(
             f"{lmd_build_path}/bin/generatePbarPElasticScattering"
             + f" {sim_params.lab_momentum} {sim_params.num_events_per_sample}"
@@ -60,7 +63,10 @@ if (
             + f" -o {gen_filepath}"
         )
 
-    elif sim_params.sim_type == SimulationType.PBARP_ELASTIC:
+    elif (
+        sim_params.sim_type == SimulationType.PBARP_ELASTIC
+        or sim_params.sim_type == SimulationType.RESACCPBARP_ELASTIC
+    ):
         os.system(
             f"{lmd_build_path}/bin/generatePbarPElasticScattering"
             + f" {sim_params.lab_momentum} {sim_params.num_events_per_sample}"
