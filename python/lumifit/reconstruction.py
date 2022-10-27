@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 
-
 import errno
 import os
 from typing import Any, Tuple
-from enum import Enum
 
 import attr
 
 from .alignment import AlignmentParameters
 from .cluster import Job, JobResourceRequest, make_test_job_resource_request
 from .general import write_params_to_file
+from .simulationTypes import SimulationType
 
 # TODO: solve the track_search_algorithms with Enum (or IntEnum for json serializability)
 #! wait there is even an enumEncoder, IntEnums may not be neccessary
@@ -19,9 +18,10 @@ track_search_algorithms = ["CA", "Follow"]
 
 lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
 
-class ReconstructionType(Enum):
-    BOX = "box"
-    PBARP_ELASTIC = "dpm_elastic"
+# class ReconstructionType(Enum):
+#     BOX = "box"
+#     PBARP_ELASTIC = "dpm_elastic"
+
 
 @attr.s
 class ReconstructionParameters:
@@ -29,7 +29,7 @@ class ReconstructionParameters:
         if value not in track_search_algorithms:
             raise ValueError(f"Must be either of {track_search_algorithms}.")
 
-    rec_type: ReconstructionType = attr.ib(default=ReconstructionType.BOX)
+    sim_type_for_resAcc: SimulationType = attr.ib(default=SimulationType.BOX)
     num_events_per_sample: int = attr.ib(default=1000)
     num_samples: int = attr.ib(default=1)
     lab_momentum: float = attr.ib(default=1.5)
