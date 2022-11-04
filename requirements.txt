@@ -8,3 +8,5 @@ mypy
 pycodestyle
 pytest
 python-dotenv
+uproot
+awkward
