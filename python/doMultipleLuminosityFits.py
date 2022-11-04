@@ -150,19 +150,19 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--ref_box_gen_data",
-    metavar="ref box gen data",
+    "--ref_resacc_gen_data",
+    metavar="ref res/acc data",
     type=str,
     default="",
-    help="If specified then this path will be used for all fits as the reference box gen data. WARNING: DOES NOT WORK CURRENTLY.",
+    help="If specified then this path will be used for all fits as the reference res/acc data. WARNING: DOES NOT WORK CURRENTLY.",
 )
 
 parser.add_argument(
     "--forced_resAcc_gen_data",
-    metavar="forced box gen data",
+    metavar="forced res/acc data",
     type=str,
     default="",
-    help="If specified then this path will be used for all fits as the box gen data, ignoring other box gen data directories.",
+    help="If specified then this path will be used for all fits as the res/acc data, ignoring other res/acc data directories.",
 )
 
 parser.add_argument(
@@ -239,9 +239,9 @@ for match in matches:
     )
 
     # TODO: handle this case
-    if args.ref_box_gen_data != "":
+    if args.ref_resacc_gen_data != "":
         job.add_exported_user_variable(
-            "reference_acceptance_path", args.ref_box_gen_data
+            "reference_acceptance_path", args.ref_resacc_gen_data
         )
 
     job.exported_user_variables = {

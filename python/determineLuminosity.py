@@ -728,6 +728,9 @@ def lumiDetermination(
                 "--forced_resAcc_gen_data "
                 + thisScenario.acc_and_res_dir_path
                 + " "
+                + "-e"
+                + args.ExperimentConfigFile
+                + " "
                 + thisScenario.filtered_dir_path
                 + " "
                 + cut_keyword
