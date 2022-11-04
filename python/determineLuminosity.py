@@ -182,7 +182,7 @@ def simulateDataOnHimster(
                 found_dirs = []
                 if dir_path != "":
                     temp_dir_searcher = general.DirectorySearcher(
-                        ["box", data_keywords[0]]
+                        [thisExperiment.recoParams.sim_type_for_resAcc.value, data_keywords[0]]   # look for the folder name including sim_type_for_resAcc 
                     )
                     temp_dir_searcher.searchListOfDirectories(
                         dir_path, track_file_pattern
@@ -725,7 +725,7 @@ def lumiDetermination(
             cut_keyword += "cut_real "
             bashcommand = (
                 "python doMultipleLuminosityFits.py "
-                "--forced_box_gen_data "
+                "--forced_resAcc_gen_data "
                 + thisScenario.acc_and_res_dir_path
                 + " "
                 + thisScenario.filtered_dir_path

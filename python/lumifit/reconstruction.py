@@ -18,10 +18,6 @@ track_search_algorithms = ["CA", "Follow"]
 
 lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
 
-# class ReconstructionType(Enum):
-#     BOX = "box"
-#     PBARP_ELASTIC = "dpm_elastic"
-
 
 @attr.s
 class ReconstructionParameters:
