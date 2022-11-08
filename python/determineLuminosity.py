@@ -182,7 +182,10 @@ def simulateDataOnHimster(
                 found_dirs = []
                 if dir_path != "":
                     temp_dir_searcher = general.DirectorySearcher(
-                        [thisExperiment.recoParams.sim_type_for_resAcc.value, data_keywords[0]]   # look for the folder name including sim_type_for_resAcc 
+                        [
+                            thisExperiment.recoParams.sim_type_for_resAcc.value,
+                            data_keywords[0],
+                        ]  # look for the folder name including sim_type_for_resAcc
                     )
                     temp_dir_searcher.searchListOfDirectories(
                         dir_path, track_file_pattern
@@ -736,7 +739,7 @@ def lumiDetermination(
                 + cut_keyword
                 + lmd_fit_path
                 + "/"
-                + str(thisExperiment.fitConfigPath)
+                + thisExperiment.fitConfigPath.__str__
                 # apparently, this is no longer needed
                 # + " "
                 # + track_file_pattern
