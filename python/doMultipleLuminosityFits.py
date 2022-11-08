@@ -3,25 +3,27 @@ import argparse
 import glob
 import os
 import re
-import socket
+
+from pathlib import Path
 
 import lumifit.general as general
 from lumifit.cluster import ClusterJobManager, Job, JobResourceRequest
+from lumifit.experiment import Experiment, ClusterEnvironment
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
 
 dirs: list = []
-box_dirs: list = []
+resAccDirs: list = []
 
 box_res_glob_pattern = ["lmd_res_data_", "of", ".root"]
 box_acc_glob_pattern = ["lmd_acc_data_", "of", ".root"]
 
-top_level_box_directory = ""
+top_level_resAcc_directory = ""
 
 LMDscriptpath = os.environ["LMDFIT_SCRIPTPATH"]
 
 
-def getListOfBoxDirectories(path: str) -> None:
+def getListOfResAccDirectories(path: str) -> None:
     if os.path.isdir(path):
         print("currently looking at directory " + path)
 
@@ -40,33 +42,35 @@ def getListOfBoxDirectories(path: str) -> None:
                             bunch_dir + "/" + box_res_glob_pattern
                         )
                         if filelists:
-                            box_dirs.append(bunch_dir)
+                            resAccDirs.append(bunch_dir)
                 return
             else:
                 if glob.glob(path + "Track" + "*.root"):
                     return
             dirpath = path + "/" + dir
             if os.path.isdir(dirpath):
-                getListOfBoxDirectories(dirpath)
+                getListOfResAccDirectories(dirpath)
 
 
-def getTopBoxDirectory(path: str) -> None:
+def getTopResAccDirectory(path: str) -> None:
     if os.path.isdir(path):
         found = False
         for dir in next(os.walk(path))[1]:
-            if re.search("box", dir):
-                global top_level_box_directory
-                top_level_box_directory = path + "/" + dir
+            if re.search(f"{experiment.recoParams.sim_type_for_resAcc.value}", dir):   # read BOX/DPM string from config
+                global top_level_resAcc_directory
+                top_level_resAcc_directory = path + "/" + dir
                 found = True
                 break
         if not found:
-            getTopBoxDirectory(os.path.dirname(path))
+            getTopResAccDirectory(os.path.dirname(path))
 
 
 # TODO: holy shit, DONT MAKE UP REGEX PATTERN ON THE FLY
-def findMatchingDirs(box_data_path: str) -> list:
+# also, this function will only find the test data if it is called "dpm" something
+#! in case data is from box gen (or FTF) this DOESN'T WORK!
+def findMatchingDirs(resAcc_data_path: str) -> list:
     matching_dir_pairs = []
-    if box_data_path == "":
+    if resAcc_data_path == "":
         for dpm_dir in dirs:
             print(dpm_dir)
             match = re.search(
@@ -76,7 +80,7 @@ def findMatchingDirs(box_data_path: str) -> list:
             pattern = (
                 "^"
                 + match.group(1)  # type: ignore
-                + "box_.*?"
+                + f"{experiment.recoParams.sim_type_for_resAcc.value}_.*?"             # read BOX/DPM string from config
                 + match.group(2)  # type: ignore
                 + ".*"
                 + match.group(3)  # type: ignore
@@ -85,11 +89,11 @@ def findMatchingDirs(box_data_path: str) -> list:
                 + "/merge_data$"
             )
             # print pattern
-            for box_dir in box_dirs:
+            for resAcc_dir in resAccDirs:
                 # print box_dir
-                box_match = re.search(pattern, box_dir)
+                box_match = re.search(pattern, resAcc_dir)
                 if box_match:
-                    matching_dir_pairs.append([dpm_dir, box_dir])
+                    matching_dir_pairs.append([dpm_dir, resAcc_dir])
                     break
     else:
         for dpm_dir in dirs:
@@ -99,7 +103,7 @@ def findMatchingDirs(box_data_path: str) -> list:
             if match:
                 dir_searcher = general.DirectorySearcher([match.group(1)])
                 dir_searcher.searchListOfDirectories(
-                    box_data_path, box_acc_glob_pattern
+                    resAcc_data_path, box_acc_glob_pattern
                 )
                 correct_dirs = dir_searcher.getListOfDirectories()
 
@@ -146,19 +150,19 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--ref_box_gen_data",
-    metavar="ref box gen data",
+    "--ref_resacc_gen_data",
+    metavar="ref res/acc data",
     type=str,
     default="",
-    help="If specified then this path will be used for all fits as the reference box gen data. WARNING: DOESN NOT WORK CURRENTLY.",
+    help="If specified then this path will be used for all fits as the reference res/acc data. WARNING: DOES NOT WORK CURRENTLY.",
 )
 
 parser.add_argument(
-    "--forced_box_gen_data",
-    metavar="forced box gen data",
+    "--forced_resAcc_gen_data",
+    metavar="forced res/acc data",
     type=str,
     default="",
-    help="If specified then this path will be used for all fits as the box gen data, ignoring other box gen data directories.",
+    help="If specified then this path will be used for all fits as the res/acc data, ignoring other res/acc data directories.",
 )
 
 parser.add_argument(
@@ -169,7 +173,22 @@ parser.add_argument(
     help="Number of concurrent threads within the estimator that is used for fitting. Default: 16 threads.",
 )
 
+parser.add_argument(
+    "-e",
+    "--experiment_config",
+    dest="ExperimentConfigFile",
+    type=Path,
+    help="The Experiment.config file that holds all info.",
+    required=True,
+)
+
 args = parser.parse_args()
+
+# load experiment config
+experiment: Experiment = general.load_params_from_file(
+    args.ExperimentConfigFile, Experiment
+)
+
 
 number_of_threads = args.number_of_threads
 if args.number_of_threads > 32:
@@ -185,18 +204,18 @@ dir_searcher = general.DirectorySearcher(patterns)
 dir_searcher.searchListOfDirectories(args.dirname[0], dpm_glob_pattern)
 dirs = dir_searcher.getListOfDirectories()
 
-if args.forced_box_gen_data == "":
-    getTopBoxDirectory(args.dirname[0])
-    print("box top dir: " + top_level_box_directory)
+if args.forced_resAcc_gen_data == "":
+    getTopResAccDirectory(args.dirname[0])
+    print("box top dir: " + top_level_resAcc_directory)
     # getListOfBoxDirectories(top_level_box_directory)
     box_dir_searcher = general.DirectorySearcher(patterns)
     box_dir_searcher.searchListOfDirectories(
-        top_level_box_directory, box_acc_glob_pattern
+        top_level_resAcc_directory, box_acc_glob_pattern
     )
-    box_dirs = box_dir_searcher.getListOfDirectories()
+    resAccDirs = box_dir_searcher.getListOfDirectories()
 
 
-matches = findMatchingDirs(args.forced_box_gen_data)
+matches = findMatchingDirs(args.forced_resAcc_gen_data)
 
 print(matches)
 print(len(matches))
@@ -220,9 +239,9 @@ for match in matches:
     )
 
     # TODO: handle this case
-    if args.ref_box_gen_data != "":
+    if args.ref_resacc_gen_data != "":
         job.add_exported_user_variable(
-            "reference_acceptance_path", args.ref_box_gen_data
+            "reference_acceptance_path", args.ref_resacc_gen_data
         )
 
     job.exported_user_variables = {
@@ -234,12 +253,12 @@ for match in matches:
 
     joblist.append(job)
 
-# TODO: read from scenario config!
-full_hostname = socket.getfqdn()
-if "gsi.de" in full_hostname:
+if experiment.cluster == ClusterEnvironment.VIRGO:
     job_handler = create_virgo_job_handler("long")
-else:
+elif experiment.cluster == ClusterEnvironment.HIMSTER:
     job_handler = create_himster_job_handler("himster2_exp")
+else:
+    raise NotImplementedError(f"Cluster type {experiment.cluster} is not implemented!")
 
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
