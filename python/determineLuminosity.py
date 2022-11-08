@@ -726,12 +726,7 @@ def lumiDetermination(
             if cut_keyword == "":
                 cut_keyword += "un"
             cut_keyword += "cut_real "
-            bashcommand = (
-                f"python doMultipleLuminosityFits.py --forced_resAcc_gen_data {thisScenario.acc_and_res_dir_path} -e {args.ExperimentConfigFile} {thisScenario.filtered_dir_path} {cut_keyword} {lmd_fit_path}/{thisExperiment.fitConfigPath}")
-                # apparently, this is no longer needed
-                # + " "
-                # + track_file_pattern
-            )
+            bashcommand = f"python doMultipleLuminosityFits.py --forced_resAcc_gen_data {thisScenario.acc_and_res_dir_path} -e {args.ExperimentConfigFile} {thisScenario.filtered_dir_path} {cut_keyword} {lmd_fit_path}/{thisExperiment.fitConfigPath}"
             print(f"Bash command is:\n{bashcommand}")
             _ = subprocess.call(bashcommand.split())
 
