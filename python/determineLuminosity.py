@@ -727,19 +727,7 @@ def lumiDetermination(
                 cut_keyword += "un"
             cut_keyword += "cut_real "
             bashcommand = (
-                "python doMultipleLuminosityFits.py "
-                "--forced_resAcc_gen_data "
-                + thisScenario.acc_and_res_dir_path
-                + " "
-                + "-e"
-                + args.ExperimentConfigFile
-                + " "
-                + thisScenario.filtered_dir_path
-                + " "
-                + cut_keyword
-                + lmd_fit_path
-                + "/"
-                + thisExperiment.fitConfigPath.__str__
+                f"python doMultipleLuminosityFits.py --forced_resAcc_gen_data {thisScenario.acc_and_res_dir_path} -e {args.ExperimentConfigFile} {thisScenario.filtered_dir_path} {cut_keyword} {lmd_fit_path}/{thisExperiment.fitConfigPath}")
                 # apparently, this is no longer needed
                 # + " "
                 # + track_file_pattern
