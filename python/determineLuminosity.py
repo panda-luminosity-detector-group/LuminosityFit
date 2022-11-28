@@ -360,8 +360,12 @@ def simulateDataOnHimster(
                     rec_par.use_xy_cut = thisScenario.use_xy_cut
                     rec_par.use_m_cut = thisScenario.use_m_cut
                     rec_par.reco_ip_offset = [
-                        ip_info_dict["ip_offset_x"],    #! wait this can also come from the config!
-                        ip_info_dict["ip_offset_y"],    #! wait this can also come from the config!
+                        ip_info_dict[
+                            "ip_offset_x"
+                        ],  #! wait this can also come from the config!
+                        ip_info_dict[
+                            "ip_offset_y"
+                        ],  #! wait this can also come from the config!
                         ipz,
                     ]
                     if num_samples > 0 and rec_par.num_samples > num_samples:

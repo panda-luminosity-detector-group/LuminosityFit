@@ -200,6 +200,7 @@ def create_simulation_and_reconstruction_job(
         print(f"\n\nGREPLINE:PBARPGEN:\n{bashcommand}\n")
         subprocess.call(bashcommand.split())
 
+    # These must be written again so that runLmdSimReco and runLmdReco have access to them
     write_params_to_file(
         attr.asdict(sim_params), pathname_base, "sim_params.config"
     )

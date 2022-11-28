@@ -122,7 +122,7 @@ def create_reconstruction_job(
         if exception.errno != errno.EEXIST:
             print("error: thought dir does not exists but it does...")
 
-    # * Those are already in the experiment config, no need to write them again
+    # These must be written again so that runLmdSimReco and runLmdReco have access to them
     write_params_to_file(
         attr.asdict(reco_params), pathname_full, "reco_params.config"
     )
