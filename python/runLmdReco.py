@@ -24,14 +24,14 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
 if not os.path.isdir(pathToTrkQAFiles):
     os.makedirs(pathToTrkQAFiles)
 
-# TODO: check if params are loaded correctly, shouldn't be the specified file name be used?
+# the path pathToTrkQAFiles is automatically eihter the dpm or the resAcc path
 reco_params: ReconstructionParameters = load_params_from_file(
     pathToTrkQAFiles + "/reco_params.config", ReconstructionParameters
 )
 
-
-# TODO: read alignment parameters correctly
-ali_params = AlignmentParameters()
+ali_params: AlignmentParameters = load_params_from_file(
+    pathToTrkQAFiles + "/align_params.config", AlignmentParameters
+)
 
 verbositylvl: int = 0
 start_evt: int = reco_params.num_events_per_sample * filename_index

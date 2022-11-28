@@ -63,13 +63,14 @@ if not os.path.isdir(workpathname):
 
 gen_filepath = workpathname + "/gen_mc.root"
 
-# TODO: check if params are loaded correctly, shouldn't be the specified file name be used?
+# the path pathToTrkQAFiles is automatically eihter the dpm or the resAcc path
+#! however, check this path again!
 sim_params: SimulationParameters = load_params_from_file(
     path_mc_data + "/../sim_params.config", SimulationParameters
 )
-# TODO: read alignment parameters correctly
-ali_params = AlignmentParameters()
-# ali_params : AlignmentParameters = load_params_from_file(path_mc_data + "/..", AlignmentParameters)
+ali_params: AlignmentParameters = load_params_from_file(
+    pathToTrkQAFiles + "/align_params.config", AlignmentParameters
+)
 
 verbositylvl = 0
 numTrks = 1  # should not be changed
@@ -117,7 +118,7 @@ if (
     if sim_params.sim_type == SimulationType.NOISE:
 
         os.system(
-            f"""root -l -b -q 'runLumiPixel0SimBox.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}",{verbositylvl},-2212,{sim_params.lab_momentum},{numTrks},{sim_params.random_seed + start_evt})' > /dev/null 2>&1"""
+            f"""root -l -b -q 'runLumiPixel0SimBox.C({sim_params.num_events_per_sample}, {start_evt}, "{workpathname}",{verbositylvl},-2212,{sim_params.lab_momentum},{numTrks},{sim_params.random_seed + start_evt}, 0, , "{sim_params.lmd_geometry_filename}", "{ali_params.misalignment_matrices_path}", {1 if ali_params.use_point_transform_misalignment else 0})' > /dev/null 2>&1"""
         )
     else:
         os.system(
