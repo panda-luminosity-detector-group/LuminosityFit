@@ -28,7 +28,7 @@ sim_params: SimulationParameters = load_params_from_file(
     path_mc_data + "/../sim_params.config", SimulationParameters
 )
 
-ali_params = AlignmentParameters()
+ali_params = AlignmentParameters()      # TODO Alignment with KOALA isn't implemented yet.
 
 if debug:
     workpathname = pathname

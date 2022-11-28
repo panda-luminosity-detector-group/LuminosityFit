@@ -28,7 +28,7 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
 reco_params: ReconstructionParameters = load_params_from_file(
     pathname + "/reco_params.config", ReconstructionParameters
 )
-ali_params = AlignmentParameters()
+ali_params = AlignmentParameters()      # TODO Alignment with KOALA isn't implemented yet.
 
 verbositylvl: int = 0
 start_evt: int = reco_params.num_events_per_sample * filename_index
