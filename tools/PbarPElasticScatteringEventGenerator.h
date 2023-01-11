@@ -20,14 +20,11 @@
 #include "boost/property_tree/ptree.hpp"
 
 namespace PbarPElasticScattering {
-  std::pair<TTree *, double> generateEvents(double momentum,
-                                          unsigned int num_events,
-                                          double theta_min_in_mrad,
-                                          double theta_max_in_mrad,
-                                          double phi_min_in_rad,
-                                          double phi_max_in_rad,
-                                          unsigned int seed
-                                          ) {
+std::pair<TTree *, double>
+generateEvents(double momentum, unsigned int num_events,
+               double theta_min_in_mrad, double theta_max_in_mrad,
+               double phi_min_in_rad, double phi_max_in_rad,
+               unsigned int seed) {
   PndLmdModelFactory model_factory;
 
   boost::property_tree::ptree base_model_opt;
@@ -74,7 +71,13 @@ namespace PbarPElasticScattering {
   integral_ranges.push_back(dr);
 
   double integral = correct_model->Integral(integral_ranges, 1e-5);
-  //integral *= (phi_max-phi_min)/2*pi;
+  if (fPhiMax < fPhiMin) {
+    std::swap(fPhiMax, fPhiMin);
+  }
+  if (fPhiMax - fPhiMin < 1e-10) {
+    std::cout << "Error! min and max phi angles are too close!\n";
+  }
+  integral *= (fPhiMax - fPhiMin) / (2 * M_PI);
   std::cout << "Integrated total elastic cross section in theta range ["
             << theta_min_in_mrad << " - " << theta_max_in_mrad << "] -> t ["
             << t_min << " - " << t_max << "] is " << integral << " mb"
@@ -92,8 +95,8 @@ namespace PbarPElasticScattering {
 
   std::cout << "using seed: " << seed << "\n";
   TRandom3 RandomGen(seed);
-  
-  //TODO: why are these numbers hard coded? 
+
+  // TODO: why are these numbers hard coded?
   TRandom3 RandomGen2(seed + 123456);
   TRandom3 RandomGen3(seed + 1234);
 
