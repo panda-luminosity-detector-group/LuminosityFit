@@ -105,12 +105,23 @@ if (
         or sim_params.sim_type == SimulationType.RESACCPBARP_ELASTIC
     ):
 
-        cmd = f"{lmd_build_path}/bin/generatePbarPElasticScattering {sim_params.lab_momentum} {sim_params.num_events_per_sample} -l {sim_params.theta_min_in_mrad} -u {sim_params.theta_max_in_mrad} -s {sim_params.random_seed + start_evt} -o {gen_filepath}"
+        # cmd = f"{lmd_build_path}/bin/generatePbarPElasticScattering {sim_params.lab_momentum} {sim_params.num_events_per_sample} -l {sim_params.theta_min_in_mrad} -u {sim_params.theta_max_in_mrad} -s {sim_params.random_seed + start_evt} -o {gen_filepath}"
 
-        print(f"\ncalling elastic P Pbar generator with:\n")
-        print(cmd)
+        # print(f"\ncalling elastic P Pbar generator with:\n")
+        # print(cmd)
 
-        os.system(cmd)
+        # os.system(cmd)
+        
+        os.system(
+            f"{lmd_build_path}/bin/generatePbarPElasticScattering"
+            + f" {sim_params.lab_momentum} {sim_params.num_events_per_sample}"
+            + f" -l {sim_params.theta_min_in_mrad}"
+            + f" -u {sim_params.theta_max_in_mrad}"
+            + f" -n {sim_params.phi_min_in_rad}"
+            + f" -g {sim_params.phi_max_in_rad}"
+            + f" -s {sim_params.random_seed + start_evt}"
+            + f" -o {gen_filepath}"
+        )
 
     # * run simBox or simDPM
     print("starting up a pandaroot simulation...")
