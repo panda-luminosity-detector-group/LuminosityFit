@@ -194,7 +194,7 @@ def create_simulation_and_reconstruction_job(
         bashcommand = (
             f"{lmdfit_build_dir}/bin/generatePbarPElasticScattering "
             + f"{sim_params.lab_momentum} 0 "
-            = f"-l {sim_params.theta_min_in_mrad}"
+            + f"-l {sim_params.theta_min_in_mrad}"
             + f" -u {sim_params.theta_max_in_mrad}"
             + f" -n {sim_params.phi_min_in_rad}"
             + f" -g {sim_params.phi_max_in_rad}"
