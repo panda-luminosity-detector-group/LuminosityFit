@@ -193,8 +193,11 @@ def create_simulation_and_reconstruction_job(
         # determine the elastic cross section in the theta range
         bashcommand = (
             f"{lmdfit_build_dir}/bin/generatePbarPElasticScattering "
-            + f"{sim_params.lab_momentum} 0 -l {sim_params.theta_min_in_mrad}"
+            + f"{sim_params.lab_momentum} 0 "
+            = f"-l {sim_params.theta_min_in_mrad}"
             + f" -u {sim_params.theta_max_in_mrad}"
+            + f" -n {sim_params.phi_min_in_rad}"
+            + f" -g {sim_params.phi_max_in_rad}"
             + f" -o {pathname_base}/elastic_cross_section.txt"
         )
         print(f"\n\nGREPLINE:PBARPGEN:\n{bashcommand}\n")
