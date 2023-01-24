@@ -104,9 +104,11 @@ class _EnumEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def write_params_to_file(params: dict, pathname: str, filename: str) -> None:
+def write_params_to_file(
+    params: dict, pathname: str, filename: str, overwrite=False
+) -> None:
     file_path = pathname + "/" + filename
-    if not os.path.exists(file_path):
+    if overwrite or (not os.path.exists(file_path)):
         print("creating config file: " + file_path)
         with open(file_path, "w") as json_file:
             json.dump(
