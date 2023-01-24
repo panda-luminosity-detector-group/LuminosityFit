@@ -4,9 +4,12 @@ import math
 import os
 import random
 import subprocess
-from typing import Any, Tuple
+from pathlib import Path
+from typing import Any, Tuple, Union
 
 import attr
+import cattrs
+from attr import field
 from dotenv import load_dotenv
 
 from .alignment import AlignmentParameters
@@ -35,7 +38,7 @@ class SimulationParameters:
     num_samples: int = attr.ib(default=1)
     lab_momentum: float = attr.ib(default=1.5)
     low_index: int = attr.ib(default=1)
-    output_dir: str = attr.ib(default="")
+    output_dir: Union[Path, None] = field(default=None)
     lmd_geometry_filename: str = attr.ib(default="Luminosity-Detector.root")
     theta_min_in_mrad: float = attr.ib(default=2.7)
     theta_max_in_mrad: float = attr.ib(default=13.0)
@@ -205,13 +208,13 @@ def create_simulation_and_reconstruction_job(
 
     # These must be written again so that runLmdSimReco and runLmdReco have access to them
     write_params_to_file(
-        attr.asdict(sim_params), pathname_base, "sim_params.config"
+        cattrs.unstructure(sim_params), pathname_base, "sim_params.config"
     )
     write_params_to_file(
-        attr.asdict(reco_params), pathname_full, "reco_params.config"
+        cattrs.unstructure(reco_params), pathname_full, "reco_params.config"
     )
     write_params_to_file(
-        attr.asdict(align_params), pathname_full, "align_params.config"
+        cattrs.unstructure(align_params), pathname_full, "align_params.config"
     )
 
     resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)

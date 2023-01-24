@@ -2,9 +2,11 @@
 
 import errno
 import os
-from typing import Any, Tuple
+from pathlib import Path
+from typing import Any, Tuple, Union
 
 import attr
+from attr import field
 
 from .alignment import AlignmentParameters
 from .cluster import Job, JobResourceRequest, make_test_job_resource_request
@@ -30,7 +32,7 @@ class ReconstructionParameters:
     num_samples: int = attr.ib(default=1)
     lab_momentum: float = attr.ib(default=1.5)
     low_index: int = attr.ib(default=1)
-    output_dir: str = attr.ib(default="")
+    output_dir: Union[Path, None] = field(default=None)
     lmd_geometry_filename: str = attr.ib(default="Luminosity-Detector.root")
     use_xy_cut: bool = attr.ib(default=False)
     use_m_cut: bool = attr.ib(default=False)
