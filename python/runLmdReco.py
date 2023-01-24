@@ -49,7 +49,7 @@ misspl = True
 
 # use cuts during trk seacrh with "CA". Should be 'false' if sensors missaligned!
 trkcut = True
-if ali_params.alignment_matrices_path == "":
+if ali_params.alignment_matrices_path is None:
     trkcut = False
 
 # merge hits on sensors from different sides. true=yes

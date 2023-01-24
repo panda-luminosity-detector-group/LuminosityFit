@@ -60,7 +60,7 @@ def generateRecoDirSuffix(
         if reco_params.reco_ip_offset:
             reco_dirname_suffix += "_real"
     if align_params.use_point_transform_misalignment:
-        if align_params.misalignment_matrices_path == "":
+        if align_params.misalignment_matrices_path is None:
             reco_dirname_suffix += "_no_data_misalignment"
         else:
             reco_dirname_suffix += "_" + str(

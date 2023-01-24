@@ -115,7 +115,7 @@ def generateDirectory(
 
         if (
             align_params.use_point_transform_misalignment
-            or align_params.misalignment_matrices_path == ""
+            or align_params.misalignment_matrices_path is None
         ):
             dirname += "/no_geo_misalignment"
         else:
