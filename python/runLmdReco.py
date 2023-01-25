@@ -3,7 +3,12 @@
 import os
 
 from lumifit.alignment import AlignmentParameters
-from lumifit.general import check_stage_success, load_params_from_file, toCbool
+from lumifit.general import (
+    check_stage_success,
+    load_params_from_file,
+    matrixMacroFileName,
+    toCbool,
+)
 from lumifit.reconstruction import ReconstructionParameters
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
@@ -25,16 +30,16 @@ if not os.path.isdir(pathToTrkQAFiles):
     os.makedirs(pathToTrkQAFiles)
 
 # the path pathToTrkQAFiles is automatically eihter the dpm or the resAcc path
-reco_params: ReconstructionParameters = load_params_from_file(
+recoParams: ReconstructionParameters = load_params_from_file(
     pathToTrkQAFiles + "/reco_params.config", ReconstructionParameters
 )
 
-ali_params: AlignmentParameters = load_params_from_file(
+alignParams: AlignmentParameters = load_params_from_file(
     pathToTrkQAFiles + "/align_params.config", AlignmentParameters
 )
 
 verbositylvl: int = 0
-start_evt: int = reco_params.num_events_per_sample * filename_index
+start_evt: int = recoParams.num_events_per_sample * filename_index
 
 if debug:
     workpathname = pathToTrkQAFiles
@@ -49,7 +54,7 @@ misspl = True
 
 # use cuts during trk seacrh with "CA". Should be 'false' if sensors missaligned!
 trkcut = True
-if ali_params.alignment_matrices_path is None:
+if alignParams.alignment_matrices_path is None:
     trkcut = False
 
 # merge hits on sensors from different sides. true=yes
@@ -65,12 +70,12 @@ radLength = 0.32
 prefilter = False
 
 # TODO: in the original, this was called KinematicsCut, but what is that?
-KinematicsCut = reco_params.use_m_cut  # off by default?
-if reco_params.use_xy_cut:  # off by default?
+KinematicsCut = recoParams.use_m_cut  # off by default?
+if recoParams.use_xy_cut:  # off by default?
     prefilter = True
 
 # TODO: get all these from config file
-CleanSig = reco_params.use_m_cut  # off by default?
+CleanSig = recoParams.use_m_cut  # off by default?
 
 # echo "Kinematics cut (@LMD): $KinematicsCut"
 # echo "Momentum cut (after backpropagation): $CleanSig"
@@ -125,7 +130,7 @@ if (
 ):
     os.chdir(PNDmacropath)
     os.system(
-        f"""root -l -b -q 'runLumiPixel2Reco.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", "{ali_params.alignment_matrices_path}", "{ali_params.misalignment_matrices_path}", {toCbool(ali_params.use_point_transform_misalignment)}, {verbositylvl})'"""
+        f"""root -l -b -q 'runLumiPixel2Reco.C({recoParams.num_events_per_sample}, {start_evt}, "{workpathname}", "{matrixMacroFileName(alignParams.alignment_matrices_path)}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'"""
     )
 
 # * ------------------- Hit Merge Step -------------------
@@ -137,7 +142,7 @@ if (
 ):
     os.chdir(PNDmacropath)
     os.system(
-        f"""root -l -b -q 'runLumiPixel2bHitMerge.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl})'"""
+        f"""root -l -b -q 'runLumiPixel2bHitMerge.C({recoParams.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl})'"""
     )
 
     # copy Lumi_recoMerged_ for module aligner
@@ -151,7 +156,7 @@ if (
 if True:
     os.chdir(PNDmacropath)
     os.system(
-        f"""root -l -b -q 'runLumiPixel2ePairFinder.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl})'"""
+        f"""root -l -b -q 'runLumiPixel2ePairFinder.C({recoParams.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl})'"""
     )
 
     os.system(
@@ -166,7 +171,7 @@ if (
 ):
     os.chdir(PNDmacropath)
     os.system(
-        f"""root -l -b -q 'runLumiPixel3Finder.C({reco_params.num_events_per_sample},{start_evt},"{workpathname}",{verbositylvl},"{reco_params.track_search_algo}",{int(misspl)},{int(mergedHits)}, {int(trkcut)}, {reco_params.lab_momentum})'"""
+        f"""root -l -b -q 'runLumiPixel3Finder.C({recoParams.num_events_per_sample},{start_evt},"{workpathname}",{verbositylvl},"{recoParams.track_search_algo}",{int(misspl)},{int(mergedHits)}, {int(trkcut)}, {recoParams.lab_momentum})'"""
     )
 
 
@@ -184,7 +189,7 @@ if (
         os.chdir(PNDmacropath)
         # this script outputs a Lumi_Track_... file. Rename that to the NotFiltered..
         os.system(
-            f"""root -l -b -q 'runLumiPixel4Fitter.C({reco_params.num_events_per_sample}, {start_evt},"{workpathname}", {verbositylvl}, "{trackFitAlgorithm}", {toCbool(mergedHits)})'"""
+            f"""root -l -b -q 'runLumiPixel4Fitter.C({recoParams.num_events_per_sample}, {start_evt},"{workpathname}", {verbositylvl}, "{trackFitAlgorithm}", {toCbool(mergedHits)})'"""
         )
 
         # copy track file for module alignment
@@ -222,10 +227,10 @@ if prefilter:
             f"""ln -sf {workpathname}/Lumi_TrackNotFiltered_{start_evt}.root {workpathname}/Lumi_Track_{start_evt}.root"""
         )
 
-        reco_params.reco_ip_offset[0]
+        recoParams.reco_ip_offset[0]
         os.chdir(PNDmacropath)
         os.system(
-            f"""root -l -b -q 'runLumiPixel4aFilter.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {toCbool(mergedHits)}, {reco_params.lab_momentum}, {toCbool(KinematicsCut)}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
+            f"""root -l -b -q 'runLumiPixel4aFilter.C({recoParams.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {toCbool(mergedHits)}, {recoParams.lab_momentum}, {toCbool(KinematicsCut)}, {recoParams.reco_ip_offset[0]}, {recoParams.reco_ip_offset[1]})'"""
         )
 
         # now overwrite the Lumi_Track_ sym link with the filtered version
@@ -246,14 +251,14 @@ if (
 ):
     os.chdir(PNDmacropath)
     os.system(
-        f"""root -l -b -q 'runLumiPixel5BackProp.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, "{backPropAlgorithm}", {toCbool(mergedHits)}, {reco_params.lab_momentum}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]}, {reco_params.reco_ip_offset[2]}, {toCbool(prefilter)})'"""
+        f"""root -l -b -q 'runLumiPixel5BackProp.C({recoParams.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, "{backPropAlgorithm}", {toCbool(mergedHits)}, {recoParams.lab_momentum}, {recoParams.reco_ip_offset[0]}, {recoParams.reco_ip_offset[1]}, {recoParams.reco_ip_offset[2]}, {toCbool(prefilter)})'"""
     )
 
 # * ------------------- Pixel CleanSig Step -------------------
 # filter back-propagated tracks (momentum cut)
 if CleanSig:
     os.system(
-        f"""root -l -b -q 'runLumiPixel5bCleanSig.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {reco_params.lab_momentum}, {reco_params.reco_ip_offset[0]}, {reco_params.reco_ip_offset[1]})'"""
+        f"""root -l -b -q 'runLumiPixel5bCleanSig.C({recoParams.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {recoParams.lab_momentum}, {recoParams.reco_ip_offset[0]}, {recoParams.reco_ip_offset[1]})'"""
     )
 
 # * ------------------- Pixel Track QA Step -------------------
@@ -267,7 +272,7 @@ if (
     or force_level == 1
 ):
     os.system(
-        f"""root -l -b -q 'runLumiPixel7TrksQA.C({reco_params.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {reco_params.lab_momentum}, {toCbool(WrAllMC)}, {toCbool(reco_params.use_xy_cut)}, {toCbool(reco_params.use_m_cut)}, {toCbool(CleanSig)})'"""
+        f"""root -l -b -q 'runLumiPixel7TrksQA.C({recoParams.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {recoParams.lab_momentum}, {toCbool(WrAllMC)}, {toCbool(recoParams.use_xy_cut)}, {toCbool(recoParams.use_m_cut)}, {toCbool(CleanSig)})'"""
     )
     if not debug:
         os.system(
