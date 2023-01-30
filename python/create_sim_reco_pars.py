@@ -91,11 +91,9 @@ def restrictPhiConfigs():
             )
 
             # change simpars if misalignment matrices are given
-            if args.misalignMatrixFileP is not None:
-                experiment.alignParams.misalignment_matrices_path = (
-                    f'/home/roklasen/LMD-Alignment/output/misMat-nothing-{phiMatNames[i]}.json'
-                )
-            # change alignpars is alignment matrices are given
+            experiment.alignParams.misalignment_matrices_path = (
+                f'/home/roklasen/LMD-Alignment/output/misMat-nothing-{phiMatNames[i]}.json'
+            )
 
             # update internal paths
             experiment.updateBaseDataDirectory()
@@ -223,5 +221,5 @@ phiMatNames = ('2pi','2piO2','2piO4','2piO8','2piO10','2piO12')
 
 if args.restrictPhi:
     restrictPhiConfigs()
-
-genConfigs()
+else:
+    genConfigs()
