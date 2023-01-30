@@ -74,6 +74,101 @@ def genExperimentConfig(
     return experiment
 
 
+def restrictPhiConfigs():
+    for mom in momenta:
+
+        for i in range(len(upperPhiAngles)):
+
+            # PANDA configs
+            experiment = genExperimentConfig(
+                mom,
+                theta_min[0],
+                theta_max[0],
+                phi_min[0],
+                upperPhiAngles[i],
+                ExperimentType.LUMI,
+                SimulationType.RESACCBOX,
+            )
+
+            # change simpars if misalignment matrices are given
+            if args.misalignMatrixFileP is not None:
+                experiment.alignParams.misalignment_matrices_path = (
+                    f'/home/roklasen/LMD-Alignment/output/misMat-nothing-{phiMatNames[i]}.json'
+                )
+            # change alignpars is alignment matrices are given
+
+            # update internal paths
+            experiment.updateBaseDataDirectory()
+
+            write_params_to_file(
+                cattrs.unstructure(experiment),
+                ".",
+                f"{confPathPanda}/{mom}.config",
+                overwrite=True,
+            )
+
+def genConfigs():
+    
+    for mom in momenta:
+
+        # PANDA configs
+
+        experiment = genExperimentConfig(
+            mom,
+            theta_min[0],
+            theta_max[0],
+            phi_min[0],
+            phi_max[0],
+            ExperimentType.LUMI,
+            SimulationType.RESACCBOX,
+        )
+
+        # change simpars if misalignment matrices are given
+        if args.misalignMatrixFileP is not None:
+            experiment.alignParams.misalignment_matrices_path = (
+                args.misalignMatrixFileP
+            )
+        # change alignpars is alignment matrices are given
+
+        # update internal paths
+        experiment.updateBaseDataDirectory()
+
+        write_params_to_file(
+            cattrs.unstructure(experiment),
+            ".",
+            f"{confPathPanda}/{mom}.config",
+            overwrite=True,
+        )
+
+        # KOALA configs
+
+        experiment = genExperimentConfig(
+            mom,
+            theta_min[1],
+            theta_max[1],
+            phi_min[1],
+            phi_max[1],
+            ExperimentType.KOALA,
+            SimulationType.RESACCPBARP_ELASTIC,
+        )
+
+        # change simpars if misalignment matrices are given
+        if args.misalignMatrixFileK is not None:
+            experiment.alignParams.misalignment_matrices_path = (
+                args.misalignMatrixFileK
+            )
+
+        # change alignpars is alignment matrices are given
+
+        # update internal paths
+        experiment.updateBaseDataDirectory()
+
+        write_params_to_file(
+            cattrs.unstructure(experiment), ".", f"{confPathKoala}/{mom}.config"
+        )
+
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "-b", dest="inBetweenMomenta", action=argparse._StoreTrueAction
@@ -91,6 +186,7 @@ parser.add_argument(
     type=Path,
 )
 
+parser.add_argument('-rphi', dest="restrictPhi", help="generate multiple configs with restricted phi angles, no misalignment.", action=argparse._StoreTrueAction)
 
 args = parser.parse_args()
 
@@ -119,60 +215,13 @@ else:
     momenta = [1.5, 4.06, 8.9, 11.91, 15.0]
 
 
-for mom in momenta:
+upperPhiAngles = (6.28318531718, 6.28318531718/2, 6.28318531718/4, 6.28318531718/8, 6.28318531718/10, 6.28318531718/12)
+phiMatNames = ('2pi','2piO2','2piO4','2piO8','2piO10','2piO12')
 
-    # PANDA configs
+#* special case: resticted phi angles. we'll have to cheat a little here with a misalignment matrix
+# that has no misalignmen, so that we get new paths for each new angle
 
-    experiment = genExperimentConfig(
-        mom,
-        theta_min[0],
-        theta_max[0],
-        phi_min[0],
-        phi_max[0],
-        ExperimentType.LUMI,
-        SimulationType.RESACCBOX,
-    )
+if args.restrictPhi:
+    restrictPhiConfigs()
 
-    # change simpars if misalignment matrices are given
-    if args.misalignMatrixFileP is not None:
-        experiment.alignParams.misalignment_matrices_path = (
-            args.misalignMatrixFileP
-        )
-    # change alignpars is alignment matrices are given
-
-    # update internal paths
-    experiment.updateBaseDataDirectory()
-
-    write_params_to_file(
-        cattrs.unstructure(experiment),
-        ".",
-        f"{confPathPanda}/{mom}.config",
-        overwrite=True,
-    )
-
-    # KOALA configs
-
-    experiment = genExperimentConfig(
-        mom,
-        theta_min[1],
-        theta_max[1],
-        phi_min[1],
-        phi_max[1],
-        ExperimentType.KOALA,
-        SimulationType.RESACCPBARP_ELASTIC,
-    )
-
-    # change simpars if misalignment matrices are given
-    if args.misalignMatrixFileK is not None:
-        experiment.alignParams.misalignment_matrices_path = (
-            args.misalignMatrixFileK
-        )
-
-    # change alignpars is alignment matrices are given
-
-    # update internal paths
-    experiment.updateBaseDataDirectory()
-
-    write_params_to_file(
-        cattrs.unstructure(experiment), ".", f"{confPathKoala}/{mom}.config"
-    )
+genConfigs()
