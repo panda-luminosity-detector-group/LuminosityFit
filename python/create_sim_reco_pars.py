@@ -103,7 +103,7 @@ def restrictPhiConfigs():
             write_params_to_file(
                 cattrs.unstructure(experiment),
                 ".",
-                f"{confPathPanda}/{mom}.config",
+                f"{confPathPanda}/restrictPhi/{mom}-{phiMatNames[i]}.config",
                 overwrite=True,
             )
 
