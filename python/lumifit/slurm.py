@@ -100,16 +100,17 @@ class SlurmJobHandler(JobHandler):
         while attemptCounter < 3:
 
             if self.__useSlurmAgent__:
-                client = Client()
-                thisOrder = SlurmOrder()
-                thisOrder.cmd = bashcommand
-                thisOrder.runShell = True
-                # default output to zero, doesn't work otherwise
-                thisOrder.stdout = "0"
-                thisOrder.env = os.environ.copy()
-                client.sendOrder(thisOrder, 30)  # this may take some time
-                resultOrder = client.receiveOrder()
-                resultOut = resultOrder.stdout
+                # client = Client()
+                with Client() as client:
+                    thisOrder = SlurmOrder()
+                    thisOrder.cmd = bashcommand
+                    thisOrder.runShell = True
+                    # default output to zero, doesn't work otherwise
+                    thisOrder.stdout = "0"
+                    thisOrder.env = os.environ.copy()
+                    client.sendOrder(thisOrder, 30)  # this may take some time
+                    resultOrder = client.receiveOrder()
+                    resultOut = resultOrder.stdout
 
             else:
                 returnvalue = subprocess.Popen(
@@ -162,15 +163,16 @@ class SlurmJobHandler(JobHandler):
             + job.application_url
         )
         if self.__useSlurmAgent__:
-            client = Client()
-            thisOrder = SlurmOrder()
-            thisOrder.cmd = bashcommand
-            thisOrder.runShell = True
-            thisOrder.env = os.environ.copy()
-            client.sendOrder(thisOrder)
-            resultOrder = client.receiveOrder()
-            returnCode = resultOrder.returnCode
-            return int(returnCode)
+            # client = Client()
+            with Client() as client:
+                thisOrder = SlurmOrder()
+                thisOrder.cmd = bashcommand
+                thisOrder.runShell = True
+                thisOrder.env = os.environ.copy()
+                client.sendOrder(thisOrder)
+                resultOrder = client.receiveOrder()
+                returnCode = resultOrder.returnCode
+                return int(returnCode)
 
         else:
             return subprocess.call(bashcommand, shell=True)

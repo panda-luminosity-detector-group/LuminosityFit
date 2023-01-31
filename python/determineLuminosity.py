@@ -14,7 +14,6 @@ import time
 from pathlib import Path
 
 import lumifit.general as general
-from lumifit.agent import Client
 from lumifit.alignment import AlignmentParameters
 from lumifit.cluster import ClusterJobManager
 from lumifit.experiment import ClusterEnvironment, Experiment
@@ -832,9 +831,6 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-# check if slurm agent is running
-client = Client()
-client.checkConnection()
 
 # load experiment config
 experiment: Experiment = general.load_params_from_file(
