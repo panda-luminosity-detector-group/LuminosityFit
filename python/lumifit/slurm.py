@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+import time
 from typing import Callable, Optional
 
 from .agent import Client, SlurmOrder
@@ -91,25 +92,40 @@ class SlurmJobHandler(JobHandler):
         """Check users current number of running and queued jobs."""
         bashcommand = "squeue -u $USER -o %C | sed 's/CPUS/0/' | awk '{s+=$1} END {print s}'"
 
-        if self.__useSlurmAgent__:
-            client = Client()
-            thisOrder = SlurmOrder()
-            thisOrder.cmd = bashcommand
-            thisOrder.runShell = True
-            # default output to zero, doesn't work otherwise
-            thisOrder.stdout = "0"
-            thisOrder.env = os.environ.copy()
-            client.sendOrder(thisOrder, 30)  # this may take some time
-            resultOrder = client.receiveOrder()
-            resultOut = resultOrder.stdout
+        # attention! sometimes this reads back the empty string, which shouldn't happen.
+        # I don't know why, maybe because two orders came at the same time.
+        # for now, just wait 30 seconds and try again, up to 3 times. Then fail.
+
+        attemptCounter = 0
+        while attemptCounter < 3:
+
+            if self.__useSlurmAgent__:
+                client = Client()
+                thisOrder = SlurmOrder()
+                thisOrder.cmd = bashcommand
+                thisOrder.runShell = True
+                # default output to zero, doesn't work otherwise
+                thisOrder.stdout = "0"
+                thisOrder.env = os.environ.copy()
+                client.sendOrder(thisOrder, 30)  # this may take some time
+                resultOrder = client.receiveOrder()
+                resultOut = resultOrder.stdout
+
+            else:
+                returnvalue = subprocess.Popen(
+                    bashcommand, shell=True, stdout=subprocess.PIPE, text=True
+                )
+                resultOut, _ = returnvalue.communicate()
+
+            if resultOut == "":
+                time.sleep(30)
+                attemptCounter += 1
+                continue
+
             return int(resultOut)
 
-        else:
-            returnvalue = subprocess.Popen(
-                bashcommand, shell=True, stdout=subprocess.PIPE
-            )
-            out, err = returnvalue.communicate()
-            return int(out)
+        # if we've reached this point, all is lost
+        raise ValueError("Error getting number of running jobs!")
 
     def submit(self, job: Job) -> int:
         if self.__job_preprocessor:
