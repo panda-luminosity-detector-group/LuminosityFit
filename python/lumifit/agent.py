@@ -33,7 +33,7 @@ class orderType(IntEnum):
     META = 0
     REGULAR = 1
     MAKE_UNQUE = 2
-    CONFIRM = 4
+    UNIQUE_CONFIRM = 4
 
 
 @attr.s(hash=True)
@@ -217,7 +217,7 @@ class Server(Agent):
         elif thisOrder.orderType == orderType.MAKE_UNQUE:
             thisOrder.stdout = str(self.getUniqueServer())
             thisOrder.returnCode = 0
-            thisOrder.orderType = orderType.CONFIRM
+            thisOrder.orderType = orderType.UNIQUE_CONFIRM
             return thisOrder
 
         elif thisOrder.orderType == orderType.REGULAR:
@@ -337,14 +337,14 @@ class Client(Agent):
         self.sendOrder(makeUniqueOrder)
         returnOrder = self.receiveOrder()
 
-        if returnOrder.orderType == orderType.CONFIRM:
+        if returnOrder.orderType == orderType.UNIQUE_CONFIRM:
             self.universalPipePath = Path(returnOrder.stdout)
         # race condition has occured
         else:
             raise ValueError("race condition in 'makeUniqueOrder'")
 
         confirmationOrder = self.receiveOrder()
-        if confirmationOrder.orderType == orderType.CONFIRM:
+        if confirmationOrder.orderType == orderType.UNIQUE_CONFIRM:
             logging.info(
                 f"new pipe confirmation received: {confirmationOrder}"
             )
