@@ -168,6 +168,12 @@ def simulateDataOnHimster(
             cut_keyword += "un"
         cut_keyword += "cut_real"
 
+        print(f" so wait. cutkeyword is {cut_keyword}")
+        if "uncut" in cut_keyword and "real" in cut_keyword:
+            cut_keyword = "uncut"
+            print("shit hot can it be uncut but real")
+            print(f"cut keyword is now {cut_keyword}")
+
         merge_keywords = ["merge_data", "binning_300"]
         if "v" in sim_type:
             data_keywords = ["uncut", "bunches", "binning_300"]
