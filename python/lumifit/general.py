@@ -184,7 +184,9 @@ class DirectorySearcher:
                 found_files = False
                 if len(file_patterns) == 1:
                     # TODO: this line is highly dubious, but don't touch it for now.
-                    found_files = [x for x in files if glob_patterns in x]
+                    found_files = (
+                        len([x for x in files if glob_patterns in x]) > 0
+                    )
                 else:
                     for filename in files:
                         found_file = True
