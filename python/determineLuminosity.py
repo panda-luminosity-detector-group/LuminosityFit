@@ -28,9 +28,13 @@ from lumifit.simulation import create_simulation_and_reconstruction_job
 
 """
 This file needs one major rewrite, thats for sure.
+- the logic is implemented as a GIANT state machine
+- the states have no clear names
+- the transitions between states are impossible to understand
 - job_manager (and other objects) are defined globally and used in functions
 - agent is not thead safe, but multiple job_managers are created
 - job supervision is based on number of files;
+- AND number of running jobs, even if these jobs belong to some other function
 - but its not momitored if a given job has crashed
 - and the entire thing is declarative, when object orientation would be better suited
 """
@@ -44,6 +48,9 @@ def wasSimulationSuccessful(
     min_filesize_in_bytes: int = 10000,
     is_bunches: bool = False,
 ) -> int:
+    print(
+        f"checking if job was successful. checking in path {directory}, glob pattern {glob_pattern}"
+    )
     # return values:
     # 0: everything is fine
     # >0: its not finished processing, just keep waiting
@@ -58,6 +65,8 @@ def wasSimulationSuccessful(
         is_bunches=is_bunches,
     )[1]
 
+    print(f"files percentage (depends on getGoodFiles) is {files_percentage}")
+
     #! NEVER CREATE ANOTHER JOB HANDLER, THEY DEADLOCK THE SLURM AGENT
     # if experiment.cluster == ClusterEnvironment.VIRGO:
     #     job_handler = create_virgo_job_handler("long")
@@ -70,6 +79,9 @@ def wasSimulationSuccessful(
     # TODO: I think there is a bug here, sometimes files are ready AFTER this check, this leads to a wrong lumi
     if files_percentage < required_files_percentage:
         if job_handler.get_active_number_of_jobs() > 0:
+            print(
+                f"there are still {job_handler.get_active_number_of_jobs()} jobs running"
+            )
             return_value = 1
         else:
             print(
@@ -82,6 +94,7 @@ def wasSimulationSuccessful(
             )
             return_value = -1
 
+    print(f"files percentage is smaller than requires. returning 0.")
     return return_value
 
 
@@ -140,14 +153,7 @@ def simulateDataOnHimster(
         last_state = simulation_task[3]
 
         print(
-            "running simulation of type "
-            + str(sim_type)
-            + " and path ("
-            + dir_path
-            + ") at state="
-            + str(state)
-            + "/"
-            + str(last_state)
+            f"running simulation of type {str(sim_type)} and path ({dir_path}, type {type(dir_path)}) at state={str(state)}/{str(last_state)}"
         )
 
         data_keywords = []
@@ -194,9 +200,10 @@ def simulateDataOnHimster(
                         dir_path, track_file_pattern
                     )
                     found_dirs = temp_dir_searcher.getListOfDirectories()
+                    print(f"found dirs now: {found_dirs}")
                 else:
                     print(
-                        f"\n\n\n Well shit, the dir_path is the empty string (or None? type is {type(dir_path)}), what now?!\n\n\n"
+                        f"\n\n\n Well shit, dir_path is {dir_path} (or None? type is {type(dir_path)}), what now?!\n\n\n"
                     )
 
                 if found_dirs:
@@ -319,7 +326,7 @@ def simulateDataOnHimster(
 
                 else:
                     print(
-                        f"\n\n\n Well shit, the dir_path is the empty string (or None? type is {type(dir_path)}), what now?!\n\n\n"
+                        f"\n\n\n Well shit, dir_path is {dir_path} (or None? type is {type(dir_path)}), what now?!\n\n\n"
                     )
 
                 if found_dirs:
@@ -535,7 +542,7 @@ def simulateDataOnHimster(
                 last_state = 2
             elif status_code > 0:
                 print(
-                    "still waiting for himster simulation jobs for "
+                    f"statuscode {status_code}: still waiting for himster simulation jobs for "
                     + sim_type
                     + " data to complete..."
                 )
@@ -694,6 +701,7 @@ def lumiDetermination(
             )
 
             print("Finished IP determination for this scenario!")
+        # TODO: do not hardcode this, read it from config
         else:
             thisScenario.rec_ip_info["ip_offset_x"] = 0.0
             thisScenario.rec_ip_info["ip_offset_y"] = 0.0
@@ -970,8 +978,14 @@ while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
     # TODO: I think it would be better to wait for a real signal and not just "when enough files are there"
     if len(waiting_scenario_stack) > 0:
         print("currently waiting for 15 min to process scenarios again")
+        print("press ctrl C (ONCE) to skip this waiting round.")
         # wait, thats not really robust. shouldn't we actually monitor the jobs?
-        time.sleep(900)  # wait for 15min
+
+        try:
+            time.sleep(900)  # wait for 15min
+        except InterruptedError:
+            print("skipping wait.")
+
         active_scenario_stack = waiting_scenario_stack
         waiting_scenario_stack = []
 

@@ -144,7 +144,7 @@ def create_reconstruction_job(
     job = Job(
         resource_request,
         application_url=application_command,
-        name="reco_",
+        name="reco_" + reco_params.sim_type_for_resAcc.value,
         logfile_url=pathname_full + "/reco-%a.log",
         array_indices=list(
             range(low_index_used, low_index_used + num_samples)
