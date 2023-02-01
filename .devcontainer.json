@@ -28,7 +28,9 @@
 	"yzhang.markdown-all-in-one",
 	"DavidAnson.vscode-markdownlint",
 	"esbenp.prettier-vscode",
-	"bierner.markdown-mermaid"
+	"bierner.markdown-mermaid",
+	"donjayamanne.githistory",
+	"eamodio.gitlens"
 ],
   "runArgs": ["--network=host"]
 }
