@@ -978,7 +978,7 @@ while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
     # TODO: I think it would be better to wait for a real signal and not just "when enough files are there"
     if len(waiting_scenario_stack) > 0:
         print("currently waiting for 15 min to process scenarios again")
-        print("press ctzrl C (ONCE) to skip this waiting round.")
+        print("press ctrl C (ONCE) to skip this waiting round.")
         # wait, thats not really robust. shouldn't we actually monitor the jobs?
 
         try:

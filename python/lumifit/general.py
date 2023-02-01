@@ -153,9 +153,10 @@ class DirectorySearcher:
         return self.dirs
 
     def searchListOfDirectories(self, path: str, glob_patterns: Any) -> None:
-        # print("looking for files with pattern: ", glob_patterns)
-        # print("dirpath forbidden patterns:", self.not_contain_pattern)
-        # print("dirpath patterns:", self.patterns)
+        print("looking in path:", path)
+        print("looking for files with pattern: ", glob_patterns)
+        print("dirpath forbidden patterns:", self.not_contain_pattern)
+        print("dirpath patterns:", self.patterns)
         if isinstance(glob_patterns, list):
             file_patterns = glob_patterns
         else:
