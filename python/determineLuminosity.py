@@ -978,13 +978,20 @@ while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
     # TODO: I think it would be better to wait for a real signal and not just "when enough files are there"
     if len(waiting_scenario_stack) > 0:
         print("currently waiting for 15 min to process scenarios again")
-        print("press ctrl C (ONCE) to skip this waiting round.")
+        print("press ctzrl C (ONCE) to skip this waiting round.")
         # wait, thats not really robust. shouldn't we actually monitor the jobs?
 
         try:
             time.sleep(900)  # wait for 15min
         except KeyboardInterrupt:
             print("skipping wait.")
+
+        print("press ctrl C again withing 3 seconds to kill this script")
+        try:
+            time.sleep(3)
+        except KeyboardInterrupt:
+            print("understood. killing program.")
+            sys.exit(1)
 
         active_scenario_stack = waiting_scenario_stack
         waiting_scenario_stack = []
