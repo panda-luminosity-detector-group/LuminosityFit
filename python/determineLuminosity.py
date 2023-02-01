@@ -983,7 +983,7 @@ while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
 
         try:
             time.sleep(900)  # wait for 15min
-        except InterruptedError:
+        except KeyboardInterrupt:
             print("skipping wait.")
 
         active_scenario_stack = waiting_scenario_stack
