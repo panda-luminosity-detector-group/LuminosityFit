@@ -179,7 +179,11 @@ def simulateDataOnHimster(
             status_code = 1
             if "er" in sim_type:
                 found_dirs = []
-                if dir_path != "":
+                # what the shit, this should never be empty in the first place
+                if (dir_path != "") and (dir_path is not None):
+                    print(
+                        f'\n\n\n GREP OUTPUT DIR: dir_path check !="" failed wirh dir_path: {dir_path}, type is {type(dir_path)}'
+                    )
                     temp_dir_searcher = general.DirectorySearcher(
                         [
                             thisExperiment.recoParams.sim_type_for_resAcc.value,
@@ -190,6 +194,10 @@ def simulateDataOnHimster(
                         dir_path, track_file_pattern
                     )
                     found_dirs = temp_dir_searcher.getListOfDirectories()
+                else:
+                    print(
+                        f"\n\n\n Well shit, the dir_path is the empty string (or None? type is {type(dir_path)}), what now?!\n\n\n"
+                    )
 
                 if found_dirs:
                     status_code = wasSimulationSuccessful(
@@ -296,7 +304,11 @@ def simulateDataOnHimster(
             elif "a" in sim_type:
                 found_dirs = []
                 status_code = 1
-                if dir_path != "":
+                # what the shit, this should never be empty in the first place
+                if (dir_path != "") and (dir_path is not None):
+                    print(
+                        f'\n\n\n GREP OUTPUT DIR: dir_path check !="" failed wirh dir_path: {dir_path}, type is {type(dir_path)}'
+                    )
                     temp_dir_searcher = general.DirectorySearcher(
                         ["dpm_elastic", data_keywords[0]]
                     )
@@ -304,6 +316,12 @@ def simulateDataOnHimster(
                         dir_path, track_file_pattern
                     )
                     found_dirs = temp_dir_searcher.getListOfDirectories()
+
+                else:
+                    print(
+                        f"\n\n\n Well shit, the dir_path is the empty string (or None? type is {type(dir_path)}), what now?!\n\n\n"
+                    )
+
                 if found_dirs:
                     status_code = wasSimulationSuccessful(
                         thisExperiment,
@@ -381,14 +399,18 @@ def simulateDataOnHimster(
                     # os.path.dirname() thinks this is a filename and gives 1-100_uncut back, which
                     # is too high
                     # dirname = os.path.dirname(scenario.dir_path) + "/../"
-                    dirname = str(Path(thisScenario.dir_path).parent.parent)
+                    # dataBaseDirectory is supposed to be the directory to the .../100000 (nEvents)
+                    # NOT any deeper!
+                    dataBaseDirectory = str(
+                        Path(thisScenario.dir_path).parent.parent
+                    )
 
-                    print(f"DEBUG:\ndirname is {dirname}")
+                    print(f"DEBUG:\ndataBaseDirectory is {dataBaseDirectory}")
 
                     (job, dir_path) = create_reconstruction_job(
                         rec_par,
                         align_par,
-                        dirname,
+                        dataBaseDirectory,
                         application_command=thisScenario.Reco,
                         use_devel_queue=args.use_devel_queue,
                     )

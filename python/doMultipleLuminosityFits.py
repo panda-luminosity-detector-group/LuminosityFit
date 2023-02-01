@@ -3,12 +3,11 @@ import argparse
 import glob
 import os
 import re
-
 from pathlib import Path
 
 import lumifit.general as general
 from lumifit.cluster import ClusterJobManager, Job, JobResourceRequest
-from lumifit.experiment import Experiment, ClusterEnvironment
+from lumifit.experiment import ClusterEnvironment, Experiment
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
 
@@ -56,7 +55,9 @@ def getTopResAccDirectory(path: str) -> None:
     if os.path.isdir(path):
         found = False
         for dir in next(os.walk(path))[1]:
-            if re.search(f"{experiment.recoParams.sim_type_for_resAcc.value}", dir):   # read BOX/DPM string from config
+            if re.search(
+                f"{experiment.recoParams.sim_type_for_resAcc.value}", dir
+            ):  # read BOX/DPM string from config
                 global top_level_resAcc_directory
                 top_level_resAcc_directory = path + "/" + dir
                 found = True
@@ -67,10 +68,14 @@ def getTopResAccDirectory(path: str) -> None:
 
 # TODO: holy shit, DONT MAKE UP REGEX PATTERN ON THE FLY
 # also, this function will only find the test data if it is called "dpm" something
-#! in case data is from box gen (or FTF) this DOESN'T WORK!
+#! TODO: in case data is from box gen (or FTF) this DOESN'T WORK!
 def findMatchingDirs(resAcc_data_path: str) -> list:
     matching_dir_pairs = []
-    if resAcc_data_path == "":
+    if resAcc_data_path == "" or resAcc_data_path is None:
+        if resAcc_data_path is None:
+            print(
+                "\n\n\n GREP OUTPUT DIR: resAcc_data_path is None in line 74 of doMultipleLuminosityFits.py!"
+            )
         for dpm_dir in dirs:
             print(dpm_dir)
             match = re.search(
@@ -80,7 +85,7 @@ def findMatchingDirs(resAcc_data_path: str) -> list:
             pattern = (
                 "^"
                 + match.group(1)  # type: ignore
-                + f"{experiment.recoParams.sim_type_for_resAcc.value}_.*?"             # read BOX/DPM string from config
+                + f"{experiment.recoParams.sim_type_for_resAcc.value}_.*?"  # read BOX/DPM string from config
                 + match.group(2)  # type: ignore
                 + ".*"
                 + match.group(3)  # type: ignore
@@ -258,7 +263,9 @@ if experiment.cluster == ClusterEnvironment.VIRGO:
 elif experiment.cluster == ClusterEnvironment.HIMSTER:
     job_handler = create_himster_job_handler("himster2_exp")
 else:
-    raise NotImplementedError(f"Cluster type {experiment.cluster} is not implemented!")
+    raise NotImplementedError(
+        f"Cluster type {experiment.cluster} is not implemented!"
+    )
 
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)

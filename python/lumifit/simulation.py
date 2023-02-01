@@ -84,7 +84,11 @@ def generateDirectory(
     align_params: AlignmentParameters,
     output_dir="",
 ) -> str:
-    if output_dir == "":
+    if output_dir == "" or output_dir is None:
+        if output_dir is None:
+            print(
+                "\n\n\n GREP OUTPUT DIR: output_dir is None in line 87 of simulation.py!"
+            )
         # generate output directory name
         # lets generate a folder structure based on the input
         dirname = f"plab_{sim_params.lab_momentum:.2f}GeV"
