@@ -98,8 +98,7 @@ def addDebugArgumentsToParser(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
         "--debug",
         action="store_true",
-        help="If flag is set, the simulation runs locally for "
-        "debug purposes",
+        help="If flag is set, the simulation runs locally for " "debug purposes",
     )
 
     return parser
@@ -112,16 +111,13 @@ class _EnumEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def write_params_to_file(
-    params: dict, pathname: str, filename: str, overwrite=False
-) -> None:
+def write_params_to_file(params: dict, pathname: str, filename: str, overwrite=False) -> None:
+    Path(pathname).mkdir(exist_ok=True, parents=True)
     file_path = pathname + "/" + filename
     if overwrite or (not os.path.exists(file_path)):
         print("creating config file: " + file_path)
         with open(file_path, "w") as json_file:
-            json.dump(
-                params, json_file, sort_keys=True, indent=4, cls=_EnumEncoder
-            )
+            json.dump(params, json_file, sort_keys=True, indent=4, cls=_EnumEncoder)
     else:
         print(f"Config file {filename} already exists!")
 
@@ -142,9 +138,7 @@ def load_params_from_file(file_path: str, asType: type):
 
 
 class DirectorySearcher:
-    def __init__(
-        self, patterns_: list, not_contain_pattern_: str = ""
-    ) -> None:
+    def __init__(self, patterns_: list, not_contain_pattern_: str = "") -> None:
         self.patterns = patterns_
         self.not_contain_pattern = not_contain_pattern_
         self.dirs: list = []
@@ -185,9 +179,7 @@ class DirectorySearcher:
                 found_files = False
                 if len(file_patterns) == 1:
                     # TODO: this line is highly dubious, but don't touch it for now.
-                    found_files = (
-                        len([x for x in files if glob_patterns in x]) > 0
-                    )
+                    found_files = len([x for x in files if glob_patterns in x]) > 0
                 else:
                     for filename in files:
                         found_file = True
