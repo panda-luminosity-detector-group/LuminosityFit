@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 """
+
+This script is a wrapper for runLmdFit.sh and submits it to SLURM. Then why is it so long?
+
 Example call might look like this:
 
 python doMultipleLuminosityFits.py \
@@ -256,18 +259,18 @@ for match in matches:
         array_indices=[1],
     )
 
-    # TODO: handle this case
-    if args.ref_resacc_gen_data != "":
-        job.add_exported_user_variable(
-            "reference_acceptance_path", args.ref_resacc_gen_data
-        )
-
     job.exported_user_variables = {
         "config_url": args.config_url[0],
         "data_path": elastic_data_path,
         "acceptance_resolution_path": acc_res_data_path,
         "number_of_threads": number_of_threads,
     }
+
+    # TODO: handle this case
+    if args.ref_resacc_gen_data != "":
+        job.exported_user_variables[
+            "reference_acceptance_path"
+        ] = args.ref_resacc_gen_data
 
     joblist.append(job)
 
