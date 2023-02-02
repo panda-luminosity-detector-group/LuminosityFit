@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Tuple, Union
 
 import attr
+import cattrs
 from attr import field
 
 from .alignment import AlignmentParameters
@@ -44,6 +45,45 @@ class ReconstructionParameters:
     num_events_per_box_sample: int = attr.ib(default=10000)
 
 
+def generateCutKeyword(reco_params: ReconstructionParameters) -> str:
+
+    cutKeyword = ""
+
+    if reco_params.use_xy_cut:
+        cutKeyword += "xy_"
+    if reco_params.use_m_cut:
+        cutKeyword += "m_"
+    if not reco_params.use_xy_cut and not reco_params.use_m_cut:
+        cutKeyword += "un"
+    cutKeyword += "cut"
+    if reco_params.use_xy_cut:
+        if reco_params.reco_ip_offset:
+            cutKeyword += "_real"
+    return cutKeyword
+
+
+def generateAlignpathKeyword(align_params: AlignmentParameters) -> str:
+    alignpathKeyword = ""
+    if align_params.use_point_transform_misalignment:
+        if align_params.misalignment_matrices_path is None:
+            alignpathKeyword += "_no_data_misalignment"
+        else:
+            alignpathKeyword += "_" + str(
+                os.path.splitext(
+                    os.path.basename(align_params.misalignment_matrices_path)
+                )[0]
+            )
+    if align_params.alignment_matrices_path:
+        alignpathKeyword += "/aligned-" + str(
+            os.path.splitext(
+                os.path.basename(align_params.alignment_matrices_path)
+            )[0]
+        )
+    else:
+        alignpathKeyword += "/no_alignment_correction"
+    return alignpathKeyword
+
+
 def generateRecoDirSuffix(
     reco_params: ReconstructionParameters, align_params: AlignmentParameters
 ) -> str:
@@ -51,33 +91,10 @@ def generateRecoDirSuffix(
         f"{reco_params.low_index}-"
         + f"{reco_params.low_index + reco_params.num_samples - 1}_"
     )
-    if reco_params.use_xy_cut:
-        reco_dirname_suffix += "xy_"
-    if reco_params.use_m_cut:
-        reco_dirname_suffix += "m_"
-    if not reco_params.use_xy_cut and not reco_params.use_m_cut:
-        reco_dirname_suffix += "un"
-    reco_dirname_suffix += "cut"
-    if reco_params.use_xy_cut:
-        if reco_params.reco_ip_offset:
-            reco_dirname_suffix += "_real"
-    if align_params.use_point_transform_misalignment:
-        if align_params.misalignment_matrices_path is None:
-            reco_dirname_suffix += "_no_data_misalignment"
-        else:
-            reco_dirname_suffix += "_" + str(
-                os.path.splitext(
-                    os.path.basename(align_params.misalignment_matrices_path)
-                )[0]
-            )
-    if align_params.alignment_matrices_path:
-        reco_dirname_suffix += "/aligned-" + str(
-            os.path.splitext(
-                os.path.basename(align_params.alignment_matrices_path)
-            )[0]
-        )
-    else:
-        reco_dirname_suffix += "/no_alignment_correction"
+
+    reco_dirname_suffix += generateCutKeyword(reco_params)
+    reco_dirname_suffix += generateAlignpathKeyword(align_params)
+
     return reco_dirname_suffix
 
 
@@ -126,10 +143,10 @@ def create_reconstruction_job(
 
     # These must be written again so that runLmdSimReco and runLmdReco have access to them
     write_params_to_file(
-        attr.asdict(reco_params), pathname_full, "reco_params.config"
+        cattrs.unstructure(reco_params), pathname_full, "reco_params.config"
     )
     write_params_to_file(
-        attr.asdict(align_params), pathname_full, "align_params.config"
+        cattrs.unstructure(align_params), pathname_full, "align_params.config"
     )
 
     resource_request = JobResourceRequest(2 * 60)

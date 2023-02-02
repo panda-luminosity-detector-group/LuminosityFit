@@ -29,7 +29,7 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
 if not os.path.isdir(pathToTrkQAFiles):
     os.makedirs(pathToTrkQAFiles)
 
-# the path pathToTrkQAFiles is automatically eihter the dpm or the resAcc path
+# the path pathToTrkQAFiles is automatically either the dpm or the resAcc path
 recoParams: ReconstructionParameters = load_params_from_file(
     pathToTrkQAFiles + "/reco_params.config", ReconstructionParameters
 )

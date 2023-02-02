@@ -25,10 +25,13 @@ class Scenario:
     ):
         self.momentum = 0.0
 
-        self.dir_path = dir_path_
-        self.filtered_dir_path = ""
+        self.trackDirectory = dir_path_
+        self.filteredTrackDirectory = ""
         self.acc_and_res_dir_path = ""
-        self.rec_ip_info = {}
+        # self.rec_ip_info = {}
+        self.ipX = 0.0
+        self.ipY = 0.0
+        self.ipZ = 0.0
         self.elastic_pbarp_integrated_cross_secion_in_mb = None
         self.use_m_cut = True
         self.use_xy_cut = True
