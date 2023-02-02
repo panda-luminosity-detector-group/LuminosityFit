@@ -91,22 +91,21 @@ def restrictPhiConfigs():
             )
 
             # change simpars if misalignment matrices are given
-            experiment.alignParams.misalignment_matrices_path = (
-                f'/home/roklasen/LMD-Alignment/output/misMat-nothing-{phiMatNames[i]}.json'
-            )
+            experiment.alignParams.misalignment_matrices_path = Path(f"/home/roklasen/LMD-Alignment/output/misMat-nothing-{phiMatNames[i]}.json")
 
             # update internal paths
             experiment.updateBaseDataDirectory()
 
             write_params_to_file(
                 cattrs.unstructure(experiment),
-                ".",
-                f"{confPathPanda}/restrictPhi/{mom}-{phiMatNames[i]}.config",
+                f"./{confPathPanda}/restrictPhi/",
+                f"{mom}-{phiMatNames[i]}.config",
                 overwrite=True,
             )
 
+
 def genConfigs():
-    
+
     for mom in momenta:
 
         # PANDA configs
@@ -123,9 +122,7 @@ def genConfigs():
 
         # change simpars if misalignment matrices are given
         if args.misalignMatrixFileP is not None:
-            experiment.alignParams.misalignment_matrices_path = (
-                args.misalignMatrixFileP
-            )
+            experiment.alignParams.misalignment_matrices_path = args.misalignMatrixFileP
         # change alignpars is alignment matrices are given
 
         # update internal paths
@@ -152,25 +149,18 @@ def genConfigs():
 
         # change simpars if misalignment matrices are given
         if args.misalignMatrixFileK is not None:
-            experiment.alignParams.misalignment_matrices_path = (
-                args.misalignMatrixFileK
-            )
+            experiment.alignParams.misalignment_matrices_path = args.misalignMatrixFileK
 
         # change alignpars is alignment matrices are given
 
         # update internal paths
         experiment.updateBaseDataDirectory()
 
-        write_params_to_file(
-            cattrs.unstructure(experiment), ".", f"{confPathKoala}/{mom}.config"
-        )
-
+        write_params_to_file(cattrs.unstructure(experiment), ".", f"{confPathKoala}/{mom}.config")
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "-b", dest="inBetweenMomenta", action=argparse._StoreTrueAction
-)
+parser.add_argument("-b", dest="inBetweenMomenta", action=argparse._StoreTrueAction)
 parser.add_argument(
     "-mp",
     dest="misalignMatrixFileP",
@@ -184,7 +174,9 @@ parser.add_argument(
     type=Path,
 )
 
-parser.add_argument('-rphi', dest="restrictPhi", help="generate multiple configs with restricted phi angles, no misalignment.", action=argparse._StoreTrueAction)
+parser.add_argument(
+    "-rphi", dest="restrictPhi", help="generate multiple configs with restricted phi angles, no misalignment.", action=argparse._StoreTrueAction
+)
 
 args = parser.parse_args()
 
@@ -213,10 +205,10 @@ else:
     momenta = [1.5, 4.06, 8.9, 11.91, 15.0]
 
 
-upperPhiAngles = (6.28318531718, 6.28318531718/2, 6.28318531718/4, 6.28318531718/8, 6.28318531718/10, 6.28318531718/12)
-phiMatNames = ('2pi','2piO2','2piO4','2piO8','2piO10','2piO12')
+upperPhiAngles = (6.28318531718, 6.28318531718 / 2, 6.28318531718 / 4, 6.28318531718 / 8, 6.28318531718 / 10, 6.28318531718 / 12)
+phiMatNames = ("2pi", "2piO2", "2piO4", "2piO8", "2piO10", "2piO12")
 
-#* special case: resticted phi angles. we'll have to cheat a little here with a misalignment matrix
+# * special case: resticted phi angles. we'll have to cheat a little here with a misalignment matrix
 # that has no misalignmen, so that we get new paths for each new angle
 
 if args.restrictPhi:
