@@ -150,14 +150,6 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
         data_pattern = ""
 
         # todo: don't generate here, there is a function for that in reconstruction.py.
-        # cut_keyword = ""
-        # if thisScenario.use_xy_cut:
-        #     cut_keyword += "xy_"
-        # if thisScenario.use_m_cut:
-        #     cut_keyword += "m_"
-        # if cut_keyword == "":
-        #     cut_keyword += "un"
-        # cut_keyword += "cut_real"
         cut_keyword = generateCutKeyword(thisExperiment.recoParams)
 
         # print(f" so wait. cutkeyword is {cut_keyword}")
@@ -221,15 +213,6 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     max_xy_shift = math.sqrt(thisIPX**2 + thisIPY**2)
                     max_xy_shift = float("{0:.2f}".format(round(float(max_xy_shift), 2)))
 
-                    # TODO why is this read again?! Has it changed?
-                    # TODO It was read right at the beginning to the experiment/thisExperiment object
-                    # sim_par = SimulationParameters(
-                    #     sim_type=SimulationType.BOX,
-                    #     num_events_per_sample=box_num_events_per_sample,
-                    #     num_samples=box_num_samples,
-                    #     lab_momentum=lab_momentum,
-                    # )
-
                     #! these mus be applied again, because they change at run time
                     # (the config on disk doesn't change and doesn't know this)
                     sim_par = thisExperiment.simParams
@@ -251,16 +234,6 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     # TODO: alignment part
                     # if alignement matrices were specified, we used them as a mis-alignment
                     # and alignment for the box simulations
-                    # align_par = AlignmentParameters()
-                    # if (
-                    #     thisScenario.alignment_parameters.alignment_matrices_path
-                    # ):
-                    #     align_par.misalignment_matrices_path = (
-                    #         thisScenario.alignment_parameters.alignment_matrices_path
-                    #     )
-                    #     align_par.alignment_matrices_path = (
-                    #         thisScenario.alignment_parameters.alignment_matrices_path
-                    #     )
 
                     # TODO: make sure this object has the correct parameters!
                     # align_par = thisExperiment.alignParams
@@ -319,57 +292,11 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     # note: beam tilt and divergence are not used here because
                     # only the last reco steps are rerun of the track reco
 
-                    # TODO: save digi files instead of mc files!!
-                    # we are either in the base dir or an "aligned" subdirectory,
-                    # apply dirty hack here:
-
-                    print(f"\n\nDEBUG: this is this scenarios dir path:\n{thisScenario.trackDirectory}\n\n")
-
-                    # TODO: Wait, why do we need sim params here at all? There won't be any sim params during the actual experiment
-                    # simParamFile = thisScenario.trackDirectory + "/../sim_params.config"
-                    # if not os.path.exists(simParamFile):
-                    #     simParamFile = thisScenario.trackDirectory + "/../../sim_params.config"
-
-                    # TODO why is this read again?! Has it changed?
-                    # TODO It was read right at the beginning to the experiment/thisExperiment object
-                    # sim_par: SimulationParameters = (
-                    #     general.load_params_from_file(
-                    #         simParamFile, SimulationParameters
-                    #     )
-                    # )
-                    # sim_par = thisExperiment.simParams
-
-                    # TODO why is this read again?! Has it changed?
-                    # TODO It was read right at the beginning to the experiment/thisExperiment object
-                    # rec_par: ReconstructionParameters = (
-                    #     general.load_params_from_file(
-                    #         thisScenario.dir_path + "/reco_params.config",
-                    #         ReconstructionParameters,
-                    #     )
-                    # )
-
-                    # why are these newly assigned? Have they changed?
-                    # rec_par.use_xy_cut = thisScenario.use_xy_cut
-                    # rec_par.use_m_cut = thisScenario.use_m_cut
-
-                    # Z value is always taken fron config beceause it can't be determined from fit
-                    #! this it taking  the value from the config and putting it into the config again?!
-                    # rec_par.reco_ip_offset = [
-                    #     ip_info_dict[
-                    #         "ip_offset_x"
-                    #     ],  #! wait this can also come from the config!
-                    #     ip_info_dict[
-                    #         "ip_offset_y"
-                    #     ],  #! wait this can also come from the config!
-                    #     experiment.simParams.ip_offset_z,
-                    # ]
-
                     # * reco params must be adjusted if the res/acc sample had more jobs or samples that the real
                     # (or dpm) data
                     rec_par = thisExperiment.recoParams
                     if thisExperiment.recoParams.num_samples > 0 and rec_par.num_samples > thisExperiment.recoParams.num_samples:
                         rec_par.num_samples = thisExperiment.recoParams.num_samples
-                        # sim_par.num_samples = thisExperiment.recoParams.num_samples
 
                     # TODO: have alignment parameters changed? take them from the experiment
                     align_par = thisExperiment.alignParams
@@ -456,19 +383,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append(sim_type)
                     bashArgs.append(dir_path)
                     bashArgs.append("../dataconfig_xy.json")
-                    # bashcommand = (
-                    #     "python createMultipleLmdData.py "
-                    #     + " --dir_pattern "
-                    #     + data_keywords[0]
-                    #     + f" --jobCommand '{thisScenario.LmdData}'"
-                    #     + " "
-                    #     + f"{lab_momentum:.2f}"
-                    #     + " "
-                    #     + sim_type
-                    #     + " "
-                    #     + dir_path
-                    #     + " ../dataconfig_xy.json"  # TODO: use absolute path here!
-                    # )
+
                     if el_cs:
                         bashArgs.append("--elastic_cross_section")
                         bashArgs.append(str(el_cs))
@@ -484,19 +399,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append(sim_type)
                     bashArgs.append(dir_path)
                     bashArgs.append("../dataconfig_xy.json")
-                    # bashcommand = (
-                    #     "python createMultipleLmdData.py "
-                    #     + " --dir_pattern "
-                    #     + data_keywords[0]
-                    #     + f" --jobCommand '{thisScenario.LmdData}'"
-                    #     + " "
-                    #     + f"{lab_momentum:.2f}"
-                    #     + " "
-                    #     + sim_type
-                    #     + " "
-                    #     + dir_path
-                    #     + " ../dataconfig_xy.json"  # TODO: use absolute path here!
-                    # )
+
                 print(bashArgs)
                 _ = subprocess.call(bashArgs)
 
@@ -689,34 +592,17 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
         4. runLmdFit!
 
         - look where the merged data is, find the lmd_fitted_data root files.
-        -
-
         """
-        temp_dir_searcher = general.DirectorySearcher(["merge_data", "binning_300"])
-        temp_dir_searcher.searchListOfDirectories(thisScenario.filteredTrackDirectory, "lmd_fitted_data")
-        found_dirs = temp_dir_searcher.getListOfDirectories()
 
-        #  TODO: so we just assume no dirs are found and specify the path manually anyway? then remove the stuff above
-        if not found_dirs:
+        os.chdir(lmd_fit_script_path)
+        print("running lmdfit!")
 
-            os.chdir(lmd_fit_script_path)
-            print("running lmdfit!")
+        # TODO: nope, don't generate this here. the cut keyword are also generated in the reconstruction.py,
+        cut_keyword = generateCutKeyword(thisExperiment.recoParams)
 
-            # TODO: nope, don't generate this here. the cut keyword are also generated in the reconstruction.py,
-            # so take it from there too!
-            # cut_keyword = ""
-            # if thisScenario.use_xy_cut:
-            #     cut_keyword += "xy_"
-            # if thisScenario.use_m_cut:
-            #     cut_keyword += "m_"
-            # if cut_keyword == "":
-            #     cut_keyword += "un"
-            # cut_keyword += "cut_real "
-            cut_keyword = generateCutKeyword(thisExperiment.recoParams)
-
-            bashcommand = f"python doMultipleLuminosityFits.py --forced_resAcc_gen_data {thisScenario.acc_and_res_dir_path} -e {args.ExperimentConfigFile} {thisScenario.filteredTrackDirectory} {cut_keyword} {lmd_fit_path}/{thisExperiment.fitConfigPath}"
-            print(f"Bash command is:\n{bashcommand}")
-            _ = subprocess.call(bashcommand.split())
+        bashcommand = f"python doMultipleLuminosityFits.py --forced_resAcc_gen_data {thisScenario.acc_and_res_dir_path} -e {args.ExperimentConfigFile} {thisScenario.filteredTrackDirectory} {cut_keyword} {lmd_fit_path}/{thisExperiment.fitConfigPath}"
+        print(f"Bash command is:\n{bashcommand}")
+        _ = subprocess.call(bashcommand.split())
 
         print("this scenario is fully processed!!!")
         finished = True
@@ -746,31 +632,6 @@ parser.add_argument(
     default=1,
     help="number of elastic data samples to create via" " bootstrapping (for statistical analysis)",
 )
-
-# nope, no runtime args, only config
-
-# parser.add_argument(
-#     "--disable_xy_cut",
-#     action="store_true",
-#     help="Disable the x-theta & y-phi filter after the "
-#     "tracking stage to remove background.",
-# )
-# parser.add_argument(
-#     "--disable_m_cut",
-#     action="store_true",
-#     help="Disable the tmva based momentum cut filter after the"
-#     " backtracking stage to remove background.",
-# )
-# parser.add_argument(
-#     "--disable_ip_determination",
-#     action="store_true",
-#     help="Disable the determination of the IP. Instead (0,0,0) is assumed",
-# )
-# parser.add_argument(
-#     "--use_devel_queue",
-#     action="store_true",
-#     help="If flag is set, the devel queue is used",
-# )
 
 parser.add_argument(
     "-e",
@@ -827,18 +688,6 @@ thisScenario.trackDirectory = dirs[0]
 
 # * ----------------- create a scenario object. it resides only in memory and is never written to disk
 print("creating scenario:", thisScenario.trackDirectory)
-
-# nope, no runtime args, only config
-
-# if args.disable_xy_cut:
-#     print("Disabling xy cut!")
-#     thisScenario.use_xy_cut = False  # for testing purposes
-# if args.disable_m_cut:
-#     print("Disabling m cut!")
-#     thisScenario.use_m_cut = False  # for testing purposes
-# if args.disable_ip_determination:
-#     print("Disabling IP determination!")
-#     thisScenario.use_ip_determination = False
 
 # * ----------------- check which cluster we're on and create job handler
 if loadedExperimentFromConfig.cluster == ClusterEnvironment.VIRGO:
