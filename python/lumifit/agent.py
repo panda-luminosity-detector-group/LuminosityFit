@@ -16,9 +16,8 @@ import stat
 import string
 import subprocess
 import sys
-
-# import multiprocessing as mp
 import threading as th
+import time
 from enum import IntEnum
 from pathlib import Path
 from typing import Dict
@@ -315,7 +314,20 @@ class Client(Agent):
         else:
             raise ValueError("race condition in 'makeUniqueOrder'")
 
+        # it may take a while for the pipe to get created by the kernel,
+        # so we can't ask too fast
+        timeout = 10
+        start = time.time()
+        while (time.time() - start) < timeout:
+            if not self.universalPipePath.exists():
+                # when the file isn't there (yet?), just wait and try again
+                time.sleep(0.2)
+                continue
+            break
+
+        # if it still doesn't exist after the timeout, we'll get an error here
         confirmationOrder = self.receiveOrder()
+
         if confirmationOrder.orderType == orderType.UNIQUE_CONFIRM:
             logging.info(f"new pipe confirmation received: {confirmationOrder}")
         else:
