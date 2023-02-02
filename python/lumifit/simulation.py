@@ -60,23 +60,11 @@ class SimulationParameters:
 
 
 def _check_ip_params_zero(sim_params: SimulationParameters):
-    return any(
-        [
-            value != 0.0
-            for key, value in attr.asdict(sim_params).items()
-            if "ip_" in key
-        ]
-    )
+    return any([value != 0.0 for key, value in attr.asdict(sim_params).items() if "ip_" in key])
 
 
 def _check_beam_params_zero(sim_params: SimulationParameters):
-    return any(
-        [
-            value != 0.0
-            for key, value in attr.asdict(sim_params).items()
-            if "beam_" in key
-        ]
-    )
+    return any([value != 0.0 for key, value in attr.asdict(sim_params).items() if "beam_" in key])
 
 
 def generateDirectory(
@@ -86,17 +74,11 @@ def generateDirectory(
 ) -> str:
     if output_dir == "" or output_dir is None:
         if output_dir is None:
-            print(
-                "\n\n\n GREP OUTPUT DIR: output_dir is None in line 87 of simulation.py!"
-            )
+            print("\n\n\n GREP OUTPUT DIR: output_dir is None in line 87 of simulation.py!")
         # generate output directory name
         # lets generate a folder structure based on the input
         dirname = f"plab_{sim_params.lab_momentum:.2f}GeV"
-        gen_part = (
-            f"{sim_params.sim_type.value}_theta_"
-            + f"{sim_params.theta_min_in_mrad}-"
-            + f"{sim_params.theta_max_in_mrad}mrad"
-        )
+        gen_part = f"{sim_params.sim_type.value}_theta_" + f"{sim_params.theta_min_in_mrad}-" + f"{sim_params.theta_max_in_mrad}mrad"
         if not sim_params.neglect_recoil_momentum:
             gen_part += "_recoil_corrected"
 
@@ -120,17 +102,10 @@ def generateDirectory(
             + f"{sim_params.beam_divergence_y}"
         )
 
-        if (
-            align_params.use_point_transform_misalignment
-            or align_params.misalignment_matrices_path is None
-        ):
+        if align_params.use_point_transform_misalignment or align_params.misalignment_matrices_path is None:
             dirname += "/no_geo_misalignment"
         else:
-            dirname += "/geo_misalignment" + str(
-                os.path.splitext(
-                    os.path.basename(align_params.misalignment_matrices_path)
-                )[0]
-            )
+            dirname += "/geo_misalignment" + str(os.path.splitext(os.path.basename(align_params.misalignment_matrices_path))[0])
 
         dirname += "/" + str(sim_params.num_events_per_sample)
     else:
@@ -149,11 +124,7 @@ def create_simulation_and_reconstruction_job(
     debug=False,
     use_devel_queue=False,
 ) -> Tuple[Job, str]:
-    print(
-        "preparing simulations in index range "
-        + f"{reco_params.low_index} - "
-        + f"{reco_params.low_index + reco_params.num_samples - 1}"
-    )
+    print("preparing simulations in index range " + f"{reco_params.low_index} - " + f"{reco_params.low_index + reco_params.num_samples - 1}")
 
     if application_command == "":
         print(f"ERROR! no application command given!")
@@ -165,10 +136,7 @@ def create_simulation_and_reconstruction_job(
     low_index_used = sim_params.low_index
     num_samples = sim_params.num_samples
     if debug and sim_params.num_samples > 1:
-        print(
-            "Warning: number of samples in debug mode is limited to 1! "
-            "Setting to 1!"
-        )
+        print("Warning: number of samples in debug mode is limited to 1! " "Setting to 1!")
         num_samples = 1
 
     lmdfit_data_dir = os.getenv("LMDFIT_DATA_DIR")
@@ -194,9 +162,7 @@ def create_simulation_and_reconstruction_job(
     if sim_params.sim_type == SimulationType.PBARP_ELASTIC:
         lmdfit_build_dir = os.getenv("LMDFIT_BUILD_PATH")
         if lmdfit_build_dir is None:
-            raise ValueError(
-                "LMDFIT_BUILD_PATH environment variable is not set!"
-            )
+            raise ValueError("LMDFIT_BUILD_PATH environment variable is not set!")
         # determine the elastic cross section in the theta range
         bashcommand = (
             f"{lmdfit_build_dir}/bin/generatePbarPElasticScattering "
@@ -211,15 +177,9 @@ def create_simulation_and_reconstruction_job(
         subprocess.call(bashcommand.split())
 
     # These must be written again so that runLmdSimReco and runLmdReco have access to them
-    write_params_to_file(
-        cattrs.unstructure(sim_params), pathname_base, "sim_params.config"
-    )
-    write_params_to_file(
-        cattrs.unstructure(reco_params), pathname_full, "reco_params.config"
-    )
-    write_params_to_file(
-        cattrs.unstructure(align_params), pathname_full, "align_params.config"
-    )
+    write_params_to_file(cattrs.unstructure(sim_params), pathname_base, "sim_params.config")
+    write_params_to_file(cattrs.unstructure(reco_params), pathname_full, "reco_params.config")
+    write_params_to_file(cattrs.unstructure(align_params), pathname_full, "align_params.config")
 
     resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
     resource_request.number_of_nodes = 1
@@ -235,9 +195,7 @@ def create_simulation_and_reconstruction_job(
         application_url=application_command,
         name="simreco_" + sim_params.sim_type.value,
         logfile_url=pathname_full + "/simreco-%a.log",
-        array_indices=list(
-            range(low_index_used, low_index_used + num_samples)
-        ),
+        array_indices=list(range(low_index_used, low_index_used + num_samples)),
     )
 
     job.exported_user_variables.update(

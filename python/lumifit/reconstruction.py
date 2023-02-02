@@ -35,12 +35,17 @@ class ReconstructionParameters:
     low_index: int = attr.ib(default=1)
     output_dir: Union[Path, None] = field(default=None)
     lmd_geometry_filename: str = attr.ib(default="Luminosity-Detector.root")
-    use_xy_cut: bool = attr.ib(default=False)
-    use_m_cut: bool = attr.ib(default=False)
+    use_ip_determination: bool = attr.ib(default=True)
+    use_xy_cut: bool = attr.ib(default=True)
+    use_m_cut: bool = attr.ib(default=True)
     track_search_algo: str = attr.ib(
         default="CA", validator=_validate_track_search_algo
     )
-    reco_ip_offset: Tuple[float, float, float] = attr.ib(default=(0, 0, 0))
+    # reco_ip_offset: Tuple[float, float, float] = attr.ib(default=(0, 0, 0))
+    recoIPX: float = attr.ib(default=0.0)
+    recoIPY: float = attr.ib(default=0.0)
+    recoIPZ: float = attr.ib(default=0.0)
+
     num_box_samples: int = attr.ib(default=500)
     num_events_per_box_sample: int = attr.ib(default=10000)
 
@@ -56,9 +61,8 @@ def generateCutKeyword(reco_params: ReconstructionParameters) -> str:
     if not reco_params.use_xy_cut and not reco_params.use_m_cut:
         cutKeyword += "un"
     cutKeyword += "cut"
-    if reco_params.use_xy_cut:
-        if reco_params.reco_ip_offset:
-            cutKeyword += "_real"
+    if reco_params.use_xy_cut and reco_params.use_ip_determination:
+        cutKeyword += "_real"
     return cutKeyword
 
 

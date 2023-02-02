@@ -5,8 +5,27 @@ Can only be run if `LumiTrkQA_` files for PandaRoot or `Koala_Track_` files for 
 Minimum run example works without arguments, but searches a LOT of directories. It's generally better to at least limit the search paths:
 
 ```bash
-./determineLuminosity.py --base_output_data_dir /path/to/TrksQAFiles.root
+./determineLuminosity.py -e /path/to/experiment.config
 ```
+
+# TL;DR
+
+There are two main large functions:
+
+- runSimOnHimster
+- determineLuminosity
+
+They pass a scenario object between them back and forth while updating it's internal parameters. So the lumi determination process itself is rather straight forward. But the first function has to submit jobs to SLURM, and so it can't block but the process can also not proceed until the jobs are done.
+
+So the call is something like:
+
+1: run determineLuminosity once
+2: that one calls runSimOnHimster sometimes
+3: wait and go to 1
+
+The scenario object has an internal state variable that's changed by the function. It describes what should currently be done with the scenario object. The fact that this variable changes at runtime by two functions in an endless loop makes this script rather difficult to understand.
+
+At least the states have descriptive names 🤷
 
 # Run Sequence
 
