@@ -90,22 +90,16 @@ class Agent:
 
         if proc.is_alive():
             proc.terminate()
-            raise TimeoutError(
-                "Could not write to pipe! Is the agent listening?"
-            )
+            raise TimeoutError("Could not write to pipe! Is the agent listening?")
         return True
 
     def sendOrderBlocking(self, thisOrder: SlurmOrder) -> None:
-        with open(
-            self.universalPipePath, "w", encoding="utf-8"
-        ) as universalPipe:
+        with open(self.universalPipePath, "w", encoding="utf-8") as universalPipe:
             payload = thisOrder.__dict__
             json.dump(payload, universalPipe)
 
     def receiveOrder(self) -> SlurmOrder:
-        with open(
-            self.universalPipePath, "r", encoding="utf-8"
-        ) as universalPipe:
+        with open(self.universalPipePath, "r", encoding="utf-8") as universalPipe:
             try:
                 payload = json.load(universalPipe)
             except Exception:
@@ -133,12 +127,8 @@ class Server(Agent):
 
         # generate random suffix for named pipe name, 8 should do just fine
         letters = string.ascii_lowercase
-        newNamedPipeSuffix = "-" + "".join(
-            random.choice(letters) for _ in range(8)
-        )
-        newPipe = self.universalPipePath.with_name(
-            self.universalPipePath.stem + newNamedPipeSuffix
-        )
+        newNamedPipeSuffix = "-" + "".join(random.choice(letters) for _ in range(8))
+        newPipe = self.universalPipePath.with_name(self.universalPipePath.stem + newNamedPipeSuffix)
 
         # create new server just for this caller
         pid = os.fork()
@@ -157,9 +147,7 @@ class Server(Agent):
     def preparePipe(self) -> None:
         if self.universalPipePath.exists():
             if not stat.S_ISFIFO(os.stat(self.universalPipePath).st_mode):
-                print(
-                    f"Warning! Path {self.universalPipePath} exists but is not a pipe. Deleting!"
-                )
+                print(f"Warning! Path {self.universalPipePath} exists but is not a pipe. Deleting!")
                 self.universalPipePath.unlink()
 
         if not self.universalPipePath.parent.exists():
@@ -181,27 +169,19 @@ class Server(Agent):
             thisOrder = self.receiveOrder()
 
             if thisOrder is not None:
-                logging.info(
-                    f"{datetime.datetime.now().isoformat(timespec='seconds')}: Received Order:"
-                )
+                logging.info(f"{datetime.datetime.now().isoformat(timespec='seconds')}: Received Order:")
                 logging.info(f"cmd: {thisOrder.cmd}")
 
-                logging.debug(
-                    f"{datetime.datetime.now().isoformat(timespec='seconds')}: Received Order:\n{thisOrder}\n"
-                )
+                logging.debug(f"{datetime.datetime.now().isoformat(timespec='seconds')}: Received Order:\n{thisOrder}\n")
 
                 # execute command as ordered
                 returnOrder = self.execute(thisOrder)
 
                 # return result
-                logging.info(
-                    f"{datetime.datetime.now().isoformat(timespec='seconds')}: Sent back result:"
-                )
+                logging.info(f"{datetime.datetime.now().isoformat(timespec='seconds')}: Sent back result:")
                 logging.info(f"stdout: {returnOrder.stdout}")
 
-                logging.debug(
-                    f"{datetime.datetime.now().isoformat(timespec='seconds')}: Sent back result:\n{returnOrder}\n"
-                )
+                logging.debug(f"{datetime.datetime.now().isoformat(timespec='seconds')}: Sent back result:\n{returnOrder}\n")
                 self.sendOrder(returnOrder)
 
     def execute(self, thisOrder: SlurmOrder) -> SlurmOrder:
@@ -246,9 +226,7 @@ class Server(Agent):
             thisOrder.stderr = process.stderr
             return thisOrder
 
-        raise NotImplementedError(
-            f"order type {thisOrder.orderType} is not implemented!"
-        )
+        raise NotImplementedError(f"order type {thisOrder.orderType} is not implemented!")
 
     def bail(self) -> None:
         # print(f'Received "exit" command. Exiting now.')
@@ -290,9 +268,7 @@ class Server(Agent):
             filename=f"agentLog-{datetime.datetime.now().isoformat()}.log",
             level=logLevel,
         )
-        logging.info(
-            f"Starting Log at {datetime.datetime.now().isoformat()}\n"
-        )
+        logging.info(f"Starting Log at {datetime.datetime.now().isoformat()}\n")
 
         self.preparePipe()
         self.mainLoop()
@@ -310,13 +286,9 @@ class Client(Agent):
 
     def __init__(self) -> None:
         if not os.path.exists(self.universalPipePath):
-            raise Exception(
-                f"named pipe not found at {self.universalPipePath}. Please start the agent first!"
-            )
+            raise FileNotFoundError(f"named pipe not found at {self.universalPipePath}. Please start the agent first!")
         if not stat.S_ISFIFO(os.stat(self.universalPipePath).st_mode):
-            raise Exception(
-                f"\nERROR! Path {self.universalPipePath} is not a pipe!"
-            )
+            raise FileExistsError(f"\nERROR! Path {self.universalPipePath} is not a pipe!")
 
         self.checkConnection()
 
@@ -345,9 +317,7 @@ class Client(Agent):
 
         confirmationOrder = self.receiveOrder()
         if confirmationOrder.orderType == orderType.UNIQUE_CONFIRM:
-            logging.info(
-                f"new pipe confirmation received: {confirmationOrder}"
-            )
+            logging.info(f"new pipe confirmation received: {confirmationOrder}")
         else:
             raise ValueError("returned confirmation is invalid!")
         return self
