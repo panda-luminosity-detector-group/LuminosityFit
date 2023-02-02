@@ -285,7 +285,7 @@ def simulateDataOnHimster(
                     rec_par.use_m_cut = thisScenario.use_m_cut
 
                     # Z value is always taken fron config beceause it can't be determined from fit
-                    # TODO: why is this written back to the reco params at all? didn't it come from there in the first place?
+                    # why is this written back to the reco params at all? didn't it come from there in the first place?
                     # it seems the reco params are passed to create_simulation_and_reconstruction_job...
                     # oh, there it's stored to disk and then read again by runLmdReco.py. Oh my....
                     rec_par.reco_ip_offset = (
