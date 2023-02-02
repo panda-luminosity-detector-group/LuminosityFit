@@ -1,4 +1,17 @@
 #!/usr/bin/env python3
+
+"""
+Example call might look like this:
+
+python doMultipleLuminosityFits.py \
+--forced_box_gen_data \
+/lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_1.5GeV/box_theta_2.6900000000000004-13.01mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-500_xy_m_cut_real/no_alignment_correction \
+/lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_1.5GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-100_xy_m_cut_real/no_alignment_correction \
+xy_m_cut_real \
+/home/roklasen/LuminosityFit/fitconfig-fast.json
+"""
+
+
 import argparse
 import glob
 import os
@@ -54,12 +67,12 @@ def getListOfResAccDirectories(path: str) -> None:
 def getTopResAccDirectory(path: str) -> None:
     if os.path.isdir(path):
         found = False
-        for dir in next(os.walk(path))[1]:
+        for directory in next(os.walk(path))[1]:
             if re.search(
-                f"{experiment.recoParams.sim_type_for_resAcc.value}", dir
+                f"{experiment.recoParams.sim_type_for_resAcc.value}", directory
             ):  # read BOX/DPM string from config
                 global top_level_resAcc_directory
-                top_level_resAcc_directory = path + "/" + dir
+                top_level_resAcc_directory = path + "/" + directory
                 found = True
                 break
         if not found:
