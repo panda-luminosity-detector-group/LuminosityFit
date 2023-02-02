@@ -642,6 +642,13 @@ parser.add_argument(
     required=True,
 )
 
+parser.add_argument(
+    "--use_devel_queue",
+    action="store_true",
+    help="If flag is set, the devel queue is used",
+)
+
+
 args = parser.parse_args()
 
 
