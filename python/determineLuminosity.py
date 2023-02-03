@@ -296,6 +296,9 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
 
             elif "v" in task.simType:
 
+                # TODO: check if the sim data is already there, if yes return 0, else start sim
+                return 0
+
                 # vertex Date must always be created without any cuts first
                 tempRecoPars = thisExperiment.recoParams
                 tempRecoPars.use_xy_cut = False
@@ -310,10 +313,8 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     thisExperiment.simParams,
                     tempAlignPars,
                     tempRecoPars,
-                    force_level=args.force_level,
-                    debug=args.debug,
                     use_devel_queue=args.use_devel_queue,
-                    application_command=scen.Sim,
+                    application_command=thisScenario.Sim,
                 )
                 job_manager.append(job)
 
