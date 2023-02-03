@@ -70,33 +70,21 @@ gen_filepath = workpathname + "/gen_mc.root"
 
 # the path pathToTrkQAFiles is automatically eihter the dpm or the resAcc path
 #! however, check this path again!
-simParams: SimulationParameters = load_params_from_file(
-    path_mc_data + "/../sim_params.config", SimulationParameters
-)
-alignParams: AlignmentParameters = load_params_from_file(
-    pathToTrkQAFiles + "/align_params.config", AlignmentParameters
-)
+simParams: SimulationParameters = load_params_from_file(path_mc_data + "/../sim_params.config", SimulationParameters)
+alignParams: AlignmentParameters = load_params_from_file(pathToTrkQAFiles + "/align_params.config", AlignmentParameters)
 
 verbositylvl = 0
 numTrks = 1  # should not be changed
 start_evt: int = simParams.num_events_per_sample * filename_index
 
 
-print(
-    f"\n\nINFO:\ndirname is {relativeDirToTrksQAFiles}\npathname is {pathToTrkQAFiles}\nworkpathname is {workpathname}\n\n"
-)
+print(f"\n\nINFO:\ndirname is {relativeDirToTrksQAFiles}\npathname is {pathToTrkQAFiles}\nworkpathname is {workpathname}\n\n")
 
 # * ------------------- MC Data Step -------------------
-if (
-    not check_stage_success(f"{path_mc_data}/Lumi_MC_{start_evt}.root")
-    or force_level == 2
-):
+if not check_stage_success(f"{path_mc_data}/Lumi_MC_{start_evt}.root") or force_level == 2:
 
     # * prepare box or dpm tracks
-    if (
-        simParams.sim_type == SimulationType.BOX
-        or simParams.sim_type == SimulationType.RESACCBOX
-    ):
+    if simParams.sim_type == SimulationType.BOX or simParams.sim_type == SimulationType.RESACCBOX:
         os.chdir(LMDscriptpath)
 
         cmd = f"""root -l -b -q 'standaloneBoxGen.C({simParams.lab_momentum}, {simParams.num_events_per_sample}, {simParams.theta_min_in_mrad}, {simParams.theta_max_in_mrad}, {simParams.phi_min_in_rad}, {simParams.phi_max_in_rad},"{gen_filepath}", {simParams.random_seed + start_evt}, {toCbool(not simParams.neglect_recoil_momentum)})'"""
@@ -105,10 +93,7 @@ if (
         print(cmd)
         os.system(cmd)
 
-    elif (
-        simParams.sim_type == SimulationType.PBARP_ELASTIC
-        or simParams.sim_type == SimulationType.RESACCPBARP_ELASTIC
-    ):
+    elif simParams.sim_type == SimulationType.PBARP_ELASTIC or simParams.sim_type == SimulationType.RESACCPBARP_ELASTIC:
 
         # cmd = f"{lmd_build_path}/bin/generatePbarPElasticScattering {sim_params.lab_momentum} {sim_params.num_events_per_sample} -l {sim_params.theta_min_in_mrad} -u {sim_params.theta_max_in_mrad} -s {sim_params.random_seed + start_evt} -o {gen_filepath}"
 
@@ -145,18 +130,11 @@ if (
 # if first stage was successful, copy MC data directly to compute node and don't generate new
 else:
     if not debug:
-        os.system(
-            f"cp {path_mc_data}/Lumi_MC_{start_evt}.root {workpathname}/Lumi_MC_{start_evt}.root"
-        )
-        os.system(
-            f"cp {path_mc_data}/Lumi_Params_{start_evt}.root {workpathname}/Lumi_Params_{start_evt}.root"
-        )
+        os.system(f"cp {path_mc_data}/Lumi_MC_{start_evt}.root {workpathname}/Lumi_MC_{start_evt}.root")
+        os.system(f"cp {path_mc_data}/Lumi_Params_{start_evt}.root {workpathname}/Lumi_Params_{start_evt}.root")
 
 # * ------------------- Digi Step -------------------
-if (
-    not check_stage_success(workpathname + f"/Lumi_digi_{start_evt}.root")
-    or force_level == 2
-):
+if not check_stage_success(workpathname + f"/Lumi_digi_{start_evt}.root") or force_level == 2:
     os.chdir(PNDmacropath)
     if simParams.sim_type == SimulationType.NOISE:
         os.system(
@@ -170,17 +148,11 @@ if (
 
 # always copy mc data and params from node to permanent storage (params are needed for all subsequent steps. Also: Params are UPDATED every step, so only the final Params file holds all needed data)
 if not debug:
-    os.system(
-        f"cp {workpathname}/Lumi_MC_{start_evt}.root {path_mc_data}/Lumi_MC_{start_evt}.root"
-    )
-    os.system(
-        f"cp {workpathname}/Lumi_Params_{start_evt}.root {path_mc_data}/Lumi_Params_{start_evt}.root"
-    )
+    os.system(f"cp {workpathname}/Lumi_MC_{start_evt}.root {path_mc_data}/Lumi_MC_{start_evt}.root")
+    os.system(f"cp {workpathname}/Lumi_Params_{start_evt}.root {path_mc_data}/Lumi_Params_{start_evt}.root")
     # copy the Lumi_Digi data to permanent storage, it's needed for IP cut for the LumiFit
     # MC path is better for this since digi data is "almost real data"
-    os.system(
-        f"cp {workpathname}/Lumi_digi_{start_evt}.root {path_mc_data}/Lumi_digi_{start_evt}.root"
-    )
+    os.system(f"cp {workpathname}/Lumi_digi_{start_evt}.root {path_mc_data}/Lumi_digi_{start_evt}.root")
 
 os.chdir(LMDscriptpath)
 os.system("./runLmdReco.py")

@@ -38,9 +38,7 @@ class ReconstructionParameters:
     use_ip_determination: bool = attr.ib(default=True)
     use_xy_cut: bool = attr.ib(default=True)
     use_m_cut: bool = attr.ib(default=True)
-    track_search_algo: str = attr.ib(
-        default="CA", validator=_validate_track_search_algo
-    )
+    track_search_algo: str = attr.ib(default="CA", validator=_validate_track_search_algo)
     # reco_ip_offset: Tuple[float, float, float] = attr.ib(default=(0, 0, 0))
     recoIPX: float = attr.ib(default=0.0)
     recoIPY: float = attr.ib(default=0.0)
@@ -72,29 +70,16 @@ def generateAlignpathKeyword(align_params: AlignmentParameters) -> str:
         if align_params.misalignment_matrices_path is None:
             alignpathKeyword += "_no_data_misalignment"
         else:
-            alignpathKeyword += "_" + str(
-                os.path.splitext(
-                    os.path.basename(align_params.misalignment_matrices_path)
-                )[0]
-            )
+            alignpathKeyword += "_" + str(os.path.splitext(os.path.basename(align_params.misalignment_matrices_path))[0])
     if align_params.alignment_matrices_path:
-        alignpathKeyword += "/aligned-" + str(
-            os.path.splitext(
-                os.path.basename(align_params.alignment_matrices_path)
-            )[0]
-        )
+        alignpathKeyword += "/aligned-" + str(os.path.splitext(os.path.basename(align_params.alignment_matrices_path))[0])
     else:
         alignpathKeyword += "/no_alignment_correction"
     return alignpathKeyword
 
 
-def generateRecoDirSuffix(
-    reco_params: ReconstructionParameters, align_params: AlignmentParameters
-) -> str:
-    reco_dirname_suffix = (
-        f"{reco_params.low_index}-"
-        + f"{reco_params.low_index + reco_params.num_samples - 1}_"
-    )
+def generateRecoDirSuffix(reco_params: ReconstructionParameters, align_params: AlignmentParameters) -> str:
+    reco_dirname_suffix = f"{reco_params.low_index}-" + f"{reco_params.low_index + reco_params.num_samples - 1}_"
 
     reco_dirname_suffix += generateCutKeyword(reco_params)
     reco_dirname_suffix += generateAlignpathKeyword(align_params)
@@ -111,21 +96,14 @@ def create_reconstruction_job(
     debug: bool = False,
     use_devel_queue: bool = False,
 ) -> Tuple[Job, str]:
-    print(
-        "preparing reconstruction in index range "
-        + f"{reco_params.low_index} - "
-        + f"{reco_params.low_index + reco_params.num_samples - 1}"
-    )
+    print("preparing reconstruction in index range " + f"{reco_params.low_index} - " + f"{reco_params.low_index + reco_params.num_samples - 1}")
 
     dirname_filter_suffix = generateRecoDirSuffix(reco_params, align_params)
 
     low_index_used = reco_params.low_index
     num_samples = reco_params.num_samples
     if debug and reco_params.num_samples > 1:
-        print(
-            "Warning: number of samples in debug mode is limited to 1!"
-            " Setting to 1!"
-        )
+        print("Warning: number of samples in debug mode is limited to 1!" " Setting to 1!")
         num_samples = 1
 
     print(f"dir name for this create_reconstruction_job is {dirname}")
@@ -146,12 +124,8 @@ def create_reconstruction_job(
             print("error: thought dir does not exists but it does...")
 
     # These must be written again so that runLmdSimReco and runLmdReco have access to them
-    write_params_to_file(
-        cattrs.unstructure(reco_params), pathname_full, "reco_params.config"
-    )
-    write_params_to_file(
-        cattrs.unstructure(align_params), pathname_full, "align_params.config"
-    )
+    write_params_to_file(cattrs.unstructure(reco_params), pathname_full, "reco_params.config")
+    write_params_to_file(cattrs.unstructure(align_params), pathname_full, "align_params.config")
 
     resource_request = JobResourceRequest(2 * 60)
     resource_request.number_of_nodes = 1
@@ -167,9 +141,7 @@ def create_reconstruction_job(
         application_url=application_command,
         name="reco_" + reco_params.sim_type_for_resAcc.value,
         logfile_url=pathname_full + "/reco-%a.log",
-        array_indices=list(
-            range(low_index_used, low_index_used + num_samples)
-        ),
+        array_indices=list(range(low_index_used, low_index_used + num_samples)),
     )
 
     job.exported_user_variables = {
