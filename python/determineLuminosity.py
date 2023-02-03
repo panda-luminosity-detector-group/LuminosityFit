@@ -220,7 +220,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
 
                     # update the sim and reco par dicts
 
-                    (job, dir_path) = create_simulation_and_reconstruction_job(
+                    (job, returnPath) = create_simulation_and_reconstruction_job(
                         sim_par,
                         thisExperiment.alignParams,
                         thisExperiment.recoParams,
@@ -229,8 +229,8 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     )
                     job_manager.append(job)
 
-                    task.dirPath = dir_path
-                    thisScenario.acc_and_res_dir_path = dir_path
+                    task.dirPath = returnPath
+                    thisScenario.acc_and_res_dir_path = returnPath
                     # last_state += 1
                     # last state was < 1, so 0. That means an increase is now 1
                     task.lastState = SimulationState.START_SIM
@@ -244,14 +244,14 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 found_dirs = []
                 status_code = 1
                 # what the shit, this should never be empty in the first place
-                if (dir_path != "") and (dir_path is not None):
-                    print(f'\n\n\n GREP OUTPUT DIR: dir_path check !="" failed with dir_path: {dir_path}, type is {type(dir_path)}')
+                if (task.dirPath != "") and (task.dirPath is not None):
+                    print(f'\n\n\n GREP OUTPUT DIR: dir_path check !="" failed with dir_path: {task.dirPath}, type is {type(task.dirPath)}')
                     temp_dir_searcher = general.DirectorySearcher(["dpm_elastic", data_keywords[0]])
-                    temp_dir_searcher.searchListOfDirectories(dir_path, thisScenario.track_file_pattern)
+                    temp_dir_searcher.searchListOfDirectories(task.dirPath, thisScenario.track_file_pattern)
                     found_dirs = temp_dir_searcher.getListOfDirectories()
 
                 else:
-                    print(f"\n\n\n Well shit, dir_path is {dir_path} (or None? type is {type(dir_path)}), what now?!\n\n\n")
+                    print(f"\n\n\n Well shit, dir_path is {task.dirPath} (or None? type is {type(task.dirPath)}), what now?!\n\n\n")
 
                 if found_dirs:
                     status_code = wasSimulationSuccessful(
@@ -292,7 +292,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
 
                     print(f"DEBUG:\ndataBaseDirectory is {dataBaseDirectory}")
 
-                    (job, dir_path) = create_reconstruction_job(
+                    (job, returnPath) = create_reconstruction_job(
                         rec_par,
                         align_par,
                         dataBaseDirectory,
@@ -301,8 +301,8 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     )
                     job_manager.append(job)
 
-                    task.dirPath = dir_path
-                    thisScenario.filteredTrackDirectory = dir_path
+                    task.dirPath = returnPath
+                    thisScenario.filteredTrackDirectory = returnPath
 
                     # last_state += 1
                     task.lastState = SimulationState.START_SIM  # last_state was 0, now it's 1
@@ -324,7 +324,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
         if task.simState == SimulationState.MAKE_BUNCHES:
             # check if data objects already exists and skip!
             temp_dir_searcher = general.DirectorySearcher(data_keywords)
-            temp_dir_searcher.searchListOfDirectories(dir_path, data_pattern)
+            temp_dir_searcher.searchListOfDirectories(task.dirPath, data_pattern)
             found_dirs = temp_dir_searcher.getListOfDirectories()
             status_code = 1
             if found_dirs:
@@ -344,7 +344,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     + " --files_per_bunch 10 --maximum_number_of_files "
                     + str(thisExperiment.recoParams.num_samples)
                     + " "
-                    + dir_path
+                    + task.dirPath
                 )
                 print(f"Bash command for bunch creation:\n{bashcommand}\n")
                 _ = subprocess.call(bashcommand.split())
@@ -361,7 +361,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append(thisScenario.LmdData)
                     bashArgs.append(f"{lab_momentum:.2f}")
                     bashArgs.append(task.simType)
-                    bashArgs.append(dir_path)
+                    bashArgs.append(task.dirPath)
                     bashArgs.append("../dataconfig_xy.json")
 
                     if el_cs:
@@ -377,7 +377,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append(thisScenario.LmdData)
                     bashArgs.append(f"{lab_momentum:.2f}")
                     bashArgs.append(task.simType)
-                    bashArgs.append(dir_path)
+                    bashArgs.append(task.dirPath)
                     bashArgs.append("../dataconfig_xy.json")
 
                 print(bashArgs)
@@ -408,7 +408,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
         if task.simState == SimulationState.MERGE:
             # check first if merged data already exists and skip it!
             temp_dir_searcher = general.DirectorySearcher(merge_keywords)
-            temp_dir_searcher.searchListOfDirectories(dir_path, data_pattern)
+            temp_dir_searcher.searchListOfDirectories(task.dirPath, data_pattern)
             found_dirs = temp_dir_searcher.getListOfDirectories()
             if not found_dirs:
                 os.chdir(lmd_fit_script_path)
@@ -423,10 +423,10 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                         + " "
                         + task.simType
                         + " "
-                        + dir_path
+                        + task.dirPath
                     )
                 else:
-                    bashcommand = "python mergeMultipleLmdData.py" + " --dir_pattern " + data_keywords[0] + " " + task.simType + " " + dir_path
+                    bashcommand = "python mergeMultipleLmdData.py" + " --dir_pattern " + data_keywords[0] + " " + task.simType + " " + task.dirPath
                 _ = subprocess.call(bashcommand.split())
             task.simState = SimulationState.DONE
 
