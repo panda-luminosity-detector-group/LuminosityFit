@@ -5,7 +5,10 @@ only used by determineLuminosity.py internally, should never be written to
 or read from file!
 """
 
-from enum import IntEnum
+from enum import Enum, IntEnum
+from typing import List
+
+import attr
 
 from .alignment import AlignmentParameters
 from .experiment import ExperimentType
@@ -16,15 +19,30 @@ class LumiDeterminationState(IntEnum):
     SIMULATE_VERTEX_DATA = 1
     DETERMINE_IP = 2
     RECONSTRUCT_WITH_NEW_IP = 3
-    RUN_LUMI_FIT = 4
+    RUN_LUMINOSITY_FIT = 4
 
 
 class SimulationState(IntEnum):
     FAILED = -1
-    SIMULATION = 1
-    BUNCHES = 2
+    INIT = 0
+    START_SIM = 1
+    MAKE_BUNCHES = 2
     MERGE = 3
     DONE = 4
+
+
+class SimulationType(Enum):
+    ANGULAR = "a"
+    VERTEX = "v"
+    ELASTIC_RECOIL = "er"
+
+
+@attr.s
+class SimulationTask:
+    dirPath: str = attr.ib(default="")
+    simType: str = attr.ib(default="")
+    simState: SimulationState = attr.ib(default=SimulationState.INIT)
+    lastState: SimulationState = attr.ib(default=SimulationState.INIT)
 
 
 class Scenario:
@@ -74,10 +92,11 @@ class Scenario:
         # don't define default args here, better let fail with None
         self.alignment_parameters: AlignmentParameters = None
 
-        self.state = LumiDeterminationState.SIMULATE_VERTEX_DATA
-        self.last_state = LumiDeterminationState.INIT
+        self.lumiDetState = LumiDeterminationState.SIMULATE_VERTEX_DATA
+        self.lastLumiDetState = LumiDeterminationState.INIT
 
         # what the hell is this?
-        self.simulation_info_lists = []
+        # self.simulation_info_lists = []
+        self.SimulationTasks: List[SimulationTask] = []
 
         self.is_broken = False

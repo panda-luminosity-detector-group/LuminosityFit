@@ -12,6 +12,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import List
 
 import lumifit.general as general
 from lumifit.alignment import AlignmentParameters
@@ -24,7 +25,12 @@ from lumifit.reconstruction import (
     create_reconstruction_job,
     generateCutKeyword,
 )
-from lumifit.scenario import LumiDeterminationState, Scenario, SimulationState
+from lumifit.scenario import (
+    LumiDeterminationState,
+    Scenario,
+    SimulationState,
+    SimulationTask,
+)
 from lumifit.simulation import create_simulation_and_reconstruction_job
 
 """
@@ -66,15 +72,6 @@ def wasSimulationSuccessful(
 
     print(f"files percentage (depends on getGoodFiles) is {files_percentage}")
 
-    #! NEVER CREATE ANOTHER JOB HANDLER, THEY DEADLOCK THE SLURM AGENT
-    # if experiment.cluster == ClusterEnvironment.VIRGO:
-    #     job_handler = create_virgo_job_handler("long")
-    # elif experiment.cluster == ClusterEnvironment.HIMSTER:
-    #     if args.use_devel_queue:
-    #         job_handler = create_himster_job_handler("devel")
-    #     else:
-    #         job_handler = create_himster_job_handler("himster2_exp")
-
     # TODO: I think there is a bug here, sometimes files are ready AFTER this check, this leads to a wrong lumi
     if files_percentage < required_files_percentage:
         if job_handler.get_active_number_of_jobs() > 0:
@@ -98,11 +95,8 @@ def wasSimulationSuccessful(
 # ----------------------------------------------------------------------------
 # ok we do it in such a way we have a step state for each directory and stacks
 # we try to process
-#! nope, ONE scenario, ONE experiment
-active_scenario_stack = []
-#! oh shit, I think this is still needed because the function is executed multiple times,
-#! with different internal states (which is just, just horrible)
-waiting_scenario_stack = []
+active_scenario_stack: List[Scenario] = []
+waiting_scenario_stack: List[Scenario] = []
 
 
 def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) -> Scenario:
@@ -126,25 +120,17 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
 
     3:  Merge bunched Data
 
-
     Parameters:
     - dir_path: the path to the TrksQA files (e.g. 1-100_uncut/no_alignment_correction)
-    - state: integer from 1 to 4
-
-
     """
-    tasks_to_remove = []
 
     lab_momentum = thisScenario.momentum
-    for simulation_task in thisScenario.simulation_info_lists:
+    # for simulation_task in thisScenario.simulation_info_lists:
+    for task in thisScenario.SimulationTasks:
 
-        # what what what
-        dir_path = simulation_task[0]
-        sim_type = simulation_task[1]
-        simState: SimulationState = simulation_task[2]
-        last_state: SimulationState = simulation_task[3]
-
-        print(f"running simulation of type {str(sim_type)} and path ({dir_path}, type {type(dir_path)}) at state={str(simState)}/{str(last_state)}")
+        print(
+            f"running simulation of type {str(task.simType)} and path ({task.dirPath}, type {type(task.dirPath)}) at state={str(task.simState)}/{str(task.lastState)}"
+        )
 
         data_keywords = []
         data_pattern = ""
@@ -152,17 +138,13 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
         # todo: don't generate here, there is a function for that in reconstruction.py.
         cut_keyword = generateCutKeyword(thisExperiment.recoParams)
 
-        # print(f" so wait. cutkeyword is {cut_keyword}")
-        # if "uncut" in cut_keyword and "real" in cut_keyword:
-        #     cut_keyword = "uncut"
-        #     print("shit how can it be uncut but real")
         print(f"cut keyword is {cut_keyword}")
 
         merge_keywords = ["merge_data", "binning_300"]
-        if "v" in sim_type:
+        if "v" in task.simType:
             data_keywords = ["uncut", "bunches", "binning_300"]
             data_pattern = "lmd_vertex_data_"
-        elif "a" in sim_type:
+        elif "a" in task.simType:
             data_keywords = [cut_keyword, "bunches", "binning_300"]
             data_pattern = "lmd_data_"
         else:
@@ -171,25 +153,25 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
 
         # 1. simulate data
         # if state == 1:
-        if simState == SimulationState.SIMULATION:
+        if task.simState == SimulationState.START_SIM:
             os.chdir(lmd_fit_script_path)
             status_code = 1
-            if "er" in sim_type:
+            if "er" in task.simType:
                 found_dirs = []
                 # what the shit, this should never be empty in the first place
-                if (dir_path != "") and (dir_path is not None):
-                    print(f'\n\n\n GREP OUTPUT DIR: dir_path check !="" failed wirh dir_path: {dir_path}, type is {type(dir_path)}')
+                if (task.dirPath != "") and (task.dirPath is not None):
+                    print(f'\n\n\n GREP OUTPUT DIR: dir_path check !="" failed with dir_path: {task.dirPath}, type is {type(task.dirPath)}')
                     temp_dir_searcher = general.DirectorySearcher(
                         [
                             thisExperiment.recoParams.sim_type_for_resAcc.value,
                             data_keywords[0],
                         ]  # look for the folder name including sim_type_for_resAcc
                     )
-                    temp_dir_searcher.searchListOfDirectories(dir_path, thisScenario.track_file_pattern)
+                    temp_dir_searcher.searchListOfDirectories(task.dirPath, thisScenario.track_file_pattern)
                     found_dirs = temp_dir_searcher.getListOfDirectories()
                     print(f"found dirs now: {found_dirs}")
                 else:
-                    print(f"\n\n\n Well shit, dir_path is {dir_path} (or None? type is {type(dir_path)}), what now?!\n\n\n")
+                    print(f"\n\n\n Well shit, dir_path is {task.dirPath} (or None? type is {type(task.dirPath)}), what now?!\n\n\n")
 
                 if found_dirs:
                     status_code = wasSimulationSuccessful(
@@ -198,7 +180,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                         thisScenario.track_file_pattern + "*.root",
                     )
                 # elif last_state < 1:
-                elif last_state < SimulationState.SIMULATION:
+                elif task.lastState < SimulationState.START_SIM:
                     # then lets simulate!
                     # this command runs the full sim software with box gen data
                     # to generate the acceptance and resolution information
@@ -249,13 +231,13 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     )
                     job_manager.append(job)
 
-                    simulation_task[0] = dir_path
+                    task.dirPath = dir_path
                     thisScenario.acc_and_res_dir_path = dir_path
                     # last_state += 1
                     # last state was < 1, so 0. That means an increase is now 1
-                    last_state = SimulationState.SIMULATION
+                    task.lastState = SimulationState.START_SIM
 
-            elif "a" in sim_type:
+            elif "a" in task.simType:
                 """
                 a is the angular case. this is the data set onto which the luminosiy fit is performed.
                 it is therefore REAL digi data that must be reconstructed again with the updated reco
@@ -265,7 +247,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 status_code = 1
                 # what the shit, this should never be empty in the first place
                 if (dir_path != "") and (dir_path is not None):
-                    print(f'\n\n\n GREP OUTPUT DIR: dir_path check !="" failed wirh dir_path: {dir_path}, type is {type(dir_path)}')
+                    print(f'\n\n\n GREP OUTPUT DIR: dir_path check !="" failed with dir_path: {dir_path}, type is {type(dir_path)}')
                     temp_dir_searcher = general.DirectorySearcher(["dpm_elastic", data_keywords[0]])
                     temp_dir_searcher.searchListOfDirectories(dir_path, thisScenario.track_file_pattern)
                     found_dirs = temp_dir_searcher.getListOfDirectories()
@@ -282,7 +264,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
 
                 # oh boi that's bound to be trouble with IntEnums
                 # in this branch state is 1
-                elif last_state < simState:
+                elif task.lastState < task.simState:
                     # so last_state must have been 0
 
                     # then lets do reco
@@ -321,27 +303,27 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     )
                     job_manager.append(job)
 
-                    simulation_task[0] = dir_path
+                    task.dirPath = dir_path
                     thisScenario.filteredTrackDirectory = dir_path
 
                     # last_state += 1
-                    last_state = SimulationState.SIMULATION  # last_state was 0, now it's 1
+                    task.lastState = SimulationState.START_SIM  # last_state was 0, now it's 1
             else:
                 # just skip simulation for vertex data... we always have that..
                 status_code = 0
 
             if status_code == 0:
                 print("found simulation files, skipping")
-                simState = SimulationState.BUNCHES  # state = 2
-                last_state = SimulationState.SIMULATION  # = 1
+                task.simState = SimulationState.MAKE_BUNCHES  # state = 2
+                task.lastState = SimulationState.START_SIM  # = 1
             elif status_code > 0:
-                print("still waiting for himster simulation jobs for " + sim_type + " data to complete...")
+                print("still waiting for himster simulation jobs for " + task.simType + " data to complete...")
             else:
                 raise ValueError("status_code is negative, which means number of running jobs can't be determined. ")
 
         # 2. create data (that means bunch data, create data objects)
         # if state == 2:
-        if simState == SimulationState.MERGE:
+        if task.simState == SimulationState.MERGE:
             # check if data objects already exists and skip!
             temp_dir_searcher = general.DirectorySearcher(data_keywords)
             temp_dir_searcher.searchListOfDirectories(dir_path, data_pattern)
@@ -354,7 +336,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     data_pattern + "*",
                     is_bunches=True,
                 )
-            elif last_state < simState:
+            elif task.lastState < task.simState:
                 os.chdir(lmd_fit_script_path)
                 # bunch data
                 # TODO: pass experiment config, or better yet, make class instead of script
@@ -371,7 +353,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 # TODO: pass experiment config, or better yet, make class instead of script
                 # create data
                 bashArgs = []
-                if "a" in sim_type:
+                if "a" in task.simType:
                     el_cs = thisScenario.elastic_pbarp_integrated_cross_secion_in_mb
                     bashArgs.append("python")
                     bashArgs.append("createMultipleLmdData.py")
@@ -380,7 +362,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append("--jobCommand")
                     bashArgs.append(thisScenario.LmdData)
                     bashArgs.append(f"{lab_momentum:.2f}")
-                    bashArgs.append(sim_type)
+                    bashArgs.append(task.simType)
                     bashArgs.append(dir_path)
                     bashArgs.append("../dataconfig_xy.json")
 
@@ -396,7 +378,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append("--jobCommand")
                     bashArgs.append(thisScenario.LmdData)
                     bashArgs.append(f"{lab_momentum:.2f}")
-                    bashArgs.append(sim_type)
+                    bashArgs.append(task.simType)
                     bashArgs.append(dir_path)
                     bashArgs.append("../dataconfig_xy.json")
 
@@ -405,28 +387,27 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
 
                 # last_state = last_state + 1
                 # was apparently bunches
-                last_state = SimulationState.MERGE
+                task.lastState = SimulationState.MERGE
 
                 bashArgs.clear()
 
             if status_code == 0:
                 print("skipping bunching and data object creation...")
                 # state = 3
-                simState = SimulationState.MERGE
-                last_state = SimulationState.BUNCHES
+                task.simState = SimulationState.MERGE
+                task.lastState = SimulationState.MAKE_BUNCHES
             elif status_code > 0:
-                print(f"statuscode {status_code}: still waiting for himster simulation jobs for " + sim_type + " data to complete...")
+                print(f"status_code {status_code}: still waiting for himster simulation jobs for " + task.simType + " data to complete...")
             else:
                 # ok something went wrong there, exit this scenario and
                 # push on bad scenario stack
-                simState = SimulationState.FAILED
+                task.simState = SimulationState.FAILED
                 raise ValueError(
                     "ERROR: Something went wrong with the cluster jobs! " "This scenario will be pushed onto the dead stack, " "and is no longer processed."
                 )
 
         # 3. merge data
-        # if state == 3:
-        if simState == SimulationState.MERGE:
+        if task.simState == SimulationState.MERGE:
             # check first if merged data already exists and skip it!
             temp_dir_searcher = general.DirectorySearcher(merge_keywords)
             temp_dir_searcher.searchListOfDirectories(dir_path, data_pattern)
@@ -434,7 +415,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
             if not found_dirs:
                 os.chdir(lmd_fit_script_path)
                 # merge data
-                if "a" in sim_type:
+                if "a" in task.simType:
                     bashcommand = (
                         "python mergeMultipleLmdData.py"
                         + " --dir_pattern "
@@ -442,37 +423,27 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                         + " --num_samples "
                         + str(bootstrapped_num_samples)
                         + " "
-                        + sim_type
+                        + task.simType
                         + " "
                         + dir_path
                     )
                 else:
-                    bashcommand = "python mergeMultipleLmdData.py" + " --dir_pattern " + data_keywords[0] + " " + sim_type + " " + dir_path
+                    bashcommand = "python mergeMultipleLmdData.py" + " --dir_pattern " + data_keywords[0] + " " + task.simType + " " + dir_path
                 _ = subprocess.call(bashcommand.split())
-            simState = SimulationState.DONE
+            task.simState = SimulationState.DONE
 
-        simulation_task[2] = simState
-        simulation_task[3] = last_state
-
-        if simulation_task[3] == SimulationState.FAILED:
+        if task.lastState == SimulationState.FAILED:
             thisScenario.is_broken = True
             break
 
-        # what the actual fuck
-        if simulation_task[2] == 4:
-            tasks_to_remove.append(simulation_task)
-            print("Task is finished and will be removed from list!")
+    # use list comprehension to remove done tasks
+    thisScenario.SimulationTasks = [simTask for simTask in thisScenario.SimulationTasks if simTask.simState != SimulationState.DONE]
 
-    for x in tasks_to_remove:
-        del thisScenario.simulation_info_lists[thisScenario.simulation_info_lists.index(x)]
     return thisScenario
 
 
 def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> None:
     lumiTrksQAPath = thisScenario.trackDirectory
-
-    lumiDetState: LumiDeterminationState = thisScenario.state
-    last_state = thisScenario.last_state
 
     # open cross section file (this was generated by apps/generatePbarPElasticScattering
     if os.path.exists(lumiTrksQAPath + "/../../elastic_cross_section.txt"):
@@ -484,34 +455,38 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
     else:
         raise FileNotFoundError(f"ERROR! Can not find elastic cross section file! The determined Luminosity will be wrong!\n")
 
-    print("processing scenario " + lumiTrksQAPath + " at step " + str(lumiDetState))
+    print("processing scenario " + lumiTrksQAPath + " at step " + str(thisScenario.lumiDetState))
 
     thisScenario.alignment_parameters = thisExperiment.alignParams
 
     finished = False
 
     # if lumiDetState == 1:
-    if lumiDetState == LumiDeterminationState.SIMULATE_VERTEX_DATA:
+    if thisScenario.lumiDetState == LumiDeterminationState.SIMULATE_VERTEX_DATA:
         """
         State 1 simulates vertex data from which the IP can be determined.
 
         TODO: I'm not entirely sure, but I think if we use the IP from the config, we don't need this at all?
         """
-        if len(thisScenario.simulation_info_lists) == 0:
-            thisScenario.simulation_info_lists.append([lumiTrksQAPath, "v", 1, 0])
+        # if len(thisScenario.simulation_info_lists) == 0:
+        #     thisScenario.simulation_info_lists.append([lumiTrksQAPath, "v", 1, 0])
+        if len(thisScenario.SimulationTasks) == 0:
+            thisScenario.SimulationTasks.append(SimulationTask(dirPath=lumiTrksQAPath, simType="v", simState=SimulationState.START_SIM))
 
         thisScenario = simulateDataOnHimster(thisExperiment, thisScenario)
         if thisScenario.is_broken:
             raise SystemError(f"ERROR! Scenario is broken! debug scenario info:\n{thisScenario}")
-        if len(thisScenario.simulation_info_lists) == 0:
+
+        # when all sim Tasks are done, the IP can be determined
+        if len(thisScenario.SimulationTasks) == 0:
             # lumiDetState += 1
             # last_state += 1
             # state was 1, last state was 0
-            lumiDetState = LumiDeterminationState.DETERMINE_IP
-            last_state = LumiDeterminationState.SIMULATE_VERTEX_DATA
+            thisScenario.lumiDetState = LumiDeterminationState.DETERMINE_IP
+            thisScenario.lastLumiDetState = LumiDeterminationState.SIMULATE_VERTEX_DATA
 
     # if lumiDetState == 2:
-    if lumiDetState == LumiDeterminationState.DETERMINE_IP:
+    if thisScenario.lumiDetState == LumiDeterminationState.DETERMINE_IP:
         """
         state 2 only handles the reconstructed IP. If use_ip_determination is set,
         the IP is reconstructed from the uncut data set and written to a reco_ip.json
@@ -553,11 +528,11 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
         # state was 2, last state was 1
         # lumiDetState += 1
         # last_state += 1
-        lumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
-        last_state = LumiDeterminationState.DETERMINE_IP
+        thisScenario.lumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
+        thisScenario.lastLumiDetState = LumiDeterminationState.DETERMINE_IP
 
     # if lumiDetState == 3:
-    if lumiDetState == LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP:
+    if thisScenario.lumiDetState == LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP:
 
         # state 3a:
         # the IP position is now reconstructed. filter the DPM data again,
@@ -568,26 +543,22 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
         # (that means simulation + bunching + creating data objects + merging)
         # because this data is now with a cut applied, the new directory is called
         # something 1-100_xy_m_cut_real
-        if len(thisScenario.simulation_info_lists) == 0:
-            thisScenario.simulation_info_lists.append(["", "a", 1, 0])
-            thisScenario.simulation_info_lists.append(["", "er", 1, 0])
+        if len(thisScenario.SimulationTasks) == 0:
+            thisScenario.SimulationTasks.append(SimulationTask(simType="a", simState=SimulationState.START_SIM))
+            thisScenario.SimulationTasks.append(SimulationTask(simType="er", simState=SimulationState.START_SIM))
 
         # all info needed for the COMPLETE reconstruction chain is here
         thisScenario = simulateDataOnHimster(thisExperiment, thisScenario)
         if thisScenario.is_broken:
-            print(f"ERROR! Scenario is broken! debug scenario info:\n{thisScenario}")
-            # dead_scenario_stack.append(thisScenario)
-            return
+            raise ValueError(f"ERROR! Scenario is broken! debug scenario info:\n{thisScenario}")
 
-        if len(thisScenario.simulation_info_lists) == 0:
-            # lumiDetState += 1
-            # last_state += 1
-            # lumiDetState was 3
-            lumiDetState = LumiDeterminationState.RUN_LUMI_FIT
-            last_state = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
+        # when all simulation Tasks are done, the Lumi Fit may start
+        if len(thisScenario.SimulationTasks) == 0:
+            thisScenario.lumiDetState = LumiDeterminationState.RUN_LUMINOSITY_FIT
+            thisScenario.lastLumiDetState.RECONSTRUCT_WITH_NEW_IP
 
     # if lumiDetState == 4:
-    if lumiDetState == LumiDeterminationState.RUN_LUMI_FIT:
+    if thisScenario.lumiDetState == LumiDeterminationState.RUN_LUMINOSITY_FIT:
         """
         4. runLmdFit!
 
@@ -609,10 +580,7 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
 
     # if we are in an intermediate step then push on the waiting stack and
     # increase step state
-    #! I don't think we should ever reach this point?
     if not finished:
-        thisScenario.state = lumiDetState
-        thisScenario.last_state = last_state
         print(f"WARNING! Scenario is not finished, but apparently this loop must be done multiple times?")
         waiting_scenario_stack.append(thisScenario)
 
