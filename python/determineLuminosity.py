@@ -135,7 +135,6 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
         data_keywords = []
         data_pattern = ""
 
-        # todo: don't generate here, there is a function for that in reconstruction.py.
         cut_keyword = generateCutKeyword(thisExperiment.recoParams)
 
         print(f"cut keyword is {cut_keyword}")
@@ -152,7 +151,6 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
             data_pattern = "lmd_res_data_"
 
         # 1. simulate data
-        # if state == 1:
         if task.simState == SimulationState.START_SIM:
             os.chdir(lmd_fit_script_path)
             status_code = 1
@@ -323,7 +321,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
 
         # 2. create data (that means bunch data, create data objects)
         # if state == 2:
-        if task.simState == SimulationState.MERGE:
+        if task.simState == SimulationState.MAKE_BUNCHES:
             # check if data objects already exists and skip!
             temp_dir_searcher = general.DirectorySearcher(data_keywords)
             temp_dir_searcher.searchListOfDirectories(dir_path, data_pattern)
