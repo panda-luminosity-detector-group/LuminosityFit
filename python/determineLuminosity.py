@@ -297,26 +297,26 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
             elif "v" in task.simType:
 
                 # TODO: check if the sim data is already there, if yes return 0, else start sim
-                return 0
+                status_code = 0
 
-                # vertex Date must always be created without any cuts first
-                tempRecoPars = thisExperiment.recoParams
-                tempRecoPars.use_xy_cut = False
-                tempRecoPars.use_m_cut = False
+                # # vertex Date must always be created without any cuts first
+                # tempRecoPars = thisExperiment.recoParams
+                # tempRecoPars.use_xy_cut = False
+                # tempRecoPars.use_m_cut = False
 
-                # TODO: misalignment is important here. the vertex data can have misalignment (because it's real data)
-                # but it has no alignment yet. that is only for the second reconstruction
-                tempAlignPars = thisExperiment.alignParams
-                tempAlignPars.alignment_matrices_path = None
+                # # TODO: misalignment is important here. the vertex data can have misalignment (because it's real data)
+                # # but it has no alignment yet. that is only for the second reconstruction
+                # tempAlignPars = thisExperiment.alignParams
+                # tempAlignPars.alignment_matrices_path = None
 
-                job, _ = create_simulation_and_reconstruction_job(
-                    thisExperiment.simParams,
-                    tempAlignPars,
-                    tempRecoPars,
-                    use_devel_queue=args.use_devel_queue,
-                    application_command=thisScenario.Sim,
-                )
-                job_manager.append(job)
+                # job, _ = create_simulation_and_reconstruction_job(
+                #     thisExperiment.simParams,
+                #     tempAlignPars,
+                #     tempRecoPars,
+                #     use_devel_queue=args.use_devel_queue,
+                #     application_command=thisScenario.Sim,
+                # )
+                # job_manager.append(job)
 
             else:
                 raise ValueError(f"This tasks simType is {task.simType}, which is invalid!")
