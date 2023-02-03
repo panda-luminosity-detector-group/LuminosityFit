@@ -30,7 +30,8 @@
 	"esbenp.prettier-vscode",
 	"bierner.markdown-mermaid",
 	"donjayamanne.githistory",
-	"eamodio.gitlens"
+	"eamodio.gitlens",
+	"streetsidesoftware.code-spell-checker"
 ],
   "runArgs": ["--network=host"]
 }

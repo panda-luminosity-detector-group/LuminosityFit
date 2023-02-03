@@ -20,7 +20,7 @@ def run_simulation_and_reconstruction(thisExperiment: Experiment) -> None:
 
     if thisExperiment.recoParams.use_xy_cut or thisExperiment.recoParams.use_m_cut:
         print("Attention! This experiment configs specifies to use XY and m cuts during reconstruction.")
-        print("That's reasonable for the luminosity determination, but the inital data sample must")
+        print("That's reasonable for the luminosity determination, but the initial data sample must")
         print("still be generated without cuts first.")
         print("Disabling all cuts for this run!")
         thisExperiment.recoParams.use_xy_cut = False
