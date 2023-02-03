@@ -34,7 +34,7 @@ class SimulationState(IntEnum):
 class SimulationType(Enum):
     ANGULAR = "a"
     VERTEX = "v"
-    ELASTIC_RECOIL = "er"
+    EFFICIENCY_RESOLUTION = "er"
 
 
 @attr.s

@@ -31,7 +31,8 @@
 	"bierner.markdown-mermaid",
 	"donjayamanne.githistory",
 	"eamodio.gitlens",
-	"streetsidesoftware.code-spell-checker"
+	"streetsidesoftware.code-spell-checker",
+	"oderwat.indent-rainbow"
 ],
   "runArgs": ["--network=host"]
 }
