@@ -32,6 +32,7 @@ class SimulationState(IntEnum):
 
 
 class SimulationType(Enum):
+    NONE = "none"
     ANGULAR = "a"
     VERTEX = "v"
     EFFICIENCY_RESOLUTION = "er"
@@ -40,7 +41,8 @@ class SimulationType(Enum):
 @attr.s
 class SimulationTask:
     dirPath: str = attr.ib(default="")
-    simType: str = attr.ib(default="")
+    # simType: str = attr.ib(default="")
+    simType: SimulationType = attr.ib(default=SimulationType.NONE)
     simState: SimulationState = attr.ib(default=SimulationState.INIT)
     lastState: SimulationState = attr.ib(default=SimulationState.INIT)
 
@@ -61,7 +63,7 @@ class Scenario:
         self.trackDirectory = dir_path_
         self.filteredTrackDirectory = ""
         self.acc_and_res_dir_path = ""
-        self.elastic_pbarp_integrated_cross_secion_in_mb = None
+        self.elastic_pbarp_integrated_cross_secion_in_mb: float = 0.0
 
         # TODO: why are these here at all, they're already in the reco params
         # self.ipX = 0.0

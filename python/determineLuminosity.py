@@ -30,6 +30,7 @@ from lumifit.scenario import (
     Scenario,
     SimulationState,
     SimulationTask,
+    SimulationType,
 )
 from lumifit.simulation import create_simulation_and_reconstruction_job
 
@@ -140,21 +141,26 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
         print(f"cut keyword is {cut_keyword}")
 
         merge_keywords = ["merge_data", "binning_300"]
-        if "v" in task.simType:
+        # if "v" in task.simType:
+        if task.simType == SimulationType.VERTEX:
             data_keywords = ["uncut", "bunches", "binning_300"]
             data_pattern = "lmd_vertex_data_"
-        elif "a" in task.simType:
+        # elif "a" in task.simType:
+        elif task.simType == SimulationType.ANGULAR:
             data_keywords = [cut_keyword, "bunches", "binning_300"]
             data_pattern = "lmd_data_"
-        else:
+        elif task.simType == SimulationType.EFFICIENCY_RESOLUTION:
             data_keywords = [cut_keyword, "bunches", "binning_300"]
             data_pattern = "lmd_res_data_"
+        else:
+            raise NotImplementedError(f"Simulation type {task.simType} is not implemented!")
 
         # 1. simulate data
         if task.simState == SimulationState.START_SIM:
             os.chdir(lmd_fit_script_path)
             status_code = 1
-            if "er" in task.simType:
+            # if "er" in task.simType:
+            if task.simType == SimulationType.EFFICIENCY_RESOLUTION:
                 """
                 efficiency / resolution calculation.
 
@@ -241,7 +247,8 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     # last state was < 1, so 0. That means an increase is now 1
                     task.lastState = SimulationState.START_SIM
 
-            elif "a" in task.simType:
+            # elif "a" in task.simType:
+            elif task.simType == SimulationType.ANGULAR:
                 """
                 a is the angular case. this is the data set onto which the luminosiy fit is performed.
                 it is therefore REAL digi data (or DPM data of course) that must be reconstructed again
@@ -294,7 +301,8 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     # Simulation is done, so update the last_state
                     task.lastState = SimulationState.START_SIM
 
-            elif "v" in task.simType:
+            # elif "v" in task.simType:
+            elif task.simType == SimulationType.VERTEX:
 
                 # TODO: check if the sim data is already there, if yes return 0, else start sim
                 status_code = 0
@@ -326,7 +334,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 task.simState = SimulationState.MAKE_BUNCHES
                 task.lastState = SimulationState.START_SIM
             elif status_code > 0:
-                print("still waiting for himster simulation jobs for " + task.simType + " data to complete...")
+                print(f"still waiting for himster simulation jobs for {task.simType} data to complete...")
             else:
                 raise ValueError("status_code is negative, which means number of running jobs can't be determined. ")
 
@@ -361,7 +369,8 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 # TODO: pass experiment config, or better yet, make class instead of script
                 # create data
                 bashArgs = []
-                if "a" in task.simType:
+                # if "a" in task.simType:
+                if task.simType == SimulationType.ANGULAR:
                     el_cs = thisScenario.elastic_pbarp_integrated_cross_secion_in_mb
                     bashArgs.append("python")
                     bashArgs.append("createMultipleLmdData.py")
@@ -370,7 +379,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append("--jobCommand")
                     bashArgs.append(thisScenario.LmdData)
                     bashArgs.append(f"{lab_momentum:.2f}")
-                    bashArgs.append(task.simType)
+                    bashArgs.append(str(task.simType))
                     bashArgs.append(task.dirPath)
                     bashArgs.append("../dataconfig_xy.json")
 
@@ -386,7 +395,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append("--jobCommand")
                     bashArgs.append(thisScenario.LmdData)
                     bashArgs.append(f"{lab_momentum:.2f}")
-                    bashArgs.append(task.simType)
+                    bashArgs.append(str(task.simType))
                     bashArgs.append(task.dirPath)
                     bashArgs.append("../dataconfig_xy.json")
 
@@ -405,7 +414,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 task.simState = SimulationState.MERGE
                 task.lastState = SimulationState.MAKE_BUNCHES
             elif status_code > 0:
-                print(f"status_code {status_code}: still waiting for himster simulation jobs for " + task.simType + " data to complete...")
+                print(f"status_code {status_code}: still waiting for himster simulation jobs for {task.simType} data to complete...")
             else:
                 # ok something went wrong there, exit this scenario and
                 # push on bad scenario stack
@@ -423,21 +432,24 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
             if not found_dirs:
                 os.chdir(lmd_fit_script_path)
                 # merge data
-                if "a" in task.simType:
-                    bashcommand = (
-                        "python mergeMultipleLmdData.py"
-                        + " --dir_pattern "
-                        + data_keywords[0]
-                        + " --num_samples "
-                        + str(bootstrapped_num_samples)
-                        + " "
-                        + task.simType
-                        + " "
-                        + task.dirPath
-                    )
+                # if "a" in task.simType:
+                bashArgs = []
+                if task.simType == SimulationType.ANGULAR:
+                    bashArgs.append("python mergeMultipleLmdData.py")
+                    bashArgs.append("--dir_pattern")
+                    bashArgs.append(data_keywords[0])
+                    bashArgs.append("--num_samples")
+                    bashArgs.append(str(bootstrapped_num_samples))
+                    bashArgs.append(str(task.simType))
+                    bashArgs.append(task.dirPath)
+
                 else:
-                    bashcommand = "python mergeMultipleLmdData.py" + " --dir_pattern " + data_keywords[0] + " " + task.simType + " " + task.dirPath
-                _ = subprocess.call(bashcommand.split())
+                    bashArgs.append("python mergeMultipleLmdData.py")
+                    bashArgs.append("--dir_pattern")
+                    bashArgs.append(data_keywords[0])
+                    bashArgs.append(str(task.simType))
+                    bashArgs.append(task.dirPath)
+                _ = subprocess.call(bashArgs)
             task.simState = SimulationState.DONE
 
         if task.lastState == SimulationState.FAILED:
@@ -475,7 +487,7 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
         State 1 simulates vertex data from which the IP can be determined.
         """
         if len(thisScenario.SimulationTasks) == 0:
-            thisScenario.SimulationTasks.append(SimulationTask(dirPath=lumiTrksQAPath, simType="v", simState=SimulationState.START_SIM))
+            thisScenario.SimulationTasks.append(SimulationTask(dirPath=lumiTrksQAPath, simType=SimulationType.VERTEX, simState=SimulationState.START_SIM))
 
         thisScenario = simulateDataOnHimster(thisExperiment, thisScenario)
         if thisScenario.is_broken:
@@ -540,8 +552,8 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
         # because this data is now with a cut applied, the new directory is called
         # something 1-100_xy_m_cut_real
         if len(thisScenario.SimulationTasks) == 0:
-            thisScenario.SimulationTasks.append(SimulationTask(simType="a", simState=SimulationState.START_SIM))
-            thisScenario.SimulationTasks.append(SimulationTask(simType="er", simState=SimulationState.START_SIM))
+            thisScenario.SimulationTasks.append(SimulationTask(simType=SimulationType.ANGULAR, simState=SimulationState.START_SIM))
+            thisScenario.SimulationTasks.append(SimulationTask(simType=SimulationType.EFFICIENCY_RESOLUTION, simState=SimulationState.START_SIM))
 
         thisScenario = simulateDataOnHimster(thisExperiment, thisScenario)
 
