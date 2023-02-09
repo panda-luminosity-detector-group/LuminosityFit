@@ -205,8 +205,8 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     max_xy_shift = math.sqrt(thisIPX**2 + thisIPY**2)
                     max_xy_shift = float("{0:.2f}".format(round(float(max_xy_shift), 2)))
 
-                    #! these mus be applied again, because they change at run time
-                    # (the config on disk doesn't change and doesn't know this)
+                    #! create a new, temporary simParams object only for this stage
+                    # (the config on disk doesn't change )
                     sim_par = thisExperiment.simParams
                     sim_par.sim_type = thisExperiment.recoParams.sim_type_for_resAcc
                     sim_par.num_events_per_sample = thisExperiment.recoParams.num_events_per_box_sample

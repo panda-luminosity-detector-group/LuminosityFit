@@ -32,7 +32,8 @@
 	"donjayamanne.githistory",
 	"eamodio.gitlens",
 	"streetsidesoftware.code-spell-checker",
-	"oderwat.indent-rainbow"
+	"oderwat.indent-rainbow",
+	"ms-python.black-formatter"
 ],
   "runArgs": ["--network=host"]
 }
