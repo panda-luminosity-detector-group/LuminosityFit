@@ -307,7 +307,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 # TODO: check if the sim data is already there, if yes return 0, else start sim
                 status_code = 0
 
-                # # vertex Date must always be created without any cuts first
+                # # vertex Data must always be created without any cuts first
                 # tempRecoPars = thisExperiment.recoParams
                 # tempRecoPars.use_xy_cut = False
                 # tempRecoPars.use_m_cut = False

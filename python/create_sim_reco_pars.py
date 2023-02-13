@@ -74,7 +74,7 @@ def genExperimentConfig(
     return experiment
 
 
-def restrictPhiConfigs():
+def restrictPhiConfigs() -> None:
     for mom in momenta:
 
         for i in range(len(upperPhiAngles)):
@@ -92,6 +92,7 @@ def restrictPhiConfigs():
 
             # change simpars if misalignment matrices are given
             experiment.alignParams.misalignment_matrices_path = Path(f"/home/roklasen/LMD-Alignment/output/misMat-nothing-{phiMatNames[i]}.json")
+            experiment.recoParams.use_ip_determination = False
 
             # update internal paths
             experiment.updateBaseDataDirectory()
@@ -104,7 +105,7 @@ def restrictPhiConfigs():
             )
 
 
-def genConfigs():
+def genConfigs() -> None:
 
     for mom in momenta:
 
