@@ -65,17 +65,6 @@ class Scenario:
         self.acc_and_res_dir_path = ""
         self.elastic_pbarp_integrated_cross_secion_in_mb: float = 0.0
 
-        # TODO: why are these here at all, they're already in the reco params
-        # self.ipX = 0.0
-        # self.ipY = 0.0
-        # self.ipZ = 0.0
-        # self.use_m_cut = True
-        # self.use_xy_cut = True
-        # self.use_ip_determination = True
-
-        # why is THIS here, this is always true?!
-        self.Lumi = True
-
         if experiment_type == ExperimentType.LUMI:
 
             self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdSimReco.py"

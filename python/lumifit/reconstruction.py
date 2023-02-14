@@ -41,8 +41,8 @@ class ReconstructionParameters:
     recoIPY: float = attr.ib(default=0.0)
     recoIPZ: float = attr.ib(default=0.0)
 
-    num_box_samples: int = attr.ib(default=500)
-    num_events_per_box_sample: int = attr.ib(default=10000)
+    num_resAcc_samples: int = attr.ib(default=500)
+    num_events_per_resAcc_sample: int = attr.ib(default=10000)
 
 
 def generateCutKeyword(reco_params: ReconstructionParameters) -> str:

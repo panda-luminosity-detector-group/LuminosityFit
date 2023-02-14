@@ -200,44 +200,43 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     # note: beam tilt and divergence are not necessary here,
                     # because that is handled completely by the model
 
-                    thisIPX = thisExperiment.recoParams.recoIPX
-                    thisIPY = thisExperiment.recoParams.recoIPY
-                    thisIPZ = thisExperiment.recoParams.recoIPZ
+                    # because we don't want to change the experiment config or
+                    # anything in the simParams, recoParam, alignParams,
+                    # we'll create temp objects here.
+
+                    tempSimParams = thisExperiment.simParams
+                    tempRecoParams = thisExperiment.recoParams
+                    tempAlignParams = thisExperiment.alignParams
+
+                    thisIPX = tempRecoParams.recoIPX
+                    thisIPY = tempRecoParams.recoIPY
+                    thisIPZ = tempRecoParams.recoIPZ
 
                     max_xy_shift = math.sqrt(thisIPX**2 + thisIPY**2)
                     max_xy_shift = float("{0:.2f}".format(round(float(max_xy_shift), 2)))
 
-                    #! create a new, temporary simParams object only for this stage
-                    # (the config on disk doesn't change )
-                    sim_par = thisExperiment.simParams
-                    sim_par.simGeneratorType = thisExperiment.recoParams.simGenTypeForResAcc
-                    sim_par.num_events_per_sample = thisExperiment.recoParams.num_events_per_box_sample
-                    sim_par.num_samples = thisExperiment.recoParams.num_box_samples
-                    sim_par.theta_min_in_mrad -= max_xy_shift
-                    sim_par.theta_max_in_mrad += max_xy_shift
+                    # since this is the res/acc case, these parameters must be changed
+                    tempSimParams.simGeneratorType = tempRecoParams.simGenTypeForResAcc
+                    tempSimParams.num_events_per_sample = tempRecoParams.num_events_per_resAcc_sample
+                    tempSimParams.num_samples = tempRecoParams.num_resAcc_samples
+                    tempSimParams.theta_min_in_mrad -= max_xy_shift
+                    tempSimParams.theta_max_in_mrad += max_xy_shift
+                    tempSimParams.ip_offset_x = thisIPX
+                    tempSimParams.ip_offset_y = thisIPY
+                    tempSimParams.ip_offset_z = thisIPZ
 
-                    # IP offset must also change for res/acc simulation!
-                    sim_par.ip_offset_x = thisIPX
-                    sim_par.ip_offset_y = thisIPY
-                    sim_par.ip_offset_z = thisIPZ
-
-                    # reconstruction parameters should be identical to dpm data
-                    # EXCEPT for new IP if it comes from the gauss fit. but that was written
-                    # to the reco params in memory as well
+                    # since this is the res/acc case, these parameters must be updated
+                    tempRecoParams.num_samples = tempRecoParams.num_resAcc_samples
+                    tempRecoParams.num_events_per_sample = tempRecoParams.num_events_per_resAcc_sample
 
                     # TODO: alignment part
                     # if alignement matrices were specified, we used them as a mis-alignment
                     # and alignment for the box simulations
 
-                    # TODO: make sure this object has the correct parameters!
-                    # align_par = thisExperiment.alignParams
-
-                    # update the sim and reco par dicts
-
                     (job, returnPath) = create_simulation_and_reconstruction_job(
-                        sim_par,
-                        thisExperiment.alignParams,
-                        thisExperiment.recoParams,
+                        tempSimParams,
+                        tempAlignParams,
+                        tempRecoParams,
                         application_command=thisScenario.Sim,
                         use_devel_queue=args.use_devel_queue,
                     )

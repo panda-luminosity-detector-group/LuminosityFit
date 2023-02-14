@@ -56,10 +56,6 @@ def generateDirectory(
     output_dir: str = "",
 ) -> str:
     if output_dir == "" or output_dir is None:
-        if output_dir is None:
-            print("\n\n\n GREP OUTPUT DIR: output_dir is None in line 87 of simulation.py!")
-        # generate output directory name
-        # lets generate a folder structure based on the input
         dirname = f"plab_{sim_params.lab_momentum:.2f}GeV"
         gen_part = f"{sim_params.simGeneratorType.value}_theta_" + f"{sim_params.theta_min_in_mrad}-" + f"{sim_params.theta_max_in_mrad}mrad"
         if not sim_params.neglect_recoil_momentum:
@@ -67,8 +63,6 @@ def generateDirectory(
 
         dirname += "/" + gen_part
 
-        # if not _check_ip_params_zero(sim_params):
-        # * always write that
         dirname += (
             "/ip_offset_XYZDXDYDZ_"
             + f"{sim_params.ip_offset_x}_{sim_params.ip_offset_y}_"
@@ -76,8 +70,6 @@ def generateDirectory(
             + f"{sim_params.ip_spread_y}_{sim_params.ip_spread_z}"
         )
 
-        # * always write that
-        # if not _check_beam_params_zero(sim_params):
         dirname += (
             "/beam_grad_XYDXDY_"
             + f"{sim_params.beam_tilt_x}_{sim_params.beam_tilt_y}_"

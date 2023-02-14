@@ -47,8 +47,8 @@ def genExperimentConfig(
     recopars.lab_momentum = momentum
     recopars.num_samples = 100
     recopars.num_events_per_sample = 100000
-    recopars.num_box_samples = 500
-    recopars.num_events_per_box_sample = 100000
+    recopars.num_resAcc_samples = 500
+    recopars.num_events_per_resAcc_sample = 100000
     recopars.simGenTypeForResAcc = simGenTypeForResAcc
 
     lmdfit_data_dir: Union[None, Path, str] = os.getenv("LMDFIT_DATA_DIR")
