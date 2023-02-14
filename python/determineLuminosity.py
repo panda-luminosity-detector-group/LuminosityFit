@@ -411,8 +411,8 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
 
                 bashArgs.clear()
 
-            else:
-                raise RuntimeError("No data could be found, but no commands are to be executed. This can't be!")
+            # else:
+            #     raise RuntimeError("No data could be found, but no commands are to be executed. This can't be!")
 
             if status_code == 0:
                 print("skipping bunching and data object creation...")
