@@ -131,7 +131,9 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
     # for simulation_task in thisScenario.simulation_info_lists:
     for task in thisScenario.SimulationTasks:
 
-        print(f"running simulation of type {str(task.simDataType)} and path ({task.dirPath} at state={str(task.simState)}/{str(task.lastState)}")
+        print(f"running simulation of type {str(task.simDataType)} and path ({task.dirPath} at states:")
+        print(f"current state: {str(task.simState)}")
+        print(f"last state:    {str(task.lastState)}")
 
         data_keywords = []
         data_pattern = ""
@@ -419,9 +421,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 # ok something went wrong there, exit this scenario and
                 # push on bad scenario stack
                 task.simState = SimulationState.FAILED
-                raise ValueError(
-                    "ERROR: Something went wrong with the cluster jobs! " "This scenario will be pushed onto the dead stack, " "and is no longer processed."
-                )
+                raise ValueError("Something went wrong with the cluster jobs! This scenario will no longer be processed.")
 
         # 3. merge data
         if task.simState == SimulationState.MERGE:
