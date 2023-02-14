@@ -16,24 +16,15 @@ from .alignment import AlignmentParameters
 from .cluster import Job, JobResourceRequest, make_test_job_resource_request
 from .general import write_params_to_file
 from .reconstruction import ReconstructionParameters, generateRecoDirSuffix
-from .simulationTypes import SimulationType
+from .simulationGeneratorTypes import SimulationGeneratorType
 
 load_dotenv(dotenv_path="../lmdEnvFile.env", verbose=True)
 
 
 @attr.s
 class SimulationParameters:
-    def simulation_type_converter(value: Any) -> SimulationType:
-        if isinstance(value, SimulationType):
-            return value
-        elif isinstance(value, str):
-            return SimulationType(value)
-        raise TypeError("sim_type has to be of type SimulationType or str.")
 
-    sim_type: SimulationType = attr.ib(
-        default=SimulationType.PBARP_ELASTIC,
-        converter=simulation_type_converter,
-    )
+    simGeneratorType: SimulationGeneratorType = attr.ib(default=SimulationGeneratorType.PBARP_ELASTIC)
     num_events_per_sample: int = attr.ib(default=1000)
     num_samples: int = attr.ib(default=1)
     lab_momentum: float = attr.ib(default=1.5)
@@ -59,18 +50,10 @@ class SimulationParameters:
     beam_divergence_y: float = attr.ib(default=0.0)  # in rad
 
 
-def _check_ip_params_zero(sim_params: SimulationParameters):
-    return any([value != 0.0 for key, value in attr.asdict(sim_params).items() if "ip_" in key])
-
-
-def _check_beam_params_zero(sim_params: SimulationParameters):
-    return any([value != 0.0 for key, value in attr.asdict(sim_params).items() if "beam_" in key])
-
-
 def generateDirectory(
     sim_params: SimulationParameters,
     align_params: AlignmentParameters,
-    output_dir="",
+    output_dir: str = "",
 ) -> str:
     if output_dir == "" or output_dir is None:
         if output_dir is None:
@@ -78,7 +61,7 @@ def generateDirectory(
         # generate output directory name
         # lets generate a folder structure based on the input
         dirname = f"plab_{sim_params.lab_momentum:.2f}GeV"
-        gen_part = f"{sim_params.sim_type.value}_theta_" + f"{sim_params.theta_min_in_mrad}-" + f"{sim_params.theta_max_in_mrad}mrad"
+        gen_part = f"{sim_params.simGeneratorType.value}_theta_" + f"{sim_params.theta_min_in_mrad}-" + f"{sim_params.theta_max_in_mrad}mrad"
         if not sim_params.neglect_recoil_momentum:
             gen_part += "_recoil_corrected"
 
@@ -159,7 +142,7 @@ def create_simulation_and_reconstruction_job(
         print(exception)
 
     # generate simulation config parameter file
-    if sim_params.sim_type == SimulationType.PBARP_ELASTIC:
+    if sim_params.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC:
         lmdfit_build_dir = os.getenv("LMDFIT_BUILD_PATH")
         if lmdfit_build_dir is None:
             raise ValueError("LMDFIT_BUILD_PATH environment variable is not set!")
@@ -193,7 +176,7 @@ def create_simulation_and_reconstruction_job(
     job = Job(
         resource_request,
         application_url=application_command,
-        name="simreco_" + sim_params.sim_type.value,
+        name="simreco_" + sim_params.simGeneratorType.value,
         logfile_url=pathname_full + "/simreco-%a.log",
         array_indices=list(range(low_index_used, low_index_used + num_samples)),
     )

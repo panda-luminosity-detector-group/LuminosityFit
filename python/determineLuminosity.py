@@ -28,9 +28,9 @@ from lumifit.reconstruction import (
 from lumifit.scenario import (
     LumiDeterminationState,
     Scenario,
+    SimulationDataType,
     SimulationState,
     SimulationTask,
-    SimulationType,
 )
 from lumifit.simulation import create_simulation_and_reconstruction_job
 
@@ -131,7 +131,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
     # for simulation_task in thisScenario.simulation_info_lists:
     for task in thisScenario.SimulationTasks:
 
-        print(f"running simulation of type {str(task.simType)} and path ({task.dirPath} at state={str(task.simState)}/{str(task.lastState)}")
+        print(f"running simulation of type {str(task.simDataType)} and path ({task.dirPath} at state={str(task.simState)}/{str(task.lastState)}")
 
         data_keywords = []
         data_pattern = ""
@@ -142,25 +142,25 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
 
         merge_keywords = ["merge_data", "binning_300"]
         # if "v" in task.simType:
-        if task.simType == SimulationType.VERTEX:
+        if task.simDataType == SimulationDataType.VERTEX:
             data_keywords = ["uncut", "bunches", "binning_300"]
             data_pattern = "lmd_vertex_data_"
         # elif "a" in task.simType:
-        elif task.simType == SimulationType.ANGULAR:
+        elif task.simDataType == SimulationDataType.ANGULAR:
             data_keywords = [cut_keyword, "bunches", "binning_300"]
             data_pattern = "lmd_data_"
-        elif task.simType == SimulationType.EFFICIENCY_RESOLUTION:
+        elif task.simDataType == SimulationDataType.EFFICIENCY_RESOLUTION:
             data_keywords = [cut_keyword, "bunches", "binning_300"]
             data_pattern = "lmd_res_data_"
         else:
-            raise NotImplementedError(f"Simulation type {task.simType} is not implemented!")
+            raise NotImplementedError(f"Simulation type {task.simDataType} is not implemented!")
 
         # 1. simulate data
         if task.simState == SimulationState.START_SIM:
             os.chdir(lmd_fit_script_path)
             status_code = 1
             # if "er" in task.simType:
-            if task.simType == SimulationType.EFFICIENCY_RESOLUTION:
+            if task.simDataType == SimulationDataType.EFFICIENCY_RESOLUTION:
                 """
                 efficiency / resolution calculation.
 
@@ -173,7 +173,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 if (task.dirPath != "") and (task.dirPath is not None):
                     temp_dir_searcher = general.DirectorySearcher(
                         [
-                            thisExperiment.recoParams.sim_type_for_resAcc.value,
+                            thisExperiment.recoParams.simGenTypeForResAcc.value,
                             data_keywords[0],
                         ]  # look for the folder name including sim_type_for_resAcc
                     )
@@ -208,7 +208,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     #! create a new, temporary simParams object only for this stage
                     # (the config on disk doesn't change )
                     sim_par = thisExperiment.simParams
-                    sim_par.sim_type = thisExperiment.recoParams.sim_type_for_resAcc
+                    sim_par.simGeneratorType = thisExperiment.recoParams.simGenTypeForResAcc
                     sim_par.num_events_per_sample = thisExperiment.recoParams.num_events_per_box_sample
                     sim_par.num_samples = thisExperiment.recoParams.num_box_samples
                     sim_par.theta_min_in_mrad -= max_xy_shift
@@ -248,7 +248,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     task.lastState = SimulationState.START_SIM
 
             # elif "a" in task.simType:
-            elif task.simType == SimulationType.ANGULAR:
+            elif task.simDataType == SimulationDataType.ANGULAR:
                 """
                 a is the angular case. this is the data set onto which the luminosiy fit is performed.
                 it is therefore REAL digi data (or DPM data of course) that must be reconstructed again
@@ -302,7 +302,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     task.lastState = SimulationState.START_SIM
 
             # elif "v" in task.simType:
-            elif task.simType == SimulationType.VERTEX:
+            elif task.simDataType == SimulationDataType.VERTEX:
 
                 # TODO: check if the sim data is already there, if yes return 0, else start sim
                 status_code = 0
@@ -327,14 +327,14 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 # job_manager.append(job)
 
             else:
-                raise ValueError(f"This tasks simType is {task.simType}, which is invalid!")
+                raise ValueError(f"This tasks simType is {task.simDataType}, which is invalid!")
 
             if status_code == 0:
                 print("found simulation files, skipping")
                 task.simState = SimulationState.MAKE_BUNCHES
                 task.lastState = SimulationState.START_SIM
             elif status_code > 0:
-                print(f"still waiting for himster simulation jobs for {task.simType} data to complete...")
+                print(f"still waiting for himster simulation jobs for {task.simDataType} data to complete...")
             else:
                 raise ValueError("status_code is negative, which means number of running jobs can't be determined. ")
 
@@ -370,7 +370,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 # create data
                 bashArgs = []
                 # if "a" in task.simType:
-                if task.simType == SimulationType.ANGULAR:
+                if task.simDataType == SimulationDataType.ANGULAR:
                     el_cs = thisScenario.elastic_pbarp_integrated_cross_secion_in_mb
                     bashArgs.append("python")
                     bashArgs.append("createMultipleLmdData.py")
@@ -379,7 +379,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append("--jobCommand")
                     bashArgs.append(thisScenario.LmdData)
                     bashArgs.append(f"{lab_momentum:.2f}")
-                    bashArgs.append(str(task.simType))
+                    bashArgs.append(str(task.simDataType))
                     bashArgs.append(task.dirPath)
                     bashArgs.append("../dataconfig_xy.json")
 
@@ -395,7 +395,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append("--jobCommand")
                     bashArgs.append(thisScenario.LmdData)
                     bashArgs.append(f"{lab_momentum:.2f}")
-                    bashArgs.append(str(task.simType))
+                    bashArgs.append(str(task.simDataType))
                     bashArgs.append(task.dirPath)
                     bashArgs.append("../dataconfig_xy.json")
 
@@ -414,7 +414,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 task.simState = SimulationState.MERGE
                 task.lastState = SimulationState.MAKE_BUNCHES
             elif status_code > 0:
-                print(f"status_code {status_code}: still waiting for himster simulation jobs for {task.simType} data to complete...")
+                print(f"status_code {status_code}: still waiting for himster simulation jobs for {task.simDataType} data to complete...")
             else:
                 # ok something went wrong there, exit this scenario and
                 # push on bad scenario stack
@@ -434,20 +434,20 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 # merge data
                 # if "a" in task.simType:
                 bashArgs = []
-                if task.simType == SimulationType.ANGULAR:
+                if task.simDataType == SimulationDataType.ANGULAR:
                     bashArgs.append("python mergeMultipleLmdData.py")
                     bashArgs.append("--dir_pattern")
                     bashArgs.append(data_keywords[0])
                     bashArgs.append("--num_samples")
                     bashArgs.append(str(bootstrapped_num_samples))
-                    bashArgs.append(str(task.simType))
+                    bashArgs.append(str(task.simDataType))
                     bashArgs.append(task.dirPath)
 
                 else:
                     bashArgs.append("python mergeMultipleLmdData.py")
                     bashArgs.append("--dir_pattern")
                     bashArgs.append(data_keywords[0])
-                    bashArgs.append(str(task.simType))
+                    bashArgs.append(str(task.simDataType))
                     bashArgs.append(task.dirPath)
                 _ = subprocess.call(bashArgs)
             task.simState = SimulationState.DONE
@@ -487,7 +487,9 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
         State 1 simulates vertex data from which the IP can be determined.
         """
         if len(thisScenario.SimulationTasks) == 0:
-            thisScenario.SimulationTasks.append(SimulationTask(dirPath=lumiTrksQAPath, simType=SimulationType.VERTEX, simState=SimulationState.START_SIM))
+            thisScenario.SimulationTasks.append(
+                SimulationTask(dirPath=lumiTrksQAPath, simDataType=SimulationDataType.VERTEX, simState=SimulationState.START_SIM)
+            )
 
         thisScenario = simulateDataOnHimster(thisExperiment, thisScenario)
         if thisScenario.is_broken:
@@ -552,8 +554,8 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
         # because this data is now with a cut applied, the new directory is called
         # something 1-100_xy_m_cut_real
         if len(thisScenario.SimulationTasks) == 0:
-            thisScenario.SimulationTasks.append(SimulationTask(simType=SimulationType.ANGULAR, simState=SimulationState.START_SIM))
-            thisScenario.SimulationTasks.append(SimulationTask(simType=SimulationType.EFFICIENCY_RESOLUTION, simState=SimulationState.START_SIM))
+            thisScenario.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.ANGULAR, simState=SimulationState.START_SIM))
+            thisScenario.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.EFFICIENCY_RESOLUTION, simState=SimulationState.START_SIM))
 
         thisScenario = simulateDataOnHimster(thisExperiment, thisScenario)
 

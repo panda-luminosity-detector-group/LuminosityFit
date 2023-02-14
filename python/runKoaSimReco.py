@@ -5,7 +5,7 @@ import os
 from lumifit.alignment import AlignmentParameters
 from lumifit.general import check_stage_success, load_params_from_file, toCbool
 from lumifit.simulation import SimulationParameters
-from lumifit.simulationTypes import SimulationType
+from python.lumifit.simulationGeneratorTypes import SimulationGeneratorType
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 scriptpath = os.environ["LMDFIT_SCRIPTPATH"]
@@ -24,11 +24,9 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
     debug = False
 
 # TODO: check if params are loaded correctly, shouldn't be the specified file name be used?
-sim_params: SimulationParameters = load_params_from_file(
-    path_mc_data + "/../sim_params.config", SimulationParameters
-)
+sim_params: SimulationParameters = load_params_from_file(path_mc_data + "/../sim_params.config", SimulationParameters)
 
-ali_params = AlignmentParameters()      # TODO Alignment with KOALA isn't implemented yet.
+ali_params = AlignmentParameters()  # TODO Alignment with KOALA isn't implemented yet.
 
 if debug:
     workpathname = pathname
@@ -44,15 +42,9 @@ gen_filepath = workpathname + "/gen_mc.root"
 verbositylvl = 0
 start_evt: int = sim_params.num_events_per_sample * filename_index
 
-if (
-    not check_stage_success(f"{path_mc_data} + /Koala_MC_{start_evt}.root")
-    or force_level == 2
-):
+if not check_stage_success(f"{path_mc_data} + /Koala_MC_{start_evt}.root") or force_level == 2:
     os.chdir(scriptpath)
-    if (
-        sim_params.sim_type == SimulationType.BOX
-        or sim_params.sim_type == SimulationType.RESACCBOX
-    ):
+    if sim_params.simGeneratorType == SimulationGeneratorType.BOX or sim_params.simGeneratorType == SimulationGeneratorType.RESACCBOX:
         os.system(
             f"{lmd_build_path}/bin/generatePbarPElasticScattering"
             + f" {sim_params.lab_momentum} {sim_params.num_events_per_sample}"
@@ -63,10 +55,7 @@ if (
             + f" -o {gen_filepath}"
         )
 
-    elif (
-        sim_params.sim_type == SimulationType.PBARP_ELASTIC
-        or sim_params.sim_type == SimulationType.RESACCPBARP_ELASTIC
-    ):
+    elif sim_params.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC or sim_params.simGeneratorType == SimulationGeneratorType.RESACCPBARP_ELASTIC:
         os.system(
             f"{lmd_build_path}/bin/generatePbarPElasticScattering"
             + f" {sim_params.lab_momentum} {sim_params.num_events_per_sample}"
@@ -93,17 +82,10 @@ if (
     )
 else:
     if not debug:
-        os.system(
-            f"cp {path_mc_data}/Koala_MC_{start_evt}.root {workpathname}/Koala_MC_{start_evt}.root"
-        )
-        os.system(
-            f"cp {path_mc_data}/Koala_Params_{start_evt}.root {workpathname}/Koala_Params_{start_evt}.root"
-        )
+        os.system(f"cp {path_mc_data}/Koala_MC_{start_evt}.root {workpathname}/Koala_MC_{start_evt}.root")
+        os.system(f"cp {path_mc_data}/Koala_Params_{start_evt}.root {workpathname}/Koala_Params_{start_evt}.root")
 
-if (
-    not check_stage_success(workpathname + f"/Koala_digi_{start_evt}.root")
-    or force_level == 2
-):
+if not check_stage_success(workpathname + f"/Koala_digi_{start_evt}.root") or force_level == 2:
     os.chdir(macropath)
     os.system(
         f"root -l -b -q 'KoaPixel1Digi.C({sim_params.num_events_per_sample}, {start_evt},"
@@ -113,24 +95,14 @@ if (
         + f"{verbositylvl})'"
     )
 if not debug:
-    os.system(
-        f"cp {workpathname}/Koala_MC_{start_evt}.root {path_mc_data}/Koala_MC_{start_evt}.root"
-    )
-    os.system(
-        f"cp {workpathname}/Koala_digi_{start_evt}.root {path_mc_data}/Koala_digi_{start_evt}.root"
-    )
+    os.system(f"cp {workpathname}/Koala_MC_{start_evt}.root {path_mc_data}/Koala_MC_{start_evt}.root")
+    os.system(f"cp {workpathname}/Koala_digi_{start_evt}.root {path_mc_data}/Koala_digi_{start_evt}.root")
 
-    os.system(
-        f"cp {workpathname}/Koala_Params_{start_evt}.root {path_mc_data}/Koala_Params_{start_evt}.root"
-    )
+    os.system(f"cp {workpathname}/Koala_Params_{start_evt}.root {path_mc_data}/Koala_Params_{start_evt}.root")
 else:
     if not debug:
-        os.system(
-            f"cp {path_mc_data}/Koala_digi_{start_evt}.root {workpathname}/Koala_digi_{start_evt}.root"
-        )
-        os.system(
-            f"cp {path_mc_data}/Koala_Params_{start_evt}.root {workpathname}/Koala_Params_{start_evt}.root"
-        )
+        os.system(f"cp {path_mc_data}/Koala_digi_{start_evt}.root {workpathname}/Koala_digi_{start_evt}.root")
+        os.system(f"cp {path_mc_data}/Koala_Params_{start_evt}.root {workpathname}/Koala_Params_{start_evt}.root")
 
 os.chdir(scriptpath)
 os.system("./runKoaReco.py")

@@ -15,11 +15,7 @@ from lumifit.experiment import ClusterEnvironment, Experiment, ExperimentType
 from lumifit.general import write_params_to_file
 from lumifit.reconstruction import ReconstructionParameters
 from lumifit.simulation import SimulationParameters
-from lumifit.simulationTypes import SimulationType
-
-# write_params_to_file(asdict(simpars), ".", "simparams.config")
-# write_params_to_file(asdict(recopars), ".", "recoparams.config")
-# write_params_to_file(cattrs.unstructure(experiment), ".", "experiment.config")
+from python.lumifit.simulationGeneratorTypes import SimulationGeneratorType
 
 
 def genExperimentConfig(
@@ -29,7 +25,7 @@ def genExperimentConfig(
     phi_min: float,
     phi_max: float,
     experimentType: ExperimentType,
-    sim_type_for_resAcc: SimulationType,
+    simGenTypeForResAcc: SimulationGeneratorType,
 ) -> Experiment:
     """
     Generates a default experiment config without misalignment or alignment.
@@ -53,7 +49,7 @@ def genExperimentConfig(
     recopars.num_events_per_sample = 100000
     recopars.num_box_samples = 500
     recopars.num_events_per_box_sample = 100000
-    recopars.sim_type_for_resAcc = sim_type_for_resAcc
+    recopars.simGenTypeForResAcc = simGenTypeForResAcc
 
     lmdfit_data_dir: Union[None, Path, str] = os.getenv("LMDFIT_DATA_DIR")
 
@@ -87,7 +83,7 @@ def restrictPhiConfigs() -> None:
                 phi_min[0],
                 upperPhiAngles[i],
                 ExperimentType.LUMI,
-                SimulationType.RESACCBOX,
+                SimulationGeneratorType.RESACCBOX,
             )
 
             # change simpars if misalignment matrices are given
@@ -118,7 +114,7 @@ def genConfigs() -> None:
             phi_min[0],
             phi_max[0],
             ExperimentType.LUMI,
-            SimulationType.RESACCBOX,
+            SimulationGeneratorType.RESACCBOX,
         )
 
         # change simpars if misalignment matrices are given
@@ -145,7 +141,7 @@ def genConfigs() -> None:
             phi_min[1],
             phi_max[1],
             ExperimentType.KOALA,
-            SimulationType.RESACCPBARP_ELASTIC,
+            SimulationGeneratorType.RESACCPBARP_ELASTIC,
         )
 
         # change simpars if misalignment matrices are given

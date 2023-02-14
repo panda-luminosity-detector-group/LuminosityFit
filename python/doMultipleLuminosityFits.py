@@ -49,13 +49,9 @@ def getListOfResAccDirectories(path: str) -> None:
             bunch_dirs = glob.glob(path + "/bunches_*/" + tail_dir_pattern)
             if bunch_dirs:
                 for bunch_dir in bunch_dirs:
-                    filelists = glob.glob(
-                        bunch_dir + "/" + box_acc_glob_pattern
-                    )
+                    filelists = glob.glob(bunch_dir + "/" + box_acc_glob_pattern)
                     if filelists:
-                        filelists = glob.glob(
-                            bunch_dir + "/" + box_res_glob_pattern
-                        )
+                        filelists = glob.glob(bunch_dir + "/" + box_res_glob_pattern)
                         if filelists:
                             resAccDirs.append(bunch_dir)
                 return
@@ -71,9 +67,7 @@ def getTopResAccDirectory(path: str) -> None:
     if os.path.isdir(path):
         found = False
         for directory in next(os.walk(path))[1]:
-            if re.search(
-                f"{experiment.recoParams.sim_type_for_resAcc.value}", directory
-            ):  # read BOX/DPM string from config
+            if re.search(f"{experiment.recoParams.simGenTypeForResAcc.value}", directory):  # read BOX/DPM string from config
                 global top_level_resAcc_directory
                 top_level_resAcc_directory = path + "/" + directory
                 found = True
@@ -89,9 +83,7 @@ def findMatchingDirs(resAcc_data_path: str) -> list:
     matching_dir_pairs = []
     if resAcc_data_path == "" or resAcc_data_path is None:
         if resAcc_data_path is None:
-            print(
-                "\n\n\n GREP OUTPUT DIR: resAcc_data_path is None in line 74 of doMultipleLuminosityFits.py!"
-            )
+            print("\n\n\n GREP OUTPUT DIR: resAcc_data_path is None in line 74 of doMultipleLuminosityFits.py!")
         for dpm_dir in dirs:
             print(dpm_dir)
             match = re.search(
@@ -101,7 +93,7 @@ def findMatchingDirs(resAcc_data_path: str) -> list:
             pattern = (
                 "^"
                 + match.group(1)  # type: ignore
-                + f"{experiment.recoParams.sim_type_for_resAcc.value}_.*?"  # read BOX/DPM string from config
+                + f"{experiment.recoParams.simGenTypeForResAcc.value}_.*?"  # read BOX/DPM string from config
                 + match.group(2)  # type: ignore
                 + ".*"
                 + match.group(3)  # type: ignore
@@ -123,9 +115,7 @@ def findMatchingDirs(resAcc_data_path: str) -> list:
             match = re.search(r"^.*(binning_\d*)/.*$", dpm_dir)
             if match:
                 dir_searcher = general.DirectorySearcher([match.group(1)])
-                dir_searcher.searchListOfDirectories(
-                    resAcc_data_path, box_acc_glob_pattern
-                )
+                dir_searcher.searchListOfDirectories(resAcc_data_path, box_acc_glob_pattern)
                 correct_dirs = dir_searcher.getListOfDirectories()
 
                 if correct_dirs:
@@ -206,9 +196,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # load experiment config
-experiment: Experiment = general.load_params_from_file(
-    args.ExperimentConfigFile, Experiment
-)
+experiment: Experiment = general.load_params_from_file(args.ExperimentConfigFile, Experiment)
 
 
 number_of_threads = args.number_of_threads
@@ -230,9 +218,7 @@ if args.forced_resAcc_gen_data == "":
     print("box top dir: " + top_level_resAcc_directory)
     # getListOfBoxDirectories(top_level_box_directory)
     box_dir_searcher = general.DirectorySearcher(patterns)
-    box_dir_searcher.searchListOfDirectories(
-        top_level_resAcc_directory, box_acc_glob_pattern
-    )
+    box_dir_searcher.searchListOfDirectories(top_level_resAcc_directory, box_acc_glob_pattern)
     resAccDirs = box_dir_searcher.getListOfDirectories()
 
 
@@ -268,9 +254,7 @@ for match in matches:
 
     # TODO: handle this case
     if args.ref_resacc_gen_data != "":
-        job.exported_user_variables[
-            "reference_acceptance_path"
-        ] = args.ref_resacc_gen_data
+        job.exported_user_variables["reference_acceptance_path"] = args.ref_resacc_gen_data
 
     joblist.append(job)
 
@@ -279,9 +263,7 @@ if experiment.cluster == ClusterEnvironment.VIRGO:
 elif experiment.cluster == ClusterEnvironment.HIMSTER:
     job_handler = create_himster_job_handler("himster2_exp")
 else:
-    raise NotImplementedError(
-        f"Cluster type {experiment.cluster} is not implemented!"
-    )
+    raise NotImplementedError(f"Cluster type {experiment.cluster} is not implemented!")
 
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)

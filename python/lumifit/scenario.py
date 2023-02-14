@@ -31,7 +31,7 @@ class SimulationState(IntEnum):
     DONE = 4
 
 
-class SimulationType(Enum):
+class SimulationDataType(Enum):
     NONE = "none"
     ANGULAR = "a"
     VERTEX = "v"
@@ -42,7 +42,7 @@ class SimulationType(Enum):
 class SimulationTask:
     dirPath: str = attr.ib(default="")
     # simType: str = attr.ib(default="")
-    simType: SimulationType = attr.ib(default=SimulationType.NONE)
+    simDataType: SimulationDataType = attr.ib(default=SimulationDataType.NONE)
     simState: SimulationState = attr.ib(default=SimulationState.INIT)
     lastState: SimulationState = attr.ib(default=SimulationState.INIT)
 

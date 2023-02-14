@@ -12,7 +12,7 @@ from attr import field
 from .alignment import AlignmentParameters
 from .cluster import Job, JobResourceRequest, make_test_job_resource_request
 from .general import write_params_to_file
-from .simulationTypes import SimulationType
+from .simulationGeneratorTypes import SimulationGeneratorType
 
 # TODO: solve the track_search_algorithms with Enum (or IntEnum for json serializability)
 #! wait there is even an enumEncoder, IntEnums may not be neccessary
@@ -24,11 +24,8 @@ lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
 
 @attr.s
 class ReconstructionParameters:
-    def _validate_track_search_algo(instance: Any, _: Any, value: Any) -> None:
-        if value not in track_search_algorithms:
-            raise ValueError(f"Must be either of {track_search_algorithms}.")
 
-    sim_type_for_resAcc: SimulationType = attr.ib(default=SimulationType.BOX)
+    simGenTypeForResAcc: SimulationGeneratorType = attr.ib(default=SimulationGeneratorType.BOX)
     num_events_per_sample: int = attr.ib(default=1000)
     num_samples: int = attr.ib(default=1)
     lab_momentum: float = attr.ib(default=1.5)
@@ -38,7 +35,7 @@ class ReconstructionParameters:
     use_ip_determination: bool = attr.ib(default=True)
     use_xy_cut: bool = attr.ib(default=True)
     use_m_cut: bool = attr.ib(default=True)
-    track_search_algo: str = attr.ib(default="CA", validator=_validate_track_search_algo)
+    track_search_algo: str = attr.ib(default="CA")
     # reco_ip_offset: Tuple[float, float, float] = attr.ib(default=(0, 0, 0))
     recoIPX: float = attr.ib(default=0.0)
     recoIPY: float = attr.ib(default=0.0)
@@ -139,7 +136,7 @@ def create_reconstruction_job(
     job = Job(
         resource_request,
         application_url=application_command,
-        name="reco_" + reco_params.sim_type_for_resAcc.value,
+        name="reco_" + reco_params.simGenTypeForResAcc.value,
         logfile_url=pathname_full + "/reco-%a.log",
         array_indices=list(range(low_index_used, low_index_used + num_samples)),
     )

@@ -10,7 +10,7 @@ from lumifit.general import (
     toCbool,
 )
 from lumifit.simulation import SimulationParameters
-from lumifit.simulationTypes import SimulationType
+from python.lumifit.simulationGeneratorTypes import SimulationGeneratorType
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 PNDmacropath = os.environ["LMDFIT_MACROPATH"]
@@ -84,7 +84,7 @@ print(f"\n\nINFO:\ndirname is {relativeDirToTrksQAFiles}\npathname is {pathToTrk
 if not check_stage_success(f"{path_mc_data}/Lumi_MC_{start_evt}.root") or force_level == 2:
 
     # * prepare box or dpm tracks
-    if simParams.sim_type == SimulationType.BOX or simParams.sim_type == SimulationType.RESACCBOX:
+    if simParams.simGeneratorType == SimulationGeneratorType.BOX or simParams.simGeneratorType == SimulationGeneratorType.RESACCBOX:
         os.chdir(LMDscriptpath)
 
         cmd = f"""root -l -b -q 'standaloneBoxGen.C({simParams.lab_momentum}, {simParams.num_events_per_sample}, {simParams.theta_min_in_mrad}, {simParams.theta_max_in_mrad}, {simParams.phi_min_in_rad}, {simParams.phi_max_in_rad},"{gen_filepath}", {simParams.random_seed + start_evt}, {toCbool(not simParams.neglect_recoil_momentum)})'"""
@@ -93,7 +93,7 @@ if not check_stage_success(f"{path_mc_data}/Lumi_MC_{start_evt}.root") or force_
         print(cmd)
         os.system(cmd)
 
-    elif simParams.sim_type == SimulationType.PBARP_ELASTIC or simParams.sim_type == SimulationType.RESACCPBARP_ELASTIC:
+    elif simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC or simParams.simGeneratorType == SimulationGeneratorType.RESACCPBARP_ELASTIC:
 
         # cmd = f"{lmd_build_path}/bin/generatePbarPElasticScattering {sim_params.lab_momentum} {sim_params.num_events_per_sample} -l {sim_params.theta_min_in_mrad} -u {sim_params.theta_max_in_mrad} -s {sim_params.random_seed + start_evt} -o {gen_filepath}"
 
@@ -116,7 +116,7 @@ if not check_stage_success(f"{path_mc_data}/Lumi_MC_{start_evt}.root") or force_
     # * run simBox or simDPM
     print("starting up a pandaroot simulation...")
     os.chdir(PNDmacropath)
-    if simParams.sim_type == SimulationType.NOISE:
+    if simParams.simGeneratorType == SimulationGeneratorType.NOISE:
 
         os.system(
             f"""root -l -b -q 'runLumiPixel0SimBox.C({simParams.num_events_per_sample}, {start_evt}, "{workpathname}",{verbositylvl},-2212,{simParams.lab_momentum},{numTrks},{simParams.random_seed + start_evt}, 0, , "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)})' > /dev/null 2>&1"""
@@ -136,7 +136,7 @@ else:
 # * ------------------- Digi Step -------------------
 if not check_stage_success(workpathname + f"/Lumi_digi_{start_evt}.root") or force_level == 2:
     os.chdir(PNDmacropath)
-    if simParams.sim_type == SimulationType.NOISE:
+    if simParams.simGeneratorType == SimulationGeneratorType.NOISE:
         os.system(
             f"""root -l -b -q 'runLumiPixel1bDigiNoise.C({simParams.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {simParams.random_seed + start_evt})'"""
         )
