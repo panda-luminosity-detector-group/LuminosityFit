@@ -382,7 +382,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append("--jobCommand")
                     bashArgs.append(thisScenario.LmdData)
                     bashArgs.append(f"{lab_momentum:.2f}")
-                    bashArgs.append(str(task.simDataType))
+                    bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
                     bashArgs.append(task.dirPath)
                     bashArgs.append("../dataconfig_xy.json")
 
@@ -398,7 +398,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append("--jobCommand")
                     bashArgs.append(thisScenario.LmdData)
                     bashArgs.append(f"{lab_momentum:.2f}")
-                    bashArgs.append(str(task.simDataType))
+                    bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
                     bashArgs.append(task.dirPath)
                     bashArgs.append("../dataconfig_xy.json")
 
@@ -444,14 +444,14 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append(data_keywords[0])
                     bashArgs.append("--num_samples")
                     bashArgs.append(str(bootstrapped_num_samples))
-                    bashArgs.append(str(task.simDataType))
+                    bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
                     bashArgs.append(task.dirPath)
 
                 else:
                     bashArgs.append("python mergeMultipleLmdData.py")
                     bashArgs.append("--dir_pattern")
                     bashArgs.append(data_keywords[0])
-                    bashArgs.append(str(task.simDataType))
+                    bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
                     bashArgs.append(task.dirPath)
                 _ = subprocess.call(bashArgs)
             task.simState = SimulationState.DONE
