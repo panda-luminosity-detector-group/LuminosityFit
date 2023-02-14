@@ -354,6 +354,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     data_pattern + "*",
                     is_bunches=True,
                 )
+
             elif task.lastState < task.simState:
                 os.chdir(lmd_fit_script_path)
                 # bunch data
@@ -409,6 +410,9 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 task.lastState = SimulationState.MERGE
 
                 bashArgs.clear()
+
+            else:
+                raise RuntimeError("No data could be found, but no commands are to be executed. This can't be!")
 
             if status_code == 0:
                 print("skipping bunching and data object creation...")
