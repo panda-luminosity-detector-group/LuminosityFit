@@ -438,7 +438,8 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 # if "a" in task.simType:
                 bashArgs = []
                 if task.simDataType == SimulationDataType.ANGULAR:
-                    bashArgs.append("python mergeMultipleLmdData.py")
+                    bashArgs.append("python")
+                    bashArgs.append("mergeMultipleLmdData.py")
                     bashArgs.append("--dir_pattern")
                     bashArgs.append(data_keywords[0])
                     bashArgs.append("--num_samples")
@@ -447,12 +448,18 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append(task.dirPath)
 
                 else:
-                    bashArgs.append("python mergeMultipleLmdData.py")
+                    bashArgs.append("python")
+                    bashArgs.append("mergeMultipleLmdData.py")
                     bashArgs.append("--dir_pattern")
                     bashArgs.append(data_keywords[0])
                     bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
                     bashArgs.append(task.dirPath)
+
+                print("working directory:")
+                print(f"{os.getcwd()}")
+                print(f"running command:\n{bashArgs}")
                 _ = subprocess.call(bashArgs)
+
             task.simState = SimulationState.DONE
 
         if task.lastState == SimulationState.FAILED:
