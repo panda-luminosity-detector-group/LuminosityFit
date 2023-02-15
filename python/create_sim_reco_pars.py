@@ -15,7 +15,7 @@ from lumifit.experiment import ClusterEnvironment, Experiment, ExperimentType
 from lumifit.general import write_params_to_file
 from lumifit.reconstruction import ReconstructionParameters
 from lumifit.simulation import SimulationParameters
-from python.lumifit.simulationGeneratorTypes import SimulationGeneratorType
+from lumifit.simulationGeneratorTypes import SimulationGeneratorType
 
 
 def genExperimentConfig(
