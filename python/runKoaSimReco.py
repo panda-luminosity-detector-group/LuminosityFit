@@ -5,7 +5,7 @@ import os
 from lumifit.alignment import AlignmentParameters
 from lumifit.general import check_stage_success, load_params_from_file, toCbool
 from lumifit.simulation import SimulationParameters
-from python.lumifit.simulationGeneratorTypes import SimulationGeneratorType
+from lumifit.simulationGeneratorTypes import SimulationGeneratorType
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 scriptpath = os.environ["LMDFIT_SCRIPTPATH"]

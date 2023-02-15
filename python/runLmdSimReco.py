@@ -10,7 +10,7 @@ from lumifit.general import (
     toCbool,
 )
 from lumifit.simulation import SimulationParameters
-from python.lumifit.simulationGeneratorTypes import SimulationGeneratorType
+from lumifit.simulationGeneratorTypes import SimulationGeneratorType
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 PNDmacropath = os.environ["LMDFIT_MACROPATH"]
