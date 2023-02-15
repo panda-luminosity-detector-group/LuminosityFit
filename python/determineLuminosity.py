@@ -44,11 +44,19 @@ Determines the luminosity of a set of Lumi_TrksQA_* files.
 
 This file needs one major rewrite, thats for sure.
 - the logic is implemented as a GIANT state machine
-- job_manager (and other objects) are defined globally and used in functions
+- because job submission doesn't block
 - job supervision is based on number of files;
 - AND number of running jobs, even if these jobs belong to some other function
 - but its not monitored if a given job has crashed
 - and the entire thing is declarative, when object orientation would be better suited
+
+For this rewrite, a better job supervision is needed. It would suffice already to
+accept the jobID (or job Array ID) and simply poll once a minute if the jobs for that ID 
+are still running.
+
+If not, proceed.
+If the needed files aren't there (but the jobs don't run anymore either), there is a runtime error.
+
 """
 
 
@@ -104,9 +112,9 @@ waiting_scenario_stack: List[Scenario] = []
 
 def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) -> Scenario:
     """
-    Start a SLURM jon for every SimulationTask assigned to a scenario.
+    Start a SLURM job for every SimulationTask assigned to a scenario.
     A scenario may hold multiple SimulationTasks at the same time that
-    can be run concurrently (like resonstrction of DPM datat with cut
+    can be run concurrently (like reconstruction of DPM data with cut
     while at the same time res/acc data is generated)
 
     The simStates determine what step is currently being run:
@@ -116,19 +124,21 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
         tracks. This is the same as what the runSimulationReconstruction
         script does.
 
-    2:  create Data (bunch data objects)
+    2:  create bunch data objects
         first thing it should do is create bunches/binning dirs.
         Then call createMultipleLmdData which looks for these dirs.
         This also finds the reconstructed IP position from the TrksQA files.
 
     3:  Merge bunched Data
 
+    Because the job submission via Slurm doesn't block, the function is exited
+    even though jobs are still running. The Scenario objects therefore hold this state
+    info so that the waiting method knows where it left off.
+
     Parameters:
     - dir_path: the path to the TrksQA files (e.g. 1-100_uncut/no_alignment_correction)
     """
 
-    lab_momentum = thisScenario.momentum
-    # for simulation_task in thisScenario.simulation_info_lists:
     for task in thisScenario.SimulationTasks:
 
         print(f"running simulation of type {str(task.simDataType)} and path ({task.dirPath} at states:")
@@ -380,7 +390,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append(data_keywords[0])
                     bashArgs.append("--jobCommand")
                     bashArgs.append(thisScenario.LmdData)
-                    bashArgs.append(f"{lab_momentum:.2f}")
+                    bashArgs.append(f"{thisScenario.momentum:.2f}")
                     bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
                     bashArgs.append(task.dirPath)
                     bashArgs.append("../dataconfig_xy.json")
@@ -396,7 +406,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append(data_keywords[0])
                     bashArgs.append("--jobCommand")
                     bashArgs.append(thisScenario.LmdData)
-                    bashArgs.append(f"{lab_momentum:.2f}")
+                    bashArgs.append(f"{thisScenario.momentum:.2f}")
                     bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
                     bashArgs.append(task.dirPath)
                     bashArgs.append("../dataconfig_xy.json")
