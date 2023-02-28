@@ -16,7 +16,15 @@ from lumifit.scenario import Scenario
 from lumifit.simulation import create_simulation_and_reconstruction_job
 
 
-def run_simulation_and_reconstruction(thisExperiment: Experiment):
+def run_simulation_and_reconstruction(thisExperiment: Experiment) -> None:
+
+    if thisExperiment.recoParams.use_xy_cut or thisExperiment.recoParams.use_m_cut:
+        print("Attention! This experiment configs specifies to use XY and m cuts during reconstruction.")
+        print("That's reasonable for the luminosity determination, but the initial data sample must")
+        print("still be generated without cuts first.")
+        print("Disabling all cuts for this run!")
+        thisExperiment.recoParams.use_xy_cut = False
+        thisExperiment.recoParams.use_m_cut = False
 
     # temporary to get sim command
     lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
@@ -54,8 +62,7 @@ def run_simulation_and_reconstruction(thisExperiment: Experiment):
 
 
 parser = argparse.ArgumentParser(
-    description="Script to run a simulation and reconstruction of the PANDA "
-    "Luminosity Detector from parameter config files.",
+    description="Script to run a simulation and reconstruction of the PANDA " "Luminosity Detector from parameter config files.",
     formatter_class=argparse.RawTextHelpFormatter,
 )
 
@@ -72,8 +79,6 @@ parser.add_argument(
 parser = addDebugArgumentsToParser(parser)
 args = parser.parse_args()
 
-thisExperiment: Experiment = load_params_from_file(
-    args.experimentConfig[0], Experiment
-)
+thisExperiment: Experiment = load_params_from_file(args.experimentConfig[0], Experiment)
 
 run_simulation_and_reconstruction(thisExperiment)

@@ -28,7 +28,12 @@
 	"yzhang.markdown-all-in-one",
 	"DavidAnson.vscode-markdownlint",
 	"esbenp.prettier-vscode",
-	"bierner.markdown-mermaid"
+	"bierner.markdown-mermaid",
+	"donjayamanne.githistory",
+	"eamodio.gitlens",
+	"streetsidesoftware.code-spell-checker",
+	"oderwat.indent-rainbow",
+	"ms-python.black-formatter"
 ],
   "runArgs": ["--network=host"]
 }

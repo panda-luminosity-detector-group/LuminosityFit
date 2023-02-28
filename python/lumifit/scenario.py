@@ -5,11 +5,46 @@ only used by determineLuminosity.py internally, should never be written to
 or read from file!
 """
 
+from enum import Enum, IntEnum
+from typing import List
+
+import attr
+
 from .alignment import AlignmentParameters
 from .experiment import ExperimentType
 
-# this should be set during construction
-# lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
+
+class LumiDeterminationState(IntEnum):
+    INIT = 0
+    SIMULATE_VERTEX_DATA = 1
+    DETERMINE_IP = 2
+    RECONSTRUCT_WITH_NEW_IP = 3
+    RUN_LUMINOSITY_FIT = 4
+
+
+class SimulationState(IntEnum):
+    FAILED = -1
+    INIT = 0
+    START_SIM = 1
+    MAKE_BUNCHES = 2
+    MERGE = 3
+    DONE = 4
+
+
+class SimulationDataType(Enum):
+    NONE = "none"
+    ANGULAR = "a"
+    VERTEX = "v"
+    EFFICIENCY_RESOLUTION = "er"
+
+
+@attr.s
+class SimulationTask:
+    dirPath: str = attr.ib(default="")
+    # simType: str = attr.ib(default="")
+    simDataType: SimulationDataType = attr.ib(default=SimulationDataType.NONE)
+    simState: SimulationState = attr.ib(default=SimulationState.INIT)
+    lastState: SimulationState = attr.ib(default=SimulationState.INIT)
 
 
 class Scenario:
@@ -25,30 +60,18 @@ class Scenario:
     ):
         self.momentum = 0.0
 
-        self.dir_path = dir_path_
-        self.filtered_dir_path = ""
+        self.trackDirectory = dir_path_
+        self.filteredTrackDirectory = ""
         self.acc_and_res_dir_path = ""
-        self.rec_ip_info = {}
-        self.elastic_pbarp_integrated_cross_secion_in_mb = None
-        self.use_m_cut = True
-        self.use_xy_cut = True
-        self.use_ip_determination = True
-        self.Lumi = True
-        if experiment_type == ExperimentType.LUMI:
+        self.elastic_pbarp_integrated_cross_secion_in_mb: float = 0.0
 
-            # * these should be in scenrio at all, they are config parameters!
-            # self.phi_min_in_rad = 0.0
-            # self.phi_max_in_rad = 2 * math.pi
+        if experiment_type == ExperimentType.LUMI:
 
             self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdSimReco.py"
             self.Reco = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdReco.py"
             self.LmdData = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/createLumiFitData.sh"
             self.track_file_pattern = "Lumi_TrksQA_"
         elif experiment_type == ExperimentType.KOALA:
-
-            # * these should be in scenrio at all, they are config parameters!
-            # self.phi_min_in_rad = 0.9 * math.pi
-            # self.phi_max_in_rad = 1.3 * math.pi
 
             self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaSimReco.py"
             self.Reco = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaReco.py"
@@ -60,10 +83,11 @@ class Scenario:
         # don't define default args here, better let fail with None
         self.alignment_parameters: AlignmentParameters = None
 
-        self.state = 1
-        self.last_state = 0
+        self.lumiDetState = LumiDeterminationState.SIMULATE_VERTEX_DATA
+        self.lastLumiDetState = LumiDeterminationState.INIT
 
         # what the hell is this?
-        self.simulation_info_lists = []
+        # self.simulation_info_lists = []
+        self.SimulationTasks: List[SimulationTask] = []
 
         self.is_broken = False

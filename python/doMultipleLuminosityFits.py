@@ -1,14 +1,29 @@
 #!/usr/bin/env python3
+
+"""
+
+This script is a wrapper for runLmdFit.sh and submits it to SLURM. Then why is it so long?
+
+Example call might look like this:
+
+python doMultipleLuminosityFits.py \
+--forced_box_gen_data \
+/lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_1.5GeV/box_theta_2.6900000000000004-13.01mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-500_xy_m_cut_real/no_alignment_correction \
+/lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_1.5GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-100_xy_m_cut_real/no_alignment_correction \
+xy_m_cut_real \
+/home/roklasen/LuminosityFit/fitconfig-fast.json
+"""
+
+
 import argparse
 import glob
 import os
 import re
-
 from pathlib import Path
 
 import lumifit.general as general
 from lumifit.cluster import ClusterJobManager, Job, JobResourceRequest
-from lumifit.experiment import Experiment, ClusterEnvironment
+from lumifit.experiment import ClusterEnvironment, Experiment
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
 
@@ -34,13 +49,9 @@ def getListOfResAccDirectories(path: str) -> None:
             bunch_dirs = glob.glob(path + "/bunches_*/" + tail_dir_pattern)
             if bunch_dirs:
                 for bunch_dir in bunch_dirs:
-                    filelists = glob.glob(
-                        bunch_dir + "/" + box_acc_glob_pattern
-                    )
+                    filelists = glob.glob(bunch_dir + "/" + box_acc_glob_pattern)
                     if filelists:
-                        filelists = glob.glob(
-                            bunch_dir + "/" + box_res_glob_pattern
-                        )
+                        filelists = glob.glob(bunch_dir + "/" + box_res_glob_pattern)
                         if filelists:
                             resAccDirs.append(bunch_dir)
                 return
@@ -55,10 +66,10 @@ def getListOfResAccDirectories(path: str) -> None:
 def getTopResAccDirectory(path: str) -> None:
     if os.path.isdir(path):
         found = False
-        for dir in next(os.walk(path))[1]:
-            if re.search(f"{experiment.recoParams.sim_type_for_resAcc.value}", dir):   # read BOX/DPM string from config
+        for directory in next(os.walk(path))[1]:
+            if re.search(f"{experiment.recoParams.simGenTypeForResAcc.value}", directory):  # read BOX/DPM string from config
                 global top_level_resAcc_directory
-                top_level_resAcc_directory = path + "/" + dir
+                top_level_resAcc_directory = path + "/" + directory
                 found = True
                 break
         if not found:
@@ -67,10 +78,12 @@ def getTopResAccDirectory(path: str) -> None:
 
 # TODO: holy shit, DONT MAKE UP REGEX PATTERN ON THE FLY
 # also, this function will only find the test data if it is called "dpm" something
-#! in case data is from box gen (or FTF) this DOESN'T WORK!
+#! TODO: in case data is from box gen (or FTF) this DOESN'T WORK!
 def findMatchingDirs(resAcc_data_path: str) -> list:
     matching_dir_pairs = []
-    if resAcc_data_path == "":
+    if resAcc_data_path == "" or resAcc_data_path is None:
+        if resAcc_data_path is None:
+            print("\n\n\n GREP OUTPUT DIR: resAcc_data_path is None in line 74 of doMultipleLuminosityFits.py!")
         for dpm_dir in dirs:
             print(dpm_dir)
             match = re.search(
@@ -80,7 +93,7 @@ def findMatchingDirs(resAcc_data_path: str) -> list:
             pattern = (
                 "^"
                 + match.group(1)  # type: ignore
-                + f"{experiment.recoParams.sim_type_for_resAcc.value}_.*?"             # read BOX/DPM string from config
+                + f"{experiment.recoParams.simGenTypeForResAcc.value}_.*?"  # read BOX/DPM string from config
                 + match.group(2)  # type: ignore
                 + ".*"
                 + match.group(3)  # type: ignore
@@ -102,9 +115,7 @@ def findMatchingDirs(resAcc_data_path: str) -> list:
             match = re.search(r"^.*(binning_\d*)/.*$", dpm_dir)
             if match:
                 dir_searcher = general.DirectorySearcher([match.group(1)])
-                dir_searcher.searchListOfDirectories(
-                    resAcc_data_path, box_acc_glob_pattern
-                )
+                dir_searcher.searchListOfDirectories(resAcc_data_path, box_acc_glob_pattern)
                 correct_dirs = dir_searcher.getListOfDirectories()
 
                 if correct_dirs:
@@ -185,9 +196,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # load experiment config
-experiment: Experiment = general.load_params_from_file(
-    args.ExperimentConfigFile, Experiment
-)
+experiment: Experiment = general.load_params_from_file(args.ExperimentConfigFile, Experiment)
 
 
 number_of_threads = args.number_of_threads
@@ -209,9 +218,7 @@ if args.forced_resAcc_gen_data == "":
     print("box top dir: " + top_level_resAcc_directory)
     # getListOfBoxDirectories(top_level_box_directory)
     box_dir_searcher = general.DirectorySearcher(patterns)
-    box_dir_searcher.searchListOfDirectories(
-        top_level_resAcc_directory, box_acc_glob_pattern
-    )
+    box_dir_searcher.searchListOfDirectories(top_level_resAcc_directory, box_acc_glob_pattern)
     resAccDirs = box_dir_searcher.getListOfDirectories()
 
 
@@ -238,18 +245,16 @@ for match in matches:
         array_indices=[1],
     )
 
-    # TODO: handle this case
-    if args.ref_resacc_gen_data != "":
-        job.add_exported_user_variable(
-            "reference_acceptance_path", args.ref_resacc_gen_data
-        )
-
     job.exported_user_variables = {
         "config_url": args.config_url[0],
         "data_path": elastic_data_path,
         "acceptance_resolution_path": acc_res_data_path,
         "number_of_threads": number_of_threads,
     }
+
+    # TODO: handle this case
+    if args.ref_resacc_gen_data != "":
+        job.exported_user_variables["reference_acceptance_path"] = args.ref_resacc_gen_data
 
     joblist.append(job)
 
