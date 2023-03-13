@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import time
 
 from lumifit.alignment import AlignmentParameters
 from lumifit.general import (
@@ -95,7 +96,7 @@ if not check_stage_success(f"{path_mc_data}/Lumi_MC_{start_evt}.root") or force_
 
     elif simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC or simParams.simGeneratorType == SimulationGeneratorType.RESACCPBARP_ELASTIC:
 
-        # cmd = f"{lmd_build_path}/bin/generatePbarPElasticScattering {sim_params.lab_momentum} {sim_params.num_events_per_sample} -l {sim_params.theta_min_in_mrad} -u {sim_params.theta_max_in_mrad} -s {sim_params.random_seed + start_evt} -o {gen_filepath}"
+        # cmd = f"{lmd_build_path}/bin/generatePbarPElasticScattering {simParams.lab_momentum} {simParams.num_events_per_sample} -l {simParams.theta_min_in_mrad} -u {simParams.theta_max_in_mrad} -s {simParams.random_seed + start_evt} -o {gen_filepath}"
 
         # print(f"\ncalling elastic P Pbar generator with:\n")
         # print(cmd)
@@ -121,10 +122,19 @@ if not check_stage_success(f"{path_mc_data}/Lumi_MC_{start_evt}.root") or force_
         os.system(
             f"""root -l -b -q 'runLumiPixel0SimBox.C({simParams.num_events_per_sample}, {start_evt}, "{workpathname}",{verbositylvl},-2212,{simParams.lab_momentum},{numTrks},{simParams.random_seed + start_evt}, 0, , "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)})' > /dev/null 2>&1"""
         )
-    else:
-        os.system(
-            f"""root -l -b -q 'runLumiPixel0SimDPM.C({simParams.num_events_per_sample}, {start_evt}, {simParams.lab_momentum}, "{gen_filepath}", "{workpathname}", {simParams.ip_offset_x}, {simParams.ip_offset_y}, {simParams.ip_offset_z}, {simParams.ip_spread_x}, {simParams.ip_spread_y}, {simParams.ip_spread_z}, {simParams.beam_tilt_x}, {simParams.beam_tilt_y}, {simParams.beam_divergence_x}, {simParams.beam_divergence_y}, "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'"""
-        )
+    elif simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC or simParams.simGeneratorType == SimulationGeneratorType.RESACCPBARP_ELASTIC:
+        if simParams.useRestGas:
+            os.system(f"""root -l -b -q 'runLumiPixel0SimDPMRestGas.C({simParams.num_events_per_sample}, {start_evt}, {simParams.lab_momentum}, "{gen_filepath}", "{workpathname}", {simParams.ip_offset_x}, {simParams.ip_offset_y}, {simParams.ip_offset_z}, {simParams.ip_spread_x}, {simParams.ip_spread_y}, {simParams.ip_spread_z}, {simParams.beam_tilt_x}, {simParams.beam_tilt_y}, {simParams.beam_divergence_x}, {simParams.beam_divergence_y}, "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'""")
+        else:
+            os.system(f"""root -l -b -q 'runLumiPixel0SimDPM.C({simParams.num_events_per_sample}, {start_evt}, {simParams.lab_momentum}, "{gen_filepath}", "{workpathname}", {simParams.ip_offset_x}, {simParams.ip_offset_y}, {simParams.ip_offset_z}, {simParams.ip_spread_x}, {simParams.ip_spread_y}, {simParams.ip_spread_z}, {simParams.beam_tilt_x}, {simParams.beam_tilt_y}, {simParams.beam_divergence_x}, {simParams.beam_divergence_y}, "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'""")
+
+    elif simParams.simGeneratorType == SimulationGeneratorType.BOX or simParams.simGeneratorType == SimulationGeneratorType.RESACCBOX:
+        if simParams.useRestGas:
+            os.system(f"""root -l -b -q 'runLumiPixel0SimBoxRestGas.C({simParams.num_events_per_sample}, {start_evt}, "{workpathname}",{verbositylvl},-2212,{simParams.lab_momentum},{simParams.ip_offset_x}, {simParams.ip_offset_y}, {simParams.ip_offset_z}, {simParams.ip_spread_x}, {simParams.ip_spread_y}, {simParams.ip_spread_z}, {simParams.beam_tilt_x}, {simParams.beam_tilt_y}, {simParams.beam_divergence_x}, {simParams.beam_divergence_y}, {numTrks},{simParams.random_seed + start_evt}, 0, "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)})'""")
+        else:
+            os.system(
+                    f"""root -l -b -q 'runLumiPixel0SimDPM.C({simParams.num_events_per_sample}, {start_evt}, {simParams.lab_momentum}, "{gen_filepath}", "{workpathname}", {simParams.ip_offset_x}, {simParams.ip_offset_y}, {simParams.ip_offset_z}, {simParams.ip_spread_x}, {simParams.ip_spread_y}, {simParams.ip_spread_z}, {simParams.beam_tilt_x}, {simParams.beam_tilt_y}, {simParams.beam_divergence_x}, {simParams.beam_divergence_y}, "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'"""
+                    )
 
 
 # if first stage was successful, copy MC data directly to compute node and don't generate new
@@ -144,7 +154,6 @@ if not check_stage_success(workpathname + f"/Lumi_digi_{start_evt}.root") or for
         os.system(
             f"""root -l -b -q 'runLumiPixel1Digi.C({simParams.num_events_per_sample}, {start_evt}, "{workpathname}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'"""
         )
-
 
 # always copy mc data and params from node to permanent storage (params are needed for all subsequent steps. Also: Params are UPDATED every step, so only the final Params file holds all needed data)
 if not debug:

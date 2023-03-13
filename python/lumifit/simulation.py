@@ -37,6 +37,7 @@ class SimulationParameters:
     phi_max_in_rad: float = attr.ib(default=2 * math.pi)
     neglect_recoil_momentum: bool = attr.ib(default=False)
     random_seed: int = attr.ib(factory=lambda: random.randint(10, 9999))
+    useRestGas: bool = attr.ib(default=False)
 
     ip_offset_x: float = attr.ib(default=0.0)  # in cm
     ip_offset_y: float = attr.ib(default=0.0)  # in cm
@@ -57,6 +58,8 @@ def generateDirectory(
 ) -> str:
     if output_dir == "" or output_dir is None:
         dirname = f"plab_{sim_params.lab_momentum:.2f}GeV"
+        if sim_params.useRestGas:
+            dirname += "_RestGas"
         gen_part = f"{sim_params.simGeneratorType.value}_theta_" + f"{sim_params.theta_min_in_mrad}-" + f"{sim_params.theta_max_in_mrad}mrad"
         if not sim_params.neglect_recoil_momentum:
             gen_part += "_recoil_corrected"
@@ -159,7 +162,7 @@ def create_simulation_and_reconstruction_job(
     resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
     resource_request.number_of_nodes = 1
     resource_request.processors_per_node = 1
-    resource_request.memory_in_mb = 3500
+    resource_request.memory_in_mb = 10000
     resource_request.node_scratch_filesize_in_mb = 0
 
     if use_devel_queue:
