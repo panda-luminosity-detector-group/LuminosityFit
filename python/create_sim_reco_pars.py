@@ -43,6 +43,7 @@ def genExperimentConfig(
     simpars.theta_max_in_mrad = theta_max
     simpars.phi_min_in_rad = phi_min
     simpars.phi_max_in_rad = phi_max
+    simpars.useRestGas = False
 
     recopars.lab_momentum = momentum
     recopars.num_samples = 100
