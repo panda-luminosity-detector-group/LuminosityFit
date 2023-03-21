@@ -59,12 +59,11 @@ If the needed files aren't there (but the jobs don't run anymore either), there 
 
 """
 
-
+# TODO: add jobID or jobArrayID check here
 def wasSimulationSuccessful(
     thisExperiment: Experiment,
     directory: str,
     glob_pattern: str,
-    # job_handler: JobHandler,  # there is a global job_handler, but this needs fixing anyway
     min_filesize_in_bytes: int = 10000,
     is_bunches: bool = False,
 ) -> int:
@@ -286,7 +285,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                         thisScenario.track_file_pattern + "*.root",
                     )
 
-                # oh boi that's bound to be trouble with IntEnums
+                # oh boi that's bound to be trouble
                 elif task.lastState < task.simState:
 
                     # * reco params must be adjusted if the res/acc sample had more jobs or samples that the real (or dpm) data
@@ -312,30 +311,37 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     # Simulation is done, so update the last_state
                     task.lastState = SimulationState.START_SIM
 
-            # elif "v" in task.simType:
             elif task.simDataType == SimulationDataType.VERTEX:
 
-                # TODO: check if the sim data is already there, if yes return 0, else start sim
-                status_code = 0
+                # check if the sim data is already there
+                mcDataDir = thisExperiment.baseDataOutputDir / "mc_data"
+                status_code = wasSimulationSuccessful(thisExperiment, str(mcDataDir), "Lumi_MC_*.root")
 
-                # # vertex Data must always be created without any cuts first
-                # tempRecoPars = thisExperiment.recoParams
-                # tempRecoPars.use_xy_cut = False
-                # tempRecoPars.use_m_cut = False
+                # so this may seem odd, but since there aren't any jobs running yet and theres still
+                # no files, the return code will actually be -1. better job supervision fixes that,
+                # but thats for later
+                if status_code < 0:
 
-                # # TODO: misalignment is important here. the vertex data can have misalignment (because it's real data)
-                # # but it has no alignment yet. that is only for the second reconstruction
-                # tempAlignPars = thisExperiment.alignParams
-                # tempAlignPars.alignment_matrices_path = None
+                    # vertex data must always be created without any cuts first
+                    tempRecoPars = thisExperiment.recoParams
+                    tempRecoPars.use_xy_cut = False
+                    tempRecoPars.use_m_cut = False
 
-                # job, _ = create_simulation_and_reconstruction_job(
-                #     thisExperiment.simParams,
-                #     tempAlignPars,
-                #     tempRecoPars,
-                #     use_devel_queue=args.use_devel_queue,
-                #     application_command=thisScenario.Sim,
-                # )
-                # job_manager.append(job)
+                    # misalignment is important here. the vertex data can have misalignment (because it's real data)
+                    # but it has no alignment yet. that is only for the second reconstruction
+                    tempAlignPars = thisExperiment.alignParams
+                    tempAlignPars.alignment_matrices_path = None
+
+                    job, _ = create_simulation_and_reconstruction_job(
+                        thisExperiment.simParams,
+                        tempAlignPars,
+                        tempRecoPars,
+                        use_devel_queue=args.use_devel_queue,
+                        application_command=thisScenario.Sim,
+                    )
+                    job_manager.append(job)
+
+                # cases 0 and 1 are handled below
 
             else:
                 raise ValueError(f"This tasks simType is {task.simDataType}, which is invalid!")
