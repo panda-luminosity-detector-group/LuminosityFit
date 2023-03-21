@@ -34,7 +34,9 @@
 	"streetsidesoftware.code-spell-checker",
 	"oderwat.indent-rainbow",
 	"ms-python.black-formatter",
-	"GitHub.vscode-pull-request-github"
+	"GitHub.vscode-pull-request-github",
+	"ms-python.isort",
+	"Gruntfuggly.todo-tree"
 ],
   "runArgs": ["--network=host"]
 }

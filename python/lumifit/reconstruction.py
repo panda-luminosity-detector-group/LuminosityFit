@@ -87,12 +87,12 @@ def generateRecoDirSuffix(reco_params: ReconstructionParameters, align_params: A
 def create_reconstruction_job(
     reco_params: ReconstructionParameters,
     align_params: AlignmentParameters,
-    dirname: str,
+    dirname: Path,
     application_command: str,
     force_level: int = 0,
     debug: bool = False,
     use_devel_queue: bool = False,
-) -> Tuple[Job, str]:
+) -> Tuple[Job, Path]:
     print("preparing reconstruction in index range " + f"{reco_params.low_index} - " + f"{reco_params.low_index + reco_params.num_samples - 1}")
 
     dirname_filter_suffix = generateRecoDirSuffix(reco_params, align_params)
@@ -106,19 +106,14 @@ def create_reconstruction_job(
     print(f"dir name for this create_reconstruction_job is {dirname}")
 
     pathname_base = dirname
-    path_mc_data = pathname_base + "/mc_data"
-    dirname_full = dirname + "/" + dirname_filter_suffix
+    path_mc_data = pathname_base / "mc_data"
+    dirname_full = dirname / dirname_filter_suffix
     pathname_full = dirname_full
 
-    print("using output folder structure: " + pathname_full)
+    print("using output folder structure: {pathname_full}")
 
-    try:
-        os.makedirs(pathname_full)
-        os.makedirs(pathname_full + "/Pairs")
-        os.makedirs(path_mc_data)
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            print("error: thought dir does not exists but it does...")
+    pathname_full.mkdir(exist_ok=True, parents=True)
+    Path(pathname_full / "/Pairs").mkdir(exist_ok=True, parents=True)
 
     # These must be written again so that runLmdSimReco and runLmdReco have access to them
     write_params_to_file(cattrs.unstructure(reco_params), pathname_full, "reco_params.config")
@@ -137,7 +132,7 @@ def create_reconstruction_job(
         resource_request,
         application_url=application_command,
         name="reco_" + reco_params.simGenTypeForResAcc.value,
-        logfile_url=pathname_full + "/reco-%a.log",
+        logfile_url=str(pathname_full / "reco-%a.log"),
         array_indices=list(range(low_index_used, low_index_used + num_samples)),
     )
 

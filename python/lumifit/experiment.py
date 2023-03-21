@@ -33,18 +33,14 @@ class Experiment:
     recoParams: ReconstructionParameters
     alignParams: AlignmentParameters
     fitConfigPath: Path = field(default=Path("fitconfig-fast.json"))
-    baseDataOutputDir: Union[Path, None] = field(default=None)
-    LMDdirectory: Union[Path, None] = field(default=None)
+    baseDataOutputDir: Path = field(default=Path())
+    LMDdirectory: Path = field(default=Path())
 
     def __attrs_post_init__(self) -> None:
         self.updateBaseDataDirectory()
 
     def updateBaseDataDirectory(self) -> None:
         if self.LMDdirectory is not None:
-            self.baseDataOutputDir = self.LMDdirectory / Path(
-                generateDirectory(self.simParams, self.alignParams)
-            )
+            self.baseDataOutputDir = self.LMDdirectory / generateDirectory(self.simParams, self.alignParams)
         else:
-            raise AttributeError(
-                "Cannot update internal path! Please set LMD software directory first."
-            )
+            raise AttributeError("Cannot update internal path! Please set LMD software directory first.")

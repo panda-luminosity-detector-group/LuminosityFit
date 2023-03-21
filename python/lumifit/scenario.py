@@ -6,6 +6,7 @@ or read from file!
 """
 
 from enum import Enum, IntEnum
+from pathlib import Path
 from typing import List
 
 import attr
@@ -40,8 +41,7 @@ class SimulationDataType(Enum):
 
 @attr.s
 class SimulationTask:
-    dirPath: str = attr.ib(default="")
-    # simType: str = attr.ib(default="")
+    dirPath: Path = attr.ib(default=Path())
     simDataType: SimulationDataType = attr.ib(default=SimulationDataType.NONE)
     simState: SimulationState = attr.ib(default=SimulationState.INIT)
     lastState: SimulationState = attr.ib(default=SimulationState.INIT)
@@ -54,15 +54,15 @@ class Scenario:
 
     def __init__(
         self,
-        dir_path_: str,
+        dir_path_: Path,
         experiment_type: ExperimentType,
-        lmdScriptPath: str,
+        lmdScriptPath: Path,
     ):
         self.momentum = 0.0
 
         self.trackDirectory = dir_path_
-        self.filteredTrackDirectory = ""
-        self.acc_and_res_dir_path = ""
+        self.filteredTrackDirectory: Path = Path()
+        self.acc_and_res_dir_path: Path = Path()
         self.elastic_pbarp_integrated_cross_secion_in_mb: float = 0.0
 
         if experiment_type == ExperimentType.LUMI:

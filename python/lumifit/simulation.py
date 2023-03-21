@@ -5,7 +5,7 @@ import os
 import random
 import subprocess
 from pathlib import Path
-from typing import Any, Tuple, Union
+from typing import Tuple, Union
 
 import attr
 import cattrs
@@ -53,57 +53,54 @@ class SimulationParameters:
 def generateDirectory(
     sim_params: SimulationParameters,
     align_params: AlignmentParameters,
-    output_dir: str = "",
-) -> str:
-    if output_dir == "" or output_dir is None:
-        dirname = f"plab_{sim_params.lab_momentum:.2f}GeV"
+    output_dir: Path = Path(),
+) -> Path:
+    if output_dir == Path():
+        dirname = Path(f"plab_{sim_params.lab_momentum:.2f}GeV")
         gen_part = f"{sim_params.simGeneratorType.value}_theta_" + f"{sim_params.theta_min_in_mrad}-" + f"{sim_params.theta_max_in_mrad}mrad"
         if not sim_params.neglect_recoil_momentum:
             gen_part += "_recoil_corrected"
 
-        dirname += "/" + gen_part
+        dirname /= Path(gen_part)
 
-        dirname += (
+        dirname /= Path(
             "/ip_offset_XYZDXDYDZ_"
             + f"{sim_params.ip_offset_x}_{sim_params.ip_offset_y}_"
             + f"{sim_params.ip_offset_z}_{sim_params.ip_spread_x}_"
             + f"{sim_params.ip_spread_y}_{sim_params.ip_spread_z}"
         )
 
-        dirname += (
-            "/beam_grad_XYDXDY_"
-            + f"{sim_params.beam_tilt_x}_{sim_params.beam_tilt_y}_"
-            + f"{sim_params.beam_divergence_x}_"
-            + f"{sim_params.beam_divergence_y}"
+        dirname /= Path(
+            "beam_grad_XYDXDY_" + f"{sim_params.beam_tilt_x}_{sim_params.beam_tilt_y}_" + f"{sim_params.beam_divergence_x}_" + f"{sim_params.beam_divergence_y}"
         )
 
         if align_params.use_point_transform_misalignment or align_params.misalignment_matrices_path is None:
-            dirname += "/no_geo_misalignment"
+            dirname /= "/no_geo_misalignment"
         else:
-            dirname += "/geo_misalignment" + str(os.path.splitext(os.path.basename(align_params.misalignment_matrices_path))[0])
+            dirname /= "/geo_misalignment" + str(os.path.splitext(os.path.basename(align_params.misalignment_matrices_path))[0])
 
-        dirname += "/" + str(sim_params.num_events_per_sample)
-    else:
-        dirname = output_dir
+        dirname /= str(sim_params.num_events_per_sample)
 
-    return dirname
+        return dirname
+
+    return output_dir
 
 
 def create_simulation_and_reconstruction_job(
     sim_params: SimulationParameters,
     align_params: AlignmentParameters,
     reco_params: ReconstructionParameters,
-    output_dir="",
-    application_command="",
-    force_level=0,
+    output_dir: Path = Path(),
+    application_command: str = "",
+    force_level: int = 0,
     debug=False,
     use_devel_queue=False,
-) -> Tuple[Job, str]:
+) -> Tuple[Job, Path]:
     print("preparing simulations in index range " + f"{reco_params.low_index} - " + f"{reco_params.low_index + reco_params.num_samples - 1}")
 
     if application_command == "":
         print(f"ERROR! no application command given!")
-        return (None, None)
+        return (None, Path())
 
     dirname = generateDirectory(sim_params, align_params, output_dir)
     dirname_filter_suffix = generateRecoDirSuffix(reco_params, align_params)
@@ -114,24 +111,22 @@ def create_simulation_and_reconstruction_job(
         print("Warning: number of samples in debug mode is limited to 1! " "Setting to 1!")
         num_samples = 1
 
-    lmdfit_data_dir = os.getenv("LMDFIT_DATA_DIR")
-    if lmdfit_data_dir is None:
+    try:
+        lmdfit_data_dir = Path(os.getenv("LMDFIT_DATA_DIR"))
+    except TypeError:
         raise ValueError("LMDFIT_DATA_DIR environment variable is not set!")
 
-    pathname_base = lmdfit_data_dir + "/" + dirname
-    path_mc_data = pathname_base + "/mc_data"
-    dirname_full = dirname + "/" + dirname_filter_suffix
-    pathname_full = lmdfit_data_dir + "/" + dirname_full
+    pathname_base = lmdfit_data_dir / dirname
+    path_mc_data = pathname_base / "mc_data"
+    dirname_full = dirname / dirname_filter_suffix
+    pathname_full = lmdfit_data_dir / dirname_full
     # this is stored in lmdEnvVar and read with dotenv
     macropath_full = os.environ["LMDFIT_MACROPATH"]
 
-    print("using output folder structure: " + pathname_full)
+    print(f"using output folder structure: {pathname_full}")
 
-    try:
-        os.makedirs(pathname_full)
-        os.makedirs(path_mc_data)
-    except OSError as exception:
-        print(exception)
+    pathname_full.mkdir(exist_ok=True, parents=True)
+    path_mc_data.mkdir(exist_ok=True, parents=True)
 
     # generate simulation config parameter file
     if sim_params.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC:
@@ -169,7 +164,7 @@ def create_simulation_and_reconstruction_job(
         resource_request,
         application_url=application_command,
         name="simreco_" + sim_params.simGeneratorType.value,
-        logfile_url=pathname_full + "/simreco-%a.log",
+        logfile_url=str(pathname_full / "simreco-%a.log"),
         array_indices=list(range(low_index_used, low_index_used + num_samples)),
     )
 
