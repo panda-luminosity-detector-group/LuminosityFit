@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Simple program that runs commands given as a json-fomratted object
+Simple program that runs commands given as a json-formatted object
 in a named pipe and returns their outputs and return code in the same way.
 
-the structure of the order and return object is governd by the SlurmOrder Class.
+the structure of the order and return object is governed by the SlurmOrder Class.
 """
 
 import datetime
