@@ -33,7 +33,8 @@
 	"eamodio.gitlens",
 	"streetsidesoftware.code-spell-checker",
 	"oderwat.indent-rainbow",
-	"ms-python.black-formatter"
+	"ms-python.black-formatter",
+	"GitHub.vscode-pull-request-github"
 ],
   "runArgs": ["--network=host"]
 }
