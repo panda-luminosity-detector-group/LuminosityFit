@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import os
-import subprocess
-import lumifit.general as general
 import argparse
+import subprocess
+
+import lumifit.general as general
 
 
 class DataTypeInfo:
@@ -39,45 +39,23 @@ parser.add_argument(
     default=".*",
     help="",
 )
-parser.add_argument(
-    "--num_samples", metavar="num_samples", type=int, default=1, help=""
-)
-parser.add_argument(
-    "--sample_size", metavar="sample_size", type=int, default=0, help=""
-)
+parser.add_argument("--num_samples", metavar="num_samples", type=int, default=1, help="")
+parser.add_argument("--sample_size", metavar="sample_size", type=int, default=0, help="")
 
 args = parser.parse_args()
 
 data_type_list = []
 
 if args.type[0].find("a") >= 0:
-    data_type_list.append(
-        DataTypeInfo("a", " -f lmd_data_\\d*.root", ["lmd_data_", ".root"])
-    )
+    data_type_list.append(DataTypeInfo("a", " -f lmd_data_\\d*.root", ["lmd_data_", ".root"]))
 if args.type[0].find("e") >= 0:
-    data_type_list.append(
-        DataTypeInfo(
-            "e", " -f lmd_acc_data_\\d*.root", ["lmd_acc_data_", ".root"]
-        )
-    )
+    data_type_list.append(DataTypeInfo("e", " -f lmd_acc_data_\\d*.root", ["lmd_acc_data_", ".root"]))
 if args.type[0].find("r") >= 0:
-    data_type_list.append(
-        DataTypeInfo(
-            "r", " -f lmd_res_data_\\d*.root", ["lmd_res_data_", ".root"]
-        )
-    )
+    data_type_list.append(DataTypeInfo("r", " -f lmd_res_data_\\d*.root", ["lmd_res_data_", ".root"]))
 if args.type[0].find("h") >= 0:
-    data_type_list.append(
-        DataTypeInfo(
-            "h", " -f lmd_res_data_\\d*.root", ["lmd_res_data_", ".root"]
-        )
-    )
+    data_type_list.append(DataTypeInfo("h", " -f lmd_res_data_\\d*.root", ["lmd_res_data_", ".root"]))
 if args.type[0].find("v") >= 0:
-    data_type_list.append(
-        DataTypeInfo(
-            "v", " -f lmd_vertex_data_\\d*.root", ["lmd_vertex_data_", ".root"]
-        )
-    )
+    data_type_list.append(DataTypeInfo("v", " -f lmd_vertex_data_\\d*.root", ["lmd_vertex_data_", ".root"]))
 
 
 patterns = []
@@ -87,23 +65,10 @@ patterns.append(args.dir_pattern)
 dir_searcher = general.DirectorySearcher(patterns, "merge_data")
 
 for data_type_info in data_type_list:
-    dir_searcher.searchListOfDirectories(
-        args.dirname[0], data_type_info.glob_pattern
-    )
+    dir_searcher.searchListOfDirectories(args.dirname[0], data_type_info.glob_pattern)
     dirs = dir_searcher.getListOfDirectories()
-    for dir in dirs:
-        print("starting merge for " + dir)
-        bashcommand = default = (
-            os.getenv("LMDFIT_BUILD_PATH")
-            + "/bin/mergeLmdData -p "
-            + dir
-            + " -t "
-            + data_type_info.data_type
-            + " -n "
-            + str(args.num_samples)
-            + " -s "
-            + str(args.sample_size)
-            + data_type_info.pattern
-        )
+    for directory in dirs:
+        print(f"starting merge for {directory}")
+        bashcommand = f"{general.envPath('LMDFIT_BUILD_PATH')}/bin/mergeLmdData -p {directory} -t {data_type_info.data_type} -n {args.num_samples} -s {args.sample_size}{data_type_info.pattern}"
         print(bashcommand)
         returnvalue = subprocess.call(bashcommand.split())

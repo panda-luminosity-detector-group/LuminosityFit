@@ -5,16 +5,14 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path="../lmdEnvFile.env", verbose=True)
 
 import argparse
-import os
 from pathlib import Path
-from typing import Union
 
 import cattrs
 from lumifit.alignment import AlignmentParameters
 from lumifit.experiment import ClusterEnvironment, Experiment, ExperimentType
-from lumifit.general import write_params_to_file
+from lumifit.general import envPath, write_params_to_file
 from lumifit.reconstruction import ReconstructionParameters
-from lumifit.simulation import SimulationParameters
+from lumifit.simulation import SimulationParameters, generateDirectory
 from lumifit.simulationGeneratorTypes import SimulationGeneratorType
 
 
@@ -51,12 +49,7 @@ def genExperimentConfig(
     recopars.num_events_per_resAcc_sample = 100000
     recopars.simGenTypeForResAcc = simGenTypeForResAcc
 
-    lmdfit_data_dir: Union[None, Path, str] = os.getenv("LMDFIT_DATA_DIR")
-
-    if lmdfit_data_dir is not None:
-        lmdfit_data_dir = Path(lmdfit_data_dir)
-    else:
-        raise ValueError("Please set $LMDFIT_DATA_DIR!")
+    lmdfit_data_dir: Path = envPath("LMDFIT_DATA_DIR")
 
     experiment = Experiment(
         experimentType,
@@ -64,6 +57,7 @@ def genExperimentConfig(
         simpars,
         recopars,
         alignpars,
+        baseDataOutputDir=lmdfit_data_dir / generateDirectory(simpars, alignpars),
         LMDdirectory=lmdfit_data_dir,
     )
 
@@ -95,7 +89,7 @@ def restrictPhiConfigs() -> None:
 
             write_params_to_file(
                 cattrs.unstructure(experiment),
-                f"./{confPathPanda}/restrictPhi/",
+                Path(f"./{confPathPanda}/restrictPhi/"),
                 f"{mom}-{phiMatNames[i]}.config",
                 overwrite=True,
             )
@@ -127,7 +121,7 @@ def genConfigs() -> None:
 
         write_params_to_file(
             cattrs.unstructure(experiment),
-            ".",
+            Path("."),
             f"{confPathPanda}/{mom}.config",
             overwrite=True,
         )
@@ -153,7 +147,7 @@ def genConfigs() -> None:
         # update internal paths
         experiment.updateBaseDataDirectory()
 
-        write_params_to_file(cattrs.unstructure(experiment), ".", f"{confPathKoala}/{mom}.config")
+        write_params_to_file(cattrs.unstructure(experiment), Path("."), f"{confPathKoala}/{mom}.config")
 
 
 parser = argparse.ArgumentParser()

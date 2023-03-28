@@ -8,12 +8,25 @@ from argparse import (
 )
 from enum import Enum
 from pathlib import Path
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
 
 import cattrs
 
 cattrs.register_structure_hook(Path, lambda d, t: Path(d))
 cattrs.register_unstructure_hook(Path, lambda d: str(d))
+
+
+def envPath(env_var: str) -> Path:
+    """
+    returns a Path object from an environment variable, ensures that the variable is set.
+    raises a ValueError if the variable is not set.
+    """
+    env_var_value = os.environ.get(env_var)
+
+    if env_var_value:
+        return Path(env_var_value)
+
+    raise ValueError(f'Environment variable "{env_var}" not set!')
 
 
 def toCbool(input: bool) -> str:

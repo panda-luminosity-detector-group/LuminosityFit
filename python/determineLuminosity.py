@@ -398,7 +398,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append(thisScenario.LmdData)
                     bashArgs.append(f"{thisScenario.momentum:.2f}")
                     bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    bashArgs.append(task.dirPath)
+                    bashArgs.append(str(task.dirPath))
                     bashArgs.append("../dataconfig_xy.json")
 
                     if el_cs:
@@ -414,7 +414,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append(thisScenario.LmdData)
                     bashArgs.append(f"{thisScenario.momentum:.2f}")
                     bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    bashArgs.append(task.dirPath)
+                    bashArgs.append(str(task.dirPath))
                     bashArgs.append("../dataconfig_xy.json")
 
                 print(bashArgs)
@@ -461,7 +461,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append("--num_samples")
                     bashArgs.append(str(bootstrapped_num_samples))
                     bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    bashArgs.append(task.dirPath)
+                    bashArgs.append(str(task.dirPath))
 
                 else:
                     bashArgs.append("python")
@@ -469,7 +469,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     bashArgs.append("--dir_pattern")
                     bashArgs.append(data_keywords[0])
                     bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    bashArgs.append(task.dirPath)
+                    bashArgs.append(str(task.dirPath))
 
                 print("working directory:")
                 print(f"{os.getcwd()}")
@@ -608,7 +608,7 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
 
         cut_keyword = generateCutKeyword(thisExperiment.recoParams)
 
-        bashcommand = f"python doMultipleLuminosityFits.py --forced_resAcc_gen_data {thisScenario.acc_and_res_dir_path} -e {args.ExperimentConfigFile} {thisScenario.filteredTrackDirectory} {cut_keyword} {lmd_fit_path}/{thisExperiment.fitConfigPath}"
+        bashcommand = f"python doMultipleLuminosityFits.py --forced_resAcc_gen_data {thisScenario.acc_and_res_dir_path} -e {args.ExperimentConfigFile} {thisScenario.filteredTrackDirectory} {cut_keyword} {lmd_fit_script_path}/{thisExperiment.fitConfigPath}"
         print(f"Bash command is:\n{bashcommand}")
         _ = subprocess.call(bashcommand.split())
 
@@ -656,12 +656,9 @@ args = parser.parse_args()
 loadedExperimentFromConfig: Experiment = general.load_params_from_file(args.ExperimentConfigFile, Experiment)
 
 # read environ settings
-try:
-    lmd_fit_script_path = Path(os.environ["LMDFIT_SCRIPTPATH"])
-    lmd_fit_path = Path(os.path.dirname(lmd_fit_script_path))
-    lmd_fit_bin_path = Path(os.environ["LMDFIT_BUILD_PATH"] + "/bin")
-except TypeError:
-    raise ValueError("Error! Environment variables are not set.")
+lmd_fit_script_path = general.envPath("LMDFIT_SCRIPTPATH")
+# lmd_fit_path = Path(os.path.dirname(lmd_fit_script_path))
+lmd_fit_bin_path = general.envPath("LMDFIT_BUILD_PATH") / "bin"
 
 # make scenario config
 thisScenario = Scenario(
@@ -689,10 +686,11 @@ print(f"\n\nINFO: found these dirs:\n{dirs}\n\n")
 if len(dirs) > 1:
     raise ValueError(f"found {len(dirs)} directory candidates but it should be only one. something is wrong!")
 
-if len(dirs) < 1:
+elif len(dirs) < 1:
     print("No dirs found, that means vertex data wasn't generated (or reconstructed) yet.")
     # don't change thisScenario's trackDirectory, it was set during construction
     thisScenario.trackDirectory = loadedExperimentFromConfig.baseDataOutputDir
+    print(loadedExperimentFromConfig)
 
 else:
     # path has changed now for the newly found dir

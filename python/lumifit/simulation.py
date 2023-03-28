@@ -5,7 +5,7 @@ import os
 import random
 import subprocess
 from pathlib import Path
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 import attr
 import cattrs
@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 
 from .alignment import AlignmentParameters
 from .cluster import Job, JobResourceRequest, make_test_job_resource_request
-from .general import write_params_to_file
+from .general import envPath, write_params_to_file
 from .reconstruction import ReconstructionParameters, generateRecoDirSuffix
 from .simulationGeneratorTypes import SimulationGeneratorType
 
@@ -53,9 +53,9 @@ class SimulationParameters:
 def generateDirectory(
     sim_params: SimulationParameters,
     align_params: AlignmentParameters,
-    output_dir: Path = Path(),
+    output_dir: Optional[Path] = None,
 ) -> Path:
-    if output_dir == Path():
+    if output_dir is None:
         dirname = Path(f"plab_{sim_params.lab_momentum:.2f}GeV")
         gen_part = f"{sim_params.simGeneratorType.value}_theta_" + f"{sim_params.theta_min_in_mrad}-" + f"{sim_params.theta_max_in_mrad}mrad"
         if not sim_params.neglect_recoil_momentum:
@@ -90,17 +90,16 @@ def create_simulation_and_reconstruction_job(
     sim_params: SimulationParameters,
     align_params: AlignmentParameters,
     reco_params: ReconstructionParameters,
-    output_dir: Path = Path(),
+    output_dir: Optional[Path] = None,
     application_command: str = "",
     force_level: int = 0,
-    debug=False,
-    use_devel_queue=False,
+    debug: bool = False,
+    use_devel_queue: bool = False,
 ) -> Tuple[Job, Path]:
     print("preparing simulations in index range " + f"{reco_params.low_index} - " + f"{reco_params.low_index + reco_params.num_samples - 1}")
 
     if application_command == "":
-        print(f"ERROR! no application command given!")
-        return (None, Path())
+        raise RuntimeError(f"ERROR! no application command given!")
 
     dirname = generateDirectory(sim_params, align_params, output_dir)
     dirname_filter_suffix = generateRecoDirSuffix(reco_params, align_params)
@@ -111,17 +110,14 @@ def create_simulation_and_reconstruction_job(
         print("Warning: number of samples in debug mode is limited to 1! " "Setting to 1!")
         num_samples = 1
 
-    try:
-        lmdfit_data_dir = Path(os.getenv("LMDFIT_DATA_DIR"))
-    except TypeError:
-        raise ValueError("LMDFIT_DATA_DIR environment variable is not set!")
+    lmdfit_data_dir = envPath("LMDFIT_DATA_DIR")
 
     pathname_base = lmdfit_data_dir / dirname
     path_mc_data = pathname_base / "mc_data"
     dirname_full = dirname / dirname_filter_suffix
     pathname_full = lmdfit_data_dir / dirname_full
     # this is stored in lmdEnvVar and read with dotenv
-    macropath_full = os.environ["LMDFIT_MACROPATH"]
+    macropath_full = envPath("LMDFIT_MACROPATH")
 
     print(f"using output folder structure: {pathname_full}")
 
@@ -130,9 +126,8 @@ def create_simulation_and_reconstruction_job(
 
     # generate simulation config parameter file
     if sim_params.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC:
-        lmdfit_build_dir = os.getenv("LMDFIT_BUILD_PATH")
-        if lmdfit_build_dir is None:
-            raise ValueError("LMDFIT_BUILD_PATH environment variable is not set!")
+        lmdfit_build_dir = envPath("LMDFIT_BUILD_PATH")
+
         # determine the elastic cross section in the theta range
         bashcommand = (
             f"{lmdfit_build_dir}/bin/generatePbarPElasticScattering "

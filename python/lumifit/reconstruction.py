@@ -64,12 +64,12 @@ def generateCutKeyword(reco_params: ReconstructionParameters) -> str:
 def generateAlignpathKeyword(align_params: AlignmentParameters) -> str:
     alignpathKeyword = ""
     if align_params.use_point_transform_misalignment:
-        if align_params.misalignment_matrices_path is None:
+        if not align_params.misalignment_matrices_path:
             alignpathKeyword += "_no_data_misalignment"
         else:
-            alignpathKeyword += "_" + str(os.path.splitext(os.path.basename(align_params.misalignment_matrices_path))[0])
+            alignpathKeyword += "_" + align_params.misalignment_matrices_path.stem
     if align_params.alignment_matrices_path:
-        alignpathKeyword += "/aligned-" + str(os.path.splitext(os.path.basename(align_params.alignment_matrices_path))[0])
+        alignpathKeyword += "/aligned-" + align_params.alignment_matrices_path.stem
     else:
         alignpathKeyword += "/no_alignment_correction"
     return alignpathKeyword

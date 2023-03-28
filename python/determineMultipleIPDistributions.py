@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
-import os
-import subprocess
-import lumifit.general as general
-
 import argparse
+import subprocess
+
+from lumifit.general import DirectorySearcher, envPath
 
 parser = argparse.ArgumentParser(
     description="Script for going through whole directory trees and looking for bunches directories with filelists in them creating lmd data objects.",
@@ -37,21 +36,13 @@ args = parser.parse_args()
 
 patterns = []
 patterns.append(args.dir_pattern[0])
-dir_searcher = general.DirectorySearcher(patterns)
+dir_searcher = DirectorySearcher(patterns)
 
 print("searching for directories...")
-dir_searcher.searchListOfDirectories(
-    args.dirname[0], ["lmd_vertex_data_", "of1.root"]
-)
+dir_searcher.searchListOfDirectories(args.dirname[0], ["lmd_vertex_data_", "of1.root"])
 dirs = dir_searcher.getListOfDirectories()
 
 print(dirs)
-for dir in dirs:
-    bashcommand = (
-        os.getenv("LMDFIT_BUILD_PATH")
-        + "/bin/determineBeamOffset -m 4 -p "
-        + dir
-        + " -c "
-        + args.config_url[0]
-    )
+for directory in dirs:
+    bashcommand = f"{envPath('LMDFIT_BUILD_PATH')}/bin/determineBeamOffset -m 4 -p {directory} -c {args.config_url[0]}"
     returnvalue = subprocess.call(bashcommand.split())

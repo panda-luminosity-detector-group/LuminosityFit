@@ -55,9 +55,7 @@ parser.add_argument(
     default="bunches*",
     help="",
 )
-parser.add_argument(
-    "--force", action="store_true", help="number of events to use"
-)
+parser.add_argument("--force", action="store_true", help="number of events to use")
 parser.add_argument(
     "--num_events",
     metavar="num_events",
@@ -143,17 +141,21 @@ for bins in range(
             if "bins" in subsubconfig:
                 subsubconfig["bins"] = bins
 
-    for dir in dirs:
-        path = dir + "/binning_" + str(bins)
-        print("saving config to", path)
+    for directory in dirs:
+        path = directory / f"binning_{bins}"
+        print(f"saving config to {path}")
+
         try:
-            os.makedirs(path)
+            path.mkdir(exist_ok=True, parents=True)
         except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                print("error: thought dir does not exists but it does...")
-        if os.path.isfile(path + "/dataconfig.json"):
-            os.remove(path + "/dataconfig.json")
-        config_modifier.writeConfigToPath(config, path + "/dataconfig.json")
+            print("error: thought dir does not exist, but it does...")
+
+        dataconfig_file = path / "dataconfig.json"
+
+        if dataconfig_file.is_file():
+            dataconfig_file.unlink()
+
+        config_modifier.writeConfigToPath(config, str(path) + "/dataconfig.json")
         config_paths.append(path)
 
 # TODO: read from scenario config!
@@ -184,7 +186,7 @@ for config_path in config_paths:
         resource_request,
         jobCommand,
         "createFitData",
-        config_path + "/createFitData-%a.log",
+        str(config_path) + "/createFitData-%a.log",
         array_indices=list(range(1, num_filelists + 1)),
     )
     job.exported_user_variables["numEv"] = args.num_events
@@ -192,13 +194,9 @@ for config_path in config_paths:
     job.exported_user_variables["input_path"] = input_path
     job.exported_user_variables["filelist_path"] = filelist_path
     job.exported_user_variables["output_path"] = config_path
-    job.exported_user_variables["config_path"] = (
-        config_path + "/dataconfig.json"
-    )
+    job.exported_user_variables["config_path"] = str(config_path) + "/dataconfig.json"
     job.exported_user_variables["type"] = args.type[0]
-    job.exported_user_variables[
-        "elastic_cross_section"
-    ] = args.elastic_cross_section
+    job.exported_user_variables["elastic_cross_section"] = args.elastic_cross_section
 
     job_manager.append(job)
 

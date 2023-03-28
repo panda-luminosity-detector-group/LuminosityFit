@@ -2,7 +2,6 @@
 
 from enum import Enum
 from pathlib import Path
-from typing import Union
 
 from attrs import define, field
 
@@ -32,15 +31,9 @@ class Experiment:
     simParams: SimulationParameters
     recoParams: ReconstructionParameters
     alignParams: AlignmentParameters
+    baseDataOutputDir: Path
+    LMDdirectory: Path
     fitConfigPath: Path = field(default=Path("fitconfig-fast.json"))
-    baseDataOutputDir: Path = field(default=Path())
-    LMDdirectory: Path = field(default=Path())
-
-    def __attrs_post_init__(self) -> None:
-        self.updateBaseDataDirectory()
 
     def updateBaseDataDirectory(self) -> None:
-        if self.LMDdirectory is not None:
-            self.baseDataOutputDir = self.LMDdirectory / generateDirectory(self.simParams, self.alignParams)
-        else:
-            raise AttributeError("Cannot update internal path! Please set LMD software directory first.")
+        self.baseDataOutputDir = self.LMDdirectory / generateDirectory(self.simParams, self.alignParams)
