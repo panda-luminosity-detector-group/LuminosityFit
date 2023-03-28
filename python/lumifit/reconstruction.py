@@ -110,7 +110,7 @@ def create_reconstruction_job(
     dirname_full = dirname / dirname_filter_suffix
     pathname_full = dirname_full
 
-    print("using output folder structure: {pathname_full}")
+    print(f"using output folder structure: {pathname_full}")
 
     pathname_full.mkdir(exist_ok=True, parents=True)
     Path(pathname_full / "/Pairs").mkdir(exist_ok=True, parents=True)

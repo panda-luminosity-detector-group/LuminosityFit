@@ -8,7 +8,7 @@ from argparse import (
 )
 from enum import Enum
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional
 
 import cattrs
 
@@ -39,7 +39,7 @@ def toCbool(input: bool) -> str:
         return "false"
 
 
-def matrixMacroFileName(input: Union[None, Path]) -> str:
+def matrixMacroFileName(input: Optional[Path]) -> str:
     if isinstance(input, Path):
         return str(input)
     elif input is None:

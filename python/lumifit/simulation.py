@@ -111,13 +111,12 @@ def create_simulation_and_reconstruction_job(
         num_samples = 1
 
     lmdfit_data_dir = envPath("LMDFIT_DATA_DIR")
+    macropath_full = envPath("LMDFIT_MACROPATH")
 
     pathname_base = lmdfit_data_dir / dirname
     path_mc_data = pathname_base / "mc_data"
     dirname_full = dirname / dirname_filter_suffix
     pathname_full = lmdfit_data_dir / dirname_full
-    # this is stored in lmdEnvVar and read with dotenv
-    macropath_full = envPath("LMDFIT_MACROPATH")
 
     print(f"using output folder structure: {pathname_full}")
 

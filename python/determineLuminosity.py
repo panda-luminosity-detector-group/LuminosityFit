@@ -246,7 +246,6 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                         tempSimParams,
                         tempAlignParams,
                         tempRecoParams,
-                        Path(),
                         application_command=thisScenario.Sim,
                         use_devel_queue=args.use_devel_queue,
                     )
