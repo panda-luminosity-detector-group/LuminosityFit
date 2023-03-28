@@ -37,7 +37,7 @@ class orderType(IntEnum):
 
 @attr.s(hash=True)
 class SlurmOrder:
-    orderType: orderType = attr.ib(default=orderType.REGULAR)
+    thisType: orderType = attr.ib(default=orderType.REGULAR)
     cmd: str = attr.ib(default="id")
     returnCode: int = attr.ib(default=-1)
     stdout: str = attr.ib(default="")
@@ -184,22 +184,22 @@ class Server(Agent):
                 self.sendOrder(returnOrder)
 
     def execute(self, thisOrder: SlurmOrder) -> SlurmOrder:
-        if thisOrder.orderType == orderType.EXIT:
+        if thisOrder.thisType == orderType.EXIT:
             self.bail()
 
-        elif thisOrder.orderType == orderType.META:
+        elif thisOrder.thisType == orderType.META:
             if thisOrder.cmd == "test":
                 thisOrder.stdout = "ok"
                 thisOrder.returnCode = 0
                 return thisOrder
 
-        elif thisOrder.orderType == orderType.MAKE_UNQUE:
+        elif thisOrder.thisType == orderType.MAKE_UNQUE:
             thisOrder.stdout = str(self.getUniqueServer())
             thisOrder.returnCode = 0
-            thisOrder.orderType = orderType.UNIQUE_CONFIRM
+            thisOrder.thisType = orderType.UNIQUE_CONFIRM
             return thisOrder
 
-        elif thisOrder.orderType == orderType.REGULAR:
+        elif thisOrder.thisType == orderType.REGULAR:
             if not thisOrder.runShell:
                 cmds = shlex.split(thisOrder.cmd)
                 # this returns a CompletedProcess
@@ -225,7 +225,7 @@ class Server(Agent):
             thisOrder.stderr = process.stderr
             return thisOrder
 
-        raise NotImplementedError(f"order type {thisOrder.orderType} is not implemented!")
+        raise NotImplementedError(f"order type {thisOrder.thisType} is not implemented!")
 
     def bail(self) -> None:
         # print(f'Received "exit" command. Exiting now.')
@@ -276,7 +276,7 @@ class Server(Agent):
 class Client(Agent):
     def checkConnection(self) -> bool:
         testOrder = SlurmOrder()
-        testOrder.orderType = orderType.META
+        testOrder.thisType = orderType.META
         testOrder.cmd = "test"
         self.sendOrder(testOrder)
         resultOrder = self.receiveOrder()
@@ -304,11 +304,11 @@ class Client(Agent):
         - client must also receive copy order from new pipe, else fork will block (useful as confirmation)
         """
 
-        makeUniqueOrder = SlurmOrder(orderType=orderType.MAKE_UNQUE)
+        makeUniqueOrder = SlurmOrder(thisType=orderType.MAKE_UNQUE)
         self.sendOrder(makeUniqueOrder)
         returnOrder = self.receiveOrder()
 
-        if returnOrder.orderType == orderType.UNIQUE_CONFIRM:
+        if returnOrder.thisType == orderType.UNIQUE_CONFIRM:
             self.universalPipePath = Path(returnOrder.stdout)
         # race condition has occured
         else:
@@ -328,14 +328,14 @@ class Client(Agent):
         # if it still doesn't exist after the timeout, we'll get an error here
         confirmationOrder = self.receiveOrder()
 
-        if confirmationOrder.orderType == orderType.UNIQUE_CONFIRM:
+        if confirmationOrder.thisType == orderType.UNIQUE_CONFIRM:
             logging.info(f"new pipe confirmation received: {confirmationOrder}")
         else:
             raise ValueError("returned confirmation is invalid!")
         return self
 
     def __exit__(self, type, value, traceback) -> None:
-        self.sendOrder(SlurmOrder(orderType=orderType.EXIT))
+        self.sendOrder(SlurmOrder(thisType=orderType.EXIT))
 
 
 if __name__ == "__main__":

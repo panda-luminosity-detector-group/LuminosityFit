@@ -36,7 +36,8 @@
 	"ms-python.black-formatter",
 	"GitHub.vscode-pull-request-github",
 	"ms-python.isort",
-	"Gruntfuggly.todo-tree"
+	"Gruntfuggly.todo-tree",
+	"vscode-snippet.snippet"
 ],
   "runArgs": ["--network=host"]
 }

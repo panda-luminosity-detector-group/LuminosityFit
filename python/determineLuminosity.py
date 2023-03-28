@@ -684,14 +684,16 @@ dirs = dir_searcher.getListOfDirectories()
 
 print(f"\n\nINFO: found these dirs:\n{dirs}\n\n")
 
-if len(dirs) != 1:
-    print(f"found {len(dirs)} directory candidates but it should be only one. something is wrong!")
+if len(dirs) > 1:
+    raise ValueError(f"found {len(dirs)} directory candidates but it should be only one. something is wrong!")
 
 if len(dirs) < 1:
-    raise FileNotFoundError("ERROR! No dirs found!")
+    print("No dirs found, that means vertex data wasn't generated (or reconstructed) yet.")
+    # don't change thisScenario's trackDirectory, it was set during construction
 
-# path has changed now for the newly found dir
-thisScenario.trackDirectory = dirs[0]
+else:
+    # path has changed now for the newly found dir
+    thisScenario.trackDirectory = dirs[0]
 
 
 # * ----------------- create a scenario object. it resides only in memory and is never written to disk
