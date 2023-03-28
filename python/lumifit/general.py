@@ -1,4 +1,3 @@
-import glob
 import json
 import os
 import re
@@ -43,7 +42,7 @@ def getGoodFiles(
     is_bunches: bool = False,
 ) -> list:
     # TODO: this can be done with pathlibs glob
-    found_files = glob.glob(str(directory) + "/" + glob_pattern)
+    found_files = list(directory.glob(glob_pattern))
     good_files = []
     bad_files = []
     for file in found_files:
@@ -54,10 +53,15 @@ def getGoodFiles(
 
     if is_bunches:
         m = re.search(r"\/bunches_(\d+)", str(directory))
-        num_sim_files = int(m.group(1))  # type: ignore
+        if m:
+            num_sim_files = int(m.group(1))
+        else:
+            return [0, 0]
     else:
         m = re.search(r"\/(\d+)-(\d+)_.+?cut", str(directory))
-        num_sim_files = int(m.group(2)) - int(m.group(1)) + 1  # type: ignore
+        if m:
+            num_sim_files = int(m.group(2)) - int(m.group(1)) + 1
+        return [0, 0]
 
     files_percentage = len(good_files) / num_sim_files
 
