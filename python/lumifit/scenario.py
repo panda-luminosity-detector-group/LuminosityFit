@@ -54,13 +54,13 @@ class Scenario:
 
     def __init__(
         self,
-        dir_path_: Path,
+        trackDirectory_: Path,
         experiment_type: ExperimentType,
         lmdScriptPath: Path,
     ):
         self.momentum = 0.0
 
-        self.trackDirectory = dir_path_
+        self.trackDirectory = trackDirectory_
         self.filteredTrackDirectory: Path = Path()
         self.acc_and_res_dir_path: Path = Path()
         self.elastic_pbarp_integrated_cross_secion_in_mb: float = 0.0
