@@ -12,44 +12,14 @@ from lumifit.general import (
 from lumifit.simulation import SimulationParameters
 from lumifit.simulationGeneratorTypes import SimulationGeneratorType
 
+# TODO: get all this from the experiment config
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 PNDmacropath = os.environ["LMDFIT_MACROPATH"]
 LMDscriptpath = os.environ["LMDFIT_SCRIPTPATH"]
-
 pathToTrkQAFiles = os.environ["pathname"]
 relativeDirToTrksQAFiles = os.environ["dirname"]
 path_mc_data = os.environ["path_mc_data"]
 force_level = int(os.environ["force_level"])
-
-# parser = argparse.ArgumentParser(
-#     description='Call for important variables'
-#     ' Detector.',
-#     formatter_class=argparse.RawTextHelpFormatter)
-
-# parser.add_argument('force_level', metavar='force_level', type=int, default=0,
-#                     help="force level 0: if directories exist with data\n"+
-#                           "files no new simulation is started\n"+
-#                           "force level 1: will do full reconstruction even if "+
-#                           "this data already exists, but not geant simulation\n"+
-#                           "force level 2: resimulation of everything!")
-# parser.add_argument('dirname', metavar='dirname', type=str, nargs=1,
-#                     help='This directory for the outputfiles.')
-# parser.add_argument('path_mc_data', metavar='path_mc_data', type=str, nargs=1,
-#                     help='Path to MC files.')
-# parser.add_argument('pathname', metavar='pathname', type=str, nargs=1,
-#                     help='This the path to the outputdirectory')
-# parser.add_argument('macropath', metavar='macropath', type=str, nargs=1,
-#                     help='This the path to the macros')
-
-# args = parser.parse_args()
-
-# "force_level": force_level,
-# "dirname": dirname_full,
-# "path_mc_data": path_mc_data,
-# "pathname": pathname_full,
-
-# python runLmdSimReco --pathname asdfasdfsafdsa
-# class InputParams():
 
 filename_index = 1
 debug = True
@@ -69,6 +39,9 @@ if not os.path.isdir(workpathname):
 gen_filepath = workpathname + "/gen_mc.root"
 
 # the path pathToTrkQAFiles is automatically eihter the dpm or the resAcc path
+# TODO: nope, replace this with an experiment config, read the path from a command line argument
+# the experiment config should contain the path to the dpm and the resAcc files, and be written by the
+# previous step of the workflow to the baseDataDir
 #! however, check this path again!
 simParams: SimulationParameters = load_params_from_file(path_mc_data + "/../sim_params.config", SimulationParameters)
 alignParams: AlignmentParameters = load_params_from_file(pathToTrkQAFiles + "/align_params.config", AlignmentParameters)
@@ -94,13 +67,6 @@ if not check_stage_success(f"{path_mc_data}/Lumi_MC_{start_evt}.root") or force_
         os.system(cmd)
 
     elif simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC or simParams.simGeneratorType == SimulationGeneratorType.RESACCPBARP_ELASTIC:
-
-        # cmd = f"{lmd_build_path}/bin/generatePbarPElasticScattering {sim_params.lab_momentum} {sim_params.num_events_per_sample} -l {sim_params.theta_min_in_mrad} -u {sim_params.theta_max_in_mrad} -s {sim_params.random_seed + start_evt} -o {gen_filepath}"
-
-        # print(f"\ncalling elastic P Pbar generator with:\n")
-        # print(cmd)
-
-        # os.system(cmd)
 
         os.system(
             f"{lmd_build_path}/bin/generatePbarPElasticScattering"

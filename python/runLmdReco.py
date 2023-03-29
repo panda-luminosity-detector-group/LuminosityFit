@@ -11,10 +11,10 @@ from lumifit.general import (
 )
 from lumifit.reconstruction import ReconstructionParameters
 
+# TODO: get all this from the experiment config
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 LMDScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
 PNDmacropath = os.environ["LMDFIT_MACROPATH"]
-
 pathToTrkQAFiles = os.environ["pathname"]
 relativeDirToTrksQAFiles = os.environ["dirname"]
 path_mc_data = os.environ["path_mc_data"]
@@ -30,8 +30,10 @@ if not os.path.isdir(pathToTrkQAFiles):
     os.makedirs(pathToTrkQAFiles)
 
 # the path pathToTrkQAFiles is automatically either the dpm or the resAcc path
+# TODO: nope, replace this with an experiment config, read the path from a command line argument
+# the experiment config should contain the path to the dpm and the resAcc files, and be written by the
+# previous step of the workflow to the baseDataDir
 recoParams: ReconstructionParameters = load_params_from_file(pathToTrkQAFiles + "/reco_params.config", ReconstructionParameters)
-
 alignParams: AlignmentParameters = load_params_from_file(pathToTrkQAFiles + "/align_params.config", AlignmentParameters)
 
 verbositylvl: int = 0

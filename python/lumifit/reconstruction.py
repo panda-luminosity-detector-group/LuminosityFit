@@ -113,7 +113,7 @@ def create_reconstruction_job(
     print(f"using output folder structure: {pathname_full}")
 
     pathname_full.mkdir(exist_ok=True, parents=True)
-    Path(pathname_full / "/Pairs").mkdir(exist_ok=True, parents=True)
+    Path(pathname_full / "Pairs").mkdir(exist_ok=True, parents=True)
 
     # These must be written again so that runLmdSimReco and runLmdReco have access to them
     write_params_to_file(cattrs.unstructure(reco_params), pathname_full, "reco_params.config")
@@ -136,6 +136,7 @@ def create_reconstruction_job(
         array_indices=list(range(low_index_used, low_index_used + num_samples)),
     )
 
+    # TODO: these won't be needed anymore the're in the config file
     job.exported_user_variables = {
         "dirname": dirname_full,
         "path_mc_data": path_mc_data,

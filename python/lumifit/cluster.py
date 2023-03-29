@@ -33,9 +33,7 @@ def make_test_job_resource_request() -> JobResourceRequest:
 
 @attr.s(hash=False)
 class Job:
-    def _validate_job_array_indices(
-        instance, attribute: Any, value: Any
-    ) -> None:
+    def _validate_job_array_indices(instance, attribute: Any, value: Any) -> None:
         if not isinstance(value, list):
             raise TypeError("Job array indices must be of type list")
         if not value:
@@ -45,7 +43,7 @@ class Job:
     application_url: str = attr.ib()
     name: str = attr.ib()
     logfile_url: str = attr.ib()
-    array_indices = attr.ib(validator=_validate_job_array_indices)
+    array_indices: List[int] = attr.ib(validator=_validate_job_array_indices)
     exported_user_variables: Dict[str, Any] = attr.ib(factory=dict)
     additional_flags: str = attr.ib(default="")
 
@@ -90,9 +88,7 @@ class ClusterJobManager:
         time_to_sleep_after_submission: int = 3,
     ) -> None:
         if not isinstance(job_handler, JobHandler):
-            raise TypeError(
-                f"job_handler must be of type JobHandler, got {job_handler}!"
-            )
+            raise TypeError(f"job_handler must be of type JobHandler, got {job_handler}!")
         self.__job_handler = job_handler
         self.__jobs: List[Job] = []
         self.__total_job_threshold = total_job_threshold
@@ -107,10 +103,7 @@ class ClusterJobManager:
 
         while self.__jobs:
             print("checking if total job threshold is reached...")
-            if (
-                self.__job_handler.get_active_number_of_jobs()
-                < self.__total_job_threshold
-            ):
+            if self.__job_handler.get_active_number_of_jobs() < self.__total_job_threshold:
                 print("Nope, trying to submit job...")
                 current_job = None
                 with self.__lock:
@@ -121,20 +114,12 @@ class ClusterJobManager:
                 if returncode > 0:
                     resubmit = True
                     if current_job in failed_jobs:
-                        if time() < (
-                            failed_jobs[current_job]
-                            + self.__resubmit_wait_time_in_seconds
-                        ):
+                        if time() < (failed_jobs[current_job] + self.__resubmit_wait_time_in_seconds):
                             print(current_job)
-                            print(
-                                "something is wrong with this job. Skipping..."
-                            )
+                            print("something is wrong with this job. Skipping...")
                             resubmit = False
                     else:
-                        print(
-                            "Submit failed! Appending job to resubmit"
-                            " list for later submission..."
-                        )
+                        print("Submit failed! Appending job to resubmit" " list for later submission...")
                         failed_jobs[current_job] = time()
 
                     if resubmit:
@@ -146,17 +131,9 @@ class ClusterJobManager:
                     sleep(self.__time_to_sleep_after_submission)
             else:
                 with self.__lock:
-                    print(
-                        "Yep, we have currently have "
-                        + str(len(self.__jobs))
-                        + " jobs waiting in queue!"
-                    )
+                    print("Yep, we have currently have " + str(len(self.__jobs)) + " jobs waiting in queue!")
                 # and sleep for some time
-                print(
-                    "Waiting for "
-                    + str(self.__resubmit_wait_time_in_seconds / 60)
-                    + " min and then trying a resubmit..."
-                )
+                print("Waiting for " + str(self.__resubmit_wait_time_in_seconds / 60) + " min and then trying a resubmit...")
                 sleep(self.__resubmit_wait_time_in_seconds)
         print("\n\nAll jobs submitted!\n\n")
 

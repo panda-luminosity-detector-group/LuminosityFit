@@ -71,6 +71,7 @@ class Scenario:
             self.Reco = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdReco.py"
             self.LmdData = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/createLumiFitData.sh"
             self.track_file_pattern = "Lumi_TrksQA_"
+
         elif experiment_type == ExperimentType.KOALA:
 
             self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaSimReco.py"

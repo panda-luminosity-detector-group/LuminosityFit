@@ -161,7 +161,7 @@ def create_simulation_and_reconstruction_job(
         logfile_url=str(pathname_full / "simreco-%a.log"),
         array_indices=list(range(low_index_used, low_index_used + num_samples)),
     )
-
+    # TODO: these won't be needed anymore the're in the config file
     job.exported_user_variables.update(
         {
             "force_level": str(force_level),
