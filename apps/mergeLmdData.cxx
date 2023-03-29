@@ -13,7 +13,6 @@
 #include <vector>
 
 #include "boost/filesystem.hpp" // includes all needed Boost.Filesystem declarations
-#include "boost/regex.hpp"
 
 using boost::filesystem::directory_iterator;
 using boost::filesystem::path;
