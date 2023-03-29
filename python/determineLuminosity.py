@@ -373,57 +373,62 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 os.chdir(lmd_fit_script_path)
                 # bunch data
                 # TODO: pass experiment config, or better yet, make class instead of script
-                bashcommand = (
-                    "python makeMultipleFileListBunches.py "
-                    + f" --filenamePrefix {thisScenario.track_file_pattern}"
-                    + " --files_per_bunch 10 --maximum_number_of_files "
-                    + str(thisExperiment.recoParams.num_samples)
-                    + " "
-                    + str(task.dirPath)
-                )
-                print(f"Bash command for bunch creation:\n{bashcommand}\n")
-                _ = subprocess.call(bashcommand.split())
+                multiFileListCommand = []
+                multiFileListCommand.append("python")
+                multiFileListCommand.append("makeMultipleFileListBunches.py")
+                multiFileListCommand.append("--filenamePrefix")
+                multiFileListCommand.append(f"{thisScenario.track_file_pattern}")
+                multiFileListCommand.append("--files_per_bunch")
+                multiFileListCommand.append("10")
+                multiFileListCommand.append("--maximum_number_of_files")
+                multiFileListCommand.append(str(thisExperiment.recoParams.num_samples))
+                multiFileListCommand.append(str(task.dirPath))
+
+                print(f"Bash command for bunch creation:\n{' '.join(multiFileListCommand)}\n")
+                _ = subprocess.call(multiFileListCommand)
+
                 # TODO: pass experiment config, or better yet, make class instead of script
                 # create data
-                bashArgs = []
                 # if "a" in task.simType:
                 if task.simDataType == SimulationDataType.ANGULAR:
                     el_cs = thisScenario.elastic_pbarp_integrated_cross_secion_in_mb
-                    bashArgs.append("python")
-                    bashArgs.append("createMultipleLmdData.py")
-                    bashArgs.append("--dir_pattern")
-                    bashArgs.append(data_keywords[0])
-                    bashArgs.append("--jobCommand")
-                    bashArgs.append(thisScenario.LmdData)
-                    bashArgs.append(f"{thisScenario.momentum:.2f}")
-                    bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    bashArgs.append(str(task.dirPath))
-                    bashArgs.append("../dataconfig_xy.json")
+                    lmdDataCommand = []
+                    lmdDataCommand.append("python")
+                    lmdDataCommand.append("createMultipleLmdData.py")
+                    lmdDataCommand.append("--dir_pattern")
+                    lmdDataCommand.append(data_keywords[0])
+                    lmdDataCommand.append("--jobCommand")
+                    lmdDataCommand.append(thisScenario.LmdData)
+                    lmdDataCommand.append(f"{thisScenario.momentum:.2f}")
+                    lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
+                    lmdDataCommand.append(str(task.dirPath))
+                    lmdDataCommand.append("../dataconfig_xy.json")
 
                     if el_cs:
-                        bashArgs.append("--elastic_cross_section")
-                        bashArgs.append(str(el_cs))
+                        lmdDataCommand.append("--elastic_cross_section")
+                        lmdDataCommand.append(str(el_cs))
                         # bashcommand += " --elastic_cross_section " + str(el_cs)
                 else:
-                    bashArgs.append("python")
-                    bashArgs.append("createMultipleLmdData.py")
-                    bashArgs.append("--dir_pattern")
-                    bashArgs.append(data_keywords[0])
-                    bashArgs.append("--jobCommand")
-                    bashArgs.append(thisScenario.LmdData)
-                    bashArgs.append(f"{thisScenario.momentum:.2f}")
-                    bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    bashArgs.append(str(task.dirPath))
-                    bashArgs.append("../dataconfig_xy.json")
+                    lmdDataCommand = []
+                    lmdDataCommand.append("python")
+                    lmdDataCommand.append("createMultipleLmdData.py")
+                    lmdDataCommand.append("--dir_pattern")
+                    lmdDataCommand.append(data_keywords[0])
+                    lmdDataCommand.append("--jobCommand")
+                    lmdDataCommand.append(thisScenario.LmdData)
+                    lmdDataCommand.append(f"{thisScenario.momentum:.2f}")
+                    lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
+                    lmdDataCommand.append(str(task.dirPath))
+                    lmdDataCommand.append("../dataconfig_xy.json")
 
-                print(bashArgs)
-                _ = subprocess.call(bashArgs)
+                print(lmdDataCommand)
+                _ = subprocess.call(lmdDataCommand)
 
                 # last_state = last_state + 1
                 # was apparently bunches
                 task.lastState = SimulationState.MERGE
 
-                bashArgs.clear()
+                lmdDataCommand.clear()
 
             # else:
             #     raise RuntimeError("No data could be found, but no commands are to be executed. This can't be!")
@@ -451,29 +456,30 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 os.chdir(lmd_fit_script_path)
                 # merge data
                 # if "a" in task.simType:
-                bashArgs = []
                 if task.simDataType == SimulationDataType.ANGULAR:
-                    bashArgs.append("python")
-                    bashArgs.append("mergeMultipleLmdData.py")
-                    bashArgs.append("--dir_pattern")
-                    bashArgs.append(data_keywords[0])
-                    bashArgs.append("--num_samples")
-                    bashArgs.append(str(bootstrapped_num_samples))
-                    bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    bashArgs.append(str(task.dirPath))
+                    mergeCommand = []
+                    mergeCommand.append("python")
+                    mergeCommand.append("mergeMultipleLmdData.py")
+                    mergeCommand.append("--dir_pattern")
+                    mergeCommand.append(data_keywords[0])
+                    mergeCommand.append("--num_samples")
+                    mergeCommand.append(str(bootstrapped_num_samples))
+                    mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
+                    mergeCommand.append(str(task.dirPath))
 
                 else:
-                    bashArgs.append("python")
-                    bashArgs.append("mergeMultipleLmdData.py")
-                    bashArgs.append("--dir_pattern")
-                    bashArgs.append(data_keywords[0])
-                    bashArgs.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    bashArgs.append(str(task.dirPath))
+                    mergeCommand = []
+                    mergeCommand.append("python")
+                    mergeCommand.append("mergeMultipleLmdData.py")
+                    mergeCommand.append("--dir_pattern")
+                    mergeCommand.append(data_keywords[0])
+                    mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
+                    mergeCommand.append(str(task.dirPath))
 
                 print("working directory:")
                 print(f"{os.getcwd()}")
-                print(f"running command:\n{bashArgs}")
-                _ = subprocess.call(bashArgs)
+                print(f"running command:\n{mergeCommand}")
+                _ = subprocess.call(mergeCommand)
 
             task.simState = SimulationState.DONE
 
@@ -607,9 +613,19 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
 
         cut_keyword = generateCutKeyword(thisExperiment.recoParams)
 
-        bashcommand = f"python doMultipleLuminosityFits.py --forced_resAcc_gen_data {thisScenario.acc_and_res_dir_path} -e {args.ExperimentConfigFile} {thisScenario.filteredTrackDirectory} {cut_keyword} {lmd_fit_script_path}/{thisExperiment.fitConfigPath}"
-        print(f"Bash command is:\n{bashcommand}")
-        _ = subprocess.call(bashcommand.split())
+        lumiFitCommand = []
+        lumiFitCommand.append("python")
+        lumiFitCommand.append("doMultipleLuminosityFits.py")
+        lumiFitCommand.append("--forced_resAcc_gen_data")
+        lumiFitCommand.append(f"{thisScenario.acc_and_res_dir_path}")
+        lumiFitCommand.append("-e")
+        lumiFitCommand.append(f"{args.ExperimentConfigFile}")
+        lumiFitCommand.append(f"{thisScenario.filteredTrackDirectory}")
+        lumiFitCommand.append(f"{cut_keyword}")
+        lumiFitCommand.append(f"{lmd_fit_script_path}/{thisExperiment.fitConfigPath}")
+
+        print(f"Bash command is:\n{' '.join(lumiFitCommand)}")
+        _ = subprocess.call(lumiFitCommand)
 
         print("this scenario is fully processed!!!")
         finished = True
