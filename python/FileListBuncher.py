@@ -48,8 +48,7 @@ class FileListBuncher:
 
         
 
-    @staticmethod
-    def create_file_list_file(output_url: Path, list_of_files: List[str]) -> None:
+    def create_file_list_file(self, output_url: Path, list_of_files: List[str]) -> None:
         
         # make directory if necessary
         output_url.parent.mkdir(parents=True, exist_ok=True)
@@ -81,7 +80,7 @@ class FileListBuncher:
     
 
     def run(self) -> None:
-        self.get_list_of_directories(self.dirname)
+        self.collect_list_of_directories(self.dirname)
         for directory in self._dirs:
             self.make_file_list_bunches(directory)
 
