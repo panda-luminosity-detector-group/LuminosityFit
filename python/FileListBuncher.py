@@ -52,35 +52,24 @@ class FileListBuncher:
 
     def make_file_list_bunches(self, directory: Path) -> None:
         good_files, _ = getGoodFiles(directory, self.filename_prefix + "*", 2000)
-
+        
         print("creating file lists...")
-
-        if self.maximum_number_of_files > 0 and self.maximum_number_of_files < len(good_files):
-            good_files = good_files[: self.maximum_number_of_files]
-
-        max_bundles = len(good_files) / self.files_per_bunch
-        if len(good_files) % self.files_per_bunch > 0:
-            max_bundles += 1
-        max_bundles = int(max_bundles)
-        output_bunch_dir = directory / Path("bunches_") / Path(str(max_bundles))
-
+        
+        num_of_files = len(good_files)
+        
+        if 0 < self.maximum_number_of_files < num_of_files:
+            good_files = good_files[:self.maximum_number_of_files]
+            num_of_files = self.maximum_number_of_files
+    
+        max_bundles = (num_of_files + self.files_per_bunch - 1) // self.files_per_bunch
+        output_bunch_dir = directory / "bunches_" / str(max_bundles)
         output_bunch_dir.mkdir(parents=True, exist_ok=True)
-
-        file_list_index = 1
-        while len(good_files) > 0:
-            chunk_size = self.files_per_bunch
-            if len(good_files) < self.files_per_bunch:
-                chunk_size = len(good_files)
-
-            chunk_of_good_files = []
-            for i in range(1, chunk_size + 1):
-                chunk_of_good_files.append(good_files.pop())
-
-            self.create_file_list_file(
-                output_bunch_dir / Path(f"filelist_{file_list_index}.txt"),
-                chunk_of_good_files,
-            )
-            file_list_index += 1
+    
+        for file_list_index in range(max_bundles):
+            start_index = file_list_index * self.files_per_bunch
+            chunk_of_good_files = good_files[start_index : start_index + self.files_per_bunch]  # can only be too long in the last chunk, and then it just takes the rest
+            self.create_file_list_file(output_bunch_dir / f"filelist_{file_list_index+1}.txt", chunk_of_good_files)
+    
 
     def run(self) -> None:
         self.get_list_of_directories(self.dirname)
