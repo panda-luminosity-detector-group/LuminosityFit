@@ -11,6 +11,46 @@ from lumifit.general import getGoodFiles
 
 @attr.s
 class FileListBuncher:
+    """
+    Utility class used to collect and bunch files. We need lists of files to be able to run the fit in parallel,
+    and this class provides a way to create such lists.
+    It:
+    - lists all directories in a given directory
+    - looks for the files (matching a given pattern) in each directory
+    - creates a list of files in each directory
+
+    Attributes
+    ----------
+    dirname : Path
+        Initial directory from which to start the search for files (default is current directory)
+    pattern : str
+        Regular expression to match directories (default is an empty string, which matches everything)
+    filename_prefix : str
+        Prefix of filenames to be included in the search (default is an empty string, which matches all files)
+    maximum_number_of_files : int
+        Maximum number of files to be included in the bunching process (default is -1, which means all found files)
+    force : bool
+        If True, it forces recreation even if bunches already exist in a directory (default is False)
+    files_per_bunch : int
+        Number of files per bunch (default is 1000)
+    _dirs : List[Path]
+        Private attribute that stores directories matching the provided pattern (empty list by default)
+
+    Methods
+    -------
+    collect_list_of_directories(path: Path) -> None:
+        Traverses the provided path recursively and collects directories that match the patterns.
+
+    create_file_list_file(output_url: Path, list_of_files: List[str]) -> None:
+        Creates a text file at the specified output URL with each file URL in the provided list on a new line.
+
+    make_file_list_bunches(directory: Path) -> None:
+        Creates file lists according to the instantiated configuration, divided into bunches in the given directory.
+
+    run() -> None:
+        Initiates the bunching process by calling relevant methods.
+    """
+
     dirname: Path = attr.ib(default=Path("."))
     pattern: str = attr.ib(default="")
     filename_prefix: str = attr.ib(default="")
@@ -20,6 +60,17 @@ class FileListBuncher:
     _dirs: List[Path] = attr.ib(factory=list)
 
     def collect_list_of_directories(self, path: Path) -> None:
+        """
+        Traverse the provided path recursively and collect directories that match the patterns. 
+    
+        Parameters:
+            path (Path): The initial directory from which to start the traversal.
+    
+        Side Effects:
+            It modifies the private attribute self._dirs by appending directories that satisfy the regular expressions.
+            If a directory already contains 'bunches' and self.force is False, it prints a message suggesting usage of the --force flag.
+        """
+        
         bunch_pattern = re.compile("bunches.*")
         file_pattern = re.compile(f"{self.filename_prefix}\d*\.root")
         dir_pattern = re.compile(self.pattern)
@@ -59,6 +110,18 @@ class FileListBuncher:
                 f.write("\n")
 
     def make_file_list_bunches(self, directory: Path) -> None:
+        """
+        Create file lists according to the instantiated configuration, divided into bunches.
+    
+        Parameters:
+            directory (Path): The directory where the files are located and in which the 'bunches_' subdirectory will be created.
+    
+        Side Effects:
+            Calls the function getGoodFiles(directory, pattern, threshold) where 'pattern' corresponds to self.filename_prefix with a wildcard appended and threshold is set to 2000.
+            A bunches subdirectory is created in the provided directory, named 'bunches_' appended with the number of maximum bunches.
+            Sequentially numbered 'filelist_#.txt' are generated in the 'bunches_' subdirectory, each containing a list of file paths sorted into bunches determined by self.files_per_bunch.
+        """
+    
         good_files, _ = getGoodFiles(directory, self.filename_prefix + "*", 2000)
         
         print("creating file lists...")
