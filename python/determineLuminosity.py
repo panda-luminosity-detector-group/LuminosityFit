@@ -549,14 +549,22 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
             temp_dir_searcher = general.DirectorySearcher(["merge_data", "binning_300"])
             temp_dir_searcher.searchListOfDirectories(lumiTrksQAPath, "reco_ip.json")
             found_dirs = temp_dir_searcher.getListOfDirectories()
+            # FIXME: wait this can't be, if NOT found_dirs, the bash command can't use found_dirs[0]!
             if not found_dirs:
                 # 2. determine offset on the vertex data sample
                 os.chdir(lmd_fit_bin_path)
                 temp_dir_searcher = general.DirectorySearcher(["merge_data", "binning_300"])
                 temp_dir_searcher.searchListOfDirectories(lumiTrksQAPath, ["lmd_vertex_data_", "of1.root"])
                 found_dirs = temp_dir_searcher.getListOfDirectories()
-                bashcommand = "./determineBeamOffset -p {found_dirs[0]} -c " + "../../vertex_fitconfig.json"
-                _ = subprocess.call(bashcommand.split())
+                bashcommand = []
+                bashcommand.append("./determineBeamOffset")
+                bashcommand.append("-p")
+                bashcommand.append(str(found_dirs[0]))
+                bashcommand.append("-c")
+                bashcommand.append("../../vertex_fitconfig.json")
+
+                _ = subprocess.call(bashcommand)
+
                 ip_rec_file = f"{found_dirs[0]}/reco_ip.json"
             else:
                 ip_rec_file = f"{found_dirs[0]}/reco_ip.json"

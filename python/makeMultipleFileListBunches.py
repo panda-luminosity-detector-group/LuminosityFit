@@ -47,16 +47,11 @@ def createFileListFile(output_url, list_of_files):
 
 
 def makeFileListBunches(directory):
-    [good_files, percentage] = getGoodFiles(
-        directory, filename_prefix + "*", 2000
-    )
+    [good_files, percentage] = getGoodFiles(directory, filename_prefix + "*", 2000)
 
     print("creating file lists...")
 
-    if (
-        args.maximum_number_of_files > 0
-        and args.maximum_number_of_files < len(good_files)
-    ):
+    if args.maximum_number_of_files > 0 and args.maximum_number_of_files < len(good_files):
         good_files = good_files[: args.maximum_number_of_files]
 
     max_bundles = len(good_files) / args.files_per_bunch
