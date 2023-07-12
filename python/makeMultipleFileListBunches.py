@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+"""
+DEPRECATION WARNING: This script is deprecated and will be removed in the future. Please use the FileListBuncher class instead.
+"""
+
 import argparse
 import errno
 import multiprocessing
