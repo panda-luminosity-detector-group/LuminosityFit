@@ -19,25 +19,34 @@ class FileListBuncher:
     files_per_bunch: int = attr.ib(default=1000)
     _dirs: List[Path] = attr.ib(factory=list)
 
-    def get_list_of_directories(self, path: Path) -> None:
-        if path.is_dir():
-            for directory in path.iterdir():
-                dirpath = path / directory
-                if dirpath.is_dir():
-                    if not self.force:
-                        match = re.search("bunches.*", str(dirpath))
+    def collect_list_of_directories(self, path: Path) -> None:
+        bunch_pattern = re.compile("bunches.*")
+        file_pattern = re.compile(f"{self.filename_prefix}\d*\.root")
+        dir_pattern = re.compile(self.pattern)
+
+        directories = [path]
+
+        while directories:
+            current_path = directories.pop()
+            
+            if current_path.is_dir():
+                for stub in current_path.iterdir():
+                    dirpath = current_path / stub
+                    if dirpath.is_dir():
+                        if not self.force:
+                            match = bunch_pattern.search(str(dirpath))
+                            if match:
+                                print(f"skipping bunch creation for directory {current_path} as it already was bunched. Please used the --force option to bunch this directory anyway!")                            
+                                continue
+                        directories.append(dirpath)
+                    else:
+                        match = file_pattern.search(str(stub))
                         if match:
-                            print( f"skipping bunch creation for directory {path} as it already was bunched. Please used the --force option to bunch this directory anyway!")                            
-                            return
-                    self.get_list_of_directories(dirpath)
-                else:
-                    match = re.search(f"{self.filename_prefix}\d*\.root", str(directory))
-                    if match:
-                        match_dir_pattern = re.search(self.pattern, str(path))
-                        if match_dir_pattern:
-                            self._dirs.append(path)
-                        return
-    
+                            match_dir_pattern = dir_pattern.search(str(current_path))
+                            if match_dir_pattern:
+                                self._dirs.append(current_path)
+
+        
 
     @staticmethod
     def create_file_list_file(output_url: Path, list_of_files: List[str]) -> None:
