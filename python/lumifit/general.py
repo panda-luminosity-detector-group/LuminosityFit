@@ -8,9 +8,13 @@ from argparse import (
 )
 from enum import Enum
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Type, TypeVar, Union
 
 import cattrs
+from alignment import AlignmentParameters
+from experiment import Experiment
+from reconstruction import ReconstructionParameters
+from simulation import SimulationParameters
 
 cattrs.register_structure_hook(Path, lambda d, t: Path(d))
 cattrs.register_unstructure_hook(Path, lambda d: str(d))
@@ -140,9 +144,14 @@ def write_params_to_file(params: dict, pathname: Path, filename: str, overwrite:
         print(f"Config file {filename} already exists!")
 
 
-def load_params_from_file(file_path: Path, asType: type):
+Params = Union[Experiment, AlignmentParameters, SimulationParameters, ReconstructionParameters]
+T = TypeVar("T", bound=Params)
+
+
+def load_params_from_file(file_path: Path, asType: Type[T]) -> T:
     """
     Uses cattrs to deserialize a json file to a python object. Requires target type
+    (i.e. AlignmentParams, SimulationParams or ReconstructionParams ) to be specified.
     """
     if asType is None:
         raise NotImplementedError("Please specify the type to deserialize as.")
@@ -150,9 +159,8 @@ def load_params_from_file(file_path: Path, asType: type):
     if file_path.exists():
         with open(file_path, "r") as json_file:
             return cattrs.structure(json.load(json_file), asType)
-
-    print(f"file {file_path} does not exist!")
-    return {}
+    else:
+        raise FileNotFoundError(f"file {file_path} does not exist!")
 
 
 class DirectorySearcher:
@@ -218,6 +226,11 @@ class DirectorySearcher:
 
 
 class ConfigModifier:
+    """
+    Todo: actually just remove that when you're sure you've removed all references to it.
+    The config should be read, not modified.
+    """
+
     def __init__(self) -> None:
         pass
 

@@ -5,11 +5,15 @@ This script is only run by a user, not any other script!
 """
 
 import argparse
-import os
+from pathlib import Path
 
 from lumifit.cluster import ClusterJobManager, DebugJobHandler, JobHandler
 from lumifit.experiment import ClusterEnvironment, Experiment
-from lumifit.general import addDebugArgumentsToParser, load_params_from_file
+from lumifit.general import (
+    addDebugArgumentsToParser,
+    envPath,
+    load_params_from_file,
+)
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
 from lumifit.scenario import Scenario
@@ -17,7 +21,6 @@ from lumifit.simulation import create_simulation_and_reconstruction_job
 
 
 def run_simulation_and_reconstruction(thisExperiment: Experiment) -> None:
-
     if thisExperiment.recoParams.use_xy_cut or thisExperiment.recoParams.use_m_cut:
         print("Attention! This experiment configs specifies to use XY and m cuts during reconstruction.")
         print("That's reasonable for the luminosity determination, but the initial data sample must")
@@ -27,8 +30,8 @@ def run_simulation_and_reconstruction(thisExperiment: Experiment) -> None:
         thisExperiment.recoParams.use_m_cut = False
 
     # temporary to get sim command
-    lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
-    scen = Scenario("", thisExperiment.experimentType, lmdScriptPath)
+    lmdScriptPath = envPath("LMDFIT_SCRIPTPATH")
+    scen = Scenario(trackDirectory_=Path(), experiment_type=thisExperiment.experimentType, lmdScriptPath=lmdScriptPath)
 
     job, _ = create_simulation_and_reconstruction_job(
         thisExperiment.simParams,
@@ -79,6 +82,6 @@ parser.add_argument(
 parser = addDebugArgumentsToParser(parser)
 args = parser.parse_args()
 
-thisExperiment: Experiment = load_params_from_file(args.experimentConfig[0], Experiment)
+thisExperiment: Experiment = load_params_from_file(args.experimentConfig[0], asType=Experiment)
 
 run_simulation_and_reconstruction(thisExperiment)
