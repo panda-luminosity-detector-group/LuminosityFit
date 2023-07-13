@@ -59,6 +59,7 @@ If the needed files aren't there (but the jobs don't run anymore either), there 
 
 """
 
+
 # TODO: add jobID or jobArrayID check here
 def wasSimulationSuccessful(
     thisExperiment: Experiment,
@@ -139,7 +140,6 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
     """
 
     for task in thisScenario.SimulationTasks:
-
         print(f"running simulation of type {str(task.simDataType)} and path ({task.dirPath} at states:")
         print(f"current state: {str(task.simState)}")
         print(f"last state:    {str(task.lastState)}")
@@ -287,7 +287,6 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
 
                 # oh boi that's bound to be trouble
                 elif task.lastState < task.simState:
-
                     # * reco params must be adjusted if the res/acc sample had more jobs or samples that the real (or dpm) data
                     rec_par = thisExperiment.recoParams
                     if thisExperiment.recoParams.num_samples > 0 and rec_par.num_samples > thisExperiment.recoParams.num_samples:
@@ -311,7 +310,6 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                     task.lastState = SimulationState.START_SIM
 
             elif task.simDataType == SimulationDataType.VERTEX:
-
                 # check if the sim data is already there
                 mcDataDir = thisExperiment.baseDataOutputDir / "mc_data"
                 status_code = wasSimulationSuccessful(thisExperiment, mcDataDir, "Lumi_MC_*.root")
@@ -320,7 +318,6 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 # no files, the return code will actually be -1. better job supervision fixes that,
                 # but thats for later
                 if status_code < 0:
-
                     # vertex data must always be created without any cuts first
                     tempRecoPars = thisExperiment.recoParams
                     tempRecoPars.use_xy_cut = False
@@ -585,7 +582,6 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
 
     # if lumiDetState == 3:
     if thisScenario.lumiDetState == LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP:
-
         # state 3a:
         # the IP position is now reconstructed. filter the DPM data again,
         # this time using the newly determined IP position as a cut criterion.

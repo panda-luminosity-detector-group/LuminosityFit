@@ -52,12 +52,7 @@ class Scenario:
     Scenarios are always simulated on a cluster, but all runtime parameters are set during construction!
     """
 
-    def __init__(
-        self,
-        trackDirectory_: Path,
-        experiment_type: ExperimentType,
-        lmdScriptPath: Path,
-    ):
+    def __init__(self, trackDirectory_: Path, experiment_type: ExperimentType, lmdScriptPath: Path):
         self.momentum = 0.0
 
         self.trackDirectory = trackDirectory_
@@ -66,14 +61,12 @@ class Scenario:
         self.elastic_pbarp_integrated_cross_secion_in_mb: float = 0.0
 
         if experiment_type == ExperimentType.LUMI:
-
             self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdSimReco.py"
             self.Reco = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdReco.py"
             self.LmdData = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/createLumiFitData.sh"
             self.track_file_pattern = "Lumi_TrksQA_"
 
         elif experiment_type == ExperimentType.KOALA:
-
             self.Sim = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaSimReco.py"
             self.Reco = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaReco.py"
             self.LmdData = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/createKoaFitData.sh"
