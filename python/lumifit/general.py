@@ -11,10 +11,10 @@ from pathlib import Path
 from typing import Any, List, Optional, Type, TypeVar, Union
 
 import cattrs
-from alignment import AlignmentParameters
-from experiment import Experiment
-from reconstruction import ReconstructionParameters
-from simulation import SimulationParameters
+from lumifit.alignment import AlignmentParameters
+from lumifit.experiment import Experiment
+from lumifit.reconstruction import ReconstructionParameters
+from lumifit.simulation import SimulationParameters
 
 cattrs.register_structure_hook(Path, lambda d, t: Path(d))
 cattrs.register_unstructure_hook(Path, lambda d: str(d))
