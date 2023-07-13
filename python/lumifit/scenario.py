@@ -10,9 +10,8 @@ from pathlib import Path
 from typing import List
 
 import attr
-
-from .alignment import AlignmentParameters
-from .experiment import ExperimentType
+from lumifit.alignment import AlignmentParameters
+from lumifit.experiment import ExperimentType
 
 
 class LumiDeterminationState(IntEnum):

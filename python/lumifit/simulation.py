@@ -11,19 +11,24 @@ import attr
 import cattrs
 from attr import field
 from dotenv import load_dotenv
-
-from .alignment import AlignmentParameters
-from .cluster import Job, JobResourceRequest, make_test_job_resource_request
-from .general import envPath, write_params_to_file
-from .reconstruction import ReconstructionParameters, generateRecoDirSuffix
-from .simulationGeneratorTypes import SimulationGeneratorType
+from lumifit.alignment import AlignmentParameters
+from lumifit.cluster import (
+    Job,
+    JobResourceRequest,
+    make_test_job_resource_request,
+)
+from lumifit.general import envPath, write_params_to_file
+from lumifit.reconstruction import (
+    ReconstructionParameters,
+    generateRecoDirSuffix,
+)
+from lumifit.simulationGeneratorTypes import SimulationGeneratorType
 
 load_dotenv(dotenv_path="../lmdEnvFile.env", verbose=True)
 
 
 @attr.s
 class SimulationParameters:
-
     simGeneratorType: SimulationGeneratorType = attr.ib(default=SimulationGeneratorType.PBARP_ELASTIC)
     num_events_per_sample: int = attr.ib(default=1000)
     num_samples: int = attr.ib(default=1)
@@ -62,7 +67,6 @@ def generateDirectory(
         else:
             dirname = Path(f"plab_{sim_params.lab_momentum:.2f}GeV")
 
-            
         gen_part = f"{sim_params.simGeneratorType.value}_theta_" + f"{sim_params.theta_min_in_mrad}-" + f"{sim_params.theta_max_in_mrad}mrad"
         if not sim_params.neglect_recoil_momentum:
             gen_part += "_recoil_corrected"
@@ -154,7 +158,7 @@ def create_simulation_and_reconstruction_job(
     resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
     resource_request.number_of_nodes = 1
     resource_request.processors_per_node = 1
-    resource_request.memory_in_mb = 3500 
+    resource_request.memory_in_mb = 3500
     resource_request.node_scratch_filesize_in_mb = 0
 
     if use_devel_queue:

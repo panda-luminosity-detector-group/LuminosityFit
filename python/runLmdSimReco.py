@@ -55,7 +55,6 @@ print(f"\n\nINFO:\ndirname is {relativeDirToTrksQAFiles}\npathname is {pathToTrk
 
 # * ------------------- MC Data Step -------------------
 if not check_stage_success(f"{path_mc_data}/Lumi_MC_{start_evt}.root") or force_level == 2:
-
     # * prepare box or dpm tracks
     if simParams.simGeneratorType == SimulationGeneratorType.BOX or simParams.simGeneratorType == SimulationGeneratorType.RESACCBOX:
         os.chdir(LMDscriptpath)
@@ -67,7 +66,6 @@ if not check_stage_success(f"{path_mc_data}/Lumi_MC_{start_evt}.root") or force_
         os.system(cmd)
 
     elif simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC or simParams.simGeneratorType == SimulationGeneratorType.RESACCPBARP_ELASTIC:
-
         # cmd = f"{lmd_build_path}/bin/generatePbarPElasticScattering {simParams.lab_momentum} {simParams.num_events_per_sample} -l {simParams.theta_min_in_mrad} -u {simParams.theta_max_in_mrad} -s {simParams.random_seed + start_evt} -o {gen_filepath}"
 
         # print(f"\ncalling elastic P Pbar generator with:\n")
@@ -91,7 +89,6 @@ if not check_stage_success(f"{path_mc_data}/Lumi_MC_{start_evt}.root") or force_
     os.chdir(PNDmacropath)
     # sim noise is the same with and without rest gas
     if simParams.simGeneratorType == SimulationGeneratorType.NOISE:
-
         os.system(
             f"""root -l -b -q 'runLumiPixel0SimBox.C({simParams.num_events_per_sample}, {start_evt}, "{workpathname}",{verbositylvl},-2212,{simParams.lab_momentum},{numTrks},{simParams.random_seed + start_evt}, 0, , "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)})' > /dev/null 2>&1"""
         )

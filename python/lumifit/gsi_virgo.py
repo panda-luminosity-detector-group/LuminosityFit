@@ -1,7 +1,7 @@
 # cSpell:ignore slurm, cpus
 
-from .cluster import Job
-from .slurm import SlurmJobHandler
+from lumifit.cluster import Job
+from lumifit.slurm import SlurmJobHandler
 
 
 def create_virgo_job_handler(partition: str) -> SlurmJobHandler:

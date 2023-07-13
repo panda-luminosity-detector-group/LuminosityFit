@@ -4,10 +4,9 @@ from enum import Enum
 from pathlib import Path
 
 from attrs import define, field
-
-from .alignment import AlignmentParameters
-from .reconstruction import ReconstructionParameters
-from .simulation import SimulationParameters, generateDirectory
+from lumifit.alignment import AlignmentParameters
+from lumifit.reconstruction import ReconstructionParameters
+from lumifit.simulation import SimulationParameters, generateDirectory
 
 
 class ExperimentType(Enum):

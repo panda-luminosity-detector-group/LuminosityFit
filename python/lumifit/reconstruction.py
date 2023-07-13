@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 
-import errno
 import os
 from pathlib import Path
-from typing import Any, Tuple, Union
+from typing import Tuple, Union
 
 import attr
 import cattrs
 from attr import field
-
-from .alignment import AlignmentParameters
-from .cluster import Job, JobResourceRequest, make_test_job_resource_request
-from .general import write_params_to_file
-from .simulationGeneratorTypes import SimulationGeneratorType
+from lumifit.alignment import AlignmentParameters
+from lumifit.cluster import (
+    Job,
+    JobResourceRequest,
+    make_test_job_resource_request,
+)
+from lumifit.general import write_params_to_file
+from lumifit.simulationGeneratorTypes import SimulationGeneratorType
 
 # TODO: solve the track_search_algorithms with Enum (or IntEnum for json serializability)
 #! wait there is even an enumEncoder, IntEnums may not be neccessary
@@ -24,7 +26,6 @@ lmdScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
 
 @attr.s
 class ReconstructionParameters:
-
     simGenTypeForResAcc: SimulationGeneratorType = attr.ib(default=SimulationGeneratorType.BOX)
     num_events_per_sample: int = attr.ib(default=1000)
     num_samples: int = attr.ib(default=1)
@@ -46,7 +47,6 @@ class ReconstructionParameters:
 
 
 def generateCutKeyword(reco_params: ReconstructionParameters) -> str:
-
     cutKeyword = ""
 
     if reco_params.use_xy_cut:

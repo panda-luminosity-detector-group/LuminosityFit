@@ -5,8 +5,8 @@ import subprocess
 import time
 from typing import Callable, Optional
 
-from .agent import Client, SlurmOrder
-from .cluster import Job, JobHandler, JobResourceRequest
+from lumifit.agent import Client, SlurmOrder
+from lumifit.cluster import Job, JobHandler, JobResourceRequest
 
 
 def _stringify(job_resource_request: JobResourceRequest):
@@ -51,9 +51,7 @@ def _create_array_string(job: Job) -> str:
                 temp_range_start = index
             elif index > previous_index + 1:
                 if previous_index - temp_range_start > 1:
-                    indices_string += (
-                        str(temp_range_start) + "-" + str(previous_index) + ","
-                    )
+                    indices_string += str(temp_range_start) + "-" + str(previous_index) + ","
                 else:
                     if temp_range_start != previous_index:
                         indices_string += str(temp_range_start) + ","
@@ -61,9 +59,7 @@ def _create_array_string(job: Job) -> str:
                 temp_range_start = index
             previous_index = index
         if temp_range_start < index:
-            indices_string += (
-                str(temp_range_start) + "-" + str(array_indices[-1])
-            )
+            indices_string += str(temp_range_start) + "-" + str(array_indices[-1])
         else:
             indices_string += str(array_indices[-1])
         return " --array=" + indices_string
@@ -98,7 +94,6 @@ class SlurmJobHandler(JobHandler):
 
         attemptCounter = 0
         while attemptCounter < 3:
-
             if self.__useSlurmAgent__:
                 # client = Client()
                 with Client() as client:
@@ -113,9 +108,7 @@ class SlurmJobHandler(JobHandler):
                     resultOut = resultOrder.stdout
 
             else:
-                returnvalue = subprocess.Popen(
-                    bashcommand, shell=True, stdout=subprocess.PIPE, text=True
-                )
+                returnvalue = subprocess.Popen(bashcommand, shell=True, stdout=subprocess.PIPE, text=True)
                 resultOut, _ = returnvalue.communicate()
 
             if resultOut == "":
@@ -136,32 +129,18 @@ class SlurmJobHandler(JobHandler):
             "sbatch"
             + (f" -A {self.__account}" if self.__account else "")
             + f" -p {self.__partition}"
-            + (
-                f" --constraint={self.__constraints}"
-                if self.__constraints
-                else ""
-            )
+            + (f" --constraint={self.__constraints}" if self.__constraints else "")
         )
 
         bashcommand += _create_array_string(job)
 
-        bashcommand += (
-            f" --job-name={job.name}"
-            + _stringify(job.resource_request)
-            + f" --output={job.logfile_url}"
-        )
+        bashcommand += f" --job-name={job.name}" + _stringify(job.resource_request) + f" --output={job.logfile_url}"
         # export variables
         bashcommand += " --export=ALL,"
         for name, value in job.exported_user_variables.items():
             bashcommand += f"{name}={value},"
 
-        bashcommand = (
-            bashcommand[:-1]
-            + " "
-            + job.additional_flags
-            + " "
-            + job.application_url
-        )
+        bashcommand = bashcommand[:-1] + " " + job.additional_flags + " " + job.application_url
         if self.__useSlurmAgent__:
             # client = Client()
             with Client() as client:
