@@ -24,17 +24,13 @@ be detected automatically.
 
 import os
 import sys
-
 from pathlib import Path
+from typing import Optional
 
 
-def ask(
-    varname: str,
-    default: str = None,
-    description: str = None,
-) -> str:
+def ask(varname: str, default: Optional[str] = None, description: Optional[str] = None) -> str:
+    varnameVal = os.getenv(varname)
 
-    varnameVal: str = os.getenv(varname)
     if varnameVal is None:
         print(f"\n{varname} is not set.")
         if description is not None:
@@ -61,7 +57,7 @@ def ask(
             varnameVal = input(f"please enter the value for {varname}:\n")
 
 
-def genEnvs():
+def genEnvs() -> None:
     currentDir = Path.cwd()
     print(f"working dir is {currentDir}")
 
@@ -73,9 +69,7 @@ def genEnvs():
             sys.exit()
 
     # * --------------
-    vars["VMCWORKDIR"] = ask(
-        "VMCWORKDIR", "", "This is PandaRoot / KoalaSoft installation dir."
-    )
+    vars["VMCWORKDIR"] = ask("VMCWORKDIR", "", "This is PandaRoot / KoalaSoft installation dir.")
 
     # * --------------
     vars["LMDFIT_MACROPATH"] = ask(
@@ -106,9 +100,7 @@ def genEnvs():
     )
 
     # * --------------
-    vars["PATH"] = ask(
-        "PATH", description="It's probably safe to use this just as it is."
-    )
+    vars["PATH"] = ask("PATH", description="It's probably safe to use this just as it is.")
 
     # * --------------
 

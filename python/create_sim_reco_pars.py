@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 
-from dotenv import load_dotenv
-
-load_dotenv(dotenv_path="../lmdEnvFile.env", verbose=True)
-
 import argparse
 from pathlib import Path
 
 import cattrs
-from lumifit.alignment import AlignmentParameters
-from lumifit.experiment import ClusterEnvironment, Experiment, ExperimentType
-from lumifit.general import envPath, write_params_to_file
-from lumifit.reconstruction import ReconstructionParameters
-from lumifit.simulation import SimulationParameters, generateDirectory
-from lumifit.simulationGeneratorTypes import SimulationGeneratorType
+from lumifit.config import write_params_to_file
+from lumifit.general import envPath
+from lumifit.simulation import generateDirectory
+from lumifit.types import (
+    AlignmentParameters,
+    ClusterEnvironment,
+    ExperimentParameters,
+    ExperimentType,
+    ReconstructionParameters,
+    SimulationGeneratorType,
+    SimulationParameters,
+)
 
 
 def genExperimentConfig(
@@ -24,7 +26,7 @@ def genExperimentConfig(
     phi_max: float,
     experimentType: ExperimentType,
     simGenTypeForResAcc: SimulationGeneratorType,
-) -> Experiment:
+) -> ExperimentParameters:
     """
     Generates a default experiment config without misalignment or alignment.
     Is mis/alignment is wanted, simply change the alignpars attribute and call
@@ -51,7 +53,7 @@ def genExperimentConfig(
 
     lmdfit_data_dir: Path = envPath("LMDFIT_DATA_DIR")
 
-    experiment = Experiment(
+    experiment = ExperimentParameters(
         experimentType,
         ClusterEnvironment.HIMSTER,
         simpars,
@@ -66,9 +68,7 @@ def genExperimentConfig(
 
 def restrictPhiConfigs() -> None:
     for mom in momenta:
-
         for i in range(len(upperPhiAngles)):
-
             # PANDA configs
             experiment = genExperimentConfig(
                 mom,
@@ -88,7 +88,7 @@ def restrictPhiConfigs() -> None:
             experiment.updateBaseDataDirectory()
 
             write_params_to_file(
-                cattrs.unstructure(experiment),
+                experiment,
                 Path(f"./{confPathPanda}/restrictPhi/"),
                 f"{mom}-{phiMatNames[i]}.config",
                 overwrite=True,
@@ -96,9 +96,7 @@ def restrictPhiConfigs() -> None:
 
 
 def genConfigs() -> None:
-
     for mom in momenta:
-
         # PANDA configs
 
         experiment = genExperimentConfig(

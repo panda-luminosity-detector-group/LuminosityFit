@@ -8,19 +8,16 @@ import argparse
 from pathlib import Path
 
 from lumifit.cluster import ClusterJobManager, DebugJobHandler, JobHandler
-from lumifit.experiment import ClusterEnvironment, Experiment
-from lumifit.general import (
-    addDebugArgumentsToParser,
-    envPath,
-    load_params_from_file,
-)
+from lumifit.config import load_params_from_file
+from lumifit.general import addDebugArgumentsToParser, envPath
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
 from lumifit.scenario import Scenario
 from lumifit.simulation import create_simulation_and_reconstruction_job
+from lumifit.types import ClusterEnvironment, ExperimentParameters
 
 
-def run_simulation_and_reconstruction(thisExperiment: Experiment) -> None:
+def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> None:
     if thisExperiment.recoParams.use_xy_cut or thisExperiment.recoParams.use_m_cut:
         print("Attention! This experiment configs specifies to use XY and m cuts during reconstruction.")
         print("That's reasonable for the luminosity determination, but the initial data sample must")
@@ -73,8 +70,7 @@ parser.add_argument(
     "-e",
     metavar="experiment-config",
     dest="experimentConfig",
-    type=str,
-    nargs=1,
+    type=Path,
     required=True,
     help="Path to experiment.config file\n",
 )
@@ -82,6 +78,6 @@ parser.add_argument(
 parser = addDebugArgumentsToParser(parser)
 args = parser.parse_args()
 
-thisExperiment: Experiment = load_params_from_file(args.experimentConfig[0], asType=Experiment)
+thisExperiment: ExperimentParameters = load_params_from_file(args.experimentConfig, asType=ExperimentParameters)
 
 run_simulation_and_reconstruction(thisExperiment)

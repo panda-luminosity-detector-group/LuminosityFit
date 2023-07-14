@@ -3,6 +3,8 @@ container class for a data set found by determineLuminosity.py.
 
 only used by determineLuminosity.py internally, should never be written to
 or read from file!
+
+TODO: maybe integrate this into lumifit.types?
 """
 
 from enum import Enum, IntEnum
@@ -10,8 +12,7 @@ from pathlib import Path
 from typing import List
 
 import attr
-from lumifit.alignment import AlignmentParameters
-from lumifit.experiment import ExperimentType
+from lumifit.types import AlignmentParameters, ExperimentType
 
 
 class LumiDeterminationState(IntEnum):

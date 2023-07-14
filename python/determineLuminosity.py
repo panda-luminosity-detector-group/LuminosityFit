@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-from dotenv import load_dotenv
-
-load_dotenv(dotenv_path="../lmdEnvFile.env", verbose=True)
-
 import argparse
 import json
 import math
@@ -14,14 +10,12 @@ import time
 from pathlib import Path
 from typing import List
 
-import lumifit.general as general
-from lumifit.alignment import AlignmentParameters
 from lumifit.cluster import ClusterJobManager
-from lumifit.experiment import ClusterEnvironment, Experiment
+from lumifit.config import load_params_from_file
+from lumifit.general import DirectorySearcher, envPath, getGoodFiles
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
 from lumifit.reconstruction import (
-    ReconstructionParameters,
     create_reconstruction_job,
     generateCutKeyword,
 )
@@ -33,6 +27,13 @@ from lumifit.scenario import (
     SimulationTask,
 )
 from lumifit.simulation import create_simulation_and_reconstruction_job
+from lumifit.types import (
+    AlignmentParameters,
+    ClusterEnvironment,
+    ExperimentParameters,
+    ReconstructionParameters,
+    SimulationParameters,
+)
 
 """
 
@@ -62,7 +63,7 @@ If the needed files aren't there (but the jobs don't run anymore either), there 
 
 # TODO: add jobID or jobArrayID check here
 def wasSimulationSuccessful(
-    thisExperiment: Experiment,
+    thisExperiment: ExperimentParameters,
     directory: Path,
     glob_pattern: str,
     min_filesize_in_bytes: int = 10000,
@@ -76,7 +77,7 @@ def wasSimulationSuccessful(
     required_files_percentage = 0.8
     return_value = 0
 
-    files_percentage = general.getGoodFiles(
+    files_percentage = getGoodFiles(
         directory,
         glob_pattern,
         min_filesize_in_bytes=min_filesize_in_bytes,
@@ -110,7 +111,7 @@ active_scenario_stack: List[Scenario] = []
 waiting_scenario_stack: List[Scenario] = []
 
 
-def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) -> Scenario:
+def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Scenario) -> Scenario:
     """
     Start a SLURM job for every SimulationTask assigned to a scenario.
     A scenario may hold multiple SimulationTasks at the same time that
@@ -182,7 +183,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 found_dirs = []
                 # what the shit, this should never be empty in the first place
                 if (task.dirPath != "") and (task.dirPath is not None):
-                    temp_dir_searcher = general.DirectorySearcher(
+                    temp_dir_searcher = DirectorySearcher(
                         [
                             thisExperiment.recoParams.simGenTypeForResAcc.value,
                             data_keywords[0],
@@ -270,7 +271,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
                 status_code = 1
                 # what the shit, this should never be empty in the first place
                 if (task.dirPath != "") and (task.dirPath is not None):
-                    temp_dir_searcher = general.DirectorySearcher(["dpm_elastic", data_keywords[0]])
+                    temp_dir_searcher = DirectorySearcher(["dpm_elastic", data_keywords[0]])
                     temp_dir_searcher.searchListOfDirectories(task.dirPath, thisScenario.track_file_pattern)
                     found_dirs = temp_dir_searcher.getListOfDirectories()
 
@@ -354,7 +355,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
         # 2. create data (that means bunch data, create data objects)
         if task.simState == SimulationState.MAKE_BUNCHES:
             # check if data objects already exists and skip!
-            temp_dir_searcher = general.DirectorySearcher(data_keywords)
+            temp_dir_searcher = DirectorySearcher(data_keywords)
             temp_dir_searcher.searchListOfDirectories(task.dirPath, data_pattern)
             found_dirs = temp_dir_searcher.getListOfDirectories()
             status_code = 1
@@ -446,7 +447,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
         # 3. merge data
         if task.simState == SimulationState.MERGE:
             # check first if merged data already exists and skip it!
-            temp_dir_searcher = general.DirectorySearcher(merge_keywords)
+            temp_dir_searcher = DirectorySearcher(merge_keywords)
             temp_dir_searcher.searchListOfDirectories(task.dirPath, data_pattern)
             found_dirs = temp_dir_searcher.getListOfDirectories()
             if not found_dirs:
@@ -490,7 +491,7 @@ def simulateDataOnHimster(thisExperiment: Experiment, thisScenario: Scenario) ->
     return thisScenario
 
 
-def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> None:
+def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenario) -> None:
     lumiTrksQAPath = thisScenario.trackDirectory
 
     # open cross section file (this was generated by apps/generatePbarPElasticScattering
@@ -543,14 +544,14 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
         Therefore, this is the ONLY place where thisScenario.ip[X,Y,Z] may be set.
         """
         if thisExperiment.recoParams.use_ip_determination:
-            temp_dir_searcher = general.DirectorySearcher(["merge_data", "binning_300"])
+            temp_dir_searcher = DirectorySearcher(["merge_data", "binning_300"])
             temp_dir_searcher.searchListOfDirectories(lumiTrksQAPath, "reco_ip.json")
             found_dirs = temp_dir_searcher.getListOfDirectories()
             # FIXME: wait this can't be, if NOT found_dirs, the bash command can't use found_dirs[0]!
             if not found_dirs:
                 # 2. determine offset on the vertex data sample
                 os.chdir(lmd_fit_bin_path)
-                temp_dir_searcher = general.DirectorySearcher(["merge_data", "binning_300"])
+                temp_dir_searcher = DirectorySearcher(["merge_data", "binning_300"])
                 temp_dir_searcher.searchListOfDirectories(lumiTrksQAPath, ["lmd_vertex_data_", "of1.root"])
                 found_dirs = temp_dir_searcher.getListOfDirectories()
                 bashcommand = []
@@ -644,7 +645,7 @@ def lumiDetermination(thisExperiment: Experiment, thisScenario: Scenario) -> Non
 #!             script part starts here
 #! --------------------------------------------------
 
-parser = argparse.ArgumentParser(description="Lmd One Button Script", formatter_class=general.SmartFormatter)
+parser = argparse.ArgumentParser(description="Lmd One Button Script")
 
 parser.add_argument(
     "--bootstrapped_num_samples",
@@ -672,12 +673,12 @@ args = parser.parse_args()
 
 
 # load experiment config
-loadedExperimentFromConfig: Experiment = general.load_params_from_file(args.ExperimentConfigFile, Experiment)
+loadedExperimentFromConfig: ExperimentParameters = load_params_from_file(args.ExperimentConfigFile, ExperimentParameters)
 
 # read environ settings
-lmd_fit_script_path = general.envPath("LMDFIT_SCRIPTPATH")
+lmd_fit_script_path = envPath("LMDFIT_SCRIPTPATH")
 # lmd_fit_path = Path(os.path.dirname(lmd_fit_script_path))
-lmd_fit_bin_path = general.envPath("LMDFIT_BUILD_PATH") / "bin"
+lmd_fit_bin_path = envPath("LMDFIT_BUILD_PATH") / "bin"
 
 # make scenario config
 thisScenario = Scenario(
@@ -692,7 +693,7 @@ bootstrapped_num_samples = args.bootstrapped_num_samples
 
 # * ----------------- find the path to the TracksQA files.
 # the config only holds the base directory (i.e. where the first sim_params is)
-dir_searcher = general.DirectorySearcher(["dpm_elastic", "uncut"])
+dir_searcher = DirectorySearcher(["dpm_elastic", "uncut"])
 
 dir_searcher.searchListOfDirectories(
     loadedExperimentFromConfig.baseDataOutputDir,

@@ -20,22 +20,25 @@ import glob
 import os
 import re
 from pathlib import Path
+from typing import List, Optional
 
 import lumifit.general as general
 from lumifit.cluster import ClusterJobManager, Job, JobResourceRequest
-from lumifit.experiment import ClusterEnvironment, Experiment
+from lumifit.config import load_params_from_file
+from lumifit.general import envPath
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
+from lumifit.types import ClusterEnvironment, ExperimentParameters
 
-dirs: list = []
-resAccDirs: list = []
+dirs: List[Path] = []
+resAccDirs: List[Path] = []
 
 box_res_glob_pattern = ["lmd_res_data_", "of", ".root"]
 box_acc_glob_pattern = ["lmd_acc_data_", "of", ".root"]
 
-top_level_resAcc_directory = ""
+top_level_resAcc_directory = Path()
 
-LMDscriptpath = os.environ["LMDFIT_SCRIPTPATH"]
+LMDscriptpath = envPath("LMDFIT_SCRIPTPATH")
 
 
 def getListOfResAccDirectories(path: str) -> None:
@@ -63,32 +66,30 @@ def getListOfResAccDirectories(path: str) -> None:
                 getListOfResAccDirectories(dirpath)
 
 
-def getTopResAccDirectory(path: str) -> None:
+def getTopResAccDirectory(path: Path) -> None:
     if os.path.isdir(path):
         found = False
         for directory in next(os.walk(path))[1]:
             if re.search(f"{experiment.recoParams.simGenTypeForResAcc.value}", directory):  # read BOX/DPM string from config
                 global top_level_resAcc_directory
-                top_level_resAcc_directory = path + "/" + directory
+                top_level_resAcc_directory = path / directory
                 found = True
                 break
         if not found:
-            getTopResAccDirectory(os.path.dirname(path))
+            getTopResAccDirectory(path.absolute())
 
 
 # TODO: holy shit, DONT MAKE UP REGEX PATTERN ON THE FLY
 # also, this function will only find the test data if it is called "dpm" something
 #! TODO: in case data is from box gen (or FTF) this DOESN'T WORK!
-def findMatchingDirs(resAcc_data_path: str) -> list:
-    matching_dir_pairs = []
-    if resAcc_data_path == "" or resAcc_data_path is None:
-        if resAcc_data_path is None:
-            print("\n\n\n GREP OUTPUT DIR: resAcc_data_path is None in line 74 of doMultipleLuminosityFits.py!")
+def findMatchingDirs(resAcc_data_path: Optional[Path]) -> List[List[Path]]:
+    matching_dir_pairs: List[List[Path]] = []
+    if (resAcc_data_path == Path()) or (resAcc_data_path is None):
         for dpm_dir in dirs:
             print(dpm_dir)
             match = re.search(
                 r"^(.*/)dpm_.*?/(ip_offset_XYZDXDYDZ_.*)/.*/\d*/\d*-\d*_(.*cut)/.*/(binning_\d*)/merge_data$",
-                dpm_dir,
+                str(dpm_dir),
             )
             pattern = (
                 "^"
@@ -104,15 +105,15 @@ def findMatchingDirs(resAcc_data_path: str) -> list:
             # print pattern
             for resAcc_dir in resAccDirs:
                 # print box_dir
-                box_match = re.search(pattern, resAcc_dir)
+                box_match = re.search(pattern, str(resAcc_dir))
                 if box_match:
                     matching_dir_pairs.append([dpm_dir, resAcc_dir])
                     break
     else:
         for dpm_dir in dirs:
             # attempt to find directory with same binning
-            print("checking for matching directory for " + dpm_dir)
-            match = re.search(r"^.*(binning_\d*)/.*$", dpm_dir)
+            print(f"checking for matching directory for {dpm_dir}")
+            match = re.search(r"^.*(binning_\d*)/.*$", str(dpm_dir))
             if match:
                 dir_searcher = general.DirectorySearcher([match.group(1)])
                 dir_searcher.searchListOfDirectories(resAcc_data_path, box_acc_glob_pattern)
@@ -131,7 +132,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "dirname",
     metavar="dirname_to_scan",
-    type=str,
+    type=Path,
     nargs=1,
     help="Name of directory to scan recursively for lmd data files and call merge!",
 )
@@ -163,7 +164,7 @@ parser.add_argument(
 parser.add_argument(
     "--ref_resacc_gen_data",
     metavar="ref res/acc data",
-    type=str,
+    type=Path,
     default="",
     help="If specified then this path will be used for all fits as the reference res/acc data. WARNING: DOES NOT WORK CURRENTLY.",
 )
@@ -171,7 +172,7 @@ parser.add_argument(
 parser.add_argument(
     "--forced_resAcc_gen_data",
     metavar="forced res/acc data",
-    type=str,
+    type=Path,
     default="",
     help="If specified then this path will be used for all fits as the res/acc data, ignoring other res/acc data directories.",
 )
@@ -196,7 +197,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # load experiment config
-experiment: Experiment = general.load_params_from_file(args.ExperimentConfigFile, Experiment)
+experiment: ExperimentParameters = load_params_from_file(args.ExperimentConfigFile, ExperimentParameters)
 
 
 number_of_threads = args.number_of_threads
@@ -215,7 +216,7 @@ dirs = dir_searcher.getListOfDirectories()
 
 if args.forced_resAcc_gen_data == "":
     getTopResAccDirectory(args.dirname[0])
-    print("box top dir: " + top_level_resAcc_directory)
+    print(f"box top dir: {top_level_resAcc_directory}")
     # getListOfBoxDirectories(top_level_box_directory)
     box_dir_searcher = general.DirectorySearcher(patterns)
     box_dir_searcher.searchListOfDirectories(top_level_resAcc_directory, box_acc_glob_pattern)
@@ -241,7 +242,8 @@ for match in matches:
         resource_request,
         application_url=f"{LMDscriptpath}/singularityJob.sh {LMDscriptpath}/runLmdFit.sh",
         name="runLmdFit",
-        logfile_url=elastic_data_path + "/runLmdFit.log",
+        # TODO: make logfile_url a Path object
+        logfile_url=str(elastic_data_path / "runLmdFit.log"),
         array_indices=[1],
     )
 

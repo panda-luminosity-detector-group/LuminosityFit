@@ -1,99 +1,24 @@
 #!/usr/bin/env python3
 
-import math
-import os
-import random
 import subprocess
 from pathlib import Path
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple
 
-import attr
-import cattrs
-from attr import field
-from dotenv import load_dotenv
-from lumifit.alignment import AlignmentParameters
 from lumifit.cluster import (
     Job,
     JobResourceRequest,
     make_test_job_resource_request,
 )
-from lumifit.general import envPath, write_params_to_file
-from lumifit.reconstruction import (
+from lumifit.config import write_params_to_file
+from lumifit.general import envPath
+from lumifit.reconstruction import generateRecoDirSuffix
+from lumifit.types import (
+    AlignmentParameters,
     ReconstructionParameters,
-    generateRecoDirSuffix,
+    SimulationGeneratorType,
+    SimulationParameters,
+    generateDirectory,
 )
-from lumifit.simulationGeneratorTypes import SimulationGeneratorType
-
-load_dotenv(dotenv_path="../lmdEnvFile.env", verbose=True)
-
-
-@attr.s
-class SimulationParameters:
-    simGeneratorType: SimulationGeneratorType = attr.ib(default=SimulationGeneratorType.PBARP_ELASTIC)
-    num_events_per_sample: int = attr.ib(default=1000)
-    num_samples: int = attr.ib(default=1)
-    lab_momentum: float = attr.ib(default=1.5)
-    low_index: int = attr.ib(default=1)
-    output_dir: Union[Path, None] = field(default=None)
-    lmd_geometry_filename: str = attr.ib(default="Luminosity-Detector.root")
-    theta_min_in_mrad: float = attr.ib(default=2.7)
-    theta_max_in_mrad: float = attr.ib(default=13.0)
-    phi_min_in_rad: float = attr.ib(default=0.0)
-    phi_max_in_rad: float = attr.ib(default=2 * math.pi)
-    neglect_recoil_momentum: bool = attr.ib(default=False)
-    random_seed: int = attr.ib(factory=lambda: random.randint(10, 9999))
-    useRestGas: bool = attr.ib(default=False)
-
-    ip_offset_x: float = attr.ib(default=0.0)  # in cm
-    ip_offset_y: float = attr.ib(default=0.0)  # in cm
-    ip_offset_z: float = attr.ib(default=0.0)  # in cm
-    ip_spread_x: float = attr.ib(default=0.0)  # in cm
-    ip_spread_y: float = attr.ib(default=0.0)  # in cm
-    ip_spread_z: float = attr.ib(default=0.0)  # in cm
-    beam_tilt_x: float = attr.ib(default=0.0)  # in rad
-    beam_tilt_y: float = attr.ib(default=0.0)  # in rad
-    beam_divergence_x: float = attr.ib(default=0.0)  # in rad
-    beam_divergence_y: float = attr.ib(default=0.0)  # in rad
-
-
-def generateDirectory(
-    sim_params: SimulationParameters,
-    align_params: AlignmentParameters,
-    output_dir: Optional[Path] = None,
-) -> Path:
-    if output_dir is None:
-        if sim_params.useRestGas:
-            dirname = Path(f"plab_{sim_params.lab_momentum:.2f}GeV_RestGas")
-        else:
-            dirname = Path(f"plab_{sim_params.lab_momentum:.2f}GeV")
-
-        gen_part = f"{sim_params.simGeneratorType.value}_theta_" + f"{sim_params.theta_min_in_mrad}-" + f"{sim_params.theta_max_in_mrad}mrad"
-        if not sim_params.neglect_recoil_momentum:
-            gen_part += "_recoil_corrected"
-
-        dirname /= Path(gen_part)
-
-        dirname /= Path(
-            "/ip_offset_XYZDXDYDZ_"
-            + f"{sim_params.ip_offset_x}_{sim_params.ip_offset_y}_"
-            + f"{sim_params.ip_offset_z}_{sim_params.ip_spread_x}_"
-            + f"{sim_params.ip_spread_y}_{sim_params.ip_spread_z}"
-        )
-
-        dirname /= Path(
-            "beam_grad_XYDXDY_" + f"{sim_params.beam_tilt_x}_{sim_params.beam_tilt_y}_" + f"{sim_params.beam_divergence_x}_" + f"{sim_params.beam_divergence_y}"
-        )
-
-        if align_params.use_point_transform_misalignment or align_params.misalignment_matrices_path is None:
-            dirname /= "/no_geo_misalignment"
-        else:
-            dirname /= "/geo_misalignment" + str(os.path.splitext(os.path.basename(align_params.misalignment_matrices_path))[0])
-
-        dirname /= str(sim_params.num_events_per_sample)
-
-        return dirname
-
-    return output_dir
 
 
 def create_simulation_and_reconstruction_job(
@@ -151,9 +76,9 @@ def create_simulation_and_reconstruction_job(
         subprocess.call(bashcommand.split())
 
     # These must be written again so that runLmdSimReco and runLmdReco have access to them
-    write_params_to_file(cattrs.unstructure(sim_params), pathname_base, "sim_params.config")
-    write_params_to_file(cattrs.unstructure(reco_params), pathname_full, "reco_params.config")
-    write_params_to_file(cattrs.unstructure(align_params), pathname_full, "align_params.config")
+    write_params_to_file(sim_params, pathname_base, "sim_params.config")
+    write_params_to_file(reco_params, pathname_full, "reco_params.config")
+    write_params_to_file(align_params, pathname_full, "align_params.config")
 
     resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
     resource_request.number_of_nodes = 1
