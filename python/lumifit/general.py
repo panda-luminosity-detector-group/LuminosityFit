@@ -1,23 +1,12 @@
 import json
 import os
 import re
-from argparse import (
-    ArgumentDefaultsHelpFormatter,
-    ArgumentParser,
-    RawTextHelpFormatter,
-)
+from argparse import ArgumentParser
 from enum import Enum
 from pathlib import Path
-from typing import Any, List, Optional, Type, TypeVar, Union
+from typing import Any, List, Optional
 
-import cattrs
-from lumifit.alignment import AlignmentParameters
-from lumifit.experiment import Experiment
-from lumifit.reconstruction import ReconstructionParameters
-from lumifit.simulation import SimulationParameters
-
-cattrs.register_structure_hook(Path, lambda d, t: Path(d))
-cattrs.register_unstructure_hook(Path, lambda d: str(d))
+from dotenv import load_dotenv
 
 
 def envPath(env_var: str) -> Path:
@@ -25,6 +14,7 @@ def envPath(env_var: str) -> Path:
     returns a Path object from an environment variable, ensures that the variable is set.
     raises a ValueError if the variable is not set.
     """
+    load_dotenv(dotenv_path=Path("../lmdEnvFile.env"))
     env_var_value = os.environ.get(env_var)
 
     if env_var_value:
@@ -94,11 +84,6 @@ def check_stage_success(file_url: str) -> bool:
     return False
 
 
-class SmartFormatter(ArgumentDefaultsHelpFormatter):
-    def _split_lines(self, text: str, width: int) -> list:
-        return RawTextHelpFormatter._split_lines(self, text, width)
-
-
 def addDebugArgumentsToParser(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
         "--force_level",
@@ -131,36 +116,6 @@ class _EnumEncoder(json.JSONEncoder):
         if isinstance(obj, Enum):
             return obj.value
         return json.JSONEncoder.default(self, obj)
-
-
-def write_params_to_file(params: dict, pathname: Path, filename: str, overwrite: bool = False) -> None:
-    Path(pathname).mkdir(exist_ok=True, parents=True)
-    file_path = pathname / filename
-    if overwrite or (not os.path.exists(file_path)):
-        print(f"creating config file: {file_path}")
-        with open(file_path, "w") as json_file:
-            json.dump(params, json_file, sort_keys=True, indent=4, cls=_EnumEncoder)
-    else:
-        print(f"Config file {filename} already exists!")
-
-
-Params = Union[Experiment, AlignmentParameters, SimulationParameters, ReconstructionParameters]
-T = TypeVar("T", bound=Params)
-
-
-def load_params_from_file(file_path: Path, asType: Type[T]) -> T:
-    """
-    Uses cattrs to deserialize a json file to a python object. Requires target type
-    (i.e. AlignmentParams, SimulationParams or ReconstructionParams ) to be specified.
-    """
-    if asType is None:
-        raise NotImplementedError("Please specify the type to deserialize as.")
-
-    if file_path.exists():
-        with open(file_path, "r") as json_file:
-            return cattrs.structure(json.load(json_file), asType)
-    else:
-        raise FileNotFoundError(f"file {file_path} does not exist!")
 
 
 class DirectorySearcher:
