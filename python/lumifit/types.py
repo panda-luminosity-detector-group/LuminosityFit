@@ -146,7 +146,7 @@ def generateDirectory(
         if align_params.use_point_transform_misalignment or align_params.misalignment_matrices_path is None:
             dirname /= "/no_geo_misalignment"
         else:
-            dirname /= "/geo_misalignment" + str(os.path.splitext(os.path.basename(align_params.misalignment_matrices_path))[0])
+            dirname = dirname / "geo_misalignment-" / align_params.misalignment_matrices_path.stem
 
         dirname /= str(sim_params.num_events_per_sample)
 
