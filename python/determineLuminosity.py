@@ -244,9 +244,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     # and alignment for the box simulations
 
                     (job, returnPath) = create_simulation_and_reconstruction_job(
-                        tempSimParams,
-                        tempAlignParams,
-                        tempRecoParams,
+                        thisExperiment,
                         application_command=thisScenario.Sim,
                         use_devel_queue=args.use_devel_queue,
                     )
@@ -296,9 +294,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     align_par = thisExperiment.alignParams
 
                     (job, returnPath) = create_reconstruction_job(
-                        rec_par,
-                        align_par,
-                        thisExperiment.baseDataOutputDir,
+                        thisExperiment,
                         application_command=thisScenario.Reco,
                         use_devel_queue=args.use_devel_queue,
                     )
@@ -330,9 +326,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     tempAlignPars.alignment_matrices_path = None
 
                     job, _ = create_simulation_and_reconstruction_job(
-                        thisExperiment.simParams,
-                        tempAlignPars,
-                        tempRecoPars,
+                        thisExperiment,
                         use_devel_queue=args.use_devel_queue,
                         application_command=thisScenario.Sim,
                     )

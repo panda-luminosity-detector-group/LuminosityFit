@@ -28,6 +28,8 @@ import attr
 @attr.s(hash=True)
 class orderType(IntEnum):
     # the actual values of these enums must be integers now!
+    PARSE_FAILED = -3
+    FAILED = -2
     EXIT = -1
     META = 0
     REGULAR = 1
@@ -103,7 +105,7 @@ class Agent:
                 payload = json.load(universalPipe)
             except Exception:
                 print(f"error parsing json order from pipe!")
-                return None
+                return SlurmOrder(thisType=orderType.PARSE_FAILED)
 
         # python json's are actually dicts
         return SlurmOrder.fromDict(payload)
@@ -166,6 +168,9 @@ class Server(Agent):
         while True:
             # read entire pipe contents and try to deserialize json from it (close pipe!)
             thisOrder = self.receiveOrder()
+            if thisOrder.thisType == orderType.PARSE_FAILED:
+                # TODO: better error handling
+                raise Exception("Could not parse order!")
 
             if thisOrder is not None:
                 logging.info(f"{datetime.datetime.now().isoformat(timespec='seconds')}: Received Order:")
@@ -234,7 +239,6 @@ class Server(Agent):
         sys.exit(0)
 
     def run(self, debug: bool = False) -> None:
-
         if not debug:
             # fork to background
             try:

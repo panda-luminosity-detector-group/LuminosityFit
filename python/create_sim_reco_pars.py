@@ -6,7 +6,8 @@ from pathlib import Path
 import cattrs
 from lumifit.config import write_params_to_file
 from lumifit.general import envPath
-from lumifit.simulation import generateDirectory
+
+# from lumifit.simulation import generateDirectory
 from lumifit.types import (
     AlignmentParameters,
     ClusterEnvironment,
@@ -59,7 +60,7 @@ def genExperimentConfig(
         simpars,
         recopars,
         alignpars,
-        baseDataOutputDir=lmdfit_data_dir / generateDirectory(simpars, alignpars),
+        # baseDataOutputDir=lmdfit_data_dir / generateDirectory(simpars, alignpars),
         LMDdirectory=lmdfit_data_dir,
     )
 
@@ -85,7 +86,7 @@ def restrictPhiConfigs() -> None:
             experiment.recoParams.use_ip_determination = False
 
             # update internal paths
-            experiment.updateBaseDataDirectory()
+            # experiment.updateBaseDataDirectory()
 
             write_params_to_file(
                 experiment,
@@ -115,7 +116,7 @@ def genConfigs() -> None:
         # change alignpars is alignment matrices are given
 
         # update internal paths
-        experiment.updateBaseDataDirectory()
+        # experiment.updateBaseDataDirectory()
 
         write_params_to_file(
             cattrs.unstructure(experiment),
@@ -143,7 +144,7 @@ def genConfigs() -> None:
         # change alignpars is alignment matrices are given
 
         # update internal paths
-        experiment.updateBaseDataDirectory()
+        # experiment.updateBaseDataDirectory()
 
         write_params_to_file(cattrs.unstructure(experiment), Path("."), f"{confPathKoala}/{mom}.config")
 

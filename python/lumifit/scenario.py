@@ -47,6 +47,7 @@ class SimulationTask:
     lastState: SimulationState = attr.ib(default=SimulationState.INIT)
 
 
+# TODO: use the @define decorator here, makes this easier to read
 class Scenario:
     """
     Scenarios are always simulated on a cluster, but all runtime parameters are set during construction!
@@ -75,7 +76,7 @@ class Scenario:
             raise ValueError("Experiment Type not defined!")
 
         # don't define default args here, better let fail with None
-        self.alignment_parameters: AlignmentParameters = None
+        self.alignment_parameters: AlignmentParameters = AlignmentParameters()
 
         self.lumiDetState = LumiDeterminationState.SIMULATE_VERTEX_DATA
         self.lastLumiDetState = LumiDeterminationState.INIT

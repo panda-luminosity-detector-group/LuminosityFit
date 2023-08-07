@@ -31,15 +31,14 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> N
     scen = Scenario(trackDirectory_=Path(), experiment_type=thisExperiment.experimentType, lmdScriptPath=lmdScriptPath)
 
     job, _ = create_simulation_and_reconstruction_job(
-        thisExperiment.simParams,
-        thisExperiment.alignParams,
-        thisExperiment.recoParams,
+        thisExperiment,
         force_level=args.force_level,
         debug=args.debug,
         use_devel_queue=args.use_devel_queue,
         application_command=scen.Sim,
     )
 
+    # TODO: Factory Pattern?
     job_handler: JobHandler
     if args.debug:
         job_handler = DebugJobHandler()

@@ -10,12 +10,11 @@ from lumifit.cluster import (
 )
 from lumifit.config import write_params_to_file
 from lumifit.general import envPath
-from lumifit.types import AlignmentParameters, ReconstructionParameters
-
-# TODO: solve the track_search_algorithms with Enum (or IntEnum for json serialize-ability)
-#! wait there is even an enumEncoder, IntEnums may not be necessary
-
-track_search_algorithms = ["CA", "Follow"]
+from lumifit.types import (
+    AlignmentParameters,
+    ExperimentParameters,
+    ReconstructionParameters,
+)
 
 lmdScriptPath = envPath("LMDFIT_SCRIPTPATH")
 
@@ -59,23 +58,27 @@ def generateRecoDirSuffix(reco_params: ReconstructionParameters, align_params: A
 
 
 def create_reconstruction_job(
-    reco_params: ReconstructionParameters,
-    align_params: AlignmentParameters,
-    dirname: Path,
+    experiment: ExperimentParameters,
     application_command: str,
     force_level: int = 0,
     debug: bool = False,
     use_devel_queue: bool = False,
 ) -> Tuple[Job, Path]:
-    print("preparing reconstruction in index range " + f"{reco_params.low_index} - " + f"{reco_params.low_index + reco_params.num_samples - 1}")
+    print(
+        "preparing reconstruction in index range "
+        + f"{experiment.recoParams.low_index} - "
+        + f"{experiment.recoParams.low_index + experiment.recoParams.num_samples - 1}"
+    )
 
-    dirname_filter_suffix = generateRecoDirSuffix(reco_params, align_params)
+    dirname_filter_suffix = generateRecoDirSuffix(experiment.recoParams, experiment.alignParams)
 
-    low_index_used = reco_params.low_index
-    num_samples = reco_params.num_samples
-    if debug and reco_params.num_samples > 1:
+    low_index_used = experiment.recoParams.low_index
+    num_samples = experiment.recoParams.num_samples
+    if debug and experiment.recoParams.num_samples > 1:
         print("Warning: number of samples in debug mode is limited to 1!" " Setting to 1!")
         num_samples = 1
+
+    dirname = experiment.baseDataOutputDir
 
     print(f"dir name for this create_reconstruction_job is {dirname}")
 
@@ -90,8 +93,9 @@ def create_reconstruction_job(
     Path(pathname_full / "Pairs").mkdir(exist_ok=True, parents=True)
 
     # These must be written again so that runLmdSimReco and runLmdReco have access to them
-    write_params_to_file(reco_params, pathname_full, "reco_params.config")
-    write_params_to_file(align_params, pathname_full, "align_params.config")
+    # TODO: No, only ONE copy of the config should be there, at the base data output dir
+    write_params_to_file(experiment.recoParams, pathname_full, "reco_params.config")
+    write_params_to_file(experiment.alignParams, pathname_full, "align_params.config")
 
     resource_request = JobResourceRequest(2 * 60)
     resource_request.number_of_nodes = 1
@@ -105,7 +109,7 @@ def create_reconstruction_job(
     job = Job(
         resource_request,
         application_url=application_command,
-        name="reco_" + reco_params.simGenTypeForResAcc.value,
+        name="reco_" + experiment.recoParams.simGenTypeForResAcc.value,
         logfile_url=str(pathname_full / "reco-%a.log"),
         array_indices=list(range(low_index_used, low_index_used + num_samples)),
     )
@@ -118,7 +122,7 @@ def create_reconstruction_job(
         "force_level": str(force_level),
     }
 
-    if reco_params.force_cut_disable:
+    if experiment.recoParams.force_cut_disable:
         job.exported_user_variables["force_cut_disable"] = True
 
     return (job, pathname_full)

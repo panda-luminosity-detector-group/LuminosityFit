@@ -6,17 +6,18 @@ from time import sleep, time
 from typing import Any, Dict, List
 
 import attr
+from attrs import define
 
 
-@attr.s(hash=True)
+@define
 class JobResourceRequest:
-    walltime_in_minutes: int = attr.ib()
-    number_of_nodes: int = attr.ib(default=1)
-    processors_per_node: int = attr.ib(default=1)
-    memory_in_mb: int = attr.ib(default=2000)
-    virtual_memory_in_mb: int = attr.ib(default=2000)
-    node_scratch_filesize_in_mb: int = attr.ib(default=0)
-    is_dev_job: bool = attr.ib(default=False)
+    walltime_in_minutes: int = 0
+    number_of_nodes: int = 1
+    processors_per_node: int = 1
+    memory_in_mb: int = 2000
+    virtual_memory_in_mb: int = 2000
+    node_scratch_filesize_in_mb: int = 0
+    is_dev_job: bool = False
 
 
 def make_test_job_resource_request() -> JobResourceRequest:
@@ -31,9 +32,10 @@ def make_test_job_resource_request() -> JobResourceRequest:
     )
 
 
+# TODO: rewrite with define
 @attr.s(hash=False)
 class Job:
-    def _validate_job_array_indices(instance, attribute: Any, value: Any) -> None:
+    def _validate_job_array_indices(self, attribute: Any, value: Any) -> None:
         if not isinstance(value, list):
             raise TypeError("Job array indices must be of type list")
         if not value:

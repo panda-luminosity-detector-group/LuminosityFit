@@ -12,36 +12,38 @@ from lumifit.cluster import (
 from lumifit.config import write_params_to_file
 from lumifit.general import envPath
 from lumifit.reconstruction import generateRecoDirSuffix
-from lumifit.types import (
-    AlignmentParameters,
-    ReconstructionParameters,
+from lumifit.types import (  # generateDirectory,; AlignmentParameters,; ReconstructionParameters,; SimulationParameters,
+    ExperimentParameters,
     SimulationGeneratorType,
-    SimulationParameters,
-    generateDirectory,
 )
 
 
 def create_simulation_and_reconstruction_job(
-    sim_params: SimulationParameters,
-    align_params: AlignmentParameters,
-    reco_params: ReconstructionParameters,
-    output_dir: Optional[Path] = None,
+    # sim_params: SimulationParameters,
+    # align_params: AlignmentParameters,
+    # reco_params: ReconstructionParameters,
+    experiment: ExperimentParameters,
+    # output_dir: Optional[Path] = None,
     application_command: str = "",
     force_level: int = 0,
     debug: bool = False,
     use_devel_queue: bool = False,
 ) -> Tuple[Job, Path]:
-    print("preparing simulations in index range " + f"{reco_params.low_index} - " + f"{reco_params.low_index + reco_params.num_samples - 1}")
+    print(
+        "preparing simulations in index range "
+        + f"{experiment.recoParams.low_index} - "
+        + f"{experiment.recoParams.low_index + experiment.recoParams.num_samples - 1}"
+    )
 
     if application_command == "":
         raise RuntimeError(f"ERROR! no application command given!")
 
-    dirname = generateDirectory(sim_params, align_params, output_dir)
-    dirname_filter_suffix = generateRecoDirSuffix(reco_params, align_params)
+    dirname = experiment.baseDataOutputDir
+    dirname_filter_suffix = generateRecoDirSuffix(experiment.recoParams, experiment.alignParams)
 
-    low_index_used = sim_params.low_index
-    num_samples = sim_params.num_samples
-    if debug and sim_params.num_samples > 1:
+    low_index_used = experiment.simParams.low_index
+    num_samples = experiment.simParams.num_samples
+    if debug and experiment.simParams.num_samples > 1:
         print("Warning: number of samples in debug mode is limited to 1! " "Setting to 1!")
         num_samples = 1
 
@@ -53,32 +55,35 @@ def create_simulation_and_reconstruction_job(
     dirname_full = dirname / dirname_filter_suffix
     pathname_full = lmdfit_data_dir / dirname_full
 
+    print(f"dirname_full: {dirname_full}")
+
     print(f"using output folder structure: {pathname_full}")
 
     pathname_full.mkdir(exist_ok=True, parents=True)
     path_mc_data.mkdir(exist_ok=True, parents=True)
 
     # generate simulation config parameter file
-    if sim_params.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC:
+    if experiment.simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC:
         lmdfit_build_dir = envPath("LMDFIT_BUILD_PATH")
 
         # determine the elastic cross section in the theta range
         bashcommand = (
             f"{lmdfit_build_dir}/bin/generatePbarPElasticScattering "
-            + f"{sim_params.lab_momentum} 0 "
-            + f"-l {sim_params.theta_min_in_mrad}"
-            + f" -u {sim_params.theta_max_in_mrad}"
-            + f" -n {sim_params.phi_min_in_rad}"
-            + f" -g {sim_params.phi_max_in_rad}"
+            + f"{experiment.simParams.lab_momentum} 0 "
+            + f"-l {experiment.simParams.theta_min_in_mrad}"
+            + f" -u {experiment.simParams.theta_max_in_mrad}"
+            + f" -n {experiment.simParams.phi_min_in_rad}"
+            + f" -g {experiment.simParams.phi_max_in_rad}"
             + f" -o {pathname_base}/elastic_cross_section.txt"
         )
         print(f"\n\nGREPLINE:PBARPGEN:\n{bashcommand}\n")
         subprocess.call(bashcommand.split())
 
     # These must be written again so that runLmdSimReco and runLmdReco have access to them
-    write_params_to_file(sim_params, pathname_base, "sim_params.config")
-    write_params_to_file(reco_params, pathname_full, "reco_params.config")
-    write_params_to_file(align_params, pathname_full, "align_params.config")
+    # TODO: No, only ONE copy of the config should be there, at the base data output dir
+    write_params_to_file(experiment.simParams, pathname_base, "sim_params.config")
+    write_params_to_file(experiment.recoParams, pathname_full, "reco_params.config")
+    write_params_to_file(experiment.alignParams, pathname_full, "align_params.config")
 
     resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
     resource_request.number_of_nodes = 1
@@ -92,7 +97,7 @@ def create_simulation_and_reconstruction_job(
     job = Job(
         resource_request,
         application_url=application_command,
-        name="simreco_" + sim_params.simGeneratorType.value,
+        name="simreco_" + experiment.simParams.simGeneratorType.value,
         logfile_url=str(pathname_full / "simreco-%a.log"),
         array_indices=list(range(low_index_used, low_index_used + num_samples)),
     )
