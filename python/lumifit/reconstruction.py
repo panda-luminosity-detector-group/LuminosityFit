@@ -8,15 +8,11 @@ from lumifit.cluster import (
     JobResourceRequest,
     make_test_job_resource_request,
 )
-from lumifit.config import write_params_to_file
-from lumifit.general import envPath
 from lumifit.types import (
     AlignmentParameters,
     ExperimentParameters,
     ReconstructionParameters,
 )
-
-lmdScriptPath = envPath("LMDFIT_SCRIPTPATH")
 
 
 def generateCutKeyword(reco_params: ReconstructionParameters) -> str:
@@ -91,11 +87,6 @@ def create_reconstruction_job(
 
     pathname_full.mkdir(exist_ok=True, parents=True)
     Path(pathname_full / "Pairs").mkdir(exist_ok=True, parents=True)
-
-    # These must be written again so that runLmdSimReco and runLmdReco have access to them
-    # TODO: No, only ONE copy of the config should be there, at the base data output dir
-    write_params_to_file(experiment.recoParams, pathname_full, "reco_params.config")
-    write_params_to_file(experiment.alignParams, pathname_full, "align_params.config")
 
     resource_request = JobResourceRequest(2 * 60)
     resource_request.number_of_nodes = 1

@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 
 import cattrs
+from attrs import evolve
 from lumifit.config import write_params_to_file
 from lumifit.general import envPath
 
@@ -33,34 +34,34 @@ def genExperimentConfig(
     Is mis/alignment is wanted, simply change the alignpars attribute and call
     experiment.updateBaseDataDirectory()
     """
-    simpars = SimulationParameters()
-    recopars = ReconstructionParameters()
-    alignpars = AlignmentParameters()
+    simParams = SimulationParameters(
+        lab_momentum=momentum,
+        num_samples=100,
+        num_events_per_sample=100000,
+        theta_min_in_mrad=theta_min,
+        theta_max_in_mrad=theta_max,
+        phi_min_in_rad=phi_min,
+        phi_max_in_rad=phi_max,
+    )
+    recoParams = ReconstructionParameters(
+        lab_momentum=momentum,
+        num_samples=100,
+        num_events_per_sample=100000,
+        num_resAcc_samples=500,
+        num_events_per_resAcc_sample=100000,
+        simGenTypeForResAcc=simGenTypeForResAcc,
+    )
 
-    simpars.lab_momentum = momentum
-    simpars.num_samples = 100
-    simpars.num_events_per_sample = 100000
-    simpars.theta_min_in_mrad = theta_min
-    simpars.theta_max_in_mrad = theta_max
-    simpars.phi_min_in_rad = phi_min
-    simpars.phi_max_in_rad = phi_max
-
-    recopars.lab_momentum = momentum
-    recopars.num_samples = 100
-    recopars.num_events_per_sample = 100000
-    recopars.num_resAcc_samples = 500
-    recopars.num_events_per_resAcc_sample = 100000
-    recopars.simGenTypeForResAcc = simGenTypeForResAcc
+    alignParams = AlignmentParameters()
 
     lmdfit_data_dir: Path = envPath("LMDFIT_DATA_DIR")
 
     experiment = ExperimentParameters(
-        experimentType,
-        ClusterEnvironment.HIMSTER,
-        simpars,
-        recopars,
-        alignpars,
-        # baseDataOutputDir=lmdfit_data_dir / generateDirectory(simpars, alignpars),
+        experimentType=experimentType,
+        cluster=ClusterEnvironment.HIMSTER,
+        simParams=simParams,
+        recoParams=recoParams,
+        alignParams=alignParams,
         LMDdirectory=lmdfit_data_dir,
     )
 
@@ -82,14 +83,15 @@ def restrictPhiConfigs() -> None:
             )
 
             # change simpars if misalignment matrices are given
-            experiment.alignParams.misalignment_matrices_path = Path(f"/home/roklasen/LMD-Alignment/output/misMat-nothing-{phiMatNames[i]}.json")
-            experiment.recoParams.use_ip_determination = False
+            # we have to use evolve (deep copies) since all configs are frozen
+            newMisalignPath = Path(f"/home/roklasen/LMD-Alignment/output/misMat-nothing-{phiMatNames[i]}.json")
+            newAlignPars = evolve(experiment.alignParams, misalignment_matrices_path=newMisalignPath)
+            newRecopars = evolve(experiment.recoParams, use_ip_determination=False)
 
-            # update internal paths
-            # experiment.updateBaseDataDirectory()
+            newExperiment = evolve(experiment, alignParams=newAlignPars, recoParams=newRecopars)
 
             write_params_to_file(
-                experiment,
+                newExperiment,
                 Path(f"./{confPathPanda}/restrictPhi/"),
                 f"{mom}-{phiMatNames[i]}.config",
                 overwrite=True,
@@ -101,25 +103,24 @@ def genConfigs() -> None:
         # PANDA configs
 
         experiment = genExperimentConfig(
-            mom,
-            theta_min[0],
-            theta_max[0],
-            phi_min[0],
-            phi_max[0],
-            ExperimentType.LUMI,
-            SimulationGeneratorType.RESACCBOX,
+            momentum=mom,
+            theta_min=theta_min[0],
+            theta_max=theta_max[0],
+            phi_min=phi_min[0],
+            phi_max=phi_max[0],
+            experimentType=ExperimentType.LUMI,
+            simGenTypeForResAcc=SimulationGeneratorType.RESACCBOX,
         )
 
         # change simpars if misalignment matrices are given
         if args.misalignMatrixFileP is not None:
-            experiment.alignParams.misalignment_matrices_path = args.misalignMatrixFileP
-        # change alignpars is alignment matrices are given
+            alignParams = AlignmentParameters(misalignment_matrices_path=args.misalignMatrixFileP)
 
-        # update internal paths
-        # experiment.updateBaseDataDirectory()
+            # we have to use evolve (deep copies) since all configs are frozen
+            experiment = evolve(experiment, alignParams=alignParams)
 
         write_params_to_file(
-            cattrs.unstructure(experiment),
+            experiment,
             Path("."),
             f"{confPathPanda}/{mom}.config",
             overwrite=True,
@@ -128,25 +129,21 @@ def genConfigs() -> None:
         # KOALA configs
 
         experiment = genExperimentConfig(
-            mom,
-            theta_min[1],
-            theta_max[1],
-            phi_min[1],
-            phi_max[1],
-            ExperimentType.KOALA,
-            SimulationGeneratorType.RESACCPBARP_ELASTIC,
+            momentum=mom,
+            theta_min=theta_min[1],
+            theta_max=theta_max[1],
+            phi_min=phi_min[1],
+            phi_max=phi_max[1],
+            experimentType=ExperimentType.KOALA,
+            simGenTypeForResAcc=SimulationGeneratorType.RESACCPBARP_ELASTIC,
         )
 
         # change simpars if misalignment matrices are given
         if args.misalignMatrixFileK is not None:
-            experiment.alignParams.misalignment_matrices_path = args.misalignMatrixFileK
+            alignParams = AlignmentParameters(misalignment_matrices_path=args.misalignMatrixFileK)
+            experiment = evolve(experiment, alignParams=alignParams)
 
-        # change alignpars is alignment matrices are given
-
-        # update internal paths
-        # experiment.updateBaseDataDirectory()
-
-        write_params_to_file(cattrs.unstructure(experiment), Path("."), f"{confPathKoala}/{mom}.config")
+        write_params_to_file(experiment, Path("."), f"{confPathKoala}/{mom}.config", overwrite=True)
 
 
 parser = argparse.ArgumentParser()

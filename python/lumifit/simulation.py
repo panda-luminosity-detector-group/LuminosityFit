@@ -9,21 +9,13 @@ from lumifit.cluster import (
     JobResourceRequest,
     make_test_job_resource_request,
 )
-from lumifit.config import write_params_to_file
 from lumifit.general import envPath
 from lumifit.reconstruction import generateRecoDirSuffix
-from lumifit.types import (  # generateDirectory,; AlignmentParameters,; ReconstructionParameters,; SimulationParameters,
-    ExperimentParameters,
-    SimulationGeneratorType,
-)
+from lumifit.types import ExperimentParameters, SimulationGeneratorType
 
 
 def create_simulation_and_reconstruction_job(
-    # sim_params: SimulationParameters,
-    # align_params: AlignmentParameters,
-    # reco_params: ReconstructionParameters,
     experiment: ExperimentParameters,
-    # output_dir: Optional[Path] = None,
     application_command: str = "",
     force_level: int = 0,
     debug: bool = False,
@@ -78,12 +70,6 @@ def create_simulation_and_reconstruction_job(
         )
         print(f"\n\nGREPLINE:PBARPGEN:\n{bashcommand}\n")
         subprocess.call(bashcommand.split())
-
-    # These must be written again so that runLmdSimReco and runLmdReco have access to them
-    # TODO: No, only ONE copy of the config should be there, at the base data output dir
-    write_params_to_file(experiment.simParams, pathname_base, "sim_params.config")
-    write_params_to_file(experiment.recoParams, pathname_full, "reco_params.config")
-    write_params_to_file(experiment.alignParams, pathname_full, "align_params.config")
 
     resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
     resource_request.number_of_nodes = 1
