@@ -118,45 +118,7 @@ class ExperimentParameters:
     # generate a random directory for the simulation output
     simScenarioDataDir: Path = Path("LMD-" + "".join(random.choices(string.ascii_letters, k=10)))  # type: ignore
 
-    # def updateBaseDataDirectory(self) -> None:
-    #     self.baseDataOutputDir = self.LMDdirectory / generateDirectory(self.simParams, self.alignParams)
-
-
-# def generateDirectory(
-#     sim_params: SimulationParameters,
-#     align_params: AlignmentParameters,
-#     output_dir: Optional[Path] = None,
-# ) -> Path:
-#     if output_dir is None:
-#         if sim_params.useRestGas:
-#             dirname = Path(f"plab_{sim_params.lab_momentum:.2f}GeV_RestGas")
-#         else:
-#             dirname = Path(f"plab_{sim_params.lab_momentum:.2f}GeV")
-
-#         gen_part = f"{sim_params.simGeneratorType.value}_theta_" + f"{sim_params.theta_min_in_mrad}-" + f"{sim_params.theta_max_in_mrad}mrad"
-#         if not sim_params.neglect_recoil_momentum:
-#             gen_part += "_recoil_corrected"
-
-#         dirname /= Path(gen_part)
-
-#         dirname /= Path(
-#             "/ip_offset_XYZDXDYDZ_"
-#             + f"{sim_params.ip_offset_x}_{sim_params.ip_offset_y}_"
-#             + f"{sim_params.ip_offset_z}_{sim_params.ip_spread_x}_"
-#             + f"{sim_params.ip_spread_y}_{sim_params.ip_spread_z}"
-#         )
-
-#         dirname /= Path(
-#             "beam_grad_XYDXDY_" + f"{sim_params.beam_tilt_x}_{sim_params.beam_tilt_y}_" + f"{sim_params.beam_divergence_x}_" + f"{sim_params.beam_divergence_y}"
-#         )
-
-#         if align_params.use_point_transform_misalignment or align_params.misalignment_matrices_path is None:
-#             dirname /= "/no_geo_misalignment"
-#         else:
-#             dirname = dirname / "geo_misalignment-" / align_params.misalignment_matrices_path.stem
-
-#         dirname /= str(sim_params.num_events_per_sample)
-
-#         return dirname
-
-#     return output_dir
+    # we have to cheat a little since we need a post-init hook to set the simScenarioDataDir
+    # see https://www.attrs.org/en/stable/init.html#post-init
+    def __attrs_post_init__(self) -> None:
+        object.__setattr__(self, "simScenarioDataDir", self.LMDSimDataBaseDirectory / self.simScenarioDataDir)
