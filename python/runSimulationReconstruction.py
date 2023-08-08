@@ -9,7 +9,7 @@ from pathlib import Path
 
 from attrs import evolve
 from lumifit.cluster import ClusterJobManager, DebugJobHandler, JobHandler
-from lumifit.config import load_params_from_file
+from lumifit.config import load_params_from_file, write_params_to_file
 from lumifit.general import addDebugArgumentsToParser, envPath
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
@@ -60,6 +60,9 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> N
     # as quite a lot of data is read in from the storage...)
     job_manager = ClusterJobManager(job_handler, 2000, 3600)
     job_manager.append(job)
+
+    # copy this experiment's config file to the target path
+    write_params_to_file(thisExperiment, thisExperiment.simScenarioDataDir, "experiment-simulation.config")
 
 
 parser = argparse.ArgumentParser(
