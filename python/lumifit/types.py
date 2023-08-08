@@ -112,11 +112,11 @@ class ExperimentParameters:
     simParams: SimulationParameters
     recoParams: ReconstructionParameters
     alignParams: AlignmentParameters
-    LMDdirectory: Path
+    LMDSimDataBaseDirectory: Path
     fitConfigPath: Path = Path("fitconfig-fast.json")
 
     # generate a random directory for the simulation output
-    baseDataOutputDir: Path = Path("LMD-" + "".join(random.choices(string.ascii_letters, k=10)))  # type: ignore
+    simScenarioDataDir: Path = Path("LMD-" + "".join(random.choices(string.ascii_letters, k=10)))  # type: ignore
 
     # def updateBaseDataDirectory(self) -> None:
     #     self.baseDataOutputDir = self.LMDdirectory / generateDirectory(self.simParams, self.alignParams)

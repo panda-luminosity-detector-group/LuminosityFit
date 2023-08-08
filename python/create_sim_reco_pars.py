@@ -62,7 +62,7 @@ def genExperimentConfig(
         simParams=simParams,
         recoParams=recoParams,
         alignParams=alignParams,
-        LMDdirectory=lmdfit_data_dir,
+        LMDSimDataBaseDirectory=lmdfit_data_dir,
     )
 
     return experiment

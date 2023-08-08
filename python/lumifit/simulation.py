@@ -30,7 +30,7 @@ def create_simulation_and_reconstruction_job(
     if application_command == "":
         raise RuntimeError(f"ERROR! no application command given!")
 
-    dirname = experiment.baseDataOutputDir
+    dirname = experiment.simScenarioDataDir
     dirname_filter_suffix = generateRecoDirSuffix(experiment.recoParams, experiment.alignParams)
 
     low_index_used = experiment.simParams.low_index

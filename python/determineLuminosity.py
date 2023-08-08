@@ -317,7 +317,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
             elif task.simDataType == SimulationDataType.VERTEX:
                 # check if the sim data is already there
-                mcDataDir = thisExperiment.baseDataOutputDir / "mc_data"
+                mcDataDir = thisExperiment.simScenarioDataDir / "mc_data"
                 status_code = wasSimulationSuccessful(thisExperiment, mcDataDir, "Lumi_MC_*.root")
 
                 # so this may seem odd, but since there aren't any jobs running yet and theres still
@@ -702,7 +702,7 @@ lmd_fit_bin_path = envPath("LMDFIT_BUILD_PATH") / "bin"
 
 # make scenario config
 thisScenario = Scenario(
-    loadedExperimentFromConfig.baseDataOutputDir,
+    loadedExperimentFromConfig.simScenarioDataDir,
     loadedExperimentFromConfig.experimentType,
     lmd_fit_script_path,
 )
@@ -716,7 +716,7 @@ bootstrapped_num_samples = args.bootstrapped_num_samples
 dir_searcher = DirectorySearcher(["dpm_elastic", "uncut"])
 
 dir_searcher.searchListOfDirectories(
-    loadedExperimentFromConfig.baseDataOutputDir,
+    loadedExperimentFromConfig.simScenarioDataDir,
     thisScenario.track_file_pattern,
 )
 dirs = dir_searcher.getListOfDirectories()
@@ -729,7 +729,7 @@ if len(dirs) > 1:
 elif len(dirs) < 1:
     print("No dirs found, that means vertex data wasn't generated (or reconstructed) yet.")
     # don't change thisScenario's trackDirectory, it was set during construction
-    thisScenario.trackDirectory = loadedExperimentFromConfig.baseDataOutputDir
+    thisScenario.trackDirectory = loadedExperimentFromConfig.simScenarioDataDir
     print(loadedExperimentFromConfig)
 
 else:

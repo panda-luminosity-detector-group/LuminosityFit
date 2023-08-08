@@ -74,7 +74,7 @@ def create_reconstruction_job(
         print("Warning: number of samples in debug mode is limited to 1!" " Setting to 1!")
         num_samples = 1
 
-    dirname = experiment.baseDataOutputDir
+    dirname = experiment.simScenarioDataDir
 
     print(f"dir name for this create_reconstruction_job is {dirname}")
 
