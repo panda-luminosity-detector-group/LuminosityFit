@@ -41,14 +41,14 @@ class SimulationGeneratorType(Enum):
     RESACCPBARP_ELASTIC = "resAcc-dpm_elastic"
 
 
-@define
+@define(frozen=True)
 class AlignmentParameters:
     use_point_transform_misalignment: bool = False
     alignment_matrices_path: Optional[Path] = None
     misalignment_matrices_path: Optional[Path] = None
 
 
-@define
+@define(frozen=True)
 class SimulationParameters:
     # Using default_factory for random value defaults
     random_seed: int = field(factory=lambda: random.randint(10, 9999))  # type: ignore
@@ -79,7 +79,7 @@ class SimulationParameters:
     beam_divergence_y: float = 0.0  # in rad
 
 
-@define
+@define(frozen=True)
 class ReconstructionParameters:
     simGenTypeForResAcc: SimulationGeneratorType = SimulationGeneratorType.BOX
     num_events_per_sample: int = 1000
@@ -101,7 +101,7 @@ class ReconstructionParameters:
     num_events_per_resAcc_sample: int = 10000
 
 
-@define
+@define(frozen=True)
 class ExperimentParameters:
     """
     Dataclass for simulation, reconstruction and alignment.
@@ -115,11 +115,8 @@ class ExperimentParameters:
     LMDdirectory: Path
     fitConfigPath: Path = Path("fitconfig-fast.json")
 
-    baseDataOutputDir: Path = field(init=False)
-
     # generate a random directory for the simulation output
-    def __attrs_post_init__(self) -> None:
-        self.baseDataOutputDir = self.LMDdirectory / Path("LMD-" + "".join(random.choices(string.ascii_letters, k=10)))
+    baseDataOutputDir: Path = Path("LMD-" + "".join(random.choices(string.ascii_letters, k=10)))  # type: ignore
 
     # def updateBaseDataDirectory(self) -> None:
     #     self.baseDataOutputDir = self.LMDdirectory / generateDirectory(self.simParams, self.alignParams)

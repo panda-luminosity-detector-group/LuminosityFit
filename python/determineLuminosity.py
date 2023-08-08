@@ -314,6 +314,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 # so this may seem odd, but since there aren't any jobs running yet and theres still
                 # no files, the return code will actually be -1. better job supervision fixes that,
                 # but thats for later
+                # TODO: better job supervision
                 if status_code < 0:
                     # vertex data must always be created without any cuts first
                     tempRecoPars = thisExperiment.recoParams
@@ -325,8 +326,13 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     tempAlignPars = thisExperiment.alignParams
                     tempAlignPars.alignment_matrices_path = None
 
+                    # remember, this needs the TEMP reco params, not the real ones!
+                    tempExperiment = thisExperiment
+                    tempExperiment.recoParams = tempRecoPars
+                    tempExperiment.alignParams = tempAlignPars
+
                     job, _ = create_simulation_and_reconstruction_job(
-                        thisExperiment,
+                        tempExperiment,
                         use_devel_queue=args.use_devel_queue,
                         application_command=thisScenario.Sim,
                     )
