@@ -7,11 +7,7 @@ from lumifit.cluster import (
     make_test_job_resource_request,
 )
 from lumifit.paths import generateRecoDirSuffix
-from lumifit.types import (
-    AlignmentParameters,
-    ExperimentParameters,
-    ReconstructionParameters,
-)
+from lumifit.types import ExperimentParameters
 
 
 def create_reconstruction_job(

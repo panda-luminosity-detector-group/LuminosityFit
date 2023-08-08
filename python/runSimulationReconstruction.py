@@ -18,6 +18,8 @@ from lumifit.types import ClusterEnvironment, ExperimentParameters
 
 
 def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> None:
+    thisExperiment.softwarePaths.baseDataDir.mkdir(parents=True, exist_ok=True)
+
     if thisExperiment.recoParams.use_xy_cut or thisExperiment.recoParams.use_m_cut:
         print("Attention! This experiment configs specifies to use XY and m cuts during reconstruction.")
         print("That's reasonable for the luminosity determination, but the initial data sample must")
@@ -60,24 +62,24 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> N
     write_params_to_file(thisExperiment, thisExperiment.softwarePaths.baseDataDir, "experiment.config")
 
 
-parser = argparse.ArgumentParser(
-    description="Script to run a simulation and reconstruction of the PANDA " "Luminosity Detector from parameter config files.",
-    formatter_class=argparse.RawTextHelpFormatter,
-)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Script to run a simulation and reconstruction of the PANDA " "Luminosity Detector from parameter config files.",
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
 
-parser.add_argument(
-    "-e",
-    metavar="experiment-config",
-    dest="experimentConfig",
-    type=Path,
-    required=True,
-    help="Path to experiment.config file\n",
-)
+    parser.add_argument(
+        "-e",
+        metavar="experiment-config",
+        dest="experimentConfig",
+        type=Path,
+        required=True,
+        help="Path to experiment.config file\n",
+    )
 
-parser = addDebugArgumentsToParser(parser)
-args = parser.parse_args()
+    parser = addDebugArgumentsToParser(parser)
+    args = parser.parse_args()
 
-thisExperiment: ExperimentParameters = load_params_from_file(file_path=args.experimentConfig, asType=ExperimentParameters)
+    thisExperiment: ExperimentParameters = load_params_from_file(file_path=args.experimentConfig, asType=ExperimentParameters)
 
-thisExperiment.softwarePaths.baseDataDir.mkdir(parents=True, exist_ok=True)
-run_simulation_and_reconstruction(thisExperiment)
+    run_simulation_and_reconstruction(thisExperiment)
