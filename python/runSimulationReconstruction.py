@@ -7,6 +7,7 @@ This script is only run by a user, not any other script!
 import argparse
 from pathlib import Path
 
+from attrs import evolve
 from lumifit.cluster import ClusterJobManager, DebugJobHandler, JobHandler
 from lumifit.config import load_params_from_file
 from lumifit.general import addDebugArgumentsToParser, envPath
@@ -23,19 +24,20 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> N
         print("That's reasonable for the luminosity determination, but the initial data sample must")
         print("still be generated without cuts first.")
         print("Disabling all cuts for this run!")
-        thisExperiment.recoParams.use_xy_cut = False
-        thisExperiment.recoParams.use_m_cut = False
+
+        recoParams = evolve(thisExperiment.recoParams, use_xy_cut=False, use_m_cut=False)
+        thisExperiment = evolve(thisExperiment, recoParams=recoParams)
 
     # temporary to get sim command
     lmdScriptPath = envPath("LMDFIT_SCRIPTPATH")
-    scen = Scenario(trackDirectory_=Path(), experiment_type=thisExperiment.experimentType, lmdScriptPath=lmdScriptPath)
+    scenario = Scenario(trackDirectory_=Path(), experiment_type=thisExperiment.experimentType, lmdScriptPath=lmdScriptPath)
 
     job, _ = create_simulation_and_reconstruction_job(
         thisExperiment,
         force_level=args.force_level,
         debug=args.debug,
         use_devel_queue=args.use_devel_queue,
-        application_command=scen.Sim,
+        application_command=scenario.Sim,
     )
 
     # TODO: Factory Pattern?
@@ -77,6 +79,6 @@ parser.add_argument(
 parser = addDebugArgumentsToParser(parser)
 args = parser.parse_args()
 
-thisExperiment: ExperimentParameters = load_params_from_file(args.experimentConfig, asType=ExperimentParameters)
+thisExperiment: ExperimentParameters = load_params_from_file(file_path=args.experimentConfig, asType=ExperimentParameters)
 
 run_simulation_and_reconstruction(thisExperiment)
