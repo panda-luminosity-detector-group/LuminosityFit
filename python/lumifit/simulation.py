@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import subprocess
 from pathlib import Path
 from typing import Optional, Tuple
@@ -9,14 +7,12 @@ from lumifit.cluster import (
     JobResourceRequest,
     make_test_job_resource_request,
 )
-from lumifit.general import envPath
 from lumifit.reconstruction import generateRecoDirSuffix
 from lumifit.types import ExperimentParameters, SimulationGeneratorType
 
 
 def create_simulation_and_reconstruction_job(
     experiment: ExperimentParameters,
-    application_command: str = "",
     force_level: int = 0,
     debug: bool = False,
     use_devel_queue: bool = False,
@@ -27,36 +23,24 @@ def create_simulation_and_reconstruction_job(
         + f"{experiment.recoParams.low_index + experiment.recoParams.num_samples - 1}"
     )
 
-    if application_command == "":
-        raise RuntimeError(f"ERROR! no application command given!")
-
-    dirname = experiment.simScenarioDataDir
-    dirname_filter_suffix = generateRecoDirSuffix(experiment.recoParams, experiment.alignParams)
+    dirname = experiment.softwarePaths.simData
+    recoCutAndAlignSuffix = generateRecoDirSuffix(experiment.recoParams, experiment.alignParams)
 
     low_index_used = experiment.simParams.low_index
     num_samples = experiment.simParams.num_samples
     if debug and experiment.simParams.num_samples > 1:
-        print("Warning: number of samples in debug mode is limited to 1! " "Setting to 1!")
+        print("Warning: number of samples in debug mode is limited to 1! Setting to 1!")
         num_samples = 1
 
-    lmdfit_data_dir = envPath("LMDFIT_DATA_DIR")
-    macropath_full = envPath("LMDFIT_MACROPATH")
-
-    pathname_base = lmdfit_data_dir / dirname
-    path_mc_data = pathname_base / "mc_data"
-    dirname_full = dirname / dirname_filter_suffix
+    pathname_base = experiment.softwarePaths.baseDataDir
+    dirname_full = dirname / recoCutAndAlignSuffix
     pathname_full = lmdfit_data_dir / dirname_full
 
-    print(f"dirname_full: {dirname_full}")
-
-    print(f"using output folder structure: {pathname_full}")
-
-    pathname_full.mkdir(exist_ok=True, parents=True)
-    path_mc_data.mkdir(exist_ok=True, parents=True)
+    # pathname_full.mkdir(exist_ok=True, parents=True)
 
     # generate simulation config parameter file
     if experiment.simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC:
-        lmdfit_build_dir = envPath("LMDFIT_BUILD_PATH")
+        lmdfit_build_dir = experiment.softwarePaths.LmdFitBinaries
 
         # determine the elastic cross section in the theta range
         bashcommand = (
@@ -68,7 +52,6 @@ def create_simulation_and_reconstruction_job(
             + f" -g {experiment.simParams.phi_max_in_rad}"
             + f" -o {pathname_base}/elastic_cross_section.txt"
         )
-        print(f"\n\nGREPLINE:PBARPGEN:\n{bashcommand}\n")
         subprocess.call(bashcommand.split())
 
     resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
@@ -82,7 +65,7 @@ def create_simulation_and_reconstruction_job(
 
     job = Job(
         resource_request,
-        application_url=application_command,
+        application_url=experiment.simParams.simulationCommand,
         name="simreco_" + experiment.simParams.simGeneratorType.value,
         logfile_url=str(pathname_full / "simreco-%a.log"),
         array_indices=list(range(low_index_used, low_index_used + num_samples)),
@@ -90,11 +73,12 @@ def create_simulation_and_reconstruction_job(
     # TODO: these won't be needed anymore the're in the config file
     job.exported_user_variables.update(
         {
+            "BaseDir": experiment.softwarePaths.baseDataDir,
+            # "dirname": dirname_full,
+            # "path_mc_data": path_mc_data,
+            # "pathname": pathname_full,
+            # "macropath": macropath_full,
             "force_level": str(force_level),
-            "dirname": dirname_full,
-            "path_mc_data": path_mc_data,
-            "pathname": pathname_full,
-            "macropath": macropath_full,
         }
     )
 

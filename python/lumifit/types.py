@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """
 This module contains dataclasses for simulation, reconstruction and alignment.
 
@@ -51,6 +49,8 @@ class AlignmentParameters:
 @define(frozen=True)
 class SimulationParameters:
     # Using default_factory for random value defaults
+    simulationCommand: str
+
     random_seed: int = field(factory=lambda: random.randint(10, 9999))  # type: ignore
 
     simGeneratorType: SimulationGeneratorType = SimulationGeneratorType.PBARP_ELASTIC
@@ -81,6 +81,7 @@ class SimulationParameters:
 
 @define(frozen=True)
 class ReconstructionParameters:
+    reconstructionCommand: str
     simGenTypeForResAcc: SimulationGeneratorType = SimulationGeneratorType.BOX
     num_events_per_sample: int = 1000
     num_samples: int = 1
@@ -102,6 +103,38 @@ class ReconstructionParameters:
 
 
 @define(frozen=True)
+class SoftwarePaths:
+    """
+    hold paths where the LumiFit binaries and scripts are located, as well as the path to the
+    PandaRoot macros and the path to the Lumi_mc data.
+    """
+
+    LmdFitBinaries: Path  # where the LmdFit binaries are
+    LmdFitScripts: Path  # where the python scripts for LmdFit are
+    PandaRootMacroPath: Path  # where the macros for PandaRoot are
+    LmdFitDataDir: Path  # the lustreFS dir where all simulation data is stored
+
+    # generate a random directory for this specific simulation
+    scenarioDir: Path = Path("LMD-" + "".join(random.choices(string.ascii_letters, k=10)))  # type: ignore
+
+    # these paths can only be set once the scenarioDir is generated
+    baseDataDir: Path = field(init=False)
+    simData: Path = field(init=False)
+    resAccData: Path = field(init=False)
+    SimulationMCDataDir: Path = field(init=False)
+    ResAccMCDataDir: Path = field(init=False)
+
+    # we have to cheat a little since we need a post-init hook to set the simScenarioDataDir
+    # see https://www.attrs.org/en/stable/init.html#post-init
+    def __attrs_post_init__(self) -> None:
+        object.__setattr__(self, "baseDataDir", self.LmdFitDataDir / self.scenarioDir)
+        object.__setattr__(self, "simData", self.baseDataDir / "sim")
+        object.__setattr__(self, "resAccData", self.baseDataDir / "resAcc")
+        object.__setattr__(self, "SimulationMCDataDir", self.simData / "mc_data")
+        object.__setattr__(self, "ResAccMCDataDir", self.resAccData / "mc_data")
+
+
+@define(frozen=True)
 class ExperimentParameters:
     """
     Dataclass for simulation, reconstruction and alignment.
@@ -112,13 +145,8 @@ class ExperimentParameters:
     simParams: SimulationParameters
     recoParams: ReconstructionParameters
     alignParams: AlignmentParameters
-    LMDSimDataBaseDirectory: Path
+    softwarePaths: SoftwarePaths
+    trackFilePattern: str
+    LMDDataCommand: str
+    # TODO: absolute path to the fitconfig file
     fitConfigPath: Path = Path("fitconfig-fast.json")
-
-    # generate a random directory for the simulation output
-    simScenarioDataDir: Path = Path("LMD-" + "".join(random.choices(string.ascii_letters, k=10)))  # type: ignore
-
-    # we have to cheat a little since we need a post-init hook to set the simScenarioDataDir
-    # see https://www.attrs.org/en/stable/init.html#post-init
-    def __attrs_post_init__(self) -> None:
-        object.__setattr__(self, "simScenarioDataDir", self.LMDSimDataBaseDirectory / self.simScenarioDataDir)

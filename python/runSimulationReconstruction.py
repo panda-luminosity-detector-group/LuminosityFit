@@ -10,10 +10,9 @@ from pathlib import Path
 from attrs import evolve
 from lumifit.cluster import ClusterJobManager, DebugJobHandler, JobHandler
 from lumifit.config import load_params_from_file, write_params_to_file
-from lumifit.general import addDebugArgumentsToParser, envPath
+from lumifit.general import addDebugArgumentsToParser
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
-from lumifit.scenario import Scenario
 from lumifit.simulation import create_simulation_and_reconstruction_job
 from lumifit.types import ClusterEnvironment, ExperimentParameters
 
@@ -25,19 +24,15 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> N
         print("still be generated without cuts first.")
         print("Disabling all cuts for this run!")
 
-        recoParams = evolve(thisExperiment.recoParams, use_xy_cut=False, use_m_cut=False)
-        thisExperiment = evolve(thisExperiment, recoParams=recoParams)
-
-    # temporary to get sim command
-    lmdScriptPath = envPath("LMDFIT_SCRIPTPATH")
-    scenario = Scenario(trackDirectory_=Path(), experiment_type=thisExperiment.experimentType, lmdScriptPath=lmdScriptPath)
+        # remember, all params are immutable, so we need to copy them
+        tempRecoParams = evolve(thisExperiment.recoParams, use_xy_cut=False, use_m_cut=False)
+        thisExperiment = evolve(thisExperiment, recoParams=tempRecoParams)
 
     job, _ = create_simulation_and_reconstruction_job(
         thisExperiment,
         force_level=args.force_level,
         debug=args.debug,
         use_devel_queue=args.use_devel_queue,
-        application_command=scenario.Sim,
     )
 
     # TODO: Factory Pattern?
@@ -62,7 +57,7 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> N
     job_manager.append(job)
 
     # copy this experiment's config file to the target path
-    write_params_to_file(thisExperiment, thisExperiment.simScenarioDataDir, "experiment-simulation.config")
+    write_params_to_file(thisExperiment, thisExperiment.softwarePaths.baseDataDir, "experiment.config")
 
 
 parser = argparse.ArgumentParser(
@@ -84,4 +79,5 @@ args = parser.parse_args()
 
 thisExperiment: ExperimentParameters = load_params_from_file(file_path=args.experimentConfig, asType=ExperimentParameters)
 
+thisExperiment.softwarePaths.baseDataDir.mkdir(parents=True, exist_ok=True)
 run_simulation_and_reconstruction(thisExperiment)

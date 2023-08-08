@@ -3,7 +3,6 @@
 import argparse
 from pathlib import Path
 
-import cattrs
 from attrs import evolve
 from lumifit.config import write_params_to_file
 from lumifit.general import envPath
@@ -17,6 +16,7 @@ from lumifit.types import (
     ReconstructionParameters,
     SimulationGeneratorType,
     SimulationParameters,
+    SoftwarePaths,
 )
 
 
@@ -31,10 +31,32 @@ def genExperimentConfig(
 ) -> ExperimentParameters:
     """
     Generates a default experiment config without misalignment or alignment.
-    Is mis/alignment is wanted, simply change the alignpars attribute and call
-    experiment.updateBaseDataDirectory()
+
+    # TODO: add misalignment and alignment parameters
     """
+
+    lmdScriptPath = envPath("LMDFIT_SCRIPTPATH")
+    lmdfit_data_dir = envPath("LMDFIT_DATA_DIR")
+    lmd_build_path = envPath("LMDFIT_BUILD_PATH")
+    PNDmacropath = envPath("LMDFIT_MACROPATH")
+    LMDscriptpath = envPath("LMDFIT_SCRIPTPATH")
+
+    if experimentType == ExperimentType.LUMI:
+        simulationCommand = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdSimReco.py"
+        reconstructionCommand = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runLmdReco.py"
+        LMDDataCommand = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/createLumiFitData.sh"
+        trackFilePattern = "Lumi_TrksQA_"
+
+    elif experimentType == ExperimentType.KOALA:
+        simulationCommand = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaSimReco.py"
+        reconstructionCommand = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/runKoaReco.py"
+        LMDDataCommand = f"{lmdScriptPath}/singularityJob.sh {lmdScriptPath}/createKoaFitData.sh"
+        trackFilePattern = "Koala_IP_"
+    else:
+        raise ValueError("Experiment Type not defined!")
+
     simParams = SimulationParameters(
+        simulationCommand=simulationCommand,
         lab_momentum=momentum,
         num_samples=100,
         num_events_per_sample=100000,
@@ -44,6 +66,7 @@ def genExperimentConfig(
         phi_max_in_rad=phi_max,
     )
     recoParams = ReconstructionParameters(
+        reconstructionCommand=reconstructionCommand,
         lab_momentum=momentum,
         num_samples=100,
         num_events_per_sample=100000,
@@ -54,7 +77,12 @@ def genExperimentConfig(
 
     alignParams = AlignmentParameters()
 
-    lmdfit_data_dir: Path = envPath("LMDFIT_DATA_DIR")
+    softwarePaths = SoftwarePaths(
+        LmdFitBinaries=lmd_build_path,
+        LmdFitDataDir=lmdfit_data_dir,
+        PandaRootMacroPath=PNDmacropath,
+        LmdFitScripts=LMDscriptpath,
+    )
 
     experiment = ExperimentParameters(
         experimentType=experimentType,
@@ -62,7 +90,9 @@ def genExperimentConfig(
         simParams=simParams,
         recoParams=recoParams,
         alignParams=alignParams,
-        LMDSimDataBaseDirectory=lmdfit_data_dir,
+        LMDDataCommand=LMDDataCommand,
+        trackFilePattern=trackFilePattern,
+        softwarePaths=softwarePaths,
     )
 
     return experiment

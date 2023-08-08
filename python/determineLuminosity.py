@@ -190,7 +190,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                             data_keywords[0],
                         ]  # look for the folder name including sim_type_for_resAcc
                     )
-                    temp_dir_searcher.searchListOfDirectories(task.dirPath, thisScenario.track_file_pattern)
+                    temp_dir_searcher.searchListOfDirectories(task.dirPath, thisExperiment.trackFilePattern)
                     found_dirs = temp_dir_searcher.getListOfDirectories()
                     print(f"found dirs now: {found_dirs}")
                 else:
@@ -201,7 +201,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     status_code = wasSimulationSuccessful(
                         thisExperiment,
                         found_dirs[0],
-                        thisScenario.track_file_pattern + "*.root",
+                        thisExperiment.trackFilePattern + "*.root",
                     )
                 elif task.lastState < SimulationState.START_SIM:
                     # then lets simulate!
@@ -224,6 +224,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
                     # since this is the res/acc case, these parameters must be changed
                     tempSimParams = SimulationParameters(
+                        simulationCommand=thisExperiment.simParams.simulationCommand,
                         simGeneratorType=thisExperiment.recoParams.simGenTypeForResAcc,
                         num_events_per_sample=thisExperiment.recoParams.num_events_per_resAcc_sample,
                         num_samples=thisExperiment.recoParams.num_resAcc_samples,
@@ -236,6 +237,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
                     # since this is the res/acc case, these parameters must be updated
                     tempRecoParams = ReconstructionParameters(
+                        reconstructionCommand=thisExperiment.recoParams.reconstructionCommand,
                         num_samples=thisExperiment.recoParams.num_resAcc_samples,
                         num_events_per_sample=thisExperiment.recoParams.num_events_per_resAcc_sample,
                         # TODO: wait is the following correct?
@@ -257,7 +259,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
                     (job, returnPath) = create_simulation_and_reconstruction_job(
                         tempExperiment,
-                        application_command=thisScenario.Sim,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
@@ -282,7 +283,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 # what the shit, this should never be empty in the first place
                 if (task.dirPath != "") and (task.dirPath is not None):
                     temp_dir_searcher = DirectorySearcher(["dpm_elastic", data_keywords[0]])
-                    temp_dir_searcher.searchListOfDirectories(task.dirPath, thisScenario.track_file_pattern)
+                    temp_dir_searcher.searchListOfDirectories(task.dirPath, thisExperiment.trackFilePattern)
                     found_dirs = temp_dir_searcher.getListOfDirectories()
 
                 else:
@@ -294,7 +295,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     status_code = wasSimulationSuccessful(
                         thisExperiment,
                         found_dirs[0],
-                        thisScenario.track_file_pattern + "*.root",
+                        thisExperiment.trackFilePattern + "*.root",
                     )
 
                 # oh boi that's bound to be trouble
@@ -304,7 +305,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     # TODO: alignment part
                     (job, returnPath) = create_reconstruction_job(
                         thisExperiment,
-                        application_command=thisScenario.Reco,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
@@ -317,7 +317,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
             elif task.simDataType == SimulationDataType.VERTEX:
                 # check if the sim data is already there
-                mcDataDir = thisExperiment.simScenarioDataDir / "mc_data"
+                mcDataDir = thisExperiment.softwarePaths.SimulationMCDataDir
                 status_code = wasSimulationSuccessful(thisExperiment, mcDataDir, "Lumi_MC_*.root")
 
                 # so this may seem odd, but since there aren't any jobs running yet and theres still
@@ -345,7 +345,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     job, _ = create_simulation_and_reconstruction_job(
                         tempExperiment,
                         use_devel_queue=args.use_devel_queue,
-                        application_command=thisScenario.Sim,
                     )
                     job_manager.append(job)
 
@@ -387,7 +386,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 multiFileListCommand.append("python")
                 multiFileListCommand.append("makeMultipleFileListBunches.py")
                 multiFileListCommand.append("--filenamePrefix")
-                multiFileListCommand.append(f"{thisScenario.track_file_pattern}")
+                multiFileListCommand.append(f"{thisExperiment.trackFilePattern}")
                 multiFileListCommand.append("--files_per_bunch")
                 multiFileListCommand.append("10")
                 multiFileListCommand.append("--maximum_number_of_files")
@@ -408,7 +407,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     lmdDataCommand.append("--dir_pattern")
                     lmdDataCommand.append(data_keywords[0])
                     lmdDataCommand.append("--jobCommand")
-                    lmdDataCommand.append(thisScenario.LmdData)
+                    lmdDataCommand.append(thisExperiment.LMDDataCommand)
                     lmdDataCommand.append(f"{thisScenario.momentum:.2f}")
                     lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
                     lmdDataCommand.append(str(task.dirPath))
@@ -425,7 +424,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     lmdDataCommand.append("--dir_pattern")
                     lmdDataCommand.append(data_keywords[0])
                     lmdDataCommand.append("--jobCommand")
-                    lmdDataCommand.append(thisScenario.LmdData)
+                    lmdDataCommand.append(thisExperiment.LMDDataCommand)
                     lmdDataCommand.append(f"{thisScenario.momentum:.2f}")
                     lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
                     lmdDataCommand.append(str(task.dirPath))
@@ -519,8 +518,6 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
         raise FileNotFoundError("ERROR! Can not find elastic cross section file! The determined Luminosity will be wrong!\n")
 
     print(f"processing scenario {lumiTrksQAPath} at step {thisScenario.lumiDetState}")
-
-    thisScenario.alignment_parameters = thisExperiment.alignParams
 
     finished = False
 
@@ -697,14 +694,11 @@ loadedExperimentFromConfig: ExperimentParameters = load_params_from_file(args.Ex
 
 # read environ settings
 lmd_fit_script_path = envPath("LMDFIT_SCRIPTPATH")
-# lmd_fit_path = Path(os.path.dirname(lmd_fit_script_path))
 lmd_fit_bin_path = envPath("LMDFIT_BUILD_PATH") / "bin"
 
 # make scenario config
 thisScenario = Scenario(
-    loadedExperimentFromConfig.simScenarioDataDir,
-    loadedExperimentFromConfig.experimentType,
-    lmd_fit_script_path,
+    trackDirectory=loadedExperimentFromConfig.softwarePaths.simData,
 )
 thisScenario.momentum = loadedExperimentFromConfig.recoParams.lab_momentum
 
@@ -716,8 +710,8 @@ bootstrapped_num_samples = args.bootstrapped_num_samples
 dir_searcher = DirectorySearcher(["dpm_elastic", "uncut"])
 
 dir_searcher.searchListOfDirectories(
-    loadedExperimentFromConfig.simScenarioDataDir,
-    thisScenario.track_file_pattern,
+    loadedExperimentFromConfig.softwarePaths.simData,
+    loadedExperimentFromConfig.trackFilePattern,
 )
 dirs = dir_searcher.getListOfDirectories()
 
@@ -729,7 +723,7 @@ if len(dirs) > 1:
 elif len(dirs) < 1:
     print("No dirs found, that means vertex data wasn't generated (or reconstructed) yet.")
     # don't change thisScenario's trackDirectory, it was set during construction
-    thisScenario.trackDirectory = loadedExperimentFromConfig.simScenarioDataDir
+    thisScenario.trackDirectory = loadedExperimentFromConfig.softwarePaths.simData
     print(loadedExperimentFromConfig)
 
 else:

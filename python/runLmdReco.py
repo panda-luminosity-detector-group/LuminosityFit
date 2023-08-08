@@ -2,16 +2,13 @@
 
 import os
 
-from lumifit.alignment import AlignmentParameters
-from lumifit.general import (
-    check_stage_success,
-    load_params_from_file,
-    matrixMacroFileName,
-    toCbool,
-)
+from lumifit.config import load_params_from_file
+from lumifit.general import check_stage_success, matrixMacroFileName, toCbool
 from lumifit.reconstruction import ReconstructionParameters
+from lumifit.types import AlignmentParameters
 
 # TODO: get all this from the experiment config
+# TODO: get from the paths module
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 LMDScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
 PNDmacropath = os.environ["LMDFIT_MACROPATH"]
@@ -33,6 +30,7 @@ if not os.path.isdir(pathToTrkQAFiles):
 # TODO: nope, replace this with an experiment config, read the path from a command line argument
 # the experiment config should contain the path to the dpm and the resAcc files, and be written by the
 # previous step of the workflow to the baseDataDir
+# TODO: get from the paths module
 recoParams: ReconstructionParameters = load_params_from_file(pathToTrkQAFiles + "/reco_params.config", ReconstructionParameters)
 alignParams: AlignmentParameters = load_params_from_file(pathToTrkQAFiles + "/align_params.config", AlignmentParameters)
 

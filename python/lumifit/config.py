@@ -18,6 +18,7 @@ Params = Union[ExperimentParameters, AlignmentParameters, SimulationParameters, 
 T = TypeVar("T", bound=Params)
 
 
+# TODO: change to use absolute paths, not path + filename
 def write_params_to_file(params: Params, pathname: Path, filename: str, overwrite: bool = False) -> None:
     Path(pathname).mkdir(exist_ok=True, parents=True)
     file_path = pathname / filename

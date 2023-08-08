@@ -2,24 +2,50 @@
 
 import os
 
-from lumifit.alignment import AlignmentParameters
+from lumifit.config import load_params_from_file
 from lumifit.general import (
     check_stage_success,
-    load_params_from_file,
+    envPath,
     matrixMacroFileName,
     toCbool,
 )
-from lumifit.simulation import SimulationParameters
-from lumifit.simulationGeneratorTypes import SimulationGeneratorType
+from lumifit.types import (
+    AlignmentParameters,
+    ExperimentParameters,
+    SimulationGeneratorType,
+    SimulationParameters,
+)
 
 # TODO: get all this from the experiment config
-lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
-PNDmacropath = os.environ["LMDFIT_MACROPATH"]
-LMDscriptpath = os.environ["LMDFIT_SCRIPTPATH"]
-pathToTrkQAFiles = os.environ["pathname"]
-relativeDirToTrksQAFiles = os.environ["dirname"]
-path_mc_data = os.environ["path_mc_data"]
+# lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
+# PNDmacropath = os.environ["LMDFIT_MACROPATH"]
+# LMDscriptpath = os.environ["LMDFIT_SCRIPTPATH"]
+# pathToTrkQAFiles = os.environ["pathname"]
+# relativeDirToTrksQAFiles = os.environ["dirname"]
+# path_mc_data = os.environ["path_mc_data"]
+
+
 force_level = int(os.environ["force_level"])
+
+# this is all that is needed because the experiment config is there.
+BaseDir = envPath("BaseDir")
+experiment = load_params_from_file(BaseDir / "experiment.config", ExperimentParameters)
+simParams = experiment.simParams
+alignParams = experiment.alignParams
+
+# are we in the "normal" simulation mode or in the "res/acc" mode?
+# TODO: get from the paths module
+
+resAccMode = simParams.simGeneratorType == SimulationGeneratorType.RESACCBOX or simParams.simGeneratorType == SimulationGeneratorType.RESACCPBARP_ELASTIC
+if resAccMode:
+    path_mc_data = experiment.softwarePaths.ResAccMCDataDir
+    pathToTrkQAFiles = experiment.softwarePaths.simData
+else:
+    path_mc_data = experiment.softwarePaths.SimulationMCDataDir
+    pathToTrkQAFiles = experiment.softwarePaths.resAccData
+
+# prepare directories
+path_mc_data.mkdir(parents=True, exist_ok=True)
 
 filename_index = 1
 debug = True
@@ -27,6 +53,8 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
     filename_index = int(os.environ["SLURM_ARRAY_TASK_ID"])
     debug = False
 
+# workpathname is the temporary path on the compute node where Lumi_{MC,Digi,Reco...} files are stored.
+# it is deleted after the job is finished
 if debug:
     workpathname = pathToTrkQAFiles
     path_mc_data = workpathname
@@ -37,14 +65,6 @@ if not os.path.isdir(workpathname):
     os.makedirs(workpathname)
 
 gen_filepath = workpathname + "/gen_mc.root"
-
-# the path pathToTrkQAFiles is automatically eihter the dpm or the resAcc path
-# TODO: nope, replace this with an experiment config, read the path from a command line argument
-# the experiment config should contain the path to the dpm and the resAcc files, and be written by the
-# previous step of the workflow to the baseDataDir
-#! however, check this path again!
-simParams: SimulationParameters = load_params_from_file(path_mc_data + "/../sim_params.config", SimulationParameters)
-alignParams: AlignmentParameters = load_params_from_file(pathToTrkQAFiles + "/align_params.config", AlignmentParameters)
 
 verbositylvl = 0
 numTrks = 1  # should not be changed
