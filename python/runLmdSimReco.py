@@ -76,7 +76,7 @@ print(f"\n\nINFO:\ndirname is {relativeDirToTrksQAFiles}\npathname is {pathToTrk
 # * ------------------- MC Data Step -------------------
 if not check_stage_success(Path(f"{MCDataDir}/Lumi_MC_{start_evt}.root")) or force_level == 2:
     # * prepare box or dpm tracks
-    if simParams.simGeneratorType == SimulationGeneratorType.BOX or simParams.simGeneratorType == SimulationGeneratorType.RESACCBOX:
+    if simParams.simGeneratorType == SimulationGeneratorType.BOX:
         os.chdir(LMDscriptpath)
 
         cmd = f"""root -l -b -q 'standaloneBoxGen.C({simParams.lab_momentum}, {simParams.num_events_per_sample}, {simParams.theta_min_in_mrad}, {simParams.theta_max_in_mrad}, {simParams.phi_min_in_rad}, {simParams.phi_max_in_rad},"{gen_filepath}", {simParams.random_seed + start_evt}, {toCbool(not simParams.neglect_recoil_momentum)})'"""
@@ -85,7 +85,7 @@ if not check_stage_success(Path(f"{MCDataDir}/Lumi_MC_{start_evt}.root")) or for
         print(cmd)
         os.system(cmd)
 
-    elif simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC or simParams.simGeneratorType == SimulationGeneratorType.RESACCPBARP_ELASTIC:
+    elif simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC:
         os.system(
             f"{lmd_build_path}/bin/generatePbarPElasticScattering"
             + f" {simParams.lab_momentum} {simParams.num_events_per_sample}"
@@ -108,11 +108,11 @@ if not check_stage_success(Path(f"{MCDataDir}/Lumi_MC_{start_evt}.root")) or for
     # later steps differ if we have rest gas
     else:
         if simParams.useRestGas:
-            if simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC or simParams.simGeneratorType == SimulationGeneratorType.RESACCPBARP_ELASTIC:
+            if simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC:
                 os.system(
                     f"""root -l -b -q 'runLumiPixel0SimDPMRestGas.C({simParams.num_events_per_sample}, {start_evt}, {simParams.lab_momentum}, "{gen_filepath}", "{workingDirOnComputeNode}", {simParams.ip_offset_x}, {simParams.ip_offset_y}, {simParams.ip_offset_z}, {simParams.ip_spread_x}, {simParams.ip_spread_y}, {simParams.ip_spread_z}, {simParams.beam_tilt_x}, {simParams.beam_tilt_y}, {simParams.beam_divergence_x}, {simParams.beam_divergence_y}, "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'"""
                 )
-            elif simParams.simGeneratorType == SimulationGeneratorType.BOX or simParams.simGeneratorType == SimulationGeneratorType.RESACCBOX:
+            elif simParams.simGeneratorType == SimulationGeneratorType.BOX:
                 os.system(
                     f"""root -l -b -q 'runLumiPixel0SimBoxRestGas.C({simParams.num_events_per_sample}, {start_evt}, "{workingDirOnComputeNode}",{verbositylvl},-2212,{simParams.lab_momentum},{simParams.ip_offset_x}, {simParams.ip_offset_y}, {simParams.ip_offset_z}, {simParams.ip_spread_x}, {simParams.ip_spread_y}, {simParams.ip_spread_z}, {simParams.beam_tilt_x}, {simParams.beam_tilt_y}, {simParams.beam_divergence_x}, {simParams.beam_divergence_y}, {numTrks},{simParams.random_seed + start_evt}, 0, "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)})'"""
                 )

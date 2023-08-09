@@ -149,7 +149,7 @@ def restrictPhiConfigs() -> None:
                 phi_min[0],
                 upperPhiAngles[i],
                 ExperimentType.LUMI,
-                SimulationGeneratorType.RESACCBOX,
+                SimulationGeneratorType.BOX,
             )
 
             # change simpars if misalignment matrices are given
@@ -181,7 +181,7 @@ def genConfigs() -> None:
             phi_min=phi_min[0],
             phi_max=phi_max[0],
             experimentType=ExperimentType.LUMI,
-            simGenTypeForResAcc=SimulationGeneratorType.RESACCBOX,
+            simGenTypeForResAcc=SimulationGeneratorType.BOX,
         )
 
         # change simpars if misalignment matrices are given
@@ -207,7 +207,7 @@ def genConfigs() -> None:
             phi_min=phi_min[1],
             phi_max=phi_max[1],
             experimentType=ExperimentType.KOALA,
-            simGenTypeForResAcc=SimulationGeneratorType.RESACCPBARP_ELASTIC,
+            simGenTypeForResAcc=SimulationGeneratorType.PBARP_ELASTIC,
         )
 
         # change simpars if misalignment matrices are given

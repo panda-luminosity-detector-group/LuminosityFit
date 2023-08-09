@@ -33,8 +33,6 @@ class SimulationGeneratorType(Enum):
     PBARP_ELASTIC = "dpm_elastic"
     PBARP = "dpm_elastic_inelastic"
     NOISE = "noise"
-    RESACCBOX = "resAcc-box"
-    RESACCPBARP_ELASTIC = "resAcc-dpm_elastic"
 
 
 class DataMode(Enum):

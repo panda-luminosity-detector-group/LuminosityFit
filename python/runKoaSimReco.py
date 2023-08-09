@@ -44,7 +44,7 @@ start_evt: int = sim_params.num_events_per_sample * filename_index
 
 if not check_stage_success(f"{path_mc_data} + /Koala_MC_{start_evt}.root") or force_level == 2:
     os.chdir(scriptpath)
-    if sim_params.simGeneratorType == SimulationGeneratorType.BOX or sim_params.simGeneratorType == SimulationGeneratorType.RESACCBOX:
+    if sim_params.simGeneratorType == SimulationGeneratorType.BOX:
         os.system(
             f"{lmd_build_path}/bin/generatePbarPElasticScattering"
             + f" {sim_params.lab_momentum} {sim_params.num_events_per_sample}"
@@ -55,7 +55,7 @@ if not check_stage_success(f"{path_mc_data} + /Koala_MC_{start_evt}.root") or fo
             + f" -o {gen_filepath}"
         )
 
-    elif sim_params.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC or sim_params.simGeneratorType == SimulationGeneratorType.RESACCPBARP_ELASTIC:
+    elif sim_params.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC:
         os.system(
             f"{lmd_build_path}/bin/generatePbarPElasticScattering"
             + f" {sim_params.lab_momentum} {sim_params.num_events_per_sample}"
