@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from pathlib import Path
 
 from lumifit.config import load_params_from_file
 from lumifit.general import (
@@ -10,42 +11,40 @@ from lumifit.general import (
     toCbool,
 )
 from lumifit.types import (
-    AlignmentParameters,
+    DataMode,
     ExperimentParameters,
     SimulationGeneratorType,
-    SimulationParameters,
 )
 
-# TODO: get all this from the experiment config
-# lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
-# PNDmacropath = os.environ["LMDFIT_MACROPATH"]
-# LMDscriptpath = os.environ["LMDFIT_SCRIPTPATH"]
-# pathToTrkQAFiles = os.environ["pathname"]
-# relativeDirToTrksQAFiles = os.environ["dirname"]
-# path_mc_data = os.environ["path_mc_data"]
-
-
+# * ------------------- Experiment Parameters -------------------
+experimentDir = envPath("ExperimentDir")
+thisMode = os.environ["DataMode"]
 force_level = int(os.environ["force_level"])
 
-# this is all that is needed because the experiment config is there.
-BaseDir = envPath("BaseDir")
-experiment = load_params_from_file(BaseDir / "experiment.config", ExperimentParameters)
-simParams = experiment.simParams
-alignParams = experiment.alignParams
+experiment: ExperimentParameters = load_params_from_file(experimentDir / "experiment.json", ExperimentParameters)
 
-# are we in the "normal" simulation mode or in the "res/acc" mode?
-# TODO: get from the paths module
-
-resAccMode = simParams.simGeneratorType == SimulationGeneratorType.RESACCBOX or simParams.simGeneratorType == SimulationGeneratorType.RESACCPBARP_ELASTIC
-if resAccMode:
-    path_mc_data = experiment.softwarePaths.ResAccMCDataDir
-    pathToTrkQAFiles = experiment.softwarePaths.simData
+if thisMode == DataMode.DATA.value:
+    configPackage = experiment.dataPackage
+elif thisMode == DataMode.RESACC.value:
+    configPackage = experiment.resAccPackage
 else:
-    path_mc_data = experiment.softwarePaths.SimulationMCDataDir
-    pathToTrkQAFiles = experiment.softwarePaths.resAccData
+    raise ValueError("dataMode must be either DATA or RESACC")
+
+assert configPackage.simParams is not None
+assert configPackage.MCDataDir is not None
+
+MCDataDir = configPackage.MCDataDir
+simParams = configPackage.simParams
+alignParams = configPackage.alignParams
+pathToTrkQAFiles = configPackage.baseDataDir
+lmd_build_path = experiment.softwarePaths.LmdFitBinaries
+PNDmacropath = experiment.softwarePaths.PandaRootMacroPath
+LMDscriptpath = experiment.softwarePaths.LmdFitScripts
+relativeDirToTrksQAFiles = "LMD-TempRootFiles"
+
 
 # prepare directories
-path_mc_data.mkdir(parents=True, exist_ok=True)
+MCDataDir.mkdir(parents=True, exist_ok=True)
 
 filename_index = 1
 debug = True
@@ -53,28 +52,29 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
     filename_index = int(os.environ["SLURM_ARRAY_TASK_ID"])
     debug = False
 
-# workpathname is the temporary path on the compute node where Lumi_{MC,Digi,Reco...} files are stored.
+start_evt: int = int(os.environ["nEventsPerSample"]) * filename_index
+
+# workingDirOnComputeNode is the temporary path on the compute node where Lumi_{MC,Digi,Reco...} files are stored.
 # it is deleted after the job is finished
 if debug:
-    workpathname = pathToTrkQAFiles
-    path_mc_data = workpathname
+    workingDirOnComputeNode = pathToTrkQAFiles
+    MCDataDir = workingDirOnComputeNode
 else:
-    workpathname = f"/localscratch/{os.environ['SLURM_JOB_ID']}/{relativeDirToTrksQAFiles}"
+    workingDirOnComputeNode = Path(f"/localscratch/{os.environ['SLURM_JOB_ID']}/{relativeDirToTrksQAFiles}")
 
-if not os.path.isdir(workpathname):
-    os.makedirs(workpathname)
+if not os.path.isdir(workingDirOnComputeNode):
+    os.makedirs(workingDirOnComputeNode)
 
-gen_filepath = workpathname + "/gen_mc.root"
+gen_filepath = workingDirOnComputeNode / "/gen_mc.root"
 
 verbositylvl = 0
 numTrks = 1  # should not be changed
-start_evt: int = simParams.num_events_per_sample * filename_index
 
 
-print(f"\n\nINFO:\ndirname is {relativeDirToTrksQAFiles}\npathname is {pathToTrkQAFiles}\nworkpathname is {workpathname}\n\n")
+print(f"\n\nINFO:\ndirname is {relativeDirToTrksQAFiles}\npathname is {pathToTrkQAFiles}\nworkpathname is {workingDirOnComputeNode}\n\n")
 
 # * ------------------- MC Data Step -------------------
-if not check_stage_success(f"{path_mc_data}/Lumi_MC_{start_evt}.root") or force_level == 2:
+if not check_stage_success(Path(f"{MCDataDir}/Lumi_MC_{start_evt}.root")) or force_level == 2:
     # * prepare box or dpm tracks
     if simParams.simGeneratorType == SimulationGeneratorType.BOX or simParams.simGeneratorType == SimulationGeneratorType.RESACCBOX:
         os.chdir(LMDscriptpath)
@@ -86,13 +86,6 @@ if not check_stage_success(f"{path_mc_data}/Lumi_MC_{start_evt}.root") or force_
         os.system(cmd)
 
     elif simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC or simParams.simGeneratorType == SimulationGeneratorType.RESACCPBARP_ELASTIC:
-        # cmd = f"{lmd_build_path}/bin/generatePbarPElasticScattering {simParams.lab_momentum} {simParams.num_events_per_sample} -l {simParams.theta_min_in_mrad} -u {simParams.theta_max_in_mrad} -s {simParams.random_seed + start_evt} -o {gen_filepath}"
-
-        # print(f"\ncalling elastic P Pbar generator with:\n")
-        # print(cmd)
-
-        # os.system(cmd)
-
         os.system(
             f"{lmd_build_path}/bin/generatePbarPElasticScattering"
             + f" {simParams.lab_momentum} {simParams.num_events_per_sample}"
@@ -110,51 +103,51 @@ if not check_stage_success(f"{path_mc_data}/Lumi_MC_{start_evt}.root") or force_
     # sim noise is the same with and without rest gas
     if simParams.simGeneratorType == SimulationGeneratorType.NOISE:
         os.system(
-            f"""root -l -b -q 'runLumiPixel0SimBox.C({simParams.num_events_per_sample}, {start_evt}, "{workpathname}",{verbositylvl},-2212,{simParams.lab_momentum},{numTrks},{simParams.random_seed + start_evt}, 0, , "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)})' > /dev/null 2>&1"""
+            f"""root -l -b -q 'runLumiPixel0SimBox.C({simParams.num_events_per_sample}, {start_evt}, "{workingDirOnComputeNode}",{verbositylvl},-2212,{simParams.lab_momentum},{numTrks},{simParams.random_seed + start_evt}, 0, , "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)})' > /dev/null 2>&1"""
         )
     # later steps differ if we have rest gas
     else:
         if simParams.useRestGas:
             if simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC or simParams.simGeneratorType == SimulationGeneratorType.RESACCPBARP_ELASTIC:
                 os.system(
-                    f"""root -l -b -q 'runLumiPixel0SimDPMRestGas.C({simParams.num_events_per_sample}, {start_evt}, {simParams.lab_momentum}, "{gen_filepath}", "{workpathname}", {simParams.ip_offset_x}, {simParams.ip_offset_y}, {simParams.ip_offset_z}, {simParams.ip_spread_x}, {simParams.ip_spread_y}, {simParams.ip_spread_z}, {simParams.beam_tilt_x}, {simParams.beam_tilt_y}, {simParams.beam_divergence_x}, {simParams.beam_divergence_y}, "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'"""
+                    f"""root -l -b -q 'runLumiPixel0SimDPMRestGas.C({simParams.num_events_per_sample}, {start_evt}, {simParams.lab_momentum}, "{gen_filepath}", "{workingDirOnComputeNode}", {simParams.ip_offset_x}, {simParams.ip_offset_y}, {simParams.ip_offset_z}, {simParams.ip_spread_x}, {simParams.ip_spread_y}, {simParams.ip_spread_z}, {simParams.beam_tilt_x}, {simParams.beam_tilt_y}, {simParams.beam_divergence_x}, {simParams.beam_divergence_y}, "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'"""
                 )
             elif simParams.simGeneratorType == SimulationGeneratorType.BOX or simParams.simGeneratorType == SimulationGeneratorType.RESACCBOX:
                 os.system(
-                    f"""root -l -b -q 'runLumiPixel0SimBoxRestGas.C({simParams.num_events_per_sample}, {start_evt}, "{workpathname}",{verbositylvl},-2212,{simParams.lab_momentum},{simParams.ip_offset_x}, {simParams.ip_offset_y}, {simParams.ip_offset_z}, {simParams.ip_spread_x}, {simParams.ip_spread_y}, {simParams.ip_spread_z}, {simParams.beam_tilt_x}, {simParams.beam_tilt_y}, {simParams.beam_divergence_x}, {simParams.beam_divergence_y}, {numTrks},{simParams.random_seed + start_evt}, 0, "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)})'"""
+                    f"""root -l -b -q 'runLumiPixel0SimBoxRestGas.C({simParams.num_events_per_sample}, {start_evt}, "{workingDirOnComputeNode}",{verbositylvl},-2212,{simParams.lab_momentum},{simParams.ip_offset_x}, {simParams.ip_offset_y}, {simParams.ip_offset_z}, {simParams.ip_spread_x}, {simParams.ip_spread_y}, {simParams.ip_spread_z}, {simParams.beam_tilt_x}, {simParams.beam_tilt_y}, {simParams.beam_divergence_x}, {simParams.beam_divergence_y}, {numTrks},{simParams.random_seed + start_evt}, 0, "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)})'"""
                 )
         else:
             os.system(
-                f"""root -l -b -q 'runLumiPixel0SimDPM.C({simParams.num_events_per_sample}, {start_evt}, {simParams.lab_momentum}, "{gen_filepath}", "{workpathname}", {simParams.ip_offset_x}, {simParams.ip_offset_y}, {simParams.ip_offset_z}, {simParams.ip_spread_x}, {simParams.ip_spread_y}, {simParams.ip_spread_z}, {simParams.beam_tilt_x}, {simParams.beam_tilt_y}, {simParams.beam_divergence_x}, {simParams.beam_divergence_y}, "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'"""
+                f"""root -l -b -q 'runLumiPixel0SimDPM.C({simParams.num_events_per_sample}, {start_evt}, {simParams.lab_momentum}, "{gen_filepath}", "{workingDirOnComputeNode}", {simParams.ip_offset_x}, {simParams.ip_offset_y}, {simParams.ip_offset_z}, {simParams.ip_spread_x}, {simParams.ip_spread_y}, {simParams.ip_spread_z}, {simParams.beam_tilt_x}, {simParams.beam_tilt_y}, {simParams.beam_divergence_x}, {simParams.beam_divergence_y}, "{simParams.lmd_geometry_filename}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'"""
             )
 
 
 # if first stage was successful, copy MC data directly to compute node and don't generate new
 else:
     if not debug:
-        os.system(f"cp {path_mc_data}/Lumi_MC_{start_evt}.root {workpathname}/Lumi_MC_{start_evt}.root")
-        os.system(f"cp {path_mc_data}/Lumi_Params_{start_evt}.root {workpathname}/Lumi_Params_{start_evt}.root")
+        os.system(f"cp {MCDataDir}/Lumi_MC_{start_evt}.root {workingDirOnComputeNode}/Lumi_MC_{start_evt}.root")
+        os.system(f"cp {MCDataDir}/Lumi_Params_{start_evt}.root {workingDirOnComputeNode}/Lumi_Params_{start_evt}.root")
 
 # * ------------------- Digi Step -------------------
-if not check_stage_success(workpathname + f"/Lumi_digi_{start_evt}.root") or force_level == 2:
+if not check_stage_success(workingDirOnComputeNode / f"/Lumi_digi_{start_evt}.root") or force_level == 2:
     os.chdir(PNDmacropath)
     if simParams.simGeneratorType == SimulationGeneratorType.NOISE:
         os.system(
-            f"""root -l -b -q 'runLumiPixel1bDigiNoise.C({simParams.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {simParams.random_seed + start_evt})'"""
+            f"""root -l -b -q 'runLumiPixel1bDigiNoise.C({simParams.num_events_per_sample}, {start_evt}, "{workingDirOnComputeNode}", {verbositylvl}, {simParams.random_seed + start_evt})'"""
         )
     else:
         os.system(
-            f"""root -l -b -q 'runLumiPixel1Digi.C({simParams.num_events_per_sample}, {start_evt}, "{workpathname}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'"""
+            f"""root -l -b -q 'runLumiPixel1Digi.C({simParams.num_events_per_sample}, {start_evt}, "{workingDirOnComputeNode}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'"""
         )
 
 
 # always copy mc data and params from node to permanent storage (params are needed for all subsequent steps. Also: Params are UPDATED every step, so only the final Params file holds all needed data)
 if not debug:
-    os.system(f"cp {workpathname}/Lumi_MC_{start_evt}.root {path_mc_data}/Lumi_MC_{start_evt}.root")
-    os.system(f"cp {workpathname}/Lumi_Params_{start_evt}.root {path_mc_data}/Lumi_Params_{start_evt}.root")
+    os.system(f"cp {workingDirOnComputeNode}/Lumi_MC_{start_evt}.root {MCDataDir}/Lumi_MC_{start_evt}.root")
+    os.system(f"cp {workingDirOnComputeNode}/Lumi_Params_{start_evt}.root {MCDataDir}/Lumi_Params_{start_evt}.root")
     # copy the Lumi_Digi data to permanent storage, it's needed for IP cut for the LumiFit
     # MC path is better for this since digi data is "almost real data"
-    os.system(f"cp {workpathname}/Lumi_digi_{start_evt}.root {path_mc_data}/Lumi_digi_{start_evt}.root")
+    os.system(f"cp {workingDirOnComputeNode}/Lumi_digi_{start_evt}.root {MCDataDir}/Lumi_digi_{start_evt}.root")
 
 os.chdir(LMDscriptpath)
 os.system("./runLmdReco.py")

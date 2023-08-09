@@ -41,8 +41,8 @@ def create_simulation_and_reconstruction_job(
     recoParams = configPackage.recoParams
     # alignParams = configPackage.alignParams
 
-    # assert that simParams exist
     assert simParams is not None
+    assert configPackage.MCDataDir is not None
 
     print("preparing simulations in index range " + f"{recoParams.low_index} - " + f"{recoParams.low_index + recoParams.num_samples - 1}")
 
@@ -92,6 +92,7 @@ def create_simulation_and_reconstruction_job(
     job.exported_user_variables.update(
         {
             "ExperimentDir": experiment.experimentDir,
+            "DataMode": dataMode.value,
             "force_level": str(force_level),
         }
     )

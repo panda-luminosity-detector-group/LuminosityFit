@@ -1,21 +1,40 @@
 #!/usr/bin/env python3
 
 import os
+from pathlib import Path
 
 from lumifit.config import load_params_from_file
-from lumifit.general import check_stage_success, matrixMacroFileName, toCbool
-from lumifit.reconstruction import ReconstructionParameters
-from lumifit.types import AlignmentParameters
+from lumifit.general import (
+    check_stage_success,
+    envPath,
+    matrixMacroFileName,
+    toCbool,
+)
+from lumifit.types import DataMode, ExperimentParameters
 
-# TODO: get all this from the experiment config
-# TODO: get from the paths module
-lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
-LMDScriptPath = os.environ["LMDFIT_SCRIPTPATH"]
-PNDmacropath = os.environ["LMDFIT_MACROPATH"]
-pathToTrkQAFiles = os.environ["pathname"]
-relativeDirToTrksQAFiles = os.environ["dirname"]
-path_mc_data = os.environ["path_mc_data"]
+# * ------------------- Experiment Parameters -------------------
+experimentDir = envPath("ExperimentDir")
+thisMode = os.environ["DataMode"]
 force_level = int(os.environ["force_level"])
+
+experiment: ExperimentParameters = load_params_from_file(experimentDir / "experiment.json", ExperimentParameters)
+
+if thisMode == DataMode.DATA.value:
+    configPackage = experiment.dataPackage
+elif thisMode == DataMode.RESACC.value:
+    configPackage = experiment.resAccPackage
+else:
+    raise ValueError("dataMode must be either DATA or RESACC")
+
+assert configPackage.simParams is not None
+assert configPackage.MCDataDir is not None
+
+MCDataDir = configPackage.MCDataDir
+recoParams = configPackage.recoParams
+alignParams = configPackage.alignParams
+pathToTrkQAFiles = configPackage.baseDataDir
+PNDmacropath = experiment.softwarePaths.PandaRootMacroPath
+relativeDirToTrksQAFiles = "LMD-TempRootFiles"
 
 debug = True
 filename_index = 1
@@ -23,27 +42,19 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
     filename_index = int(os.environ["SLURM_ARRAY_TASK_ID"])
     debug = False
 
-if not os.path.isdir(pathToTrkQAFiles):
-    os.makedirs(pathToTrkQAFiles)
-
-# the path pathToTrkQAFiles is automatically either the dpm or the resAcc path
-# TODO: nope, replace this with an experiment config, read the path from a command line argument
-# the experiment config should contain the path to the dpm and the resAcc files, and be written by the
-# previous step of the workflow to the baseDataDir
-# TODO: get from the paths module
-recoParams: ReconstructionParameters = load_params_from_file(pathToTrkQAFiles + "/reco_params.config", ReconstructionParameters)
-alignParams: AlignmentParameters = load_params_from_file(pathToTrkQAFiles + "/align_params.config", AlignmentParameters)
+pathToTrkQAFiles.mkdir(parents=True, exist_ok=True)
+(pathToTrkQAFiles / "Pairs").mkdir(parents=True, exist_ok=True)
 
 verbositylvl: int = 0
 start_evt: int = recoParams.num_events_per_sample * filename_index
 
 if debug:
     workpathname = pathToTrkQAFiles
-    path_mc_data = workpathname
+    MCDataDir = workpathname
 else:
-    workpathname = f"/localscratch/{os.environ['SLURM_JOB_ID']}/{relativeDirToTrksQAFiles}"
+    workpathname = Path(f"/localscratch/{os.environ['SLURM_JOB_ID']}/{relativeDirToTrksQAFiles}")
 
-gen_filepath = workpathname + "/gen_mc.root"
+gen_filepath = workpathname / "gen_mc.root"
 
 # switch on "missing plane" search algorithm
 misspl = True
@@ -61,7 +72,6 @@ BoxCut = False
 WrAllMC = True
 
 radLength = 0.32
-
 
 prefilter = False
 
@@ -97,31 +107,30 @@ backPropAlgorithm = "Geane"
 # pathToLumiDigi = candidates[0]
 
 # I'm not sure target path exists yet, but we need it to copy the lumu params file to
-if not os.path.isdir(workpathname):
-    os.makedirs(workpathname)
+workpathname.mkdir(parents=True, exist_ok=True)
 
 # we always need the Lumi_(Params|MC) file, no matter what (except if it already exists)
-if not check_stage_success(f"{workpathname}/Lumi_Params_{start_evt}.root"):
-    os.system(f"cp {path_mc_data}/Lumi_Params_{start_evt}.root {workpathname}/Lumi_Params_{start_evt}.root ")
-    os.system(f"cp {path_mc_data}/Lumi_MC_{start_evt}.root {workpathname}/Lumi_MC_{start_evt}.root ")
+if not check_stage_success(Path(f"{workpathname}/Lumi_Params_{start_evt}.root")):
+    os.system(f"cp {MCDataDir}/Lumi_Params_{start_evt}.root {workpathname}/Lumi_Params_{start_evt}.root ")
+    os.system(f"cp {MCDataDir}/Lumi_MC_{start_evt}.root {workpathname}/Lumi_MC_{start_evt}.root ")
 
 
-if not check_stage_success(f"{workpathname}/Lumi_digi_{start_evt}.root"):
-    if os.path.exists(f"{path_mc_data}/Lumi_digi_{start_evt}.root"):
+if not check_stage_success(Path(f"{workpathname}/Lumi_digi_{start_evt}.root")):
+    if os.path.exists(f"{MCDataDir}/Lumi_digi_{start_evt}.root"):
         # copy the Lumi_Digi data from permanent storage, it's needed for IP cut for the LumiFit
-        os.system(f"cp {path_mc_data}/Lumi_digi_{start_evt}.root {workpathname}/Lumi_digi_{start_evt}.root")
+        os.system(f"cp {MCDataDir}/Lumi_digi_{start_evt}.root {workpathname}/Lumi_digi_{start_evt}.root")
 
 
 os.chdir(PNDmacropath)
 # * ------------------- Reco Step -------------------
-if not check_stage_success(pathToTrkQAFiles + f"/Lumi_reco_{start_evt}.root") or force_level == 1:
+if not check_stage_success(Path(pathToTrkQAFiles / f"/Lumi_reco_{start_evt}.root")) or force_level == 1:
     os.chdir(PNDmacropath)
     os.system(
         f"""root -l -b -q 'runLumiPixel2Reco.C({recoParams.num_events_per_sample}, {start_evt}, "{workpathname}", "{matrixMacroFileName(alignParams.alignment_matrices_path)}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'"""
     )
 
 # * ------------------- Hit Merge Step -------------------
-if not check_stage_success(workpathname + f"/Lumi_recoMerged_{start_evt}.root") or force_level == 1:
+if not check_stage_success(Path(workpathname / f"/Lumi_recoMerged_{start_evt}.root")) or force_level == 1:
     os.chdir(PNDmacropath)
     os.system(f"""root -l -b -q 'runLumiPixel2bHitMerge.C({recoParams.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl})'""")
 
@@ -139,7 +148,7 @@ if True:
 
 
 # * ------------------- Pixel Finder Step -------------------
-if not check_stage_success(f"{workpathname}/Lumi_TCand_{start_evt}.root") or force_level == 1:
+if not check_stage_success(Path(f"{workpathname}/Lumi_TCand_{start_evt}.root")) or force_level == 1:
     os.chdir(PNDmacropath)
     os.system(
         f"""root -l -b -q 'runLumiPixel3Finder.C({recoParams.num_events_per_sample},{start_evt},"{workpathname}",{verbositylvl},"{recoParams.track_search_algo}",{int(misspl)},{int(mergedHits)}, {int(trkcut)}, {recoParams.lab_momentum})'"""
@@ -147,8 +156,8 @@ if not check_stage_success(f"{workpathname}/Lumi_TCand_{start_evt}.root") or for
 
 
 # * ------------------- Pixel Fitter Step -------------------
-if not check_stage_success(f"{workpathname}/Lumi_TrackNotFiltered_{start_evt}.root") or force_level == 1:
-    if not check_stage_success(f"{workpathname}/Lumi_Track_{start_evt}.root") or force_level == 1:
+if not check_stage_success(Path(f"{workpathname}/Lumi_TrackNotFiltered_{start_evt}.root")) or force_level == 1:
+    if not check_stage_success(Path(f"{workpathname}/Lumi_Track_{start_evt}.root")) or force_level == 1:
         os.chdir(PNDmacropath)
         # this script outputs a Lumi_Track_... file. Rename that to the NotFiltered..
         os.system(
@@ -175,7 +184,7 @@ if prefilter:
 
     os.system(f"""mv {workpathname}/Lumi_Track_{start_evt}.root {workpathname}/Lumi_TrackNotFiltered_{start_evt}.root""")
 
-    if not check_stage_success(f"{workpathname}/Lumi_TrackFiltered_{start_evt}.root") or force_level == 1:
+    if not check_stage_success(Path(f"{workpathname}/Lumi_TrackFiltered_{start_evt}.root")) or force_level == 1:
         # this macro needs Lumi_Track_... file as input so we need to link the unfiltered file
         os.system(f"""ln -sf {workpathname}/Lumi_TrackNotFiltered_{start_evt}.root {workpathname}/Lumi_Track_{start_evt}.root""")
 
@@ -193,7 +202,7 @@ if prefilter:
             os.system(f"""cp {workpathname}/Lumi_Track_{start_evt}.root {pathToTrkQAFiles}/Lumi_TrackFiltered_{start_evt}.root""")
 
 # * ------------------- Pixel BackProp Step -------------------
-if not check_stage_success(f"{workpathname}/Lumi_Geane_{start_evt}.root") or force_level == 1:
+if not check_stage_success(Path(f"{workpathname}/Lumi_Geane_{start_evt}.root")) or force_level == 1:
     os.chdir(PNDmacropath)
     os.system(
         f"""root -l -b -q 'runLumiPixel5BackProp.C({recoParams.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, "{backPropAlgorithm}", {toCbool(mergedHits)}, {recoParams.lab_momentum}, {recoParams.recoIPX}, {recoParams.recoIPY}, {recoParams.recoIPZ}, {toCbool(prefilter)})'"""
@@ -212,7 +221,7 @@ if CleanSig:
 # the last parameter is mc all write flag and needs to be true
 # so that all mc events are written even if geometrically missing the sensors
 # this is required for the acceptance calculation
-if not check_stage_success(f"{workpathname}/Lumi_TrksQA_{start_evt}.root") or force_level == 1:
+if not check_stage_success(Path(f"{workpathname}/Lumi_TrksQA_{start_evt}.root")) or force_level == 1:
     os.system(
         f"""root -l -b -q 'runLumiPixel7TrksQA.C({recoParams.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl}, {recoParams.lab_momentum}, {toCbool(WrAllMC)}, {toCbool(recoParams.use_xy_cut)}, {toCbool(recoParams.use_m_cut)}, {toCbool(CleanSig)})'"""
     )

@@ -24,10 +24,8 @@ def create_reconstruction_job(
     else:
         raise ValueError("dataMode must be either DATA or RESACC")
 
-    # dataDir = configPackage.baseDataDir
     simParams = configPackage.simParams
     recoParams = configPackage.recoParams
-    # alignParams = configPackage.alignParams
 
     # assert that simParams exist
     assert simParams is not None
@@ -66,6 +64,7 @@ def create_reconstruction_job(
     # TODO: get from the paths module
     job.exported_user_variables = {
         "ExperimentDir": experiment.experimentDir,
+        "DataMode": dataMode.value,
         "force_level": str(force_level),
     }
 

@@ -14,30 +14,30 @@ from lumifit.general import addDebugArgumentsToParser
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
 from lumifit.simulation import create_simulation_and_reconstruction_job
-from lumifit.types import ClusterEnvironment, ExperimentParameters
+from lumifit.types import ClusterEnvironment, DataMode, ExperimentParameters
 
 
 def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> None:
-    thisExperiment.softwarePaths.baseDataDir.mkdir(parents=True, exist_ok=True)
+    thisExperiment.dataPackage.baseDataDir.mkdir(parents=True, exist_ok=True)
 
-    if thisExperiment.recoParams.use_xy_cut or thisExperiment.recoParams.use_m_cut:
+    if thisExperiment.dataPackage.recoParams.use_xy_cut or thisExperiment.dataPackage.recoParams.use_m_cut:
         print("Attention! This experiment configs specifies to use XY and m cuts during reconstruction.")
         print("That's reasonable for the luminosity determination, but the initial data sample must")
         print("still be generated without cuts first.")
         print("Disabling all cuts for this run!")
 
         # remember, all params are immutable, so we need to copy them
-        tempRecoParams = evolve(thisExperiment.recoParams, use_xy_cut=False, use_m_cut=False)
+        tempRecoParams = evolve(thisExperiment.dataPackage.recoParams, use_xy_cut=False, use_m_cut=False)
         thisExperiment = evolve(thisExperiment, recoParams=tempRecoParams)
 
-    job, _ = create_simulation_and_reconstruction_job(
+    job = create_simulation_and_reconstruction_job(
         thisExperiment,
+        dataMode=DataMode.DATA,
         force_level=args.force_level,
         debug=args.debug,
         use_devel_queue=args.use_devel_queue,
     )
 
-    # TODO: Factory Pattern?
     job_handler: JobHandler
     if args.debug:
         job_handler = DebugJobHandler()
@@ -59,7 +59,6 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> N
     job_manager.append(job)
 
     # copy this experiment's config file to the target path
-    write_params_to_file(thisExperiment, thisExperiment.softwarePaths.baseDataDir, "experiment.config")
 
 
 if __name__ == "__main__":
@@ -81,5 +80,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     thisExperiment: ExperimentParameters = load_params_from_file(file_path=args.experimentConfig, asType=ExperimentParameters)
+
+    # make a copy before any changes
+    write_params_to_file(thisExperiment, thisExperiment.experimentDir, "experiment.config")
 
     run_simulation_and_reconstruction(thisExperiment)
