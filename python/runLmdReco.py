@@ -123,14 +123,14 @@ if not check_stage_success(Path(f"{workpathname}/Lumi_digi_{start_evt}.root")):
 
 os.chdir(PNDmacropath)
 # * ------------------- Reco Step -------------------
-if not check_stage_success(Path(pathToTrkQAFiles / f"/Lumi_reco_{start_evt}.root")) or force_level == 1:
+if not check_stage_success(Path(pathToTrkQAFiles / f"Lumi_reco_{start_evt}.root")) or force_level == 1:
     os.chdir(PNDmacropath)
     os.system(
         f"""root -l -b -q 'runLumiPixel2Reco.C({recoParams.num_events_per_sample}, {start_evt}, "{workpathname}", "{matrixMacroFileName(alignParams.alignment_matrices_path)}", "{matrixMacroFileName(alignParams.misalignment_matrices_path)}", {toCbool(alignParams.use_point_transform_misalignment)}, {verbositylvl})'"""
     )
 
 # * ------------------- Hit Merge Step -------------------
-if not check_stage_success(Path(workpathname / f"/Lumi_recoMerged_{start_evt}.root")) or force_level == 1:
+if not check_stage_success(Path(workpathname / f"Lumi_recoMerged_{start_evt}.root")) or force_level == 1:
     os.chdir(PNDmacropath)
     os.system(f"""root -l -b -q 'runLumiPixel2bHitMerge.C({recoParams.num_events_per_sample}, {start_evt}, "{workpathname}", {verbositylvl})'""")
 

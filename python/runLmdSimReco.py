@@ -64,17 +64,10 @@ else:
 
 workingDirOnComputeNode.mkdir(parents=True, exist_ok=True)
 
-gen_filepath = workingDirOnComputeNode / "/gen_mc.root"
+gen_filepath = workingDirOnComputeNode / "gen_mc.root"
 
 verbositylvl = 0
 numTrks = 1  # should not be changed
-
-
-print(f"\n\nINFO:")
-print(f"dirname is {relativeDirToTrksQAFiles}")
-print(f"pathname is {pathToTrkQAFiles}")
-print(f"workingDirOnComputeNode is {workingDirOnComputeNode}\n\n")
-print(f"gen_filepath is {gen_filepath}\n\n")
 
 
 # * ------------------- MC Data Step -------------------
@@ -133,7 +126,7 @@ else:
         os.system(f"cp {MCDataDir}/Lumi_Params_{start_evt}.root {workingDirOnComputeNode}/Lumi_Params_{start_evt}.root")
 
 # * ------------------- Digi Step -------------------
-if not check_stage_success(workingDirOnComputeNode / f"/Lumi_digi_{start_evt}.root") or force_level == 2:
+if not check_stage_success(workingDirOnComputeNode / f"Lumi_digi_{start_evt}.root") or force_level == 2:
     os.chdir(PNDmacropath)
     if simParams.simGeneratorType == SimulationGeneratorType.NOISE:
         os.system(
