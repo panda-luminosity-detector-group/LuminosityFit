@@ -28,7 +28,8 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> N
 
         # remember, all params are immutable, so we need to copy them
         tempRecoParams = evolve(thisExperiment.dataPackage.recoParams, use_xy_cut=False, use_m_cut=False)
-        thisExperiment = evolve(thisExperiment, recoParams=tempRecoParams)
+        dataPackage = evolve(thisExperiment.dataPackage, recoParams=tempRecoParams)
+        thisExperiment = evolve(thisExperiment, dataPackage=dataPackage)
 
     job = create_simulation_and_reconstruction_job(
         thisExperiment,
