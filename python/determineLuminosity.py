@@ -16,10 +16,8 @@ from lumifit.config import load_params_from_file
 from lumifit.general import DirectorySearcher, envPath, getGoodFiles
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
-from lumifit.reconstruction import (
-    create_reconstruction_job,
-    generateCutKeyword,
-)
+from lumifit.paths import generateAbsoluteROOTDataPath, generateCutKeyword
+from lumifit.reconstruction import create_reconstruction_job
 from lumifit.scenario import (
     LumiDeterminationState,
     Scenario,
@@ -206,6 +204,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 elif task.lastState < SimulationState.START_SIM:
                     # then lets simulate!
                     # this command runs the full sim software with box gen data
+                    # (or dpm gen data for KOALA)
                     # to generate the acceptance and resolution information
                     # for this sample
                     # note: beam tilt and divergence are not necessary here,
@@ -257,7 +256,9 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                         alignParams=thisExperiment.alignParams,
                     )
 
-                    (job, returnPath) = create_simulation_and_reconstruction_job(
+                    # returnPath is the absolute path to the directory where the newly created data is stored
+                    returnPath = generateAbsoluteROOTDataPath(tempExperiment)
+                    job = create_simulation_and_reconstruction_job(
                         tempExperiment,
                         use_devel_queue=args.use_devel_queue,
                     )
@@ -342,7 +343,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     # remember, this needs the TEMP reco params, not the real ones!
                     tempExperiment = evolve(thisExperiment, recoParams=tempRecoPars, alignParams=tempAlignPars)
 
-                    job, _ = create_simulation_and_reconstruction_job(
+                    job = create_simulation_and_reconstruction_job(
                         tempExperiment,
                         use_devel_queue=args.use_devel_queue,
                     )
