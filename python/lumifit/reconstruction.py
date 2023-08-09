@@ -5,7 +5,7 @@ from lumifit.cluster import (
     JobResourceRequest,
     make_test_job_resource_request,
 )
-from lumifit.paths import generateAbsoluteROOTDataPath, generateRecoDirSuffix
+from lumifit.paths import generateAbsoluteROOTDataPath
 from lumifit.types import DataMode, ExperimentParameters
 
 
