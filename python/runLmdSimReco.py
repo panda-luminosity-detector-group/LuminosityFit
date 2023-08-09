@@ -52,7 +52,7 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
     filename_index = int(os.environ["SLURM_ARRAY_TASK_ID"])
     debug = False
 
-start_evt: int = int(os.environ["nEventsPerSample"]) * filename_index
+start_evt = simParams.num_events_per_sample * filename_index
 
 # workingDirOnComputeNode is the temporary path on the compute node where Lumi_{MC,Digi,Reco...} files are stored.
 # it is deleted after the job is finished
