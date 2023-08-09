@@ -56,7 +56,7 @@ def create_reconstruction_job(
         resource_request,
         application_url=recoParams.reconstructionCommand,
         name="reco_" + simParams.simGeneratorType.value,
-        logfile_url=str(ROOTDataDir / "recologs/reco-%a.log"),
+        logfile_url=str(ROOTDataDir / "reco-%a.log"),
         array_indices=list(range(low_index_used, low_index_used + num_samples)),
     )
 

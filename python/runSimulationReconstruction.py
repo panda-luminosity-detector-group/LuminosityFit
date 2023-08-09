@@ -18,6 +18,10 @@ from lumifit.types import ClusterEnvironment, DataMode, ExperimentParameters
 
 
 def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> None:
+    assert thisExperiment.dataPackage.simParams is not None
+    assert thisExperiment.dataPackage.MCDataDir is not None
+
+    thisExperiment.dataPackage.MCDataDir.mkdir(parents=True, exist_ok=True)
     thisExperiment.dataPackage.baseDataDir.mkdir(parents=True, exist_ok=True)
 
     if thisExperiment.dataPackage.recoParams.use_xy_cut or thisExperiment.dataPackage.recoParams.use_m_cut:

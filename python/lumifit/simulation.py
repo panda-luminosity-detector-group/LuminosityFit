@@ -86,7 +86,7 @@ def create_simulation_and_reconstruction_job(
         # name is only for the batch system, so that we can see what jobs are running
         name="simreco_" + simParams.simGeneratorType.value,
         # log file is very important, but it doesn't have to be in the data dir
-        logfile_url=str(dataDir / "simlogs/simreco-%a.log"),
+        logfile_url=str(dataDir / "simreco-%a.log"),
         array_indices=list(range(low_index_used, low_index_used + num_samples)),
     )
     job.exported_user_variables.update(
