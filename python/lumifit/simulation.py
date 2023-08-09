@@ -1,56 +1,70 @@
 import subprocess
-from pathlib import Path
-from typing import Tuple
 
 from lumifit.cluster import (
     Job,
     JobResourceRequest,
     make_test_job_resource_request,
 )
-from lumifit.reconstruction import generateRecoDirSuffix
-from lumifit.types import ExperimentParameters, SimulationGeneratorType
+from lumifit.types import (
+    DataMode,
+    ExperimentParameters,
+    SimulationGeneratorType,
+)
 
 
 def create_simulation_and_reconstruction_job(
     experiment: ExperimentParameters,
+    dataMode: DataMode,
     force_level: int = 0,
     debug: bool = False,
     use_devel_queue: bool = False,
-) -> Tuple[Job, Path]:
-    print(
-        "preparing simulations in index range "
-        + f"{experiment.recoParams.low_index} - "
-        + f"{experiment.recoParams.low_index + experiment.recoParams.num_samples - 1}"
-    )
+) -> Job:
+    """
+    parameters:
+    experiment: ExperimentParameters
+    dataMode: is this real/simulation data (just called DATA) or resAcc data (RESACC)?
+    force_level: int
+    debug: bool
+    use_devel_queue: bool
+    """
 
-    dirname = experiment.softwarePaths.simData
-    recoCutAndAlignSuffix = generateRecoDirSuffix(experiment.recoParams, experiment.alignParams)
+    # case switch for dataMode
+    if dataMode == DataMode.DATA:
+        configPackage = experiment.dataPackage
+    elif dataMode == DataMode.RESACC:
+        configPackage = experiment.resAccPackage
+    else:
+        raise ValueError("dataMode must be either DATA or RESACC")
 
-    low_index_used = experiment.simParams.low_index
-    num_samples = experiment.simParams.num_samples
-    if debug and experiment.simParams.num_samples > 1:
+    dataDir = configPackage.baseDataDir
+    simParams = configPackage.simParams
+    recoParams = configPackage.recoParams
+    # alignParams = configPackage.alignParams
+
+    # assert that simParams exist
+    assert simParams is not None
+
+    print("preparing simulations in index range " + f"{recoParams.low_index} - " + f"{recoParams.low_index + recoParams.num_samples - 1}")
+
+    low_index_used = simParams.low_index
+    num_samples = simParams.num_samples
+    if debug and simParams.num_samples > 1:
         print("Warning: number of samples in debug mode is limited to 1! Setting to 1!")
         num_samples = 1
 
-    pathname_base = experiment.softwarePaths.baseDataDir
-    dirname_full = dirname / recoCutAndAlignSuffix
-    pathname_full = lmdfit_data_dir / dirname_full
-
-    # pathname_full.mkdir(exist_ok=True, parents=True)
+    lmdfit_build_dir = experiment.softwarePaths.LmdFitBinaries
 
     # generate simulation config parameter file
-    if experiment.simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC:
-        lmdfit_build_dir = experiment.softwarePaths.LmdFitBinaries
-
+    if simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC:
         # determine the elastic cross section in the theta range
         bashcommand = (
             f"{lmdfit_build_dir}/bin/generatePbarPElasticScattering "
-            + f"{experiment.simParams.lab_momentum} 0 "
-            + f"-l {experiment.simParams.theta_min_in_mrad}"
-            + f" -u {experiment.simParams.theta_max_in_mrad}"
-            + f" -n {experiment.simParams.phi_min_in_rad}"
-            + f" -g {experiment.simParams.phi_max_in_rad}"
-            + f" -o {pathname_base}/elastic_cross_section.txt"
+            + f"{simParams.lab_momentum} 0"
+            + f" -l {simParams.theta_min_in_mrad}"
+            + f" -u {simParams.theta_max_in_mrad}"
+            + f" -n {simParams.phi_min_in_rad}"
+            + f" -g {simParams.phi_max_in_rad}"
+            + f" -o {experiment.experimentDir}/elastic_cross_section.txt"
         )
         subprocess.call(bashcommand.split())
 
@@ -65,21 +79,21 @@ def create_simulation_and_reconstruction_job(
 
     job = Job(
         resource_request,
-        application_url=experiment.simParams.simulationCommand,
-        name="simreco_" + experiment.simParams.simGeneratorType.value,
-        logfile_url=str(pathname_full / "simreco-%a.log"),
+        # simulation command is one of {runLmdSimReco, runLmdReco, createLumiFitData}
+        # or the KOALA equivalent. set during config generation, i.e. in
+        # create_sim_reco_pars.py (or by hand)
+        application_url=simParams.simulationCommand,
+        # name is only for the batch system, so that we can see what jobs are running
+        name="simreco_" + simParams.simGeneratorType.value,
+        # log file is very important, but it doesn't have to be in the data dir
+        logfile_url=str(dataDir / "simlogs/simreco-%a.log"),
         array_indices=list(range(low_index_used, low_index_used + num_samples)),
     )
-    # TODO: these won't be needed anymore the're in the config file
     job.exported_user_variables.update(
         {
-            "BaseDir": experiment.softwarePaths.baseDataDir,
-            # "dirname": dirname_full,
-            # "path_mc_data": path_mc_data,
-            # "pathname": pathname_full,
-            # "macropath": macropath_full,
+            "ExperimentDir": experiment.experimentDir,
             "force_level": str(force_level),
         }
     )
 
-    return (job, pathname_full)
+    return job

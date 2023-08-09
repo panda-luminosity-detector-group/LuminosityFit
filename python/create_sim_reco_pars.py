@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
+import random
+import string
 from pathlib import Path
 
 from attrs import evolve
@@ -11,6 +13,7 @@ from lumifit.general import envPath
 from lumifit.types import (
     AlignmentParameters,
     ClusterEnvironment,
+    ConfigPackage,
     ExperimentParameters,
     ExperimentType,
     ReconstructionParameters,
@@ -55,7 +58,9 @@ def genExperimentConfig(
     else:
         raise ValueError("Experiment Type not defined!")
 
-    simParams = SimulationParameters(
+    experimentDir = lmdfit_data_dir / Path("LMD-" + "".join(random.choices(string.ascii_letters, k=8)))
+
+    simParamsData = SimulationParameters(
         simulationCommand=simulationCommand,
         lab_momentum=momentum,
         num_samples=100,
@@ -64,22 +69,55 @@ def genExperimentConfig(
         theta_max_in_mrad=theta_max,
         phi_min_in_rad=phi_min,
         phi_max_in_rad=phi_max,
+        random_seed=random.randint(11, 9999),
     )
-    recoParams = ReconstructionParameters(
+    recoParamsData = ReconstructionParameters(
         reconstructionCommand=reconstructionCommand,
         lab_momentum=momentum,
         num_samples=100,
         num_events_per_sample=100000,
-        num_resAcc_samples=500,
-        num_events_per_resAcc_sample=100000,
-        simGenTypeForResAcc=simGenTypeForResAcc,
     )
 
-    alignParams = AlignmentParameters()
+    dataPackage = ConfigPackage(
+        simParams=simParamsData,
+        recoParams=recoParamsData,
+        alignParams=AlignmentParameters(),
+        baseDataDir=lmdfit_data_dir / experimentDir / "data",
+        MCDataDir=lmdfit_data_dir / experimentDir / "data/mc_data",
+    )
+
+    simParamsResAcc = SimulationParameters(
+        simulationCommand=simulationCommand,
+        lab_momentum=momentum,
+        num_samples=500,
+        num_events_per_sample=100000,
+        theta_min_in_mrad=theta_min,
+        theta_max_in_mrad=theta_max,
+        phi_min_in_rad=phi_min,
+        phi_max_in_rad=phi_max,
+        random_seed=random.randint(11, 9999),
+        simGeneratorType=simGenTypeForResAcc,
+    )
+
+    recoParamsResAcc = ReconstructionParameters(
+        reconstructionCommand=reconstructionCommand,
+        lab_momentum=momentum,
+        num_samples=500,
+        num_events_per_sample=100000,
+    )
+
+    resAccPackage = ConfigPackage(
+        simParams=simParamsResAcc,
+        recoParams=recoParamsResAcc,
+        alignParams=AlignmentParameters(),
+        baseDataDir=lmdfit_data_dir / experimentDir / "resacc",
+        MCDataDir=lmdfit_data_dir / experimentDir / "resacc/mc_data",
+    )
+
+    # = Path("LMD-" + "".join(random.choices(string.ascii_letters, k=10)))  # type: ignore
 
     softwarePaths = SoftwarePaths(
         LmdFitBinaries=lmd_build_path,
-        LmdFitDataDir=lmdfit_data_dir,
         PandaRootMacroPath=PNDmacropath,
         LmdFitScripts=LMDscriptpath,
     )
@@ -87,12 +125,14 @@ def genExperimentConfig(
     experiment = ExperimentParameters(
         experimentType=experimentType,
         cluster=ClusterEnvironment.HIMSTER,
-        simParams=simParams,
-        recoParams=recoParams,
-        alignParams=alignParams,
+        softwarePaths=softwarePaths,
         LMDDataCommand=LMDDataCommand,
         trackFilePattern=trackFilePattern,
-        softwarePaths=softwarePaths,
+        # LmdFitDataDir=lmdfit_data_dir,
+        experimentDir=experimentDir,
+        dataPackage=dataPackage,
+        resAccPackage=resAccPackage,
+        fitConfigPath=(LMDscriptpath / Path("../fitconfig-fast.json")).resolve(),
     )
 
     return experiment
@@ -115,8 +155,10 @@ def restrictPhiConfigs() -> None:
             # change simpars if misalignment matrices are given
             # we have to use evolve (deep copies) since all configs are frozen
             newMisalignPath = Path(f"/home/roklasen/LMD-Alignment/output/misMat-nothing-{phiMatNames[i]}.json")
-            newAlignPars = evolve(experiment.alignParams, misalignment_matrices_path=newMisalignPath)
-            newRecopars = evolve(experiment.recoParams, use_ip_determination=False)
+            newAlignPars = evolve(experiment.dataPackage.alignParams, misalignment_matrices_path=newMisalignPath)
+            newAlignPars = evolve(experiment.resAccPackage.alignParams, misalignment_matrices_path=newMisalignPath)
+            newRecopars = evolve(experiment.dataPackage.recoParams, use_ip_determination=False)
+            newRecopars = evolve(experiment.resAccPackage.recoParams, use_ip_determination=False)
 
             newExperiment = evolve(experiment, alignParams=newAlignPars, recoParams=newRecopars)
 

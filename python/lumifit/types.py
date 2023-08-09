@@ -6,13 +6,11 @@ but for now it is easier to put it here while I resolve circular dependencies.
 """
 
 import math
-import random
-import string
 from enum import Enum
 from pathlib import Path
 from typing import Optional
 
-from attrs import define, field
+from attrs import define
 
 
 class TrackSearchAlgorithm(Enum):
@@ -39,6 +37,11 @@ class SimulationGeneratorType(Enum):
     RESACCPBARP_ELASTIC = "resAcc-dpm_elastic"
 
 
+class DataMode(Enum):
+    DATA = "data"
+    RESACC = "resAcc"
+
+
 @define(frozen=True)
 class AlignmentParameters:
     use_point_transform_misalignment: bool = False
@@ -51,14 +54,13 @@ class SimulationParameters:
     # Using default_factory for random value defaults
     simulationCommand: str
 
-    random_seed: int = field(factory=lambda: random.randint(10, 9999))  # type: ignore
+    random_seed: int
 
     simGeneratorType: SimulationGeneratorType = SimulationGeneratorType.PBARP_ELASTIC
     num_events_per_sample: int = 1000
     num_samples: int = 1
     lab_momentum: float = 1.5
     low_index: int = 1
-    output_dir: Optional[Path] = None
     lmd_geometry_filename: str = "Luminosity-Detector.root"
     theta_min_in_mrad: float = 2.7
     theta_max_in_mrad: float = 13.0
@@ -82,12 +84,10 @@ class SimulationParameters:
 @define(frozen=True)
 class ReconstructionParameters:
     reconstructionCommand: str
-    simGenTypeForResAcc: SimulationGeneratorType = SimulationGeneratorType.BOX
     num_events_per_sample: int = 1000
     num_samples: int = 1
     lab_momentum: float = 1.5
     low_index: int = 1
-    output_dir: Optional[Path] = None
     lmd_geometry_filename: str = "Luminosity-Detector.root"
     use_ip_determination: bool = True
     use_xy_cut: bool = True
@@ -98,40 +98,43 @@ class ReconstructionParameters:
     recoIPZ: float = 0.0
     force_cut_disable: bool = False
 
-    num_resAcc_samples: int = 500
-    num_events_per_resAcc_sample: int = 10000
-
 
 @define(frozen=True)
 class SoftwarePaths:
     """
-    hold paths where the LumiFit binaries and scripts are located, as well as the path to the
-    PandaRoot macros and the path to the Lumi_mc data.
+    hold paths where the LumiFit binaries and scripts are located, and where PandaRoot macros are.
     """
 
     LmdFitBinaries: Path  # where the LmdFit binaries are
     LmdFitScripts: Path  # where the python scripts for LmdFit are
     PandaRootMacroPath: Path  # where the macros for PandaRoot are
-    LmdFitDataDir: Path  # the lustreFS dir where all simulation data is stored
 
-    # generate a random directory for this specific simulation
-    scenarioDir: Path = Path("LMD-" + "".join(random.choices(string.ascii_letters, k=10)))  # type: ignore
 
-    # these paths can only be set once the scenarioDir is generated
-    baseDataDir: Path = field(init=False)
-    simData: Path = field(init=False)
-    resAccData: Path = field(init=False)
-    SimulationMCDataDir: Path = field(init=False)
-    ResAccMCDataDir: Path = field(init=False)
+@define(frozen=True)
+class ConfigPackage:
+    """
+    This package holds all config info that is relevant to data or resAcc modes.
 
-    # we have to cheat a little since we need a post-init hook to set the simScenarioDataDir
-    # see https://www.attrs.org/en/stable/init.html#post-init
-    def __attrs_post_init__(self) -> None:
-        object.__setattr__(self, "baseDataDir", self.LmdFitDataDir / self.scenarioDir)
-        object.__setattr__(self, "simData", self.baseDataDir / "sim")
-        object.__setattr__(self, "resAccData", self.baseDataDir / "resAcc")
-        object.__setattr__(self, "SimulationMCDataDir", self.simData / "mc_data")
-        object.__setattr__(self, "ResAccMCDataDir", self.resAccData / "mc_data")
+    data: either simulation data or real experimental data:
+            - (simParams)
+            - (MCDataDir)
+            - baseDataDir
+            - recoParams
+            - alignParams
+    resAcc: resolution acceptance data generated specifically for the data
+            - simParams
+            - MCDataDir
+            - baseDataDir
+            - recoParams
+            - alignParams
+    """
+
+    recoParams: ReconstructionParameters
+    alignParams: AlignmentParameters
+    baseDataDir: Path
+
+    MCDataDir: Optional[Path] = None
+    simParams: Optional[SimulationParameters] = None
 
 
 @define(frozen=True)
@@ -140,13 +143,24 @@ class ExperimentParameters:
     Dataclass for simulation, reconstruction and alignment.
     """
 
-    experimentType: ExperimentType
-    cluster: ClusterEnvironment
-    simParams: SimulationParameters
-    recoParams: ReconstructionParameters
-    alignParams: AlignmentParameters
-    softwarePaths: SoftwarePaths
+    experimentType: ExperimentType  # PANDA or KOALA
+    cluster: ClusterEnvironment  # HimsterII or Virgo
+
+    # LmdFitDataDir: Path  # the lustreFS dir where all simulation data is stored
+
+    # this depends on PANDA or KOALA case
     trackFilePattern: str
     LMDDataCommand: str
-    # TODO: absolute path to the fitconfig file
-    fitConfigPath: Path = Path("fitconfig-fast.json")
+
+    # where is the LMDFit Software and PandaROOT?
+    softwarePaths: SoftwarePaths
+
+    # sim,reco,align params for both modes
+    dataPackage: ConfigPackage
+    resAccPackage: ConfigPackage
+
+    # absolute path for this specific experiment
+    experimentDir: Path
+
+    # absolute path to the fit config
+    fitConfigPath: Path
