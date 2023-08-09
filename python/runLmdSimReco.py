@@ -62,8 +62,7 @@ if debug:
 else:
     workingDirOnComputeNode = Path(f"/localscratch/{os.environ['SLURM_JOB_ID']}/{relativeDirToTrksQAFiles}")
 
-if not os.path.isdir(workingDirOnComputeNode):
-    os.makedirs(workingDirOnComputeNode)
+workingDirOnComputeNode.mkdir(parents=True, exist_ok=True)
 
 gen_filepath = workingDirOnComputeNode / "/gen_mc.root"
 
@@ -71,7 +70,12 @@ verbositylvl = 0
 numTrks = 1  # should not be changed
 
 
-print(f"\n\nINFO:\ndirname is {relativeDirToTrksQAFiles}\npathname is {pathToTrkQAFiles}\nworkpathname is {workingDirOnComputeNode}\n\n")
+print(f"\n\nINFO:")
+print(f"dirname is {relativeDirToTrksQAFiles}")
+print(f"pathname is {pathToTrkQAFiles}")
+print(f"workingDirOnComputeNode is {workingDirOnComputeNode}\n\n")
+print(f"gen_filepath is {gen_filepath}\n\n")
+
 
 # * ------------------- MC Data Step -------------------
 if not check_stage_success(Path(f"{MCDataDir}/Lumi_MC_{start_evt}.root")) or force_level == 2:
