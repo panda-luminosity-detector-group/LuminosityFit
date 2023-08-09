@@ -21,7 +21,7 @@ experimentDir = envPath("ExperimentDir")
 thisMode = os.environ["DataMode"]
 force_level = int(os.environ["force_level"])
 
-experiment: ExperimentParameters = load_params_from_file(experimentDir / "experiment.json", ExperimentParameters)
+experiment: ExperimentParameters = load_params_from_file(experimentDir / "experiment.config", ExperimentParameters)
 
 if thisMode == DataMode.DATA.value:
     configPackage = experiment.dataPackage
