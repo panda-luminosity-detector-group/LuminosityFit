@@ -124,6 +124,10 @@ class DirectorySearcher:
 
 
     You can specify a list of patterns that are to be excluded from search. If a directory includes any of the exclude patterns, it is ignored.
+
+    TODO: this shouldn't even exist. All paths should be:
+        - in the experiment config
+        - or generated deterministically from the paths module
     """
 
     def __init__(self, patterns_: List[str], excludePatterns: str = "") -> None:

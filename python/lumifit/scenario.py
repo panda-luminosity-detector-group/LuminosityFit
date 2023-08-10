@@ -37,10 +37,12 @@ class SimulationDataType(Enum):
     ANGULAR = "a"
     VERTEX = "v"
     EFFICIENCY_RESOLUTION = "er"
+    HIST = "h"
 
 
 @define
 class SimulationTask:
+    # TODO: there shouldn't be any paths in here anymore, those are all in the config
     dirPath: Path = Path()
     simDataType: SimulationDataType = SimulationDataType.NONE
     simState: SimulationState = SimulationState.INIT
@@ -51,6 +53,7 @@ class SimulationTask:
 class Scenario:
     """
     Scenarios are always simulated on a cluster, but all runtime parameters are set during construction!
+    # TODO: there shouldn't be any paths in here anymore, those are all in the config
     """
 
     momentum = 0.0

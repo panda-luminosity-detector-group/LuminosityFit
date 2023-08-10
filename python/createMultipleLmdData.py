@@ -1,7 +1,21 @@
 #!/usr/bin/env python3
 
+"""
+This script is a wrapper for createLumiFitData or createKoaFitData and submits it to SLURM. Then why is it so long?
+
+
+TODO: shorten this down! jesus!
+This is soooooo much longer than it needs to be.
+- paths are searched via DirectorySearcher (regex comes from args)
+- this script is called as script (and not as module)
+
+Sooo:
+- make this a module
+- remove all search functions
+- and instead get the paths from the experiment config
+"""
+
 import argparse
-import errno
 import glob
 import os
 import socket
@@ -145,10 +159,7 @@ for bins in range(
         path = directory / f"binning_{bins}"
         print(f"saving config to {path}")
 
-        try:
-            path.mkdir(exist_ok=True, parents=True)
-        except OSError as exception:
-            print("error: thought dir does not exist, but it does...")
+        path.mkdir(exist_ok=True, parents=True)
 
         dataconfig_file = path / "dataconfig.json"
 
@@ -158,7 +169,7 @@ for bins in range(
         config_modifier.writeConfigToPath(config, str(path) + "/dataconfig.json")
         config_paths.append(path)
 
-# TODO: read from scenario config!
+# TODO: read from experiment config!
 full_hostname = socket.getfqdn()
 if "gsi.de" in full_hostname:
     job_handler = create_virgo_job_handler("long")

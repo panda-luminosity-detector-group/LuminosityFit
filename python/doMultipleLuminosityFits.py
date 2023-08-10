@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 """
-
 This script is a wrapper for runLmdFit.sh and submits it to SLURM. Then why is it so long?
 
 Example call might look like this:
@@ -12,6 +11,20 @@ python doMultipleLuminosityFits.py \
 /lustre/miifs05/scratch/him-specf/paluma/roklasen/LumiFit/plab_1.5GeV/dpm_elastic_theta_2.7-13.0mrad_recoil_corrected/ip_offset_XYZDXDYDZ_0.0_0.0_0.0_0.0_0.0_0.0/beam_grad_XYDXDY_0.0_0.0_0.0_0.0/no_geo_misalignment/100000/1-100_xy_m_cut_real/no_alignment_correction \
 xy_m_cut_real \
 /home/roklasen/LuminosityFit/fitconfig-fast.json
+
+TODO: shorten this down! jesus!
+This is soooooo much longer than it needs to be. Also, because the wrapped binary can already be called from the command line with a million arguments, this script doen't need to be callabe from the command line. It just needs to be usable as module. 
+- 100 sloc are only path search functions
+- paths are searched via regex
+- the regex is made up on the fly from some parameters
+- this script is calle as script (and not as module)
+
+Sooo:
+- make this a module
+- remove all search functions
+- and instead get the paths from the experiment config
+- this thing can submit multiple fit jobs at once, but we don't want that anymore. A fit job must always come from an experiment config, so we can just submit one job at a time.
+- also remove the bash script and just call the binary directly!
 """
 
 

@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+"""
+This is a wrapper for bin/mergeLmdData. because the wrapped binary can already be called from the command line with a million arguments, this script doen't need to be callabe from the command line. It just needs to be usable as module. 
+
+TODO: shorten this down and make it a module!
+TODO: also this seems to use the same a,e,r,h,v flags as the determineLuminosity script, so it should use the same enums? 
+"""
+
 import argparse
 import subprocess
 

@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 
 """
-DEPRECATION WARNING: This script is deprecated and will be removed in the future. Please use the FileListBuncher class instead.
+This thing searches root files.
+It then separates them into bunches of 10 files each (other sizes can be specified).
+It then creates a text file for each bunch (so 10 files if there were 100 ROOT files)
+and writes the absolute paths to the files into the text files.
+
+TODO: add type hints and make this a module
 """
 
 import argparse
