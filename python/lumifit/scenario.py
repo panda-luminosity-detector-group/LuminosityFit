@@ -56,7 +56,7 @@ class Scenario:
     # TODO: there shouldn't be any paths in here anymore, those are all in the config
     """
 
-    momentum = 0.0
+    momentum: float = 0.0
     elastic_pbarp_integrated_cross_secion_in_mb: float = 0.0
 
     trackDirectory: Path = Path()
@@ -64,7 +64,7 @@ class Scenario:
     acc_and_res_dir_path: Path = Path()
 
     SimulationTasks: List[SimulationTask] = []
-    lumiDetState = LumiDeterminationState.SIMULATE_VERTEX_DATA
-    lastLumiDetState = LumiDeterminationState.INIT
+    lumiDetState: LumiDeterminationState = LumiDeterminationState.SIMULATE_VERTEX_DATA
+    lastLumiDetState: LumiDeterminationState = LumiDeterminationState.INIT
 
     is_broken: bool = False
