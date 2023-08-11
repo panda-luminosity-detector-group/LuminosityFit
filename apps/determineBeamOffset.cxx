@@ -19,7 +19,7 @@ using std::endl;
 using std::string;
 
 void determineBeamOffset(string input_file_dir, string config_file_url,
-                         unsigned int nthreads) {
+                         unsigned int nthreads, string output_file) {
 
   boost::chrono::thread_clock::time_point start =
       boost::chrono::thread_clock::now();
@@ -42,24 +42,6 @@ void determineBeamOffset(string input_file_dir, string config_file_url,
   PndLmdDataFacade lmd_data_facade;
 
   vector<PndLmdHistogramData> my_vertex_vec = lmd_data_facade.getVertexData();
-
-  /*// filter out specific data
-   LumiFit::LmdDimensionOptions lmd_dim_opt;
-   lmd_dim_opt.dimension_type = LumiFit::THETA_X;
-   lmd_dim_opt.track_type = LumiFit::RECO;
-
-   const boost::property_tree::ptree& fit_config_ptree =
-   lmd_runtime_config.getFitConfigTree();
-   if
-   (fit_config_ptree.get<bool>("fit.fit_model_options.acceptance_correction_active")
-   == true) { lmd_dim_opt.track_type = LumiFit::MC_ACC; if
-   (fit_config_ptree.get<bool>("fit.fit_model_options.resolution_smearing_active")
-   == true) lmd_dim_opt.track_type = LumiFit::RECO;
-   }
-
-   LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter filter(lmd_dim_opt);
-   my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
-   my_lmd_data_vec, filter);*/
 
   // ----------------------------------------------------------------------
   PndLmdFitFacade lmd_fit_facade;
@@ -97,8 +79,8 @@ void determineBeamOffset(string input_file_dir, string config_file_url,
   }
   // add rec ip_z as 0.0
   fit_result_ptree.add("ip_z", 0.0);
-  std::cout << "writing result to " << hs.str() << std::endl;
-  write_json(hs.str(), fit_result_ptree);
+  std::cout << "writing result to " << output_file << std::endl;
+  write_json(output_file, fit_result_ptree);
 
   hs.str("");
   hs << input_file_dir << "/lmd_fitted_vertex_data.root";
@@ -121,6 +103,7 @@ void displayInfo() {
   cout << "Required arguments are: " << endl;
   cout << "-p [path to data]" << endl;
   cout << "-c [path to config file] " << endl;
+  cout << "-o [path to output file (i.e. /path/to/reco_ip.json)] " << endl;
   cout << "Optional arguments are: " << endl;
   cout << "-m [number of threads]" << endl;
 }
@@ -128,12 +111,13 @@ void displayInfo() {
 int main(int argc, char *argv[]) {
   string data_path;
   string config_path("");
+  string output_file("");
   unsigned int nthreads(1);
   bool is_data_set(false), is_config_set(false), is_nthreads_set(false);
 
   int c;
 
-  while ((c = getopt(argc, argv, "hc:m:p:")) != -1) {
+  while ((c = getopt(argc, argv, "hc:m:p:o:")) != -1) {
     switch (c) {
     case 'c':
       config_path = optarg;
@@ -146,6 +130,9 @@ int main(int argc, char *argv[]) {
     case 'm':
       nthreads = atoi(optarg);
       is_nthreads_set = true;
+      break;
+    case 'o':
+      output_file = optarg;
       break;
     case '?':
       if (optopt == 'm' || optopt == 'p' || optopt == 'c')
@@ -164,7 +151,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (is_data_set && is_config_set)
-    determineBeamOffset(data_path, config_path, nthreads);
+    determineBeamOffset(data_path, config_path, nthreads, output_file);
   else
     displayInfo();
   return 0;

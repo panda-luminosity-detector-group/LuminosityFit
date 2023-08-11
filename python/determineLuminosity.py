@@ -29,6 +29,7 @@ from lumifit.simulation import create_simulation_and_reconstruction_job
 from lumifit.types import (
     AlignmentParameters,
     ClusterEnvironment,
+    DataMode,
     ExperimentParameters,
     ReconstructionParameters,
     SimulationParameters,
@@ -150,7 +151,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
         data_keywords = []
         data_pattern = ""
 
-        cut_keyword = generateCutKeyword(thisExperiment.recoParams)
+        cut_keyword = generateCutKeyword(thisExperiment.dataPackage.recoParams)
 
         print(f"cut keyword is {cut_keyword}")
 
@@ -178,16 +179,19 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 """
                 efficiency / resolution calculation.
 
-                Takes an offset of the IP into account.
+                Takes the offset of the IP into account.
 
                 TODO: This needs to know the misalignment of the detector.
                 """
+
+                assert thisExperiment.resAccPackage.simParams is not None
+
                 found_dirs = []
                 # what the shit, this should never be empty in the first place
                 if (task.dirPath != "") and (task.dirPath is not None):
                     temp_dir_searcher = DirectorySearcher(
                         [
-                            thisExperiment.recoParams.simGenTypeForResAcc.value,
+                            thisExperiment.resAccPackage.simParams.simGeneratorType.value,
                             data_keywords[0],
                         ]  # look for the folder name including sim_type_for_resAcc
                     )
@@ -218,52 +222,16 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     # we'll create temp objects here.
                     # TODO: the fuck we do, we take the params from the resAcc package!
 
-                    thisIPX = thisExperiment.recoParams.recoIPX
-                    thisIPY = thisExperiment.recoParams.recoIPY
-                    thisIPZ = thisExperiment.recoParams.recoIPZ
-
-                    max_xy_shift = math.sqrt(thisIPX**2 + thisIPY**2)
-                    max_xy_shift = float("{0:.2f}".format(round(float(max_xy_shift), 2)))
-
-                    # since this is the res/acc case, these parameters must be changed
-                    tempSimParams = SimulationParameters(
-                        simulationCommand=thisExperiment.simParams.simulationCommand,
-                        simGeneratorType=thisExperiment.recoParams.simGenTypeForResAcc,
-                        num_events_per_sample=thisExperiment.recoParams.num_events_per_resAcc_sample,
-                        num_samples=thisExperiment.recoParams.num_resAcc_samples,
-                        theta_min_in_mrad=thisExperiment.simParams.theta_min_in_mrad - max_xy_shift,
-                        theta_max_in_mrad=thisExperiment.simParams.theta_max_in_mrad + max_xy_shift,
-                        ip_offset_x=thisIPX,
-                        ip_offset_y=thisIPY,
-                        ip_offset_z=thisIPZ,
-                    )
-
-                    # since this is the res/acc case, these parameters must be updated
-                    tempRecoParams = ReconstructionParameters(
-                        reconstructionCommand=thisExperiment.recoParams.reconstructionCommand,
-                        num_samples=thisExperiment.recoParams.num_resAcc_samples,
-                        num_events_per_sample=thisExperiment.recoParams.num_events_per_resAcc_sample,
-                        # TODO: wait is the following correct?
-                        recoIPX=thisIPX,
-                        recoIPY=thisIPY,
-                        recoIPZ=thisIPZ,
-                    )
-
                     # TODO: alignment part
                     # if alignement matrices were specified, we used them as a mis-alignment
                     # and alignment for the box simulations
 
-                    tempExperiment = evolve(
-                        thisExperiment,
-                        simParams=tempSimParams,
-                        recoParams=tempRecoParams,
-                        alignParams=thisExperiment.alignParams,
-                    )
-
                     # returnPath is the absolute path to the directory where the newly created data is stored
-                    returnPath = generateAbsoluteROOTDataPath(tempExperiment)
+                    # TODO: this should'n be in the task anyway
+                    returnPath = generateAbsoluteROOTDataPath(thisExperiment.resAccPackage)
                     job = create_simulation_and_reconstruction_job(
-                        tempExperiment,
+                        thisExperiment,
+                        dataMode=DataMode.RESACC,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
@@ -272,8 +240,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     thisScenario.acc_and_res_dir_path = returnPath
                     task.lastState = SimulationState.START_SIM
 
-                    # just to be sure that no modified config is used
-                    del tempSimParams, tempRecoParams, tempExperiment
 
             elif task.simDataType == SimulationDataType.ANGULAR:
                 """
@@ -305,11 +271,15 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
                 # oh boi that's bound to be trouble
                 elif task.lastState < task.simState:
-                    # TODO: there was some shit here about numSamples in res/acc could be larger than in sim step. check that.
 
                     # TODO: alignment part
-                    (job, returnPath) = create_reconstruction_job(
+
+                    # TODO: this should'n be in the task anyway
+                    returnPath = generateAbsoluteROOTDataPath(thisExperiment.resAccPackage)
+
+                    job = create_reconstruction_job(
                         thisExperiment,
+                        dataMode=DataMode.RESACC,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
@@ -322,7 +292,10 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
             elif task.simDataType == SimulationDataType.VERTEX:
                 # check if the sim data is already there
-                mcDataDir = thisExperiment.softwarePaths.SimulationMCDataDir
+                
+                assert thisExperiment.dataPackage.MCDataDir is not None
+                mcDataDir = thisExperiment.dataPackage.MCDataDir
+
                 status_code = wasSimulationSuccessful(thisExperiment, mcDataDir, "Lumi_MC_*.root")
 
                 # so this may seem odd, but since there aren't any jobs running yet and theres still
@@ -332,15 +305,15 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 if status_code < 0:
                     # vertex data must always be created without any cuts first
                     tempRecoPars = evolve(
-                        thisExperiment.recoParams,
+                        thisExperiment.dataPackage.recoParams,
                         use_xy_cut=False,
                         use_m_cut=False,
                     )
 
-                    # misalignment is important here. the vertex data can have misalignment (because it's real data)
+                    # TODO: misalignment is important here. the vertex data can have misalignment (because it's real data)
                     # but it has no alignment yet. that is only for the second reconstruction
                     tempAlignPars = evolve(
-                        thisExperiment.alignParams,
+                        thisExperiment.dataPackage.alignParams,
                         alignment_matrices_path=None,
                     )
 
@@ -349,6 +322,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
                     job = create_simulation_and_reconstruction_job(
                         tempExperiment,
+                        dataMode=DataMode.DATA,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
@@ -395,7 +369,9 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 multiFileListCommand.append("--files_per_bunch")
                 multiFileListCommand.append("10")
                 multiFileListCommand.append("--maximum_number_of_files")
-                multiFileListCommand.append(str(thisExperiment.recoParams.num_samples))
+
+                # FIXME: wait, doesn't this have to be done for BOTH data and resAcc?!
+                multiFileListCommand.append(str(thisExperiment.dataPackage.recoParams.num_samples))
                 multiFileListCommand.append(str(task.dirPath))
 
                 print(f"Bash command for bunch creation:\n{' '.join(multiFileListCommand)}\n")
@@ -403,7 +379,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
                 # TODO: pass experiment config, or better yet, make class instead of script
                 # create data
-                # if "a" in task.simType:
                 if task.simDataType == SimulationDataType.ANGULAR:
                     el_cs = thisScenario.elastic_pbarp_integrated_cross_secion_in_mb
                     lmdDataCommand = []
@@ -438,14 +413,10 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 print(lmdDataCommand)
                 _ = subprocess.call(lmdDataCommand)
 
-                # last_state = last_state + 1
                 # was apparently bunches
                 task.lastState = SimulationState.MERGE
 
                 lmdDataCommand.clear()
-
-            # else:
-            #     raise RuntimeError("No data could be found, but no commands are to be executed. This can't be!")
 
             if status_code == 0:
                 print("skipping bunching and data object creation...")
@@ -558,11 +529,18 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
 
         Therefore, this is the ONLY place where thisScenario.ip[X,Y,Z] may be set.
         """
-        if thisExperiment.recoParams.use_ip_determination:
+        if thisExperiment.dataPackage.recoParams.use_ip_determination:
+            assert thisExperiment.resAccPackage.simParams is not None
+            assert thisExperiment.dataPackage.recoIPpath is not None
+
             temp_dir_searcher = DirectorySearcher(["merge_data", "binning_300"])
             temp_dir_searcher.searchListOfDirectories(lumiTrksQAPath, "reco_ip.json")
             found_dirs = temp_dir_searcher.getListOfDirectories()
             #! FIXME: wait this can't be, if NOT found_dirs, the bash command can't use found_dirs[0]!
+            # wait I think I know whats happening. If the reco_ip.json is not found, the bash command
+            # will be called with some path?!, but will create the reco_ip.json
+            # if the reco_ip.json is found, the bash command doen't have to be called,
+            # because the reco_ip.json is already there.
             if not found_dirs:
                 # 2. determine offset on the vertex data sample
                 os.chdir(lmd_fit_bin_path)
@@ -575,22 +553,40 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
                 bashCommand.append(str(found_dirs[0]))
                 bashCommand.append("-c")
                 bashCommand.append("../../vertex_fitconfig.json")
+                bashCommand.append("-o")
+                bashCommand.append(thisExperiment.resAccPackage.recoIPpath)
 
                 _ = subprocess.call(bashCommand)
 
-                ip_rec_file = f"{found_dirs[0]}/reco_ip.json"
-            else:
-                ip_rec_file = f"{found_dirs[0]}/reco_ip.json"
-
-            with open(ip_rec_file, "r") as file_content:
-                ip_rec_data = json.load(file_content)
+            with open(str(thisExperiment.resAccPackage.recoIPpath), "r") as f:
+                ip_rec_data = json.load(f)
 
             newRecoIPX = float("{0:.3f}".format(round(float(ip_rec_data["ip_x"]), 3)))  # in cm
             newRecoIPY = float("{0:.3f}".format(round(float(ip_rec_data["ip_y"]), 3)))
             newRecoIPZ = float("{0:.3f}".format(round(float(ip_rec_data["ip_z"]), 3)))
 
-            newRecoParams = evolve(thisExperiment.recoParams, recoIPX=newRecoIPX, recoIPY=newRecoIPY, recoIPZ=newRecoIPZ)
-            thisExperiment = evolve(thisExperiment, recoParams=newRecoParams)
+            # FIXME: I don't like this. Actually I hate this.
+            # The experiment config is frozen for a reason.
+            # But unfortunately there doesn't seem to be a better way
+
+            # so, three param sets must be updated with the new IP:
+            # - the dataPackage recoParams
+            # - the resAccPackage simParams (both IP and theta min/max)
+            # - the resAccPackage recoParams
+            #
+            # at least we know it can happen ONLY here
+
+            max_xy_shift = math.sqrt(newRecoIPX**2 + newRecoIPY**2)
+            max_xy_shift = float("{0:.2f}".format(round(float(max_xy_shift), 2)))
+
+            resAccThetaMin = thisExperiment.resAccPackage.simParams.theta_min_in_mrad - max_xy_shift
+            resAccThetaMax = thisExperiment.resAccPackage.simParams.theta_max_in_mrad + max_xy_shift
+
+            thisExperiment.dataPackage.recoParams.setNewIPPosition(newRecoIPX, newRecoIPY, newRecoIPZ)
+            thisExperiment.resAccPackage.simParams.setNewIPPosition(newRecoIPX, newRecoIPY, newRecoIPZ)
+            thisExperiment.resAccPackage.simParams.setNewThetaAngles(resAccThetaMin, resAccThetaMax)
+            thisExperiment.resAccPackage.recoParams.setNewIPPosition(newRecoIPX, newRecoIPY, newRecoIPZ)
+
             print("============================================================")
             print("                       Attention!                           ")
             print("     Experiment Config has been changed in memory!          ")
@@ -618,6 +614,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
             thisScenario.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.ANGULAR, simState=SimulationState.START_SIM))
             thisScenario.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.EFFICIENCY_RESOLUTION, simState=SimulationState.START_SIM))
 
+        # remember, the experiment config may now contain the updated IP
         thisScenario = simulateDataOnHimster(thisExperiment, thisScenario)
 
         if thisScenario.is_broken:
@@ -626,7 +623,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
         # when all simulation Tasks are done, the Lumi Fit may start
         if len(thisScenario.SimulationTasks) == 0:
             thisScenario.lumiDetState = LumiDeterminationState.RUN_LUMINOSITY_FIT
-            thisScenario.lastLumiDetState.RECONSTRUCT_WITH_NEW_IP
+            thisScenario.lastLumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
 
     # if lumiDetState == 4:
     if thisScenario.lumiDetState == LumiDeterminationState.RUN_LUMINOSITY_FIT:
@@ -639,7 +636,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
         os.chdir(lmd_fit_script_path)
         print("running lmdfit!")
 
-        cut_keyword = generateCutKeyword(thisExperiment.recoParams)
+        cut_keyword = generateCutKeyword(thisExperiment.dataPackage.recoParams)
 
         lumiFitCommand = []
         lumiFitCommand.append("python")
@@ -704,9 +701,9 @@ lmd_fit_bin_path = envPath("LMDFIT_BUILD_PATH") / "bin"
 
 # make scenario config
 thisScenario = Scenario(
-    trackDirectory=loadedExperimentFromConfig.softwarePaths.simData,
+    trackDirectory=loadedExperimentFromConfig.dataPackage.baseDataDir,
 )
-thisScenario.momentum = loadedExperimentFromConfig.recoParams.lab_momentum
+thisScenario.momentum = loadedExperimentFromConfig.dataPackage.recoParams.lab_momentum
 
 # set via command line argument, usually 1
 bootstrapped_num_samples = args.bootstrapped_num_samples
@@ -715,8 +712,9 @@ bootstrapped_num_samples = args.bootstrapped_num_samples
 # the config only holds the base directory (i.e. where the first sim_params is)
 dir_searcher = DirectorySearcher(["dpm_elastic", "uncut"])
 
+# TODO: remember, we don't want to search, we want to HAVE the path in the config
 dir_searcher.searchListOfDirectories(
-    loadedExperimentFromConfig.softwarePaths.simData,
+    loadedExperimentFromConfig.dataPackage.baseDataDir,
     loadedExperimentFromConfig.trackFilePattern,
 )
 dirs = dir_searcher.getListOfDirectories()
@@ -727,10 +725,8 @@ if len(dirs) > 1:
     raise ValueError(f"found {len(dirs)} directory candidates but it should be only one. something is wrong!")
 
 elif len(dirs) < 1:
-    print("No dirs found, that means vertex data wasn't generated (or reconstructed) yet.")
     # don't change thisScenario's trackDirectory, it was set during construction
-    thisScenario.trackDirectory = loadedExperimentFromConfig.softwarePaths.simData
-    print(loadedExperimentFromConfig)
+    print("No dirs found, that means vertex data wasn't generated (or reconstructed) yet.")
 
 else:
     # path has changed now for the newly found dir

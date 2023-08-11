@@ -78,6 +78,25 @@ class SimulationParameters:
     beam_divergence_x: float = 0.0  # in rad
     beam_divergence_y: float = 0.0  # in rad
 
+    def setNewIPPosition(self, x: float, y: float, z: float) -> None:
+        """
+        Yes, I hate it too, the data class is supposed to be immutable.
+        But better to do it here (and document it) than to do it in the
+        determineLuminosity.py or elsewhere and forget about it.
+        """
+        print("Attention! Setting new IP position")
+        object.__setattr__(self, "ip_offset_x", x)
+        object.__setattr__(self, "ip_offset_y", y)
+        object.__setattr__(self, "ip_offset_z", z)
+
+    def setNewThetaAngles(self, thetaMin: float, thetaMax: float) -> None:
+        """
+        See above, I hate it too.
+        """
+        print("Attention! Setting new theta angles")
+        object.__setattr__(self, "theta_min_in_mrad", thetaMin)
+        object.__setattr__(self, "theta_max_in_mrad", thetaMax)
+
 
 @define(frozen=True)
 class ReconstructionParameters:
@@ -95,6 +114,17 @@ class ReconstructionParameters:
     recoIPY: float = 0.0
     recoIPZ: float = 0.0
     force_cut_disable: bool = False
+
+    def setNewIPPosition(self, x: float, y: float, z: float) -> None:
+        """
+        Yes, I hate it too, the data class is supposed to be immutable.
+        But better to do it here (and document it) than to do it in the
+        determineLuminosity.py or elsewhere and forget about it.
+        """
+        print("Attention! Setting new IP position")
+        object.__setattr__(self, "recoIPX", x)
+        object.__setattr__(self, "recoIPY", y)
+        object.__setattr__(self, "recoIPZ", z)
 
 
 @define(frozen=True)
@@ -131,8 +161,13 @@ class ConfigPackage:
     alignParams: AlignmentParameters
     baseDataDir: Path
 
+    # these options are really only applicable if we use simulated data,
+    # for real data, these are none
     MCDataDir: Optional[Path] = None
     simParams: Optional[SimulationParameters] = None
+
+    # this must only be there if the reconstructed IP is used
+    recoIPpath: Optional[Path] = None
 
 
 @define(frozen=True)
