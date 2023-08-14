@@ -7,7 +7,6 @@ This script is only run by a user, not any other script!
 import argparse
 from pathlib import Path
 
-from attrs import evolve
 from lumifit.cluster import ClusterJobManager, DebugJobHandler, JobHandler
 from lumifit.config import load_params_from_file, write_params_to_file
 from lumifit.general import addDebugArgumentsToParser
@@ -24,22 +23,9 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> N
     thisExperiment.dataPackage.MCDataDir.mkdir(parents=True, exist_ok=True)
     thisExperiment.dataPackage.baseDataDir.mkdir(parents=True, exist_ok=True)
 
-    if thisExperiment.dataPackage.recoParams.use_xy_cut or thisExperiment.dataPackage.recoParams.use_m_cut:
-        print("----------------------------------------------------------------------------------------")
-        print("Attention! This experiment configs specifies to use XY and m cuts during reconstruction.")
-        print("That's reasonable for the luminosity determination, but the initial data sample must")
-        print("still be generated without cuts first.")
-        print("Disabling all cuts for this run!")
-        print("----------------------------------------------------------------------------------------")
-
-        # remember, all params are immutable, so we need to copy them
-        tempRecoParams = evolve(thisExperiment.dataPackage.recoParams, use_xy_cut=False, use_m_cut=False)
-        dataPackage = evolve(thisExperiment.dataPackage, recoParams=tempRecoParams)
-        thisExperiment = evolve(thisExperiment, dataPackage=dataPackage)
-
     job = create_simulation_and_reconstruction_job(
         thisExperiment,
-        dataMode=DataMode.DATA,
+        dataMode=DataMode.VERTEXDATA,
         force_level=args.force_level,
         debug=args.debug,
         use_devel_queue=args.use_devel_queue,

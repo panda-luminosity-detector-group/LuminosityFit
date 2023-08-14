@@ -36,8 +36,9 @@ class SimulationGeneratorType(Enum):
 
 
 class DataMode(Enum):
-    DATA = "data"
-    RESACC = "resAcc"
+    DATA = "data"  # reconstructed data (doesn't matter if MC or real data)
+    VERTEXDATA = "vertexData"  # vertex data must always be reconstructed without cuts
+    RESACC = "resAcc"  # data for resolution/Acceptance maps
 
 
 @define(frozen=True)
