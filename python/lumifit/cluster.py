@@ -80,6 +80,8 @@ class ClusterJobManager:
 
     WARNING: This object is multithreaded, use locks when needed and be
     mindful when querying the agent (the agent is not thread-safe)!
+
+    # TODO: add job array ID, so that multiple jobs can be monitored
     """
 
     def __init__(
@@ -112,6 +114,7 @@ class ClusterJobManager:
                     current_job = self.__jobs.pop(0)
 
                 print(current_job)
+                # TODO: add job array ID
                 returncode = self.__job_handler.submit(current_job)
                 if returncode > 0:
                     resubmit = True

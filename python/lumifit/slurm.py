@@ -122,6 +122,7 @@ class SlurmJobHandler(JobHandler):
         raise ValueError("Error getting number of running jobs!")
 
     def submit(self, job: Job) -> int:
+        # TODO: add job array ID
         if self.__job_preprocessor:
             job = self.__job_preprocessor(job)
 
