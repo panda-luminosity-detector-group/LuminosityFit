@@ -5,11 +5,12 @@ from pathlib import Path
 
 from lumifit.config import load_params_from_file
 from lumifit.general import (
-    check_stage_success,
     envPath,
+    isFilePresentAndValid,
     matrixMacroFileName,
     toCbool,
 )
+from lumifit.paths import generateAbsoluteROOTDataPath
 from lumifit.types import (
     DataMode,
     ExperimentParameters,
@@ -36,15 +37,16 @@ assert configPackage.MCDataDir is not None
 MCDataDir = configPackage.MCDataDir
 simParams = configPackage.simParams
 alignParams = configPackage.alignParams
-pathToTrkQAFiles = configPackage.baseDataDir
+pathToTrkQAFiles = generateAbsoluteROOTDataPath(configPackage=configPackage)
 lmd_build_path = experiment.softwarePaths.LmdFitBinaries
 PNDmacropath = experiment.softwarePaths.PandaRootMacroPath
 LMDscriptpath = experiment.softwarePaths.LmdFitScripts
-relativeDirToTrksQAFiles = "LMD-TempRootFiles"
+relativeDirToTrksQAFilesOnComputeNode = "LMD-TempRootFiles"
 
 
 # prepare directories
 MCDataDir.mkdir(parents=True, exist_ok=True)
+pathToTrkQAFiles.mkdir(parents=True, exist_ok=True)
 
 filename_index = 1
 debug = True
@@ -60,7 +62,7 @@ if debug:
     workingDirOnComputeNode = pathToTrkQAFiles
     MCDataDir = workingDirOnComputeNode
 else:
-    workingDirOnComputeNode = Path(f"/localscratch/{os.environ['SLURM_JOB_ID']}/{relativeDirToTrksQAFiles}")
+    workingDirOnComputeNode = Path(f"/localscratch/{os.environ['SLURM_JOB_ID']}/{relativeDirToTrksQAFilesOnComputeNode}")
 
 workingDirOnComputeNode.mkdir(parents=True, exist_ok=True)
 
@@ -71,7 +73,7 @@ numTrks = 1  # should not be changed
 
 
 # * ------------------- MC Data Step -------------------
-if not check_stage_success(Path(f"{MCDataDir}/Lumi_MC_{start_evt}.root")) or force_level == 2:
+if not isFilePresentAndValid(Path(f"{MCDataDir}/Lumi_MC_{start_evt}.root")) or force_level == 2:
     # * prepare box or dpm tracks
     if simParams.simGeneratorType == SimulationGeneratorType.BOX:
         os.chdir(LMDscriptpath)
@@ -126,7 +128,7 @@ else:
         os.system(f"cp {MCDataDir}/Lumi_Params_{start_evt}.root {workingDirOnComputeNode}/Lumi_Params_{start_evt}.root")
 
 # * ------------------- Digi Step -------------------
-if not check_stage_success(workingDirOnComputeNode / f"Lumi_digi_{start_evt}.root") or force_level == 2:
+if not isFilePresentAndValid(workingDirOnComputeNode / f"Lumi_digi_{start_evt}.root") or force_level == 2:
     os.chdir(PNDmacropath)
     if simParams.simGeneratorType == SimulationGeneratorType.NOISE:
         os.system(

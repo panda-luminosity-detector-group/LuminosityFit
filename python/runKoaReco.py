@@ -3,9 +3,12 @@
 import os
 
 from lumifit.alignment import AlignmentParameters
-from lumifit.general import check_stage_success, load_params_from_file
+from lumifit.general import (
+    isFilePresentAndValid,
+    load_params_from_file,
+    toCbool,
+)
 from lumifit.reconstruction import ReconstructionParameters
-from lumifit.general import toCbool
 
 # fixed for this installation
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
@@ -25,10 +28,8 @@ if "SLURM_ARRAY_TASK_ID" in os.environ:
     debug = False
 
 # TODO: check if params are loaded correctly, shouldn't be the specified file name be used?
-reco_params: ReconstructionParameters = load_params_from_file(
-    pathname + "/reco_params.config", ReconstructionParameters
-)
-ali_params = AlignmentParameters()      # TODO Alignment with KOALA isn't implemented yet.
+reco_params: ReconstructionParameters = load_params_from_file(pathname + "/reco_params.config", ReconstructionParameters)
+ali_params = AlignmentParameters()  # TODO Alignment with KOALA isn't implemented yet.
 
 verbositylvl: int = 0
 start_evt: int = reco_params.num_events_per_sample * filename_index
@@ -69,28 +70,19 @@ if not os.path.isdir(workpathname):
 
 
 # we always need the Koala_(Params|MC) file, no matter what (except if it already exists)
-if not check_stage_success(f"{workpathname}/Koala_Params_{start_evt}.root"):
-    os.system(
-        f"cp {path_mc_data}/Koala_Params_{start_evt}.root {workpathname}/Koala_Params_{start_evt}.root "
-    )
-    os.system(
-        f"cp {path_mc_data}/Koala_MC_{start_evt}.root {workpathname}/Koala_MC_{start_evt}.root "
-    )
-if not check_stage_success(f"{workpathname}/Koala_digi_{start_evt}.root"):
+if not isFilePresentAndValid(f"{workpathname}/Koala_Params_{start_evt}.root"):
+    os.system(f"cp {path_mc_data}/Koala_Params_{start_evt}.root {workpathname}/Koala_Params_{start_evt}.root ")
+    os.system(f"cp {path_mc_data}/Koala_MC_{start_evt}.root {workpathname}/Koala_MC_{start_evt}.root ")
+if not isFilePresentAndValid(f"{workpathname}/Koala_digi_{start_evt}.root"):
     if os.path.exists(f"{path_mc_data}/Koala_digi_{start_evt}.root"):
         # copy the Lumi_Digi data from permanent storage, it's needed for IP cut for the LumiFit
-        os.system(
-            f"cp {path_mc_data}/Koala_digi_{start_evt}.root {workpathname}/Koala_digi_{start_evt}.root"
-        )
+        os.system(f"cp {path_mc_data}/Koala_digi_{start_evt}.root {workpathname}/Koala_digi_{start_evt}.root")
 
 os.chdir(macropath)
 
 
 # check_stage_success "workpathname + "/Koala_MC_${start_evt}.root""
-if (
-    not check_stage_success(pathname + f"/Koala_Track_{start_evt}.root")
-    or force_level == 1
-):
+if not isFilePresentAndValid(pathname + f"/Koala_Track_{start_evt}.root") or force_level == 1:
     os.chdir(macropath)
     os.system(
         f"root -l -b -q 'KoaPixel2Reco.C({reco_params.num_events_per_sample},"

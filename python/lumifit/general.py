@@ -75,7 +75,7 @@ def getGoodFiles(
     return [good_files, files_percentage]
 
 
-def check_stage_success(file_url: Path) -> bool:
+def isFilePresentAndValid(file_url: Path) -> bool:
     if file_url.exists():
         if file_url.stat().st_size > 3000:
             print(f"{file_url} exists and is larger than 3kb!")

@@ -36,7 +36,7 @@ def create_simulation_and_reconstruction_job(
     else:
         raise ValueError("dataMode must be either DATA or RESACC")
 
-    dataDir = configPackage.baseDataDir
+    # dataDir = generateAbsoluteROOTDataPath(configPackage=configPackage)
     simParams = configPackage.simParams
     recoParams = configPackage.recoParams
     # alignParams = configPackage.alignParams
@@ -54,9 +54,8 @@ def create_simulation_and_reconstruction_job(
 
     lmdfit_build_dir = experiment.softwarePaths.LmdFitBinaries
 
-    # generate simulation config parameter file
+    # determine the elastic cross section in the theta range
     if simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC:
-        # determine the elastic cross section in the theta range
         bashcommand = (
             f"{lmdfit_build_dir}/bin/generatePbarPElasticScattering "
             + f"{simParams.lab_momentum} 0"

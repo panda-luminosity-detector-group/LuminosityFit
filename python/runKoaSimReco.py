@@ -3,7 +3,11 @@
 import os
 
 from lumifit.alignment import AlignmentParameters
-from lumifit.general import check_stage_success, load_params_from_file, toCbool
+from lumifit.general import (
+    isFilePresentAndValid,
+    load_params_from_file,
+    toCbool,
+)
 from lumifit.simulation import SimulationParameters
 from lumifit.simulationGeneratorTypes import SimulationGeneratorType
 
@@ -42,7 +46,7 @@ gen_filepath = workpathname + "/gen_mc.root"
 verbositylvl = 0
 start_evt: int = sim_params.num_events_per_sample * filename_index
 
-if not check_stage_success(f"{path_mc_data} + /Koala_MC_{start_evt}.root") or force_level == 2:
+if not isFilePresentAndValid(f"{path_mc_data} + /Koala_MC_{start_evt}.root") or force_level == 2:
     os.chdir(scriptpath)
     if sim_params.simGeneratorType == SimulationGeneratorType.BOX:
         os.system(
@@ -85,7 +89,7 @@ else:
         os.system(f"cp {path_mc_data}/Koala_MC_{start_evt}.root {workpathname}/Koala_MC_{start_evt}.root")
         os.system(f"cp {path_mc_data}/Koala_Params_{start_evt}.root {workpathname}/Koala_Params_{start_evt}.root")
 
-if not check_stage_success(workpathname + f"/Koala_digi_{start_evt}.root") or force_level == 2:
+if not isFilePresentAndValid(workpathname + f"/Koala_digi_{start_evt}.root") or force_level == 2:
     os.chdir(macropath)
     os.system(
         f"root -l -b -q 'KoaPixel1Digi.C({sim_params.num_events_per_sample}, {start_evt},"
