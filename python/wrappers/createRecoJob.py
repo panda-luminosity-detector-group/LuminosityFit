@@ -63,7 +63,7 @@ def create_reconstruction_job(
     # TODO: get from the paths module
     job.exported_user_variables = {
         "ExperimentDir": experiment.experimentDir,
-        "DataMode": thisMode,
+        "DataMode": thisMode.value,
         "force_level": str(force_level),
     }
 

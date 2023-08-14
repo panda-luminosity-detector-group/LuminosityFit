@@ -89,7 +89,7 @@ def create_simulation_and_reconstruction_job(
     job.exported_user_variables.update(
         {
             "ExperimentDir": experiment.experimentDir,
-            "DataMode": thisMode,
+            "DataMode": thisMode.value,
             "force_level": str(force_level),
         }
     )
