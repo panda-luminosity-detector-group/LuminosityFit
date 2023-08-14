@@ -26,11 +26,10 @@ if thisMode == DataMode.DATA.value:
 elif thisMode == DataMode.VERTEXDATA.value:
     configPackage = experiment.dataPackage
     configPackage.recoParams.disableCuts()
-
 elif thisMode == DataMode.RESACC.value:
     configPackage = experiment.resAccPackage
 else:
-    raise NotImplementedError("DataMode not implemented")
+    raise NotImplementedError(f"DataMode {thisMode} not implemented")
 
 assert configPackage.simParams is not None
 assert configPackage.MCDataDir is not None

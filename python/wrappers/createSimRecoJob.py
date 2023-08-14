@@ -35,7 +35,7 @@ def create_simulation_and_reconstruction_job(
     elif thisMode == DataMode.RESACC.value:
         configPackage = experiment.resAccPackage
     else:
-        raise NotImplementedError("DataMode not implemented")
+        raise NotImplementedError(f"DataMode {thisMode} not implemented")
 
     # dataDir = generateAbsoluteROOTDataPath(configPackage=configPackage)
     simParams = configPackage.simParams
