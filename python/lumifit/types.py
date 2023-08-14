@@ -127,6 +127,20 @@ class ReconstructionParameters:
         object.__setattr__(self, "recoIPY", y)
         object.__setattr__(self, "recoIPZ", z)
 
+    def disableCuts(self) -> None:
+        """
+        This is only needed for VertexData, which must always be reconstructed without cuts.
+        """
+        print("----------------------------------------------------------------------------------------")
+        print("Attention! This experiment configs specifies to use XY and m cuts during reconstruction.")
+        print("That's reasonable for the luminosity determination, but the initial data sample must    ")
+        print("still be generated without cuts first.                                                  ")
+        print("                                                                                        ")
+        print("                            Disabling all cuts for this run!                            ")
+        print("----------------------------------------------------------------------------------------")
+        object.__setattr__(self, "use_xy_cut", False)
+        object.__setattr__(self, "use_m_cut", False)
+
 
 @define(frozen=True)
 class SoftwarePaths:

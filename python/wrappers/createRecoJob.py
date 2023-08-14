@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from attrs import evolve
 from lumifit.cluster import (
     Job,
     JobResourceRequest,
@@ -11,28 +12,26 @@ from lumifit.types import DataMode, ExperimentParameters
 
 def create_reconstruction_job(
     experiment: ExperimentParameters,
-    dataMode: DataMode,
+    thisMode: DataMode,
     force_level: int = 0,
     debug: bool = False,
     use_devel_queue: bool = False,
 ) -> Job:
     # case switch for dataMode
-    if dataMode == DataMode.DATA:
+    if thisMode == DataMode.DATA.value:
         configPackage = experiment.dataPackage
-    elif dataMode == DataMode.RESACC:
+    elif thisMode == DataMode.VERTEXDATA.value:
+        configPackage = experiment.dataPackage
+        configPackage.recoParams.disableCuts()
+
+    elif thisMode == DataMode.RESACC.value:
         configPackage = experiment.resAccPackage
     else:
-        raise ValueError("dataMode must be either DATA or RESACC")
+        raise NotImplementedError("DataMode not implemented")
 
-    simParams = configPackage.simParams
     recoParams = configPackage.recoParams
 
-    # assert that simParams exist
-    assert simParams is not None
-
     print("preparing reconstruction in index range " + f"{recoParams.low_index} - " + f"{recoParams.low_index + recoParams.num_samples - 1}")
-
-    # dirname_filter_suffix = generateRecoDirSuffix(recoParams, alignParams)
 
     low_index_used = recoParams.low_index
     num_samples = recoParams.num_samples
@@ -55,7 +54,7 @@ def create_reconstruction_job(
     job = Job(
         resource_request,
         application_url=recoParams.reconstructionCommand,
-        name="reco_" + simParams.simGeneratorType.value,
+        name="reco",
         logfile_url=str(ROOTDataDir / "reco-%a.log"),
         array_indices=list(range(low_index_used, low_index_used + num_samples)),
     )
@@ -64,7 +63,7 @@ def create_reconstruction_job(
     # TODO: get from the paths module
     job.exported_user_variables = {
         "ExperimentDir": experiment.experimentDir,
-        "DataMode": dataMode.value,
+        "DataMode": thisMode.value,
         "force_level": str(force_level),
     }
 

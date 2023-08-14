@@ -25,7 +25,7 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> N
 
     job = create_simulation_and_reconstruction_job(
         thisExperiment,
-        dataMode=DataMode.VERTEXDATA,
+        thisMode=DataMode.VERTEXDATA,
         force_level=args.force_level,
         debug=args.debug,
         use_devel_queue=args.use_devel_queue,

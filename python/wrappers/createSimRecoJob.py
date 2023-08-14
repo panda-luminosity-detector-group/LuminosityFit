@@ -1,5 +1,6 @@
 import subprocess
 
+from attrs import evolve
 from lumifit.cluster import (
     Job,
     JobResourceRequest,
@@ -14,7 +15,7 @@ from lumifit.types import (
 
 def create_simulation_and_reconstruction_job(
     experiment: ExperimentParameters,
-    dataMode: DataMode,
+    thisMode: DataMode,
     force_level: int = 0,
     debug: bool = False,
     use_devel_queue: bool = False,
@@ -29,22 +30,19 @@ def create_simulation_and_reconstruction_job(
     """
 
     # case switch for dataMode
-    if dataMode == DataMode.DATA:
+    if (thisMode == DataMode.DATA.value) or (thisMode == DataMode.VERTEXDATA.value):
         configPackage = experiment.dataPackage
-    elif dataMode == DataMode.RESACC:
+    elif thisMode == DataMode.RESACC.value:
         configPackage = experiment.resAccPackage
     else:
-        raise ValueError("dataMode must be either DATA or RESACC")
+        raise NotImplementedError("DataMode not implemented")
 
     # dataDir = generateAbsoluteROOTDataPath(configPackage=configPackage)
     simParams = configPackage.simParams
-    recoParams = configPackage.recoParams
     # alignParams = configPackage.alignParams
 
     assert simParams is not None
     assert configPackage.MCDataDir is not None
-
-    print("preparing simulations in index range " + f"{recoParams.low_index} - " + f"{recoParams.low_index + recoParams.num_samples - 1}")
 
     low_index_used = simParams.low_index
     num_samples = simParams.num_samples
@@ -91,7 +89,7 @@ def create_simulation_and_reconstruction_job(
     job.exported_user_variables.update(
         {
             "ExperimentDir": experiment.experimentDir,
-            "DataMode": dataMode.value,
+            "DataMode": thisMode.value,
             "force_level": str(force_level),
         }
     )

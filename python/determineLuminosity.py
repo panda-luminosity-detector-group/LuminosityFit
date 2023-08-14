@@ -231,7 +231,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     returnPath = generateAbsoluteROOTDataPath(thisExperiment.resAccPackage)
                     job = create_simulation_and_reconstruction_job(
                         thisExperiment,
-                        dataMode=DataMode.RESACC,
+                        thisMode=DataMode.VERTEXDATA,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
@@ -277,7 +277,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
                     job = create_reconstruction_job(
                         thisExperiment,
-                        dataMode=DataMode.RESACC,
+                        thisMode=DataMode.RESACC,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
@@ -320,7 +320,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
                     job = create_simulation_and_reconstruction_job(
                         tempExperiment,
-                        dataMode=DataMode.DATA,
+                        thisMode=DataMode.DATA,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)

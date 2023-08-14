@@ -25,18 +25,7 @@ if thisMode == DataMode.DATA.value:
     configPackage = experiment.dataPackage
 elif thisMode == DataMode.VERTEXDATA.value:
     configPackage = experiment.dataPackage
-    if configPackage.recoParams.use_xy_cut or configPackage.recoParams.use_m_cut:
-        print("----------------------------------------------------------------------------------------")
-        print("Attention! This experiment configs specifies to use XY and m cuts during reconstruction.")
-        print("That's reasonable for the luminosity determination, but the initial data sample must    ")
-        print("still be generated without cuts first.                                                  ")
-        print("                                                                                        ")
-        print("                            Disabling all cuts for this run!                            ")
-        print("----------------------------------------------------------------------------------------")
-
-        # remember, all params are immutable, so we need to copy them
-        tempRecoParams = evolve(configPackage.recoParams, use_xy_cut=False, use_m_cut=False)
-        configPackage = evolve(configPackage, recoParams=tempRecoParams)
+    configPackage.recoParams.disableCuts()
 
 elif thisMode == DataMode.RESACC.value:
     configPackage = experiment.resAccPackage
