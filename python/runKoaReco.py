@@ -8,7 +8,7 @@ from lumifit.general import (
     load_params_from_file,
     toCbool,
 )
-from lumifit.reconstruction import ReconstructionParameters
+from wrappers.createRecoJob import ReconstructionParameters
 
 # fixed for this installation
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]

@@ -8,8 +8,8 @@ from lumifit.general import (
     load_params_from_file,
     toCbool,
 )
-from lumifit.simulation import SimulationParameters
 from lumifit.simulationGeneratorTypes import SimulationGeneratorType
+from wrappers.createSimRecoJob import SimulationParameters
 
 lmd_build_path = os.environ["LMDFIT_BUILD_PATH"]
 scriptpath = os.environ["LMDFIT_SCRIPTPATH"]

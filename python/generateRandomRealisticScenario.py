@@ -1,22 +1,19 @@
 #!/usr/bin/env python3
 
 import argparse
-import random
 import os
-import lumifit.simulation as simulation
+import random
 import subprocess
-
 from decimal import Decimal
 
+import wrappers.createSimRecoJob as createSimRecoJob
 
 base_out_dir = "/data/work/himspecf/pflueger/realistic_scenarios"
 os.environ["DATA_DIR"] = base_out_dir
 low_index = 1
 high_index = 100
 
-parser = argparse.ArgumentParser(
-    description="", formatter_class=argparse.RawTextHelpFormatter
-)
+parser = argparse.ArgumentParser(description="", formatter_class=argparse.RawTextHelpFormatter)
 
 parser.add_argument(
     "--lab_momentum",
@@ -41,40 +38,20 @@ lab_momentum = random.choice(beam_momenta)
 if args.lab_momentum >= 1.5:
     lab_momentum = args.lab_momentum
 
-scen_params = simulation.IPParams()
+scen_params = createSimRecoJob.IPParams()
 
 # set random values for parameters
-scen_params.ip_offset_x = Decimal(
-    "{0:.3f}".format(round(random.uniform(-0.2, 0.2), 2))
-)  # in cm
-scen_params.ip_offset_y = Decimal(
-    "{0:.3f}".format(round(random.uniform(-0.2, 0.2), 2))
-)  # in cm
-scen_params.ip_offset_z = Decimal(
-    "{0:.3f}".format(round(random.uniform(-0.2, 0.2), 2))
-)  # in cm
-scen_params.ip_spread_x = Decimal(
-    "{0:.3f}".format(round(random.uniform(0.04, 0.12), 2))
-)  # in cm
-scen_params.ip_spread_y = Decimal(
-    "{0:.3f}".format(round(random.uniform(0.04, 0.12), 2))
-)  # in cm
-scen_params.ip_spread_z = Decimal(
-    "{0:.3f}".format(round(random.uniform(0.3, 0.4), 2))
-)  # in cm
+scen_params.ip_offset_x = Decimal("{0:.3f}".format(round(random.uniform(-0.2, 0.2), 2)))  # in cm
+scen_params.ip_offset_y = Decimal("{0:.3f}".format(round(random.uniform(-0.2, 0.2), 2)))  # in cm
+scen_params.ip_offset_z = Decimal("{0:.3f}".format(round(random.uniform(-0.2, 0.2), 2)))  # in cm
+scen_params.ip_spread_x = Decimal("{0:.3f}".format(round(random.uniform(0.04, 0.12), 2)))  # in cm
+scen_params.ip_spread_y = Decimal("{0:.3f}".format(round(random.uniform(0.04, 0.12), 2)))  # in cm
+scen_params.ip_spread_z = Decimal("{0:.3f}".format(round(random.uniform(0.3, 0.4), 2)))  # in cm
 
-scen_params.beam_tilt_x = Decimal(
-    "{0:.5f}".format(round(random.uniform(-0.0002, 0.0002), 5))
-)  # in rad
-scen_params.beam_tilt_y = Decimal(
-    "{0:.5f}".format(round(random.uniform(-0.0002, 0.0002), 5))
-)  # in rad
-scen_params.beam_divergence_x = Decimal(
-    "{0:.5f}".format(round(random.uniform(0.00005, 0.0002), 5))
-)  # in rad
-scen_params.beam_divergence_y = Decimal(
-    "{0:.5f}".format(round(random.uniform(0.00005, 0.0002), 5))
-)  # in rad
+scen_params.beam_tilt_x = Decimal("{0:.5f}".format(round(random.uniform(-0.0002, 0.0002), 5)))  # in rad
+scen_params.beam_tilt_y = Decimal("{0:.5f}".format(round(random.uniform(-0.0002, 0.0002), 5)))  # in rad
+scen_params.beam_divergence_x = Decimal("{0:.5f}".format(round(random.uniform(0.00005, 0.0002), 5)))  # in rad
+scen_params.beam_divergence_y = Decimal("{0:.5f}".format(round(random.uniform(0.00005, 0.0002), 5)))  # in rad
 
 print(scen_params)
 

@@ -5,7 +5,7 @@ import subprocess
 
 from lumifit.alignment import AlignmentParameters
 from lumifit.general import isFilePresentAndValid, load_params_from_file
-from lumifit.reconstruction import ReconstructionParameters
+from wrappers.createRecoJob import ReconstructionParameters
 
 debug = True
 filename_index = 1

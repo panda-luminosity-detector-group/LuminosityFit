@@ -8,18 +8,17 @@ import argparse
 
 import lumifit.alignment as alignment
 import lumifit.general as general
-import lumifit.reconstruction as reconstruction
+import wrappers.createRecoJob as createRecoJob
 
 parser = argparse.ArgumentParser(
-    description="Script for full reconstruction of the PANDA Luminosity"
-    " Detector.",
+    description="Script for full reconstruction of the PANDA Luminosity" " Detector.",
     formatter_class=argparse.RawTextHelpFormatter,
 )
 
 parser = general.addGeneralArgumentsToParser(parser)
 parser = general.addDebugArgumentsToParser(parser)
 parser = alignment.addArgumentsToParser(parser)
-parser = reconstruction.addArgumentsToParser(parser)
+parser = createRecoJob.addArgumentsToParser(parser)
 parser.add_argument(
     "output_dir",
     metavar="output_dir",
@@ -30,10 +29,10 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-reco_params = reconstruction.addReconstructionParametersToConfig({}, args)
+reco_params = createRecoJob.addReconstructionParametersToConfig({}, args)
 align_params = alignment.addAlignmentParametersToConfig({}, args)
 
-reconstruction.startReconstruction(
+createRecoJob.startReconstruction(
     reco_params,
     align_params,
     dirname=args.output_dir[0],
