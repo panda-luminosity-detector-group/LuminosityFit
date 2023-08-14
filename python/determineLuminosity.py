@@ -10,7 +10,6 @@ import time
 from pathlib import Path
 from typing import List
 
-from attrs import evolve
 from lumifit.cluster import ClusterJobManager
 from lumifit.config import load_params_from_file
 from lumifit.general import DirectorySearcher, envPath, getGoodFiles
@@ -24,14 +23,7 @@ from lumifit.scenario import (
     SimulationState,
     SimulationTask,
 )
-from lumifit.types import (
-    AlignmentParameters,
-    ClusterEnvironment,
-    DataMode,
-    ExperimentParameters,
-    ReconstructionParameters,
-    SimulationParameters,
-)
+from lumifit.types import ClusterEnvironment, DataMode, ExperimentParameters
 from wrappers.createRecoJob import create_reconstruction_job
 from wrappers.createSimRecoJob import create_simulation_and_reconstruction_job
 
@@ -62,6 +54,7 @@ If the needed files aren't there (but the jobs don't run anymore either), there 
 
 
 # TODO: add jobID or jobArrayID check here
+# TODO: the percentage check is also shite because files can be done after this check is true.
 def wasSimulationSuccessful(
     thisExperiment: ExperimentParameters,
     directory: Path,
@@ -144,7 +137,8 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
     """
 
     for task in thisScenario.SimulationTasks:
-        print(f"running simulation of type {str(task.simDataType)} and path ({task.dirPath} at states:")
+        print(f"simulateDataOnHimster: {thisExperiment.experimentDir}")
+        print(f"running simulation of type {str(task.simDataType)} at states:")
         print(f"current state: {str(task.simState)}")
         print(f"last state:    {str(task.lastState)}")
 
@@ -186,28 +180,34 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
                 assert thisExperiment.resAccPackage.simParams is not None
 
-                found_dirs = []
-                # what the shit, this should never be empty in the first place
-                if (task.dirPath != "") and (task.dirPath is not None):
-                    temp_dir_searcher = DirectorySearcher(
-                        [
-                            thisExperiment.resAccPackage.simParams.simGeneratorType.value,
-                            data_keywords[0],
-                        ]  # look for the folder name including sim_type_for_resAcc
-                    )
-                    temp_dir_searcher.searchListOfDirectories(task.dirPath, thisExperiment.trackFilePattern)
-                    found_dirs = temp_dir_searcher.getListOfDirectories()
-                    print(f"found dirs now: {found_dirs}")
-                else:
-                    # path may be empty, then the directory searcher tries to find it
-                    pass
+                # found_dirs = []
+                # # what the shit, this should never be empty in the first place
+                # if (task.dirPath != "") and (task.dirPath is not None):
+                #     temp_dir_searcher = DirectorySearcher(
+                #         [
+                #             thisExperiment.resAccPackage.simParams.simGeneratorType.value,
+                #             data_keywords[0],
+                #         ]  # look for the folder name including sim_type_for_resAcc
+                #     )
+                #     temp_dir_searcher.searchListOfDirectories(task.dirPath, thisExperiment.trackFilePattern)
+                #     found_dirs = temp_dir_searcher.getListOfDirectories()
+                #     print(f"found dirs now: {found_dirs}")
+                # else:
+                #     # path may be empty, then the directory searcher tries to find it
+                #     pass
 
-                if found_dirs:
-                    status_code = wasSimulationSuccessful(
-                        thisExperiment,
-                        found_dirs[0],
-                        thisExperiment.trackFilePattern + "*.root",
-                    )
+                # TODO: found_dirs[0] should point to resAcc/1-100_xy_m_cut/no_alignment_correction
+                # later, WITH alignment since that affects the acceptance!
+                resAccDataDir = generateAbsoluteROOTDataPath(thisExperiment.resAccPackage)
+                # if found_dirs:
+                status_code = wasSimulationSuccessful(thisExperiment, resAccDataDir, thisExperiment.trackFilePattern + "*.root")
+
+                # this elif belonged to the if found_dirs...
+                # so that means if NOT data dir was found, the data is obviously not there,
+                # so the simulation needs to be run
+                if status_code == 0:
+                    # everything is fucking dandy I suppose?!
+                    pass
                 elif task.lastState < SimulationState.START_SIM:
                     # then lets simulate!
                     # this command runs the full sim software with box gen data
@@ -228,7 +228,8 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
                     # returnPath is the absolute path to the directory where the newly created data is stored
                     # TODO: this should'n be in the task anyway
-                    returnPath = generateAbsoluteROOTDataPath(thisExperiment.resAccPackage)
+                    # returnPath = generateAbsoluteROOTDataPath(thisExperiment.resAccPackage)
+
                     job = create_simulation_and_reconstruction_job(
                         thisExperiment,
                         thisMode=DataMode.VERTEXDATA,
@@ -236,8 +237,8 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     )
                     job_manager.append(job)
 
-                    task.dirPath = returnPath
-                    thisScenario.acc_and_res_dir_path = returnPath
+                    # task.dirPath = returnPath
+                    # thisScenario.acc_and_res_dir_path = returnPath
                     task.lastState = SimulationState.START_SIM
 
             elif task.simDataType == SimulationDataType.ANGULAR:
@@ -248,46 +249,55 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 note: beam tilt and divergence are not used here because
                 only the last reco steps are rerun of the track reco
                 """
-                found_dirs = []
-                status_code = 1
-                # what the shit, this should never be empty in the first place
-                if (task.dirPath != "") and (task.dirPath is not None):
-                    temp_dir_searcher = DirectorySearcher(["dpm_elastic", data_keywords[0]])
-                    temp_dir_searcher.searchListOfDirectories(task.dirPath, thisExperiment.trackFilePattern)
-                    found_dirs = temp_dir_searcher.getListOfDirectories()
+                # found_dirs = []
+                # status_code = 1
+                # # what the shit, this should never be empty in the first place
+                # if (task.dirPath != "") and (task.dirPath is not None):
+                #     temp_dir_searcher = DirectorySearcher(["dpm_elastic", data_keywords[0]])
+                #     temp_dir_searcher.searchListOfDirectories(task.dirPath, thisExperiment.trackFilePattern)
+                #     found_dirs = temp_dir_searcher.getListOfDirectories()
 
-                else:
-                    # path may be empty, then the directory searcher tries to find it
-                    # TODO: wait thats a shit way to do this, implicit magic functions wtf?!
+                # else:
+                #     # path may be empty, then the directory searcher tries to find it
+                #     # TODO: wait thats a shit way to do this, implicit magic functions wtf?!
+                #     pass
+
+                # TODO: found_dirs[0] should point to data/1-100_xy_m_cut/no_alignment_correction
+                # but only because this doesn't support alignment yet, otherwise this should be the
+                # final final final path, i.e. all cuts and applied alignment
+                # if found_dirs:
+                angularDataDir = generateAbsoluteROOTDataPath(thisExperiment.dataPackage)
+                status_code = wasSimulationSuccessful(
+                    thisExperiment,
+                    angularDataDir,
+                    thisExperiment.trackFilePattern + "*.root",
+                )
+                if status_code == 0:
+                    # everything is fucking dandy I suppose?!
                     pass
-
-                if found_dirs:
-                    status_code = wasSimulationSuccessful(
-                        thisExperiment,
-                        found_dirs[0],
-                        thisExperiment.trackFilePattern + "*.root",
-                    )
-
                 # oh boi that's bound to be trouble
                 elif task.lastState < task.simState:
                     # TODO: alignment part
 
                     # TODO: this should'n be in the task anyway
-                    returnPath = generateAbsoluteROOTDataPath(thisExperiment.resAccPackage)
+                    # returnPath = generateAbsoluteROOTDataPath(thisExperiment.dataPackage)
 
                     job = create_reconstruction_job(
                         thisExperiment,
-                        thisMode=DataMode.RESACC,
+                        thisMode=DataMode.DATA,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
 
-                    task.dirPath = returnPath
-                    thisScenario.filteredTrackDirectory = returnPath
+                    # task.dirPath = returnPath
+                    # thisScenario.filteredTrackDirectory = returnPath
 
                     # Simulation is done, so update the last_state
                     task.lastState = SimulationState.START_SIM
 
+            # this is the very first branch we landed in
+            # the internal path was therefore
+            # data/1-100_uncut/no_alignment_correction
             elif task.simDataType == SimulationDataType.VERTEX:
                 # check if the sim data is already there
 
@@ -302,31 +312,17 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 # TODO: better job supervision
                 if status_code < 0:
                     # vertex data must always be created without any cuts first
-                    tempRecoPars = evolve(
-                        thisExperiment.dataPackage.recoParams,
-                        use_xy_cut=False,
-                        use_m_cut=False,
-                    )
+                    thisExperiment.dataPackage.recoParams.disableCuts()
 
                     # TODO: misalignment is important here. the vertex data can have misalignment (because it's real data)
                     # but it has no alignment yet. that is only for the second reconstruction
-                    tempAlignPars = evolve(
-                        thisExperiment.dataPackage.alignParams,
-                        alignment_matrices_path=None,
-                    )
-
-                    # remember, this needs the TEMP reco params, not the real ones!
-                    tempExperiment = evolve(thisExperiment, recoParams=tempRecoPars, alignParams=tempAlignPars)
 
                     job = create_simulation_and_reconstruction_job(
-                        tempExperiment,
+                        thisExperiment,
                         thisMode=DataMode.DATA,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
-
-                    # just to be sure that no modified config is used after here
-                    del tempRecoPars, tempAlignPars, tempExperiment
 
             else:
                 raise ValueError(f"This tasks simType is {task.simDataType}, which is invalid!")
@@ -477,14 +473,11 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
 
 def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenario) -> None:
-    lumiTrksQAPath = thisScenario.trackDirectory
-
     # open cross section file (this was generated by apps/generatePbarPElasticScattering
-    # TODO: no, this is now in the experiment directory
-    elastic_cross_section_file_path = lumiTrksQAPath.parent.parent / "elastic_cross_section.txt"
+    elastic_cross_section_file_path = thisExperiment.experimentDir / "elastic_cross_section.txt"
     if elastic_cross_section_file_path.exists():
         print("Found an elastic cross section file!")
-        with elastic_cross_section_file_path.open() as f:
+        with open(elastic_cross_section_file_path, "r") as f:
             content = f.readlines()
             thisScenario.elastic_pbarp_integrated_cross_secion_in_mb = float(content[0])
     elif thisScenario.lumiDetState == LumiDeterminationState.SIMULATE_VERTEX_DATA:
@@ -492,19 +485,26 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
     else:
         raise FileNotFoundError("ERROR! Can not find elastic cross section file! The determined Luminosity will be wrong!\n")
 
-    print(f"processing scenario {lumiTrksQAPath} at step {thisScenario.lumiDetState}")
+    print(f"processing scenario {thisExperiment.experimentDir} at step {thisScenario.lumiDetState}")
 
     finished = False
 
-    # if lumiDetState == 1:
+    """
+    Okay, in the previous version of the script, we had a path in the scenario object.
+    It pointed to the directory where the uncut dpm data was:
+    dir_searcher = DirectorySearcher(["dpm_elastic", "uncut"])
+
+    This is now (obviously) somewhere else, but why did the scenario need that info in the first place?
+    """
+
+    # by default, we always start with SIMULATE_VERTEX_DATA, even though
+    # runSimulationReconstruction has probably already been run.
     if thisScenario.lumiDetState == LumiDeterminationState.SIMULATE_VERTEX_DATA:
         """
         State 1 simulates vertex data from which the IP can be determined.
         """
         if len(thisScenario.SimulationTasks) == 0:
-            thisScenario.SimulationTasks.append(
-                SimulationTask(dirPath=lumiTrksQAPath, simDataType=SimulationDataType.VERTEX, simState=SimulationState.START_SIM)
-            )
+            thisScenario.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.VERTEX, simState=SimulationState.START_SIM))
 
         thisScenario = simulateDataOnHimster(thisExperiment, thisScenario)
         if thisScenario.is_broken:
@@ -514,6 +514,10 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
         if len(thisScenario.SimulationTasks) == 0:
             thisScenario.lumiDetState = LumiDeterminationState.DETERMINE_IP
             thisScenario.lastLumiDetState = LumiDeterminationState.SIMULATE_VERTEX_DATA
+
+    # * ============== I'VE GOTTEN THIS FAR =================
+    print("welp t'was a good run")
+    sys.exit(0)
 
     # if lumiDetState == 2:
     if thisScenario.lumiDetState == LumiDeterminationState.DETERMINE_IP:
@@ -697,42 +701,38 @@ loadedExperimentFromConfig: ExperimentParameters = load_params_from_file(args.Ex
 lmd_fit_script_path = envPath("LMDFIT_SCRIPTPATH")
 lmd_fit_bin_path = envPath("LMDFIT_BUILD_PATH") / "bin"
 
-# make scenario config
-thisScenario = Scenario(
-    trackDirectory=loadedExperimentFromConfig.dataPackage.baseDataDir,
-)
+# * ----------------- create a scenario object. it resides only in memory and is never written to disk
+# it is however liberally modified and passed around
+thisScenario = Scenario()
 thisScenario.momentum = loadedExperimentFromConfig.dataPackage.recoParams.lab_momentum
 
 # set via command line argument, usually 1
 bootstrapped_num_samples = args.bootstrapped_num_samples
 
-# * ----------------- find the path to the TracksQA files.
-# the config only holds the base directory (i.e. where the first sim_params is)
-dir_searcher = DirectorySearcher(["dpm_elastic", "uncut"])
+# # * ----------------- find the path to the TracksQA files.
+# # the config only holds the base directory (i.e. where the first sim_params is)
+# dir_searcher = DirectorySearcher(["dpm_elastic", "uncut"])
 
-# TODO: remember, we don't want to search, we want to HAVE the path in the config
-dir_searcher.searchListOfDirectories(
-    loadedExperimentFromConfig.dataPackage.baseDataDir,
-    loadedExperimentFromConfig.trackFilePattern,
-)
-dirs = dir_searcher.getListOfDirectories()
+# # TODO: remember, we don't want to search, we want to HAVE the path in the config
+# dir_searcher.searchListOfDirectories(
+#     loadedExperimentFromConfig.dataPackage.baseDataDir,
+#     loadedExperimentFromConfig.trackFilePattern,
+# )
+# dirs = dir_searcher.getListOfDirectories()
 
-print(f"\n\nINFO: found these dirs:\n{dirs}\n\n")
+# print(f"\n\nINFO: found these dirs:\n{dirs}\n\n")
 
-if len(dirs) > 1:
-    raise ValueError(f"found {len(dirs)} directory candidates but it should be only one. something is wrong!")
+# if len(dirs) > 1:
+#     raise ValueError(f"found {len(dirs)} directory candidates but it should be only one. something is wrong!")
 
-elif len(dirs) < 1:
-    # don't change thisScenario's trackDirectory, it was set during construction
-    print("No dirs found, that means vertex data wasn't generated (or reconstructed) yet.")
+# elif len(dirs) < 1:
+#     # don't change thisScenario's trackDirectory, it was set during construction
+#     print("No dirs found, that means vertex data wasn't generated (or reconstructed) yet.")
 
-else:
-    # path has changed now for the newly found dir
-    thisScenario.trackDirectory = dirs[0]
+# else:
+#     # path has changed now for the newly found dir
+#     thisScenario.trackDirectory = dirs[0]
 
-
-# * ----------------- create a scenario object. it resides only in memory and is never written to disk
-print("creating scenario:", thisScenario.trackDirectory)
 
 # * ----------------- check which cluster we're on and create job handler
 if loadedExperimentFromConfig.cluster == ClusterEnvironment.VIRGO:
