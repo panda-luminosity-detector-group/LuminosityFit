@@ -4,6 +4,9 @@
 #! ====   DEPRECATED? NOT USED ANYWHERE!              ====
 #! =======================================================
 
+# TODO: rename to runReconstruction.py and make it like the
+# runSimulationReconstruction.py script
+
 import argparse
 
 import lumifit.alignment as alignment
