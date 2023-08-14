@@ -18,13 +18,13 @@ def create_reconstruction_job(
     use_devel_queue: bool = False,
 ) -> Job:
     # case switch for dataMode
-    if thisMode == DataMode.DATA.value:
+    if thisMode == DataMode.DATA:
         configPackage = experiment.dataPackage
-    elif thisMode == DataMode.VERTEXDATA.value:
+    elif thisMode == DataMode.VERTEXDATA:
         configPackage = experiment.dataPackage
         configPackage.recoParams.disableCuts()
 
-    elif thisMode == DataMode.RESACC.value:
+    elif thisMode == DataMode.RESACC:
         configPackage = experiment.resAccPackage
     else:
         raise NotImplementedError(f"DataMode {thisMode} not implemented")
@@ -63,7 +63,7 @@ def create_reconstruction_job(
     # TODO: get from the paths module
     job.exported_user_variables = {
         "ExperimentDir": experiment.experimentDir,
-        "DataMode": thisMode.value,
+        "DataMode": thisMode,
         "force_level": str(force_level),
     }
 

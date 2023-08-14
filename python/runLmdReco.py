@@ -16,17 +16,17 @@ from lumifit.types import DataMode, ExperimentParameters
 
 # * ------------------- Experiment Parameters -------------------
 experimentDir = envPath("ExperimentDir")
-thisMode = os.environ["DataMode"]
+thisMode = DataMode(os.environ["DataMode"])
 force_level = int(os.environ["force_level"])
 
 experiment: ExperimentParameters = load_params_from_file(experimentDir / "experiment.config", ExperimentParameters)
 
-if thisMode == DataMode.DATA.value:
+if thisMode == DataMode.DATA:
     configPackage = experiment.dataPackage
-elif thisMode == DataMode.VERTEXDATA.value:
+elif thisMode == DataMode.VERTEXDATA:
     configPackage = experiment.dataPackage
     configPackage.recoParams.disableCuts()
-elif thisMode == DataMode.RESACC.value:
+elif thisMode == DataMode.RESACC:
     configPackage = experiment.resAccPackage
 else:
     raise NotImplementedError(f"DataMode {thisMode} not implemented")

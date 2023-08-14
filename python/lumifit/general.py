@@ -111,13 +111,6 @@ def addDebugArgumentsToParser(parser: ArgumentParser) -> ArgumentParser:
     return parser
 
 
-class _EnumEncoder(json.JSONEncoder):
-    def default(self, obj: Any) -> json.JSONEncoder:
-        if isinstance(obj, Enum):
-            return obj.value
-        return json.JSONEncoder.default(self, obj)
-
-
 class DirectorySearcher:
     """
     Class to search directories that include files according to a list of patterns.   A pattern is for example a file name. A pattern is for example a file name. A directory that matches any of the patterns is included.

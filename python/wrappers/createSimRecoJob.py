@@ -30,9 +30,9 @@ def create_simulation_and_reconstruction_job(
     """
 
     # case switch for dataMode
-    if (thisMode == DataMode.DATA.value) or (thisMode == DataMode.VERTEXDATA.value):
+    if (thisMode == DataMode.DATA) or (thisMode == DataMode.VERTEXDATA):
         configPackage = experiment.dataPackage
-    elif thisMode == DataMode.RESACC.value:
+    elif thisMode == DataMode.RESACC:
         configPackage = experiment.resAccPackage
     else:
         raise NotImplementedError(f"DataMode {thisMode} not implemented")
