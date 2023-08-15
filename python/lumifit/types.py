@@ -92,7 +92,9 @@ class SimulationParameters:
 
     def setNewThetaAngles(self, thetaMin: float, thetaMax: float) -> None:
         """
-        See above, I hate it too.
+        Yes, I hate it too, the data class is supposed to be immutable.
+        But better to do it here (and document it) than to do it in the
+        determineLuminosity.py or elsewhere and forget about it.
         """
         print("Attention! Setting new theta angles")
         object.__setattr__(self, "theta_min_in_mrad", thetaMin)

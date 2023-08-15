@@ -446,7 +446,9 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     mergeCommand.append("--num_samples")
                     mergeCommand.append(str(bootstrapped_num_samples))
                     mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    mergeCommand.append(str(task.dirPath))
+                    mergeCommand.append(
+                        str(task.dirPath)
+                    )  # okay this fucking sucks. this path depends on the simDataType (a/er/v), so either data/something or resAcc/something
 
                 else:
                     mergeCommand = []
@@ -455,7 +457,9 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     mergeCommand.append("--dir_pattern")
                     mergeCommand.append(data_keywords[0])
                     mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    mergeCommand.append(str(task.dirPath))
+                    mergeCommand.append(
+                        str(task.dirPath)
+                    )  # okay this fucking sucks. this path depends on the simDataType (a/er/v), so either data/something or resAcc/something
 
                 print("working directory:")
                 print(f"{os.getcwd()}")
@@ -519,7 +523,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
 
     # * ============== I'VE GOTTEN THIS FAR =================
     print("welp t'was a good run")
-    sys.exit(0)
+    # sys.exit(0)
 
     # if lumiDetState == 2:
     if thisScenario.lumiDetState == LumiDeterminationState.DETERMINE_IP:
