@@ -371,6 +371,8 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 print(f"Bash command for bunch creation:\n{' '.join(multiFileListCommand)}\n")
                 _ = subprocess.call(multiFileListCommand)
 
+                multiFileListCommand.clear()
+
                 # TODO: pass experiment config, or better yet, make class instead of script
                 # create data
                 if task.simDataType == SimulationDataType.ANGULAR:
