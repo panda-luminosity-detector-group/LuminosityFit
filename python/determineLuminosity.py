@@ -404,12 +404,17 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 # it does, but it is. This branch is reached in both cases
                 # FIXME: that means we must use the correct configPackage!
                 # okay, we are either in DATA mode or RESACC mode, so choose the
-                # correct configPackage.
+                # correct configPackage. also, in VERTEX mode, the reco params don't
+                # have cuts!
                 # yes, I hate this too, this will all be scrapped
                 # once these scripts are proper modules
+                if task.simDataType == SimulationDataType.VERTEX:
+                    pathToRootFiles = generateAbsoluteROOTDataPath(configPackage=configPackage, dataMode=DataMode.VERTEXDATA)
+                else:
+                    pathToRootFiles = generateAbsoluteROOTDataPath(configPackage=configPackage)
 
                 multiFileListCommand.append(str(configPackage.recoParams.num_samples))
-                multiFileListCommand.append(str(thisShitPath))
+                multiFileListCommand.append(str(pathToRootFiles))
 
                 print(f"Bash command for file list bunch creation:\n{' '.join(multiFileListCommand)}\n")
                 _ = subprocess.call(multiFileListCommand)
@@ -450,6 +455,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     lmdDataCommand.append(str(thisShitPath))
                     lmdDataCommand.append("../dataconfig_xy.json")
 
+                print("bash command for LmdData creation")
                 print(lmdDataCommand)
                 _ = subprocess.call(lmdDataCommand)
 

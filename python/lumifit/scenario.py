@@ -33,6 +33,10 @@ class SimulationState(IntEnum):
 
 
 class SimulationDataType(Enum):
+    """
+    Wait, this holds largely the same info as types.DataMode, do we really need both?
+    """
+
     NONE = "none"
     ANGULAR = "a"
     VERTEX = "v"

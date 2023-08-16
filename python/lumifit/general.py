@@ -54,8 +54,8 @@ def getGoodFiles(
     is_bunches: bool = False,
 ) -> list:
     found_files = directory.glob(glob_pattern)
-    good_files = []
-    bad_files = []
+    good_files: List[Path] = []
+    bad_files: List[Path] = []
     for file in found_files:
         if isFilePresentAndValid(file, min_filesize_in_bytes):
             good_files.append(file)

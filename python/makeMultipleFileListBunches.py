@@ -10,53 +10,26 @@ TODO: add type hints and make this a module
 """
 
 import argparse
-import errno
-import multiprocessing
-import os
-import re
+from pathlib import Path
+from typing import List
 
 from lumifit.general import getGoodFiles
-
-cpu_cores = multiprocessing.cpu_count()
-
-dirs = []
-pattern = ""
+from lumifit.paths import generateRelativeBunchesDir
 
 
-def getListOfDirectories(path):
-    if os.path.isdir(path):
-        for dir in os.listdir(path):
-            dirpath = path + "/" + dir
-            if os.path.isdir(dirpath):
-                if not args.force:
-                    match = re.search("bunches.*", dirpath)
-                    if match:
-                        print(
-                            "skipping bunch creation for directory",
-                            path,
-                            "as it already was bunched. Please used the --force option to bunch this directory anyway!",
-                        )
-                        return
-                getListOfDirectories(dirpath)
-            else:
-                match = re.search(f"{filename_prefix}\d*\.root", dir)
-                if match:
-                    match_dir_pattern = re.search(pattern, path)
-                    if match_dir_pattern:
-                        dirs.append(path)
-                    return
+def createFileListFile(output_url: Path, list_of_files: List[Path]) -> None:
+    if output_url.exists() and not args.force:
+        print("file already exists, skipping: " + str(output_url))
+        return
+
+    with open(output_url, "w") as f:
+        for file_url in list_of_files:
+            f.write(str(file_url))
+            f.write("\n")
 
 
-def createFileListFile(output_url, list_of_files):
-    f = open(output_url, "w")
-    for file_url in list_of_files:
-        f.write(file_url)
-        f.write("\n")
-    f.close()
-
-
-def makeFileListBunches(directory):
-    [good_files, percentage] = getGoodFiles(directory, filename_prefix + "*", 2000)
+def makeFileListBunches(directory: Path) -> None:
+    good_files, _ = getGoodFiles(directory, filename_prefix + "*", 2000)
 
     print("creating file lists...")
 
@@ -67,13 +40,11 @@ def makeFileListBunches(directory):
     if len(good_files) % args.files_per_bunch > 0:
         max_bundles += 1
     max_bundles = int(max_bundles)
-    output_bunch_dir = directory + "/bunches_" + str(max_bundles)
 
-    try:
-        os.makedirs(output_bunch_dir)
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            print("error: thought dir does not exists but it does...")
+    # right now, this only generates "bunches"
+    output_bunch_dir = directory / generateRelativeBunchesDir()
+
+    output_bunch_dir.mkdir(parents=True, exist_ok=True)
 
     file_list_index = 1
     while len(good_files) > 0:
@@ -82,12 +53,12 @@ def makeFileListBunches(directory):
         if len(good_files) < args.files_per_bunch:
             chunk_size = len(good_files)
 
-        chunk_of_good_files = []
+        chunk_of_good_files: List[Path] = []
         for i in range(1, chunk_size + 1):
             chunk_of_good_files.append(good_files.pop())
 
         createFileListFile(
-            output_bunch_dir + "/filelist_" + str(file_list_index) + ".txt",
+            output_bunch_dir / Path("filelist_" + str(file_list_index) + ".txt"),
             chunk_of_good_files,
         )
         file_list_index += 1
@@ -140,7 +111,5 @@ args = parser.parse_args()
 pattern = args.directory_pattern
 filename_prefix = args.filenamePrefix
 
-getListOfDirectories(args.dirname[0])
-
-for dir in dirs:
-    makeFileListBunches(dir)
+pathToRootFiles = Path(args.dirname[0])
+makeFileListBunches(pathToRootFiles)

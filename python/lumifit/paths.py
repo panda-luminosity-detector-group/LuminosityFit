@@ -13,6 +13,7 @@ from pathlib import Path
 from lumifit.types import (
     AlignmentParameters,
     ConfigPackage,
+    DataMode,
     ReconstructionParameters,
 )
 
@@ -67,7 +68,7 @@ def generateRecoDirSuffix(recoParams: ReconstructionParameters, alignParams: Ali
     return reco_dirname_suffix
 
 
-def generateAbsoluteROOTDataPath(configPackage: ConfigPackage) -> Path:
+def generateAbsoluteROOTDataPath(configPackage: ConfigPackage, dataMode=DataMode.DATA) -> Path:
     """
     Generates the absolute path to the ROOT files for this config package.
     That includes lmdFitDataDir/scenarioDir/cut/align/
@@ -75,7 +76,13 @@ def generateAbsoluteROOTDataPath(configPackage: ConfigPackage) -> Path:
     Example: /lustre/klasen/LMD-xkcdsmbc/sim/1-100_xy_n_cut/no_alignment_correction/
     """
 
-    return configPackage.baseDataDir / generateRecoDirSuffix(configPackage.recoParams, configPackage.alignParams)
+    if dataMode == DataMode.VERTEXDATA:
+        recoParams = configPackage.recoParams
+        recoParams.disableCuts()
+    else:
+        recoParams = configPackage.recoParams
+
+    return configPackage.baseDataDir / generateRecoDirSuffix(recoParams, configPackage.alignParams)
 
 
 def generateRelativeBunchesDir() -> Path:
