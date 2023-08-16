@@ -56,7 +56,6 @@ If the needed files aren't there (but the jobs don't run anymore either), there 
 # TODO: add jobID or jobArrayID check here
 # TODO: the percentage check is also shite because files can be done after this check is true.
 def wasSimulationSuccessful(
-    thisExperiment: ExperimentParameters,
     directory: Path,
     glob_pattern: str,
     min_filesize_in_bytes: int = 10000,
@@ -70,12 +69,12 @@ def wasSimulationSuccessful(
     required_files_percentage = 0.8
     return_value = 0
 
-    files_percentage = getGoodFiles(
+    _, files_percentage = getGoodFiles(
         directory,
         glob_pattern,
         min_filesize_in_bytes=min_filesize_in_bytes,
         is_bunches=is_bunches,
-    )[1]
+    )
 
     print(f"files percentage (depends on getGoodFiles) is {files_percentage}")
 
@@ -220,7 +219,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 # later, WITH alignment since that affects the acceptance!
                 resAccDataDir = generateAbsoluteROOTDataPath(thisExperiment.resAccPackage)
                 # if found_dirs:
-                status_code = wasSimulationSuccessful(thisExperiment, resAccDataDir, thisExperiment.trackFilePattern + "*.root")
+                status_code = wasSimulationSuccessful(directory=resAccDataDir, glob_pattern=thisExperiment.trackFilePattern + "*.root")
 
                 # this elif belonged to the if found_dirs...
                 # so that means if NOT data dir was found, the data is obviously not there,
@@ -288,9 +287,8 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 # if found_dirs:
                 angularDataDir = generateAbsoluteROOTDataPath(thisExperiment.dataPackage)
                 status_code = wasSimulationSuccessful(
-                    thisExperiment,
-                    angularDataDir,
-                    thisExperiment.trackFilePattern + "*.root",
+                    directory=angularDataDir,
+                    glob_pattern=thisExperiment.trackFilePattern + "*.root",
                 )
                 if status_code == 0:
                     # everything is fucking dandy I suppose?!
@@ -324,7 +322,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 assert thisExperiment.dataPackage.MCDataDir is not None
                 mcDataDir = thisExperiment.dataPackage.MCDataDir
 
-                status_code = wasSimulationSuccessful(thisExperiment, mcDataDir, "Lumi_MC_*.root")
+                status_code = wasSimulationSuccessful(directory=mcDataDir, glob_pattern="Lumi_MC_*.root")
 
                 # so this may seem odd, but since there aren't any jobs running yet and theres still
                 # no files, the return code will actually be -1. better job supervision fixes that,
@@ -384,9 +382,8 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
             status_code = 1
             if found_dirs:
                 status_code = wasSimulationSuccessful(
-                    thisExperiment,
-                    found_dirs[0],
-                    data_pattern + "*",
+                    directory=found_dirs[0],
+                    glob_pattern=data_pattern + "*",
                     is_bunches=True,
                 )
 

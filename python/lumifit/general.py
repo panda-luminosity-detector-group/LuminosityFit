@@ -53,12 +53,11 @@ def getGoodFiles(
     min_filesize_in_bytes: int = 2000,
     is_bunches: bool = False,
 ) -> list:
-    # TODO: this can be done with pathlibs glob
-    found_files = list(directory.glob(glob_pattern))
+    found_files = directory.glob(glob_pattern)
     good_files = []
     bad_files = []
     for file in found_files:
-        if os.stat(file).st_size > min_filesize_in_bytes:
+        if isFilePresentAndValid(file, min_filesize_in_bytes):
             good_files.append(file)
         else:
             bad_files.append(file)
@@ -80,9 +79,9 @@ def getGoodFiles(
     return [good_files, files_percentage]
 
 
-def isFilePresentAndValid(file_url: Path) -> bool:
+def isFilePresentAndValid(file_url: Path, minFileSize=3000) -> bool:
     if file_url.exists():
-        if file_url.stat().st_size > 3000:
+        if file_url.stat().st_size > minFileSize:
             print(f"{file_url} exists and is larger than 3kb!")
             return True
 
