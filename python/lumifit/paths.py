@@ -76,3 +76,17 @@ def generateAbsoluteROOTDataPath(configPackage: ConfigPackage) -> Path:
     """
 
     return configPackage.baseDataDir / generateRecoDirSuffix(configPackage.recoParams, configPackage.alignParams)
+
+
+def generateRelativeBunchesDir() -> Path:
+    """
+    Generates a relative path to a bunches subdirectory.
+    """
+    return Path("bunches")
+
+
+def generateRelativeBinningDir() -> Path:
+    """
+    Generates a relative path to a bunches subdirectory.
+    """
+    return Path("binning")

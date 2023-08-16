@@ -2,7 +2,6 @@ import json
 import os
 import re
 from argparse import ArgumentParser
-from enum import Enum
 from pathlib import Path
 from typing import Any, List, Optional
 
@@ -34,6 +33,12 @@ def toCbool(input: bool) -> str:
 
 
 def matrixMacroFileName(input: Optional[Path]) -> str:
+    """
+    returns a string representation for a Path object.
+    If the path is None, it returns the empty string (NOT the string "None").
+    This is important for ROOT macros.
+    """
+
     if isinstance(input, Path):
         return str(input)
     elif input is None:

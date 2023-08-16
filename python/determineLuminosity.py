@@ -134,6 +134,13 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
             the experiment parameters
         thisScenario: Scenario
             the scenario to run
+
+    TODO: this function is a bloody fucking mess. It gets passed a scenario object
+    and depending on the internal state of this object, over nine fucking thousand
+    different if branches are executed. Of course that means this shit is impossible
+    to understand or debug.
+
+    So this must change.
     """
 
     for task in thisScenario.SimulationTasks:
@@ -149,26 +156,40 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
         print(f"cut keyword is {cut_keyword}")
 
+        # this case switch is needed for the DirectorySearchers, which determine the
+        # working dir for the scripts to:
+        # - create File lists (e.g. filelist_1.txt)
+        # - make bunches (bunches_ folders)
+        # - and merge them (binning_ folders)
+        # so obviously this is shit design which fucking sucks,
+        # but I can (and fucking will!) change it later
+        # for now, we need it this way.
         merge_keywords = ["merge_data", "binning_300"]
         # if "v" in task.simType:
         if task.simDataType == SimulationDataType.VERTEX:
             data_keywords = ["uncut", "bunches", "binning_300"]
             data_pattern = "lmd_vertex_data_"
+            configPackage = thisExperiment.dataPackage
         # elif "a" in task.simType:
         elif task.simDataType == SimulationDataType.ANGULAR:
             data_keywords = [cut_keyword, "bunches", "binning_300"]
             data_pattern = "lmd_data_"
+            configPackage = thisExperiment.dataPackage
         elif task.simDataType == SimulationDataType.EFFICIENCY_RESOLUTION:
             data_keywords = [cut_keyword, "bunches", "binning_300"]
             data_pattern = "lmd_res_data_"
+            configPackage = thisExperiment.resAccPackage
         else:
             raise NotImplementedError(f"Simulation type {task.simDataType} is not implemented!")
+
+        # thisShitPath points to the experiment base dir, WITHOUT data/resAcc subfolder
+        # (so especially now reco/cut/align folders)
+        thisShitPath = thisExperiment.experimentDir
 
         # 1. simulate data
         if task.simState == SimulationState.START_SIM:
             os.chdir(lmd_fit_script_path)
             status_code = 1
-            # if "er" in task.simType:
             if task.simDataType == SimulationDataType.EFFICIENCY_RESOLUTION:
                 """
                 efficiency / resolution calculation.
@@ -338,9 +359,28 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
         # 2. create data (that means bunch data, create data objects)
         if task.simState == SimulationState.MAKE_BUNCHES:
+            """
+            Okay, quick recap what's happening here:
+
+            makeMultipleFileListBunches is ALWAYS called, but the path depends on if
+            we're in angular, vertex or resAcc mode.
+
+            createMultipleLmdData is ALSO ALWAYS called, for the path same as above,
+            AND elastic_cross_section is passed IF we're in ANGULAR mode
+
+            lastly the status_code check and the branch exits.
+            Fuck I want to rewrite this logic shit so badly, but the path shit is more
+            important shit right now, so I'll just leave this shit comment to do this
+            shit later.
+
+            That means I can only kick the DirectorySearcher out later too :(
+            For now, I'll just have to use the experiment path until I can properly
+            fix the logic.
+            """
+
             # check if data objects already exists and skip!
             temp_dir_searcher = DirectorySearcher(data_keywords)
-            temp_dir_searcher.searchListOfDirectories(task.dirPath, data_pattern)
+            temp_dir_searcher.searchListOfDirectories(thisShitPath, data_pattern)
             found_dirs = temp_dir_searcher.getListOfDirectories()
             status_code = 1
             if found_dirs:
@@ -364,9 +404,16 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 multiFileListCommand.append("10")
                 multiFileListCommand.append("--maximum_number_of_files")
 
-                # FIXME: wait, doesn't this have to be done for BOTH data and resAcc?!
-                multiFileListCommand.append(str(thisExperiment.dataPackage.recoParams.num_samples))
-                multiFileListCommand.append(str(task.dirPath))
+                # wait, doesn't this have to be done for BOTH data and resAcc?!
+                # it does, but it is. This branch is reached in both cases
+                # FIXME: that means we must use the correct configPackage!
+                # okay, we are either in DATA mode or RESACC mode, so choose the
+                # correct configPackage.
+                # yes, I hate this too, this will all be scrapped
+                # once these scripts are proper modules
+
+                multiFileListCommand.append(str(configPackage.recoParams.num_samples))
+                multiFileListCommand.append(thisShitPath)
 
                 print(f"Bash command for bunch creation:\n{' '.join(multiFileListCommand)}\n")
                 _ = subprocess.call(multiFileListCommand)
@@ -386,7 +433,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     lmdDataCommand.append(thisExperiment.LMDDataCommand)
                     lmdDataCommand.append(f"{thisScenario.momentum:.2f}")
                     lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    lmdDataCommand.append(str(task.dirPath))
+                    lmdDataCommand.append(thisShitPath)
                     lmdDataCommand.append("../dataconfig_xy.json")
 
                     if el_cs:
@@ -403,7 +450,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     lmdDataCommand.append(thisExperiment.LMDDataCommand)
                     lmdDataCommand.append(f"{thisScenario.momentum:.2f}")
                     lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    lmdDataCommand.append(str(task.dirPath))
+                    lmdDataCommand.append(thisShitPath)
                     lmdDataCommand.append("../dataconfig_xy.json")
 
                 print(lmdDataCommand)
@@ -431,7 +478,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
         if task.simState == SimulationState.MERGE:
             # check first if merged data already exists and skip it!
             temp_dir_searcher = DirectorySearcher(merge_keywords)
-            temp_dir_searcher.searchListOfDirectories(task.dirPath, data_pattern)
+            temp_dir_searcher.searchListOfDirectories(thisShitPath, data_pattern)
             found_dirs = temp_dir_searcher.getListOfDirectories()
             if not found_dirs:
                 os.chdir(lmd_fit_script_path)
@@ -447,7 +494,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     mergeCommand.append(str(bootstrapped_num_samples))
                     mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
                     mergeCommand.append(
-                        str(task.dirPath)
+                        str(thisShitPath)
                     )  # okay this fucking sucks. this path depends on the simDataType (a/er/v), so either data/something or resAcc/something
 
                 else:
@@ -458,7 +505,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     mergeCommand.append(data_keywords[0])
                     mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
                     mergeCommand.append(
-                        str(task.dirPath)
+                        str(thisShitPath)
                     )  # okay this fucking sucks. this path depends on the simDataType (a/er/v), so either data/something or resAcc/something
 
                 print("working directory:")
@@ -503,6 +550,12 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
     This is now (obviously) somewhere else, but why did the scenario need that info in the first place?
     """
 
+    # thisFuckingShitPath points to the experiment base dir, WITHOUT data/resAcc subfolder
+    # (so especially now reco/cut/align folders)
+    # it has a slightly differnet name than the thisShitPath in the simDataOnHimster function
+    # so as not to confuse them
+    thisFuckingShitPath = thisExperiment.experimentDir
+
     # by default, we always start with SIMULATE_VERTEX_DATA, even though
     # runSimulationReconstruction has probably already been run.
     if thisScenario.lumiDetState == LumiDeterminationState.SIMULATE_VERTEX_DATA:
@@ -521,10 +574,6 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
             thisScenario.lumiDetState = LumiDeterminationState.DETERMINE_IP
             thisScenario.lastLumiDetState = LumiDeterminationState.SIMULATE_VERTEX_DATA
 
-    # * ============== I'VE GOTTEN THIS FAR =================
-    print("welp t'was a good run")
-    # sys.exit(0)
-
     # if lumiDetState == 2:
     if thisScenario.lumiDetState == LumiDeterminationState.DETERMINE_IP:
         """
@@ -535,16 +584,17 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
         If use_ip_determination is false, the reconstruction will use the IP as
         specified from the reco params of the experiment config.
 
-        Therefore, this is the ONLY place where thisScenario.ip[X,Y,Z] may be set.
+        ! Therefore, this is the ONLY place where a new IP may be set.
         """
+
+        # TODO: refactor this logic to not use the directorySearchers
         if thisExperiment.dataPackage.recoParams.use_ip_determination:
             assert thisExperiment.resAccPackage.simParams is not None
             assert thisExperiment.dataPackage.recoIPpath is not None
 
             temp_dir_searcher = DirectorySearcher(["merge_data", "binning_300"])
-            temp_dir_searcher.searchListOfDirectories(lumiTrksQAPath, "reco_ip.json")
+            temp_dir_searcher.searchListOfDirectories(thisFuckingShitPath, "reco_ip.json")
             found_dirs = temp_dir_searcher.getListOfDirectories()
-            #! FIXME: wait this can't be, if NOT found_dirs, the bash command can't use found_dirs[0]!
             # wait I think I know whats happening. If the reco_ip.json is not found, the bash command
             # will be called with some path?!, but will create the reco_ip.json
             # if the reco_ip.json is found, the bash command doen't have to be called,
@@ -553,7 +603,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
                 # 2. determine offset on the vertex data sample
                 os.chdir(lmd_fit_bin_path)
                 temp_dir_searcher = DirectorySearcher(["merge_data", "binning_300"])
-                temp_dir_searcher.searchListOfDirectories(lumiTrksQAPath, ["lmd_vertex_data_", "of1.root"])
+                temp_dir_searcher.searchListOfDirectories(thisFuckingShitPath, ["lmd_vertex_data_", "of1.root"])
+
                 found_dirs = temp_dir_searcher.getListOfDirectories()
                 bashCommand = []
                 bashCommand.append("./determineBeamOffset")
@@ -573,7 +624,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
             newRecoIPY = float("{0:.3f}".format(round(float(ip_rec_data["ip_y"]), 3)))
             newRecoIPZ = float("{0:.3f}".format(round(float(ip_rec_data["ip_z"]), 3)))
 
-            # FIXME: I don't like this. Actually I hate this.
+            # I don't like this. Actually I hate this.
             # The experiment config is frozen for a reason.
             # But unfortunately there doesn't seem to be a better way
 
@@ -583,6 +634,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
             # - the resAccPackage recoParams
             #
             # at least we know it can happen ONLY here
+            # remember, this config is never written to disk
 
             max_xy_shift = math.sqrt(newRecoIPX**2 + newRecoIPY**2)
             max_xy_shift = float("{0:.2f}".format(round(float(max_xy_shift), 2)))
@@ -640,6 +692,10 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
 
         - look where the merged data is, find the lmd_fitted_data root files.
         """
+
+        print("Listen, if we've gotten this far, we can consider ourselves lucky.")
+        print("I'm exiting here becaues the fit itself is now almost trivial.")
+        sys.exit(9001)
 
         os.chdir(lmd_fit_script_path)
         print("running lmdfit!")
