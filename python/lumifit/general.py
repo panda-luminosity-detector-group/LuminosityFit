@@ -74,6 +74,7 @@ def getGoodFiles(
             num_sim_files = int(m.group(2)) - int(m.group(1)) + 1
         return [0, 0]
 
+    print(f"found {len(good_files)} good files out of {num_sim_files} files")
     files_percentage = len(good_files) / num_sim_files
 
     return [good_files, files_percentage]
@@ -84,7 +85,9 @@ def isFilePresentAndValid(file_url: Path, minFileSize=3000) -> bool:
         if file_url.stat().st_size > minFileSize:
             print(f"{file_url} exists and is larger than 3kb!")
             return True
-
+        print("file is too small.")
+        return False
+    print(f"{file_url} does not exist!")
     return False
 
 
