@@ -391,7 +391,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 os.chdir(lmd_fit_script_path)
                 # bunch data
                 # TODO: pass experiment config, or better yet, make class instead of script
-                multiFileListCommand = []
+                multiFileListCommand: List[str] = []
                 multiFileListCommand.append("python")
                 multiFileListCommand.append("makeMultipleFileListBunches.py")
                 multiFileListCommand.append("--filenamePrefix")
@@ -409,15 +409,16 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 # once these scripts are proper modules
 
                 multiFileListCommand.append(str(configPackage.recoParams.num_samples))
-                multiFileListCommand.append(thisShitPath)
+                multiFileListCommand.append(str(thisShitPath))
 
-                print(f"Bash command for bunch creation:\n{' '.join(multiFileListCommand)}\n")
+                print(f"Bash command for file list bunch creation:\n{' '.join(multiFileListCommand)}\n")
                 _ = subprocess.call(multiFileListCommand)
 
                 multiFileListCommand.clear()
 
                 # TODO: pass experiment config, or better yet, make class instead of script
                 # create data
+                lmdDataCommand: List[str]
                 if task.simDataType == SimulationDataType.ANGULAR:
                     el_cs = thisScenario.elastic_pbarp_integrated_cross_secion_in_mb
                     lmdDataCommand = []
@@ -429,7 +430,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     lmdDataCommand.append(thisExperiment.LMDDataCommand)
                     lmdDataCommand.append(f"{thisScenario.momentum:.2f}")
                     lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    lmdDataCommand.append(thisShitPath)
+                    lmdDataCommand.append(str(thisShitPath))
                     lmdDataCommand.append("../dataconfig_xy.json")
 
                     if el_cs:
@@ -446,7 +447,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     lmdDataCommand.append(thisExperiment.LMDDataCommand)
                     lmdDataCommand.append(f"{thisScenario.momentum:.2f}")
                     lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    lmdDataCommand.append(thisShitPath)
+                    lmdDataCommand.append(str(thisShitPath))
                     lmdDataCommand.append("../dataconfig_xy.json")
 
                 print(lmdDataCommand)
@@ -480,6 +481,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 os.chdir(lmd_fit_script_path)
                 # merge data
                 # if "a" in task.simType:
+                mergeCommand: List[str]
                 if task.simDataType == SimulationDataType.ANGULAR:
                     mergeCommand = []
                     mergeCommand.append("python")
@@ -489,9 +491,8 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     mergeCommand.append("--num_samples")
                     mergeCommand.append(str(bootstrapped_num_samples))
                     mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    mergeCommand.append(
-                        str(thisShitPath)
-                    )  # okay this fucking sucks. this path depends on the simDataType (a/er/v), so either data/something or resAcc/something
+                    # okay this fucking sucks. this path depends on the simDataType (a/er/v), so either data/something or resAcc/something
+                    mergeCommand.append(str(thisShitPath))
 
                 else:
                     mergeCommand = []
@@ -500,9 +501,8 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     mergeCommand.append("--dir_pattern")
                     mergeCommand.append(data_keywords[0])
                     mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    mergeCommand.append(
-                        str(thisShitPath)
-                    )  # okay this fucking sucks. this path depends on the simDataType (a/er/v), so either data/something or resAcc/something
+                    # okay this fucking sucks. this path depends on the simDataType (a/er/v), so either data/something or resAcc/something
+                    mergeCommand.append(str(thisShitPath))
 
                 print("working directory:")
                 print(f"{os.getcwd()}")
