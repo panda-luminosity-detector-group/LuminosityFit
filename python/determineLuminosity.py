@@ -152,10 +152,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
         data_keywords = []
         data_pattern = ""
 
-        cut_keyword = generateCutKeyword(thisExperiment.dataPackage.recoParams)
-
-        print(f"cut keyword is {cut_keyword}")
-
         # this case switch is needed for the DirectorySearchers, which determine the
         # working dir for the scripts to:
         # - create File lists (e.g. filelist_1.txt)
@@ -165,22 +161,25 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
         # but I can (and fucking will!) change it later
         # for now, we need it this way.
         merge_keywords = ["merge_data", "binning_300"]
-        # if "v" in task.simType:
         if task.simDataType == SimulationDataType.VERTEX:
-            data_keywords = ["uncut", "bunches", "binning_300"]
+            cut_keyword = "uncut"
+            data_keywords = [cut_keyword, "bunches", "binning_300"]
             data_pattern = "lmd_vertex_data_"
             configPackage = thisExperiment.dataPackage
-        # elif "a" in task.simType:
         elif task.simDataType == SimulationDataType.ANGULAR:
+            configPackage = thisExperiment.dataPackage
+            cut_keyword = generateCutKeyword(configPackage.recoParams)
             data_keywords = [cut_keyword, "bunches", "binning_300"]
             data_pattern = "lmd_data_"
-            configPackage = thisExperiment.dataPackage
         elif task.simDataType == SimulationDataType.EFFICIENCY_RESOLUTION:
+            configPackage = thisExperiment.resAccPackage
+            cut_keyword = generateCutKeyword(configPackage.recoParams)
             data_keywords = [cut_keyword, "bunches", "binning_300"]
             data_pattern = "lmd_res_data_"
-            configPackage = thisExperiment.resAccPackage
         else:
             raise NotImplementedError(f"Simulation type {task.simDataType} is not implemented!")
+
+        print(f"cut keyword is {cut_keyword}")
 
         # thisShitPath points to the experiment base dir, WITHOUT data/resAcc subfolder
         # (so especially now reco/cut/align folders)
