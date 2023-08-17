@@ -56,25 +56,18 @@ parser.add_argument(
 parser.add_argument(
     "pathToRootFiles",
     metavar="pathToRootFiles",
-    type=str,
+    type=Path,
     nargs=1,
     help="The directory where the ROOT files are.",
 )
 parser.add_argument(
     "config_url",
     metavar="config_url",
-    type=str,
+    type=Path,
     nargs=1,
     help="Path to data config file in json format.",
 )
 
-parser.add_argument(
-    "--dir_pattern",
-    metavar="path name pattern",
-    type=str,
-    default="bunches",
-    help="",
-)
 parser.add_argument("--force", action="store_true", help="number of events to use")
 parser.add_argument(
     "--num_events",
@@ -133,10 +126,10 @@ args = parser.parse_args()
 # remember, a job array is submitted here, one job per filelist (so 10 probably)
 # each job reads the same config, but uses a different filelist (given by the job array indices)
 
-pathToRootFiles = Path(args.pathToRootFiles)
+pathToRootFiles = args.pathToRootFiles
 fileListPath = pathToRootFiles / generateRelativeBunchesDir()
 binningPath = pathToRootFiles / generateRelativeBunchesDir() / generateRelativeBinningDir()
-inputConfigPath = Path(args.config_url[0])
+inputConfigPath = args.config_url
 
 binningPath.mkdir(parents=True, exist_ok=True)
 
