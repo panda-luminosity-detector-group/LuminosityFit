@@ -43,28 +43,24 @@ parser.add_argument(
     "lab_momentum",
     metavar="lab_momentum",
     type=float,
-    nargs=1,
     help="lab momentum of incoming beam antiprotons\n(required to set correct magnetic field maps etc)",
 )
 parser.add_argument(
     "type",
     metavar="type",
     type=str,
-    nargs=1,
     help="type of data to create (a = angular, e = efficiency, r = resolution, v = vertex/ip",
 )
 parser.add_argument(
     "pathToRootFiles",
     metavar="pathToRootFiles",
     type=Path,
-    nargs=1,
     help="The directory where the ROOT files are.",
 )
 parser.add_argument(
     "config_url",
     metavar="config_url",
     type=Path,
-    nargs=1,
     help="Path to data config file in json format.",
 )
 
@@ -195,12 +191,12 @@ job = Job(
     array_indices=list(range(1, numFileList + 1)),
 )
 job.exported_user_variables["numEv"] = args.num_events
-job.exported_user_variables["pbeam"] = args.lab_momentum[0]
+job.exported_user_variables["pbeam"] = args.lab_momentum
 job.exported_user_variables["input_path"] = pathToRootFiles  # bunches
 job.exported_user_variables["filelist_path"] = fileListPath  # bunches
 job.exported_user_variables["output_path"] = str(binningPath)  # bunches/binning
 job.exported_user_variables["config_path"] = str(binningPath) + "/dataconfig.json"
-job.exported_user_variables["type"] = args.type[0]
+job.exported_user_variables["type"] = args.type
 job.exported_user_variables["elastic_cross_section"] = args.elastic_cross_section
 
 job_manager.append(job)
