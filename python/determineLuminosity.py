@@ -153,21 +153,21 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
         # so obviously this is shit design which fucking sucks,
         # but I can (and fucking will!) change it later
         # for now, we need it this way.
-        merge_keywords = ["merge_data", "binning_300"]
+        merge_keywords = ["merge_data", "binning"]
         if task.simDataType == SimulationDataType.VERTEX:
             cut_keyword = "uncut"
-            data_keywords = [cut_keyword, "bunches", "binning_300"]
+            data_keywords = [cut_keyword, "bunches", "binning"]
             data_pattern = "lmd_vertex_data_"
             configPackage = thisExperiment.dataPackage
         elif task.simDataType == SimulationDataType.ANGULAR:
             configPackage = thisExperiment.dataPackage
             cut_keyword = generateCutKeyword(configPackage.recoParams)
-            data_keywords = [cut_keyword, "bunches", "binning_300"]
+            data_keywords = [cut_keyword, "bunches", "binning"]
             data_pattern = "lmd_data_"
         elif task.simDataType == SimulationDataType.EFFICIENCY_RESOLUTION:
             configPackage = thisExperiment.resAccPackage
             cut_keyword = generateCutKeyword(configPackage.recoParams)
-            data_keywords = [cut_keyword, "bunches", "binning_300"]
+            data_keywords = [cut_keyword, "bunches", "binning"]
             data_pattern = "lmd_res_data_"
         else:
             raise NotImplementedError(f"Simulation type {task.simDataType} is not implemented!")
@@ -564,7 +564,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
             assert thisExperiment.resAccPackage.simParams is not None
             assert thisExperiment.dataPackage.recoIPpath is not None
 
-            temp_dir_searcher = DirectorySearcher(["merge_data", "binning_300"])
+            temp_dir_searcher = DirectorySearcher(["merge_data", "binning"])
             temp_dir_searcher.searchListOfDirectories(thisFuckingShitPath, "reco_ip.json")
             found_dirs = temp_dir_searcher.getListOfDirectories()
             # wait I think I know whats happening. If the reco_ip.json is not found, the bash command
@@ -574,7 +574,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
             if not found_dirs:
                 # 2. determine offset on the vertex data sample
                 os.chdir(lmd_fit_bin_path)
-                temp_dir_searcher = DirectorySearcher(["merge_data", "binning_300"])
+                temp_dir_searcher = DirectorySearcher(["merge_data", "binning"])
                 temp_dir_searcher.searchListOfDirectories(thisFuckingShitPath, ["lmd_vertex_data_", "of1.root"])
 
                 found_dirs = temp_dir_searcher.getListOfDirectories()
