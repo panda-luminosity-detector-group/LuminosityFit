@@ -214,3 +214,6 @@ class ExperimentParameters:
 
     # absolute path to the fit config
     fitConfigPath: Path
+
+    # absolute path to the data config (for bunches/binning)
+    dataConfigPath: Path

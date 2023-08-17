@@ -400,9 +400,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 multiFileListCommand.append("10")
                 multiFileListCommand.append("--maximum_number_of_files")
 
-                # wait, doesn't this have to be done for BOTH data and resAcc?!
-                # it does, but it is. This branch is reached in both cases
-                # FIXME: that means we must use the correct configPackage!
                 # okay, we are either in DATA mode or RESACC mode, so choose the
                 # correct configPackage. also, in VERTEX mode, the reco params don't
                 # have cuts!
@@ -421,39 +418,24 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
 
                 multiFileListCommand.clear()
 
-                # TODO: pass experiment config, or better yet, make class instead of script
+                # TODO: pass experiment config, or better yet, make module instead of script
                 # create data
-                lmdDataCommand: List[str]
+                lmdDataCommand: List[str] = []
+                lmdDataCommand.append("python")
+                lmdDataCommand.append("createMultipleLmdData.py")
+                lmdDataCommand.append("--dir_pattern")
+                lmdDataCommand.append(data_keywords[0])
+                lmdDataCommand.append("--jobCommand")
+                lmdDataCommand.append(thisExperiment.LMDDataCommand)
+                lmdDataCommand.append(f"{thisExperiment.dataPackage.recoParams.lab_momentum:.2f}")
+                lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
+                lmdDataCommand.append(str(generateAbsoluteROOTDataPath(configPackage=configPackage)))
+                lmdDataCommand.append(str(thisExperiment.dataConfigPath))
+
                 if task.simDataType == SimulationDataType.ANGULAR:
                     el_cs = thisScenario.elastic_pbarp_integrated_cross_secion_in_mb
-                    lmdDataCommand = []
-                    lmdDataCommand.append("python")
-                    lmdDataCommand.append("createMultipleLmdData.py")
-                    lmdDataCommand.append("--dir_pattern")
-                    lmdDataCommand.append(data_keywords[0])
-                    lmdDataCommand.append("--jobCommand")
-                    lmdDataCommand.append(thisExperiment.LMDDataCommand)
-                    lmdDataCommand.append(f"{thisScenario.momentum:.2f}")
-                    lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    lmdDataCommand.append(str(thisShitPath))
-                    lmdDataCommand.append("../dataconfig_xy.json")
-
-                    if el_cs:
-                        lmdDataCommand.append("--elastic_cross_section")
-                        lmdDataCommand.append(str(el_cs))
-                        # bashcommand += " --elastic_cross_section " + str(el_cs)
-                else:
-                    lmdDataCommand = []
-                    lmdDataCommand.append("python")
-                    lmdDataCommand.append("createMultipleLmdData.py")
-                    lmdDataCommand.append("--dir_pattern")
-                    lmdDataCommand.append(data_keywords[0])
-                    lmdDataCommand.append("--jobCommand")
-                    lmdDataCommand.append(thisExperiment.LMDDataCommand)
-                    lmdDataCommand.append(f"{thisScenario.momentum:.2f}")
-                    lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    lmdDataCommand.append(str(thisShitPath))
-                    lmdDataCommand.append("../dataconfig_xy.json")
+                    lmdDataCommand.append("--elastic_cross_section")
+                    lmdDataCommand.append(str(el_cs))
 
                 print("bash command for LmdData creation")
                 print(lmdDataCommand)
@@ -768,7 +750,6 @@ lmd_fit_bin_path = envPath("LMDFIT_BUILD_PATH") / "bin"
 # * ----------------- create a scenario object. it resides only in memory and is never written to disk
 # it is however liberally modified and passed around
 thisScenario = Scenario()
-thisScenario.momentum = loadedExperimentFromConfig.dataPackage.recoParams.lab_momentum
 
 # set via command line argument, usually 1
 bootstrapped_num_samples = args.bootstrapped_num_samples

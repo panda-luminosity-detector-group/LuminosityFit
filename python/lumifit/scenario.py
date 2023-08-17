@@ -46,8 +46,6 @@ class SimulationDataType(Enum):
 
 @define
 class SimulationTask:
-    # TODO: there shouldn't be any paths in here anymore, those are all in the config
-    # dirPath: Path = Path()
     simDataType: SimulationDataType = SimulationDataType.NONE
     simState: SimulationState = SimulationState.INIT
     lastState: SimulationState = SimulationState.INIT
@@ -63,12 +61,7 @@ class Scenario:
     # maybe a better name would be "simulationRecipe"?
     """
 
-    momentum: float = 0.0
     elastic_pbarp_integrated_cross_secion_in_mb: float = 0.0
-
-    # trackDirectory: Path = Path()
-    # filteredTrackDirectory: Path = Path()
-    # acc_and_res_dir_path: Path = Path()
 
     SimulationTasks: List[SimulationTask] = []
     lumiDetState: LumiDeterminationState = LumiDeterminationState.SIMULATE_VERTEX_DATA

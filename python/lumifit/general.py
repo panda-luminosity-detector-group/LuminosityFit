@@ -190,7 +190,7 @@ class DirectorySearcher:
                         break
 
 
-class ConfigModifier:
+class ConfigReaderAndWriter:
     """
     Todo: actually just remove that when you're sure you've removed all references to it.
     The config should be read, not modified.
@@ -199,10 +199,14 @@ class ConfigModifier:
     def __init__(self) -> None:
         pass
 
-    def loadConfig(self, config_file_path: str) -> Any:
-        f = open(config_file_path, "r")
-        return json.loads(f.read())
+    def loadConfig(self, config_file_path: Path) -> Any:
+        with open(config_file_path, "r") as f:
+            return json.load(f)
 
-    def writeConfigToPath(self, config: Any, config_file_path: str) -> None:
-        f = open(config_file_path, "w")
-        f.write(json.dumps(config, indent=2, separators=(",", ": ")))
+    def writeConfigToPath(self, config: Any, config_file_path: Path) -> None:
+        """
+        Writes the config to the given path, overwriting any existing file.
+        """
+        with open(config_file_path, "w") as f:
+            json.dump(config, f, indent=2, separators=(",", ": "))
+            # f.write(json.dumps(config, indent=2, separators=(",", ": ")))
