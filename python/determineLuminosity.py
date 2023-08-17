@@ -16,9 +16,9 @@ from lumifit.general import DirectorySearcher, envPath, getGoodFiles
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
 from lumifit.paths import generateAbsoluteROOTDataPath, generateCutKeyword
-from lumifit.scenario import (
+from lumifit.recipe import (
     LumiDeterminationState,
-    Scenario,
+    SimRecipe,
     SimulationDataType,
     SimulationState,
     SimulationTask,
@@ -99,14 +99,14 @@ def wasSimulationSuccessful(
 # ----------------------------------------------------------------------------
 # ok we do it in such a way we have a step state for each directory and stacks
 # we try to process
-active_scenario_stack: List[Scenario] = []
-waiting_scenario_stack: List[Scenario] = []
+active_recipe_stack: List[SimRecipe] = []
+waiting_recipe_stack: List[SimRecipe] = []
 
 
-def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Scenario) -> Scenario:
+def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecipe) -> SimRecipe:
     """
-    Start a SLURM job for every SimulationTask assigned to a scenario.
-    A scenario may hold multiple SimulationTasks at the same time that
+    Start a SLURM job for every SimulationTask assigned to a recipe.
+    A recipe may hold multiple SimulationTasks at the same time that
     can be run concurrently (like reconstruction of DPM data with cut
     while at the same time res/acc data is generated)
 
@@ -125,16 +125,10 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
     3:  Merge bunched Data
 
     Because the job submission via Slurm doesn't block, the function is exited
-    even though jobs are still running. The Scenario objects therefore hold this state
+    even though jobs are still running. The recipe objects therefore hold this state
     info so that the waiting method knows where it left off.
 
-    parameters:
-        thisExperiment: ExperimentParameters
-            the experiment parameters
-        thisScenario: Scenario
-            the scenario to run
-
-    TODO: this function is a bloody fucking mess. It gets passed a scenario object
+    TODO: this function is a bloody fucking mess. It gets passed a recipe object
     and depending on the internal state of this object, over nine fucking thousand
     different if branches are executed. Of course that means this shit is impossible
     to understand or debug.
@@ -142,7 +136,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
     So this must change.
     """
 
-    for task in thisScenario.SimulationTasks:
+    for task in recipe.SimulationTasks:
         print(f"simulateDataOnHimster: {thisExperiment.experimentDir}")
         print(f"running simulation of type {str(task.simDataType)} at states:")
         print(f"current state: {str(task.simState)}")
@@ -256,8 +250,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                     )
                     job_manager.append(job)
 
-                    # task.dirPath = returnPath
-                    # thisScenario.acc_and_res_dir_path = returnPath
                     task.lastState = SimulationState.START_SIM
 
             elif task.simDataType == SimulationDataType.ANGULAR:
@@ -297,18 +289,12 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 elif task.lastState < task.simState:
                     # TODO: alignment part
 
-                    # TODO: this should'n be in the task anyway
-                    # returnPath = generateAbsoluteROOTDataPath(thisExperiment.dataPackage)
-
                     job = create_reconstruction_job(
                         thisExperiment,
                         thisMode=DataMode.DATA,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
-
-                    # task.dirPath = returnPath
-                    # thisScenario.filteredTrackDirectory = returnPath
 
                     # Simulation is done, so update the last_state
                     task.lastState = SimulationState.START_SIM
@@ -433,7 +419,9 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
                 lmdDataCommand.append(str(thisExperiment.dataConfigPath))
 
                 if task.simDataType == SimulationDataType.ANGULAR:
-                    el_cs = thisScenario.elastic_pbarp_integrated_cross_secion_in_mb
+                    # TODO: can we write this to the experiment config? I mean it only depends on the momentum anyway,
+                    # so it could be written at generation time
+                    el_cs = recipe.elastic_pbarp_integrated_cross_secion_in_mb
                     lmdDataCommand.append("--elastic_cross_section")
                     lmdDataCommand.append(str(el_cs))
 
@@ -454,10 +442,10 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
             elif status_code > 0:
                 print(f"status_code {status_code}: still waiting for himster simulation jobs for {task.simDataType} data to complete...")
             else:
-                # ok something went wrong there, exit this scenario and
-                # push on bad scenario stack
+                # ok something went wrong there, exit this recipe and
+                # push on bad recipe stack
                 task.simState = SimulationState.FAILED
-                raise ValueError("Something went wrong with the cluster jobs! This scenario will no longer be processed.")
+                raise ValueError("Something went wrong with the cluster jobs! This recipe will no longer be processed.")
 
         # 3. merge data
         if task.simState == SimulationState.MERGE:
@@ -500,38 +488,38 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, thisScenario: Sc
             task.simState = SimulationState.DONE
 
         if task.lastState == SimulationState.FAILED:
-            thisScenario.is_broken = True
+            recipe.is_broken = True
             break
 
     # remove done tasks
-    thisScenario.SimulationTasks = [simTask for simTask in thisScenario.SimulationTasks if simTask.simState != SimulationState.DONE]
+    recipe.SimulationTasks = [simTask for simTask in recipe.SimulationTasks if simTask.simState != SimulationState.DONE]
 
-    return thisScenario
+    return recipe
 
 
-def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenario) -> None:
+def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -> None:
     # open cross section file (this was generated by apps/generatePbarPElasticScattering
     elastic_cross_section_file_path = thisExperiment.experimentDir / "elastic_cross_section.txt"
     if elastic_cross_section_file_path.exists():
         print("Found an elastic cross section file!")
         with open(elastic_cross_section_file_path, "r") as f:
             content = f.readlines()
-            thisScenario.elastic_pbarp_integrated_cross_secion_in_mb = float(content[0])
-    elif thisScenario.lumiDetState == LumiDeterminationState.SIMULATE_VERTEX_DATA:
+            recipe.elastic_pbarp_integrated_cross_secion_in_mb = float(content[0])
+    elif recipe.lumiDetState == LumiDeterminationState.SIMULATE_VERTEX_DATA:
         print("No elastic cross section file found. This is ok if you are first simulating vertex data!")
     else:
         raise FileNotFoundError("ERROR! Can not find elastic cross section file! The determined Luminosity will be wrong!\n")
 
-    print(f"processing scenario {thisExperiment.experimentDir} at step {thisScenario.lumiDetState}")
+    print(f"processing recipe {thisExperiment.experimentDir} at step {recipe.lumiDetState}")
 
     finished = False
 
     """
-    Okay, in the previous version of the script, we had a path in the scenario object.
+    Okay, in the previous version of the script, we had a path in the recipe object.
     It pointed to the directory where the uncut dpm data was:
     dir_searcher = DirectorySearcher(["dpm_elastic", "uncut"])
 
-    This is now (obviously) somewhere else, but why did the scenario need that info in the first place?
+    This is now (obviously) somewhere else, but why did the recipe need that info in the first place?
     """
 
     # thisFuckingShitPath points to the experiment base dir, WITHOUT data/resAcc subfolder
@@ -542,24 +530,24 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
 
     # by default, we always start with SIMULATE_VERTEX_DATA, even though
     # runSimulationReconstruction has probably already been run.
-    if thisScenario.lumiDetState == LumiDeterminationState.SIMULATE_VERTEX_DATA:
+    if recipe.lumiDetState == LumiDeterminationState.SIMULATE_VERTEX_DATA:
         """
         State 1 simulates vertex data from which the IP can be determined.
         """
-        if len(thisScenario.SimulationTasks) == 0:
-            thisScenario.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.VERTEX, simState=SimulationState.START_SIM))
+        if len(recipe.SimulationTasks) == 0:
+            recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.VERTEX, simState=SimulationState.START_SIM))
 
-        thisScenario = simulateDataOnHimster(thisExperiment, thisScenario)
-        if thisScenario.is_broken:
-            raise SystemError(f"ERROR! Scenario is broken! debug scenario info:\n{thisScenario}")
+        recipe = simulateDataOnHimster(thisExperiment, recipe)
+        if recipe.is_broken:
+            raise SystemError(f"ERROR! recipe is broken! debug recipe info:\n{recipe}")
 
         # when all sim Tasks are done, the IP can be determined
-        if len(thisScenario.SimulationTasks) == 0:
-            thisScenario.lumiDetState = LumiDeterminationState.DETERMINE_IP
-            thisScenario.lastLumiDetState = LumiDeterminationState.SIMULATE_VERTEX_DATA
+        if len(recipe.SimulationTasks) == 0:
+            recipe.lumiDetState = LumiDeterminationState.DETERMINE_IP
+            recipe.lastLumiDetState = LumiDeterminationState.SIMULATE_VERTEX_DATA
 
     # if lumiDetState == 2:
-    if thisScenario.lumiDetState == LumiDeterminationState.DETERMINE_IP:
+    if recipe.lumiDetState == LumiDeterminationState.DETERMINE_IP:
         """
         state 2 only handles the reconstructed IP. If use_ip_determination is set,
         the IP is reconstructed from the uncut data set and written to a reco_ip.json
@@ -637,15 +625,15 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
             print("This MUST only happen if you are using the IP determination!")
             print("============================================================")
             print("")
-            print("Finished IP determination for this scenario!")
+            print("Finished IP determination for this recipe!")
         else:
-            print("Skipped IP determination for this scenario, using values from config.")
+            print("Skipped IP determination for this recipe, using values from config.")
 
-        thisScenario.lumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
-        thisScenario.lastLumiDetState = LumiDeterminationState.DETERMINE_IP
+        recipe.lumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
+        recipe.lastLumiDetState = LumiDeterminationState.DETERMINE_IP
 
     # if lumiDetState == 3:
-    if thisScenario.lumiDetState == LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP:
+    if recipe.lumiDetState == LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP:
         # state 3a:
         # the IP position is now reconstructed. filter the DPM data again,
         # this time using the newly determined IP position as a cut criterion.
@@ -654,23 +642,23 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
         # (that means simulation + bunching + creating data objects + merging)
         # because this data is now with a cut applied, the new directory is called
         # something 1-100_xy_m_cut_real
-        if len(thisScenario.SimulationTasks) == 0:
-            thisScenario.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.ANGULAR, simState=SimulationState.START_SIM))
-            thisScenario.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.EFFICIENCY_RESOLUTION, simState=SimulationState.START_SIM))
+        if len(recipe.SimulationTasks) == 0:
+            recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.ANGULAR, simState=SimulationState.START_SIM))
+            recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.EFFICIENCY_RESOLUTION, simState=SimulationState.START_SIM))
 
         # remember, the experiment config may now contain the updated IP
-        thisScenario = simulateDataOnHimster(thisExperiment, thisScenario)
+        recipe = simulateDataOnHimster(thisExperiment, recipe)
 
-        if thisScenario.is_broken:
-            raise ValueError(f"ERROR! Scenario is broken! debug scenario info:\n{thisScenario}")
+        if recipe.is_broken:
+            raise ValueError(f"ERROR! recipe is broken! debug recipe info:\n{recipe}")
 
         # when all simulation Tasks are done, the Lumi Fit may start
-        if len(thisScenario.SimulationTasks) == 0:
-            thisScenario.lumiDetState = LumiDeterminationState.RUN_LUMINOSITY_FIT
-            thisScenario.lastLumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
+        if len(recipe.SimulationTasks) == 0:
+            recipe.lumiDetState = LumiDeterminationState.RUN_LUMINOSITY_FIT
+            recipe.lastLumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
 
     # if lumiDetState == 4:
-    if thisScenario.lumiDetState == LumiDeterminationState.RUN_LUMINOSITY_FIT:
+    if recipe.lumiDetState == LumiDeterminationState.RUN_LUMINOSITY_FIT:
         """
         4. runLmdFit!
 
@@ -690,23 +678,23 @@ def lumiDetermination(thisExperiment: ExperimentParameters, thisScenario: Scenar
         lumiFitCommand.append("python")
         lumiFitCommand.append("doMultipleLuminosityFits.py")
         lumiFitCommand.append("--forced_resAcc_gen_data")
-        lumiFitCommand.append(f"{thisScenario.acc_and_res_dir_path}")
+        lumiFitCommand.append(f"{recipe.acc_and_res_dir_path}")
         lumiFitCommand.append("-e")
         lumiFitCommand.append(f"{args.ExperimentConfigFile}")
-        lumiFitCommand.append(f"{thisScenario.filteredTrackDirectory}")
+        lumiFitCommand.append(f"{recipe.filteredTrackDirectory}")
         lumiFitCommand.append(f"{cut_keyword}")
         lumiFitCommand.append(f"{lmd_fit_script_path}/{thisExperiment.fitConfigPath}")
 
         print(f"Bash command is:\n{' '.join(lumiFitCommand)}")
         _ = subprocess.call(lumiFitCommand)
 
-        print("this scenario is fully processed!!!")
+        print("this recipe is fully processed!!!")
         finished = True
 
     # if we are in an intermediate step then push on the waiting stack and
     # increase step state
     if not finished:
-        waiting_scenario_stack.append(thisScenario)
+        waiting_recipe_stack.append(recipe)
 
 
 #! --------------------------------------------------
@@ -747,37 +735,12 @@ loadedExperimentFromConfig: ExperimentParameters = load_params_from_file(args.Ex
 lmd_fit_script_path = envPath("LMDFIT_SCRIPTPATH")
 lmd_fit_bin_path = envPath("LMDFIT_BUILD_PATH") / "bin"
 
-# * ----------------- create a scenario object. it resides only in memory and is never written to disk
+# * ----------------- create a recipe object. it resides only in memory and is never written to disk
 # it is however liberally modified and passed around
-thisScenario = Scenario()
+recipe = SimRecipe()
 
 # set via command line argument, usually 1
 bootstrapped_num_samples = args.bootstrapped_num_samples
-
-# # * ----------------- find the path to the TracksQA files.
-# # the config only holds the base directory (i.e. where the first sim_params is)
-# dir_searcher = DirectorySearcher(["dpm_elastic", "uncut"])
-
-# # TODO: remember, we don't want to search, we want to HAVE the path in the config
-# dir_searcher.searchListOfDirectories(
-#     loadedExperimentFromConfig.dataPackage.baseDataDir,
-#     loadedExperimentFromConfig.trackFilePattern,
-# )
-# dirs = dir_searcher.getListOfDirectories()
-
-# print(f"\n\nINFO: found these dirs:\n{dirs}\n\n")
-
-# if len(dirs) > 1:
-#     raise ValueError(f"found {len(dirs)} directory candidates but it should be only one. something is wrong!")
-
-# elif len(dirs) < 1:
-#     # don't change thisScenario's trackDirectory, it was set during construction
-#     print("No dirs found, that means vertex data wasn't generated (or reconstructed) yet.")
-
-# else:
-#     # path has changed now for the newly found dir
-#     thisScenario.trackDirectory = dirs[0]
-
 
 # * ----------------- check which cluster we're on and create job handler
 if loadedExperimentFromConfig.cluster == ClusterEnvironment.VIRGO:
@@ -797,22 +760,22 @@ job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
 # * ----------------- start the lumi function for the first time.
 # it will be run again because it is implemented as a state machine (for now...)
-lumiDetermination(loadedExperimentFromConfig, thisScenario)
+lumiDetermination(loadedExperimentFromConfig, recipe)
 
-# TODO: okay this is tricky, sometimes scenarios are pushed to the waiting stack,
+# TODO: okay this is tricky, sometimes recipes are pushed to the waiting stack,
 # and then they are run again? let's see if we can do this some other way.
-# while len(waiting_scenario_stack) > 0:
-while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
-    for scen in active_scenario_stack:
+# while len(waiting_recipe_stack) > 0:
+while len(active_recipe_stack) > 0 or len(waiting_recipe_stack) > 0:
+    for scen in active_recipe_stack:
         lumiDetermination(loadedExperimentFromConfig, scen)
 
-    # clear active stack, if the scenario needs to be processed again,
+    # clear active stack, if the recipe needs to be processed again,
     # it will be placed in the waiting stack
-    active_scenario_stack = []
-    # if all scenarios are currently processed just wait a bit and check again
+    active_recipe_stack = []
+    # if all recipes are currently processed just wait a bit and check again
     # TODO: I think it would be better to wait for a real signal and not just "when enough files are there"
-    if len(waiting_scenario_stack) > 0:
-        print("currently waiting for 15 min to process scenarios again")
+    if len(waiting_recipe_stack) > 0:
+        print("currently waiting for 15 min to process recipes again")
         print("press ctrl C (ONCE) to skip this waiting round.")
 
         try:
@@ -827,5 +790,5 @@ while len(active_scenario_stack) > 0 or len(waiting_scenario_stack) > 0:
             print("understood. killing program.")
             sys.exit(1)
 
-        active_scenario_stack = waiting_scenario_stack
-        waiting_scenario_stack = []
+        active_recipe_stack = waiting_recipe_stack
+        waiting_recipe_stack = []

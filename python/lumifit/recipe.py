@@ -3,15 +3,11 @@ container class for a data set found by determineLuminosity.py.
 
 only used by determineLuminosity.py internally, should never be written to
 or read from file!
-
-TODO: maybe integrate this into lumifit.types?
 """
 
 from enum import Enum, IntEnum
-from pathlib import Path
 from typing import List
 
-# import attr
 from attrs import define
 
 
@@ -52,11 +48,9 @@ class SimulationTask:
 
 
 @define
-class Scenario:
+class SimRecipe:
     """
     Scenarios are always simulated on a cluster, but all runtime parameters are set during construction!
-    # TODO: there shouldn't be any paths in here anymore, those are all in the config
-    # also momentum is irrelevant, that's in the experiment config too
     # also the name scenario is wrong, this is more of a todo-list of running jobs
     # maybe a better name would be "simulationRecipe"?
     """
