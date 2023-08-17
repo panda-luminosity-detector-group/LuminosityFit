@@ -175,8 +175,11 @@ else:
 # as quite a lot of data is read in from the storage...)
 job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
-fileList, _ = getGoodFiles(fileListPath, "filelist_*.txt")
+fileList, _ = getGoodFiles(fileListPath, "filelist_*.txt", min_filesize_in_bytes=100)
 numFileList = len(fileList)
+
+if numFileList < 1:
+    raise RuntimeError("No filelists found!")
 
 resource_request = JobResourceRequest(3 * 60)
 resource_request.number_of_nodes = 1
