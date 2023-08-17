@@ -409,8 +409,8 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                 lmdDataCommand: List[str] = []
                 lmdDataCommand.append("python")
                 lmdDataCommand.append("createMultipleLmdData.py")
-                lmdDataCommand.append("--dir_pattern")
-                lmdDataCommand.append(data_keywords[0])
+                # lmdDataCommand.append("--dir_pattern")
+                # lmdDataCommand.append(data_keywords[0])
                 lmdDataCommand.append("--jobCommand")
                 lmdDataCommand.append(thisExperiment.LMDDataCommand)
                 lmdDataCommand.append(f"{thisExperiment.dataPackage.recoParams.lab_momentum:.2f}")
