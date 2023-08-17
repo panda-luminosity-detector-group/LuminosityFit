@@ -134,7 +134,8 @@ def genExperimentConfig(
         experimentDir=experimentDir,
         dataPackage=dataPackage,
         resAccPackage=resAccPackage,
-        fitConfigPath=(LMDscriptpath / Path("../fitconfig-fast.json")).resolve(),
+        fitConfigPath=(LMDscriptpath / Path("../configs/fitconfig-fast.json")).resolve(),
+        dataConfigPath=(LMDscriptpath / Path("../configs/dataconfig.json")).resolve(),
     )
 
     return experiment
