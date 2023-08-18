@@ -171,7 +171,7 @@ void displayInfo() {
   // display info
   std::cout << "Required arguments are: " << std::endl;
   std::cout << "-p [path to data]" << std::endl;
-  std::cout << "-t [type of data to create] (a = angular, e = efficiency, r = "
+  std::cout << "-t [type of data to merge] (a = angular, e = efficiency, r = "
                "resolution, v = vertex)"
             << std::endl;
   std::cout << "Optional arguments are: " << std::endl;

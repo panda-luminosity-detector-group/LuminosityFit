@@ -455,30 +455,16 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
             found_dirs = temp_dir_searcher.getListOfDirectories()
             if not found_dirs:
                 os.chdir(lmd_fit_script_path)
-                # merge data
-                # if "a" in task.simType:
-                mergeCommand: List[str]
+
+                mergeCommand: List[str] = []
+                mergeCommand.append("python")
+                mergeCommand.append("mergeMultipleLmdData.py")
+                mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
+                mergeCommand.append(str(generateAbsoluteROOTDataPath(configPackage=configPackage)))
+
                 if task.simDataType == SimulationDataType.ANGULAR:
-                    mergeCommand = []
-                    mergeCommand.append("python")
-                    mergeCommand.append("mergeMultipleLmdData.py")
-                    mergeCommand.append("--dir_pattern")
-                    mergeCommand.append(data_keywords[0])
                     mergeCommand.append("--num_samples")
                     mergeCommand.append(str(bootstrapped_num_samples))
-                    mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    # okay this fucking sucks. this path depends on the simDataType (a/er/v), so either data/something or resAcc/something
-                    mergeCommand.append(str(thisShitPath))
-
-                else:
-                    mergeCommand = []
-                    mergeCommand.append("python")
-                    mergeCommand.append("mergeMultipleLmdData.py")
-                    mergeCommand.append("--dir_pattern")
-                    mergeCommand.append(data_keywords[0])
-                    mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                    # okay this fucking sucks. this path depends on the simDataType (a/er/v), so either data/something or resAcc/something
-                    mergeCommand.append(str(thisShitPath))
 
                 print("working directory:")
                 print(f"{os.getcwd()}")

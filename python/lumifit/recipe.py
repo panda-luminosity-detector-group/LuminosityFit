@@ -31,6 +31,8 @@ class SimulationState(IntEnum):
 class SimulationDataType(Enum):
     """
     Wait, this holds largely the same info as types.DataMode, do we really need both?
+
+    TODO: also, e and r can be individual modes
     """
 
     NONE = "none"
