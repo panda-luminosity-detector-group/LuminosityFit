@@ -381,7 +381,12 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
 
             # jesus fuck these status code, "something is wrong" means
             # not enough files were found.
-            if status_code == -1:
+            if status_code == 0:
+                print("skipping bunching and data object creation...")
+                task.simState = SimulationState.MERGE
+                task.lastState = SimulationState.MAKE_BUNCHES
+
+            elif status_code < 0:
                 os.chdir(lmd_fit_script_path)
                 # bunch data
                 # TODO: pass experiment config, or better yet, make class instead of script
@@ -432,18 +437,13 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
 
                 lmdDataCommand.clear()
 
-            if status_code == 0:
-                print("skipping bunching and data object creation...")
-                # state = 3
-                task.simState = SimulationState.MERGE
-                task.lastState = SimulationState.MAKE_BUNCHES
             elif status_code > 0:
                 print(f"status_code {status_code}: still waiting for himster simulation jobs for {task.simDataType} data to complete...")
             else:
                 # ok something went wrong there, exit this recipe and
                 # push on bad recipe stack
                 task.simState = SimulationState.FAILED
-                raise ValueError("Something went wrong with the cluster jobs! This recipe will no longer be processed.")
+                raise ValueError(f"Something went wrong with the cluster jobs! Status code was {status_code} This recipe will no longer be processed.")
 
         # 3. merge data
         if task.simState == SimulationState.MERGE:
