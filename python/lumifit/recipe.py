@@ -35,11 +35,11 @@ class SimulationDataType(Enum):
     TODO: also, e and r can be individual modes
     """
 
-    NONE = "none"
-    ANGULAR = "a"
-    VERTEX = "v"
-    EFFICIENCY_RESOLUTION = "er"
-    HIST = "h"
+    NONE = "none"  # none bro, trust me bro
+    ANGULAR = "a"  # angular data is reconstructed MC data after the IP was reconstructed, that means with cuts
+    VERTEX = "v"  # vertex data is simulated MC data before the IP was reconstructed, that means without cuts
+    EFFICIENCY_RESOLUTION = "er"  # full set of simulation and reconstruction data WITH offset IP for efficiency and resolution
+    HIST = "h"  # no idea, probably deprecated
 
 
 @define

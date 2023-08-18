@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import copy
 import json
 import math
 import os
@@ -146,7 +147,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
         print(f"current state: {str(task.simState)}")
         print(f"last state:    {str(task.lastState)}")
 
-        data_keywords = []
         data_pattern = ""
 
         # this case switch is needed for the DirectorySearchers, which determine the
@@ -157,30 +157,22 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
         # so obviously this is shit design which fucking sucks,
         # but I can (and fucking will!) change it later
         # for now, we need it this way.
-        merge_keywords = ["merge_data", "binning"]
         if task.simDataType == SimulationDataType.VERTEX:
             cut_keyword = "uncut"
-            data_keywords = [cut_keyword, "bunches", "binning"]
             data_pattern = "lmd_vertex_data_"
             configPackage = thisExperiment.dataPackage
         elif task.simDataType == SimulationDataType.ANGULAR:
             configPackage = thisExperiment.dataPackage
             cut_keyword = generateCutKeyword(configPackage.recoParams)
-            data_keywords = [cut_keyword, "bunches", "binning"]
             data_pattern = "lmd_data_"
         elif task.simDataType == SimulationDataType.EFFICIENCY_RESOLUTION:
             configPackage = thisExperiment.resAccPackage
             cut_keyword = generateCutKeyword(configPackage.recoParams)
-            data_keywords = [cut_keyword, "bunches", "binning"]
             data_pattern = "lmd_res_data_"
         else:
             raise NotImplementedError(f"Simulation type {task.simDataType} is not implemented!")
 
         print(f"cut keyword is {cut_keyword}")
-
-        # thisShitPath points to the experiment base dir, WITHOUT data/resAcc subfolder
-        # (so especially now reco/cut/align folders)
-        thisShitPath = thisExperiment.experimentDir
 
         # 1. simulate data
         if task.simState == SimulationState.START_SIM:
@@ -197,26 +189,8 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
 
                 assert thisExperiment.resAccPackage.simParams is not None
 
-                # found_dirs = []
-                # # what the shit, this should never be empty in the first place
-                # if (task.dirPath != "") and (task.dirPath is not None):
-                #     temp_dir_searcher = DirectorySearcher(
-                #         [
-                #             thisExperiment.resAccPackage.simParams.simGeneratorType.value,
-                #             data_keywords[0],
-                #         ]  # look for the folder name including sim_type_for_resAcc
-                #     )
-                #     temp_dir_searcher.searchListOfDirectories(task.dirPath, thisExperiment.trackFilePattern)
-                #     found_dirs = temp_dir_searcher.getListOfDirectories()
-                #     print(f"found dirs now: {found_dirs}")
-                # else:
-                #     # path may be empty, then the directory searcher tries to find it
-                #     pass
-
-                # TODO: found_dirs[0] should point to resAcc/1-100_xy_m_cut/no_alignment_correction
-                # later, WITH alignment since that affects the acceptance!
+                # TODO: later, WITH alignment since that affects the acceptance!
                 resAccDataDir = generateAbsoluteROOTDataPath(thisExperiment.resAccPackage)
-                # if found_dirs:
                 status_code = wasSimulationSuccessful(directory=resAccDataDir, glob_pattern=thisExperiment.trackFilePattern + "*.root")
 
                 # this elif belonged to the if found_dirs...
@@ -224,6 +198,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                 # so the simulation needs to be run
                 if status_code == 0:
                     # everything is fucking dandy I suppose?!
+                    # FIXME: should the status be increased here somewhere?
                     pass
                 elif task.lastState < SimulationState.START_SIM:
                     # then lets simulate!
@@ -264,23 +239,10 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                 note: beam tilt and divergence are not used here because
                 only the last reco steps are rerun of the track reco
                 """
-                # found_dirs = []
-                # status_code = 1
-                # # what the shit, this should never be empty in the first place
-                # if (task.dirPath != "") and (task.dirPath is not None):
-                #     temp_dir_searcher = DirectorySearcher(["dpm_elastic", data_keywords[0]])
-                #     temp_dir_searcher.searchListOfDirectories(task.dirPath, thisExperiment.trackFilePattern)
-                #     found_dirs = temp_dir_searcher.getListOfDirectories()
-
-                # else:
-                #     # path may be empty, then the directory searcher tries to find it
-                #     # TODO: wait thats a shit way to do this, implicit magic functions wtf?!
-                #     pass
 
                 # TODO: found_dirs[0] should point to data/1-100_xy_m_cut/no_alignment_correction
                 # but only because this doesn't support alignment yet, otherwise this should be the
                 # final final final path, i.e. all cuts and applied alignment
-                # if found_dirs:
                 angularDataDir = generateAbsoluteROOTDataPath(thisExperiment.dataPackage)
                 status_code = wasSimulationSuccessful(
                     directory=angularDataDir,
@@ -288,6 +250,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                 )
                 if status_code == 0:
                     # everything is fucking dandy I suppose?!
+                    # FIXME: should the status be increased here somewhere?
                     pass
                 # oh boi that's bound to be trouble
                 elif task.lastState < task.simState:
@@ -320,17 +283,20 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                 # TODO: better job supervision
                 if status_code < 0:
                     # vertex data must always be created without any cuts first
-                    thisExperiment.dataPackage.recoParams.disableCuts()
+                    copyExperiment = copy.deepcopy(thisExperiment)
+                    copyExperiment.dataPackage.recoParams.disableCuts()
 
                     # TODO: misalignment is important here. the vertex data can have misalignment (because it's real data)
                     # but it has no alignment yet. that is only for the second reconstruction
 
                     job = create_simulation_and_reconstruction_job(
-                        thisExperiment,
+                        copyExperiment,
                         thisMode=DataMode.DATA,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
+
+                    del copyExperiment
 
             else:
                 raise ValueError(f"This tasks simType is {task.simDataType}, which is invalid!")
