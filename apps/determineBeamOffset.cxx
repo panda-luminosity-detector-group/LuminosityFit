@@ -51,9 +51,6 @@ void determineBeamOffset(string input_file_dir, string config_file_url,
 
   // save data
   std::cout << "Saving data...." << std::endl;
-  // output file
-  std::stringstream hs;
-  hs << input_file_dir << "/reco_ip.json";
 
   ptree fit_result_ptree;
   for (auto const &vertex_data : my_vertex_vec) {
@@ -80,9 +77,10 @@ void determineBeamOffset(string input_file_dir, string config_file_url,
   // add rec ip_z as 0.0
   fit_result_ptree.add("ip_z", 0.0);
   std::cout << "writing result to " << output_file << std::endl;
+  // output file
   write_json(output_file, fit_result_ptree);
 
-  hs.str("");
+  std::stringstream hs;
   hs << input_file_dir << "/lmd_fitted_vertex_data.root";
   TFile *ffitteddata = new TFile(hs.str().c_str(), "RECREATE");
 
