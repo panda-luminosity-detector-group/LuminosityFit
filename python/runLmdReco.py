@@ -48,14 +48,17 @@ pathToTrkQAFiles = generateAbsoluteROOTDataPath(configPackage=configPackage)
 PNDmacropath = experiment.softwarePaths.PandaRootMacroPath
 relativeDirToTrksQAFilesOnComputeNode = "LMD-TempRootFiles"
 
+# those must already be here because SLURM logs are written here
+assert pathToTrkQAFiles.exists()
+assert MCDataDir.exists()
+(pathToTrkQAFiles / "Pairs").mkdir(parents=True, exist_ok=True)
+
 debug = True
 filename_index = 1
 if "SLURM_ARRAY_TASK_ID" in os.environ:
     filename_index = int(os.environ["SLURM_ARRAY_TASK_ID"])
     debug = False
 
-pathToTrkQAFiles.mkdir(parents=True, exist_ok=True)
-(pathToTrkQAFiles / "Pairs").mkdir(parents=True, exist_ok=True)
 
 verbositylvl: int = 0
 start_evt: int = recoParams.num_events_per_sample * filename_index

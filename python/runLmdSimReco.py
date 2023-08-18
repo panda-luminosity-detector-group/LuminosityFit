@@ -55,9 +55,9 @@ LMDscriptpath = experiment.softwarePaths.LmdFitScripts
 relativeDirToTrksQAFilesOnComputeNode = "LMD-TempRootFiles"
 
 
-# prepare directories
-MCDataDir.mkdir(parents=True, exist_ok=True)
-pathToTrkQAFiles.mkdir(parents=True, exist_ok=True)
+# those must already be here because SLURM logs are written here
+assert MCDataDir.exists()
+assert pathToTrkQAFiles.exists()
 
 filename_index = 1
 debug = True

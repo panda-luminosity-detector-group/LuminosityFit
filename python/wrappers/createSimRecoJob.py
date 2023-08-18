@@ -1,11 +1,11 @@
 import subprocess
 
-from attrs import evolve
 from lumifit.cluster import (
     Job,
     JobResourceRequest,
     make_test_job_resource_request,
 )
+from lumifit.paths import generateAbsoluteROOTDataPath
 from lumifit.types import (
     DataMode,
     ExperimentParameters,
@@ -37,7 +37,10 @@ def create_simulation_and_reconstruction_job(
     else:
         raise NotImplementedError(f"DataMode {thisMode} not implemented")
 
-    # dataDir = generateAbsoluteROOTDataPath(configPackage=configPackage)
+    # this must be created here, because SLURM logs are written there
+    ROOTDataDir = generateAbsoluteROOTDataPath(configPackage=configPackage)
+    ROOTDataDir.mkdir(parents=True, exist_ok=True)
+
     simParams = configPackage.simParams
     # alignParams = configPackage.alignParams
 

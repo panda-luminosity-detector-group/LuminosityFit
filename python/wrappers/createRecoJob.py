@@ -33,8 +33,9 @@ def create_reconstruction_job(
         print("Warning: number of samples in debug mode is limited to 1!" " Setting to 1!")
         num_samples = 1
 
-    ROOTDataDir = generateAbsoluteROOTDataPath(configPackage)
-    print(f"dir name for this create_reconstruction_job is {ROOTDataDir}")
+    # this must be created here, because SLURM logs are written there
+    ROOTDataDir = generateAbsoluteROOTDataPath(configPackage=configPackage)
+    ROOTDataDir.mkdir(parents=True, exist_ok=True)
 
     resource_request = JobResourceRequest(2 * 60)
     resource_request.number_of_nodes = 1
