@@ -548,14 +548,14 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
             assert thisExperiment.recoIPpath is not None
 
             pathToRootFiles = generateAbsoluteROOTDataPath(thisExperiment.dataPackage)
-            binningPath = pathToRootFiles / generateRelativeBunchesDir() / generateRelativeBinningDir()
+            vertexDataPath = pathToRootFiles / generateRelativeBunchesDir() / generateRelativeBinningDir() / "merge_data"
 
             if not thisExperiment.recoIPpath.exists():
                 # 2. determine offset on the vertex data sample
                 bashCommand: List[str] = []
                 bashCommand.append(str(lmd_fit_bin_path / "determineBeamOffset"))
                 bashCommand.append("-p")
-                bashCommand.append(str(binningPath))
+                bashCommand.append(str(vertexDataPath))
                 bashCommand.append("-c")
                 bashCommand.append(str(thisExperiment.vertexConfigPath))
                 bashCommand.append("-o")
