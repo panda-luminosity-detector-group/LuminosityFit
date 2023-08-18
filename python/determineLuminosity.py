@@ -12,7 +12,7 @@ from typing import List
 
 from lumifit.cluster import ClusterJobManager
 from lumifit.config import load_params_from_file
-from lumifit.general import DirectorySearcher, envPath, getGoodFiles
+from lumifit.general import envPath, getGoodFiles
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
 from lumifit.paths import (
@@ -543,7 +543,6 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         ! Therefore, this is the ONLY place where a new IP may be set.
         """
 
-        # TODO: refactor this logic to not use the directorySearchers
         if thisExperiment.dataPackage.recoParams.use_ip_determination:
             assert thisExperiment.resAccPackage.simParams is not None
             assert thisExperiment.recoIPpath is not None
@@ -553,9 +552,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 
             if not thisExperiment.recoIPpath.exists():
                 # 2. determine offset on the vertex data sample
-                os.chdir(lmd_fit_bin_path)
                 bashCommand: List[str] = []
-                bashCommand.append("./determineBeamOffset")
+                bashCommand.append(str(lmd_fit_bin_path / "determineBeamOffset"))
                 bashCommand.append("-p")
                 bashCommand.append(str(binningPath))
                 bashCommand.append("-c")
@@ -563,6 +561,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
                 bashCommand.append("-o")
                 bashCommand.append(str(thisExperiment.recoIPpath))
 
+                print(f"beam offset determination command:\n{bashCommand}")
                 _ = subprocess.call(bashCommand)
 
             with open(str(thisExperiment.recoIPpath), "r") as f:
