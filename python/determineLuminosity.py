@@ -59,13 +59,13 @@ def wasSimulationSuccessful(
     directory: Path,
     glob_pattern: str,
     min_filesize_in_bytes: int = 10000,
-    is_bunches: bool = False,
 ) -> int:
+    """
+    returns -1 if something went wrong,
+    returns 0 found enough files,
+    returns 1 its not finished processing, just keep waiting
+    """
     print(f"checking if job was successful. checking in path {directory}, glob pattern {glob_pattern}")
-    # return values:
-    # 0: everything is fine
-    # >0: its not finished processing, just keep waiting
-    # <0: something went wrong...
     required_files_percentage = 0.8
     return_value = 0
 
@@ -73,7 +73,6 @@ def wasSimulationSuccessful(
         directory,
         glob_pattern,
         min_filesize_in_bytes=min_filesize_in_bytes,
-        is_bunches=is_bunches,
     )
 
     print(f"files percentage (depends on getGoodFiles) is {files_percentage}")
@@ -362,18 +361,27 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
             """
 
             # check if data objects already exists and skip!
-            temp_dir_searcher = DirectorySearcher(data_keywords)
-            temp_dir_searcher.searchListOfDirectories(thisShitPath, data_pattern)
-            found_dirs = temp_dir_searcher.getListOfDirectories()
-            status_code = 1
-            if found_dirs:
-                status_code = wasSimulationSuccessful(
-                    directory=found_dirs[0],
-                    glob_pattern=data_pattern + "*",
-                    is_bunches=True,
-                )
 
-            elif task.lastState < task.simState:
+            status_code = 1
+
+            # okay, we are either in DATA mode or RESACC mode, so choose the
+            # correct configPackage. also, in VERTEX mode, the reco params don't
+            # have cuts!
+            # yes, I hate this too, this will all be scrapped
+            # once these scripts are proper modules
+            if task.simDataType == SimulationDataType.VERTEX:
+                pathToRootFiles = generateAbsoluteROOTDataPath(configPackage=configPackage, dataMode=DataMode.VERTEXDATA)
+            else:
+                pathToRootFiles = generateAbsoluteROOTDataPath(configPackage=configPackage)
+
+            status_code = wasSimulationSuccessful(
+                directory=pathToRootFiles,
+                glob_pattern=data_pattern + "*",
+            )
+
+            # jesus fuck these status code, "something is wrong" means
+            # not enough files were found.
+            if status_code == -1:
                 os.chdir(lmd_fit_script_path)
                 # bunch data
                 # TODO: pass experiment config, or better yet, make class instead of script
@@ -385,16 +393,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                 multiFileListCommand.append("--files_per_bunch")
                 multiFileListCommand.append("10")
                 multiFileListCommand.append("--maximum_number_of_files")
-
-                # okay, we are either in DATA mode or RESACC mode, so choose the
-                # correct configPackage. also, in VERTEX mode, the reco params don't
-                # have cuts!
-                # yes, I hate this too, this will all be scrapped
-                # once these scripts are proper modules
-                if task.simDataType == SimulationDataType.VERTEX:
-                    pathToRootFiles = generateAbsoluteROOTDataPath(configPackage=configPackage, dataMode=DataMode.VERTEXDATA)
-                else:
-                    pathToRootFiles = generateAbsoluteROOTDataPath(configPackage=configPackage)
 
                 multiFileListCommand.append(str(configPackage.recoParams.num_samples))
                 multiFileListCommand.append(str(pathToRootFiles))

@@ -51,7 +51,6 @@ def getGoodFiles(
     directory: Path,
     glob_pattern: str,
     min_filesize_in_bytes: int = 2000,
-    is_bunches: bool = False,
 ) -> list:
     found_files = directory.glob(glob_pattern)
     good_files: List[Path] = []
@@ -62,23 +61,10 @@ def getGoodFiles(
         else:
             bad_files.append(file)
 
-    if is_bunches:
-        print("WARNING. Using deprecated is_bunches flag")
-
-    # this shit was supposed to extract the 1-100 numbvers. but that's doomed to fail on mc_data
-    # if is_bunches:
-    #     m = re.search(r"\/bunches_(\d+)", str(directory))
-    #     if m:
-    #         num_sim_files = int(m.group(1))
-    #     else:
-    #         return [0, 0]
-    # else:
-    #     m = re.search(r"\/(\d+)-(\d+)_.+?cut", str(directory))
-    #     if m:
-    #         num_sim_files = int(m.group(2)) - int(m.group(1)) + 1
-    #     return [0, 0]
-
     num_sim_files = len(good_files) + len(bad_files)
+
+    if num_sim_files < 0:
+        return [good_files, 0]
 
     print(f"found {len(good_files)} good files out of {num_sim_files} files")
     files_percentage = len(good_files) / num_sim_files
