@@ -396,7 +396,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                 lmdDataCommand.append(thisExperiment.LMDDataCommand)
                 lmdDataCommand.append(f"{thisExperiment.dataPackage.recoParams.lab_momentum:.2f}")
                 lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                lmdDataCommand.append(str(generateAbsoluteROOTDataPath(configPackage=configPackage)))
+                lmdDataCommand.append(str(pathToRootFiles))
                 lmdDataCommand.append(str(thisExperiment.dataConfigPath))
 
                 if task.simDataType == SimulationDataType.ANGULAR:
