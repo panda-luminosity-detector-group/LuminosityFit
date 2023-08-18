@@ -202,11 +202,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                 resAccDataDir = generateAbsoluteROOTDataPath(thisExperiment.resAccPackage)
                 status_code = wasSimulationSuccessful(directory=resAccDataDir, glob_pattern=thisExperiment.trackFilePattern + "*.root")
 
-                # this elif belonged to the if found_dirs...
-                # so that means if NOT data dir was found, the data is obviously not there,
-                # so the simulation needs to be run
                 if status_code == StatusCode.ENOUGH_FILES:
-                    # everything is fucking dandy I suppose?!
                     task.lastState = SimulationState.START_SIM
                     task.simState = SimulationState.MAKE_BUNCHES
 
@@ -222,11 +218,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                     # note: beam tilt and divergence are not necessary here,
                     # because that is handled completely by the model
 
-                    # because we can't change the experiment config or
-                    # anything in the simParams, recoParam, alignParams,
-                    # we'll create temp objects here.
-                    # TODO: the fuck we do, we take the params from the resAcc package!
-
                     # TODO: alignment part
                     # if alignement matrices were specified, we used them as a mis-alignment
                     # and alignment for the box simulations
@@ -238,7 +229,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                     )
                     job_manager.append(job)
 
-                    task.lastState = SimulationState.START_SIM
                     return recipe
 
             elif task.simDataType == SimulationDataType.ANGULAR:
@@ -491,12 +481,6 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
     This is now (obviously) somewhere else, but why did the recipe need that info in the first place?
     """
 
-    # thisFuckingShitPath points to the experiment base dir, WITHOUT data/resAcc subfolder
-    # (so especially now reco/cut/align folders)
-    # it has a slightly differnet name than the thisShitPath in the simDataOnHimster function
-    # so as not to confuse them
-    thisFuckingShitPath = thisExperiment.experimentDir
-
     # by default, we always start with SIMULATE_VERTEX_DATA, even though
     # runSimulationReconstruction has probably already been run.
     if recipe.lumiDetState == LumiDeterminationState.SIMULATE_VERTEX_DATA:
@@ -512,8 +496,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 
         # when all sim Tasks are done, the IP can be determined
         if len(recipe.SimulationTasks) == 0:
-            recipe.lumiDetState = LumiDeterminationState.DETERMINE_IP
             recipe.lastLumiDetState = LumiDeterminationState.SIMULATE_VERTEX_DATA
+            recipe.lumiDetState = LumiDeterminationState.DETERMINE_IP
 
     # if lumiDetState == 2:
     if recipe.lumiDetState == LumiDeterminationState.DETERMINE_IP:
@@ -594,8 +578,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         else:
             print("Skipped IP determination for this recipe, using values from config.")
 
-        recipe.lumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
         recipe.lastLumiDetState = LumiDeterminationState.DETERMINE_IP
+        recipe.lumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
 
     # if lumiDetState == 3:
     if recipe.lumiDetState == LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP:
@@ -614,13 +598,10 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         # remember, the experiment config may now contain the updated IP
         recipe = simulateDataOnHimster(thisExperiment, recipe)
 
-        if recipe.is_broken:
-            raise ValueError(f"ERROR! recipe is broken! debug recipe info:\n{recipe}")
-
         # when all simulation Tasks are done, the Lumi Fit may start
         if len(recipe.SimulationTasks) == 0:
-            recipe.lumiDetState = LumiDeterminationState.RUN_LUMINOSITY_FIT
             recipe.lastLumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
+            recipe.lumiDetState = LumiDeterminationState.RUN_LUMINOSITY_FIT
 
     # if lumiDetState == 4:
     if recipe.lumiDetState == LumiDeterminationState.RUN_LUMINOSITY_FIT:
