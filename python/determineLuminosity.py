@@ -15,7 +15,12 @@ from lumifit.config import load_params_from_file
 from lumifit.general import DirectorySearcher, envPath, getGoodFiles
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
-from lumifit.paths import generateAbsoluteROOTDataPath, generateCutKeyword
+from lumifit.paths import (
+    generateAbsoluteROOTDataPath,
+    generateCutKeyword,
+    generateRelativeBinningDir,
+    generateRelativeBunchesDir,
+)
 from lumifit.recipe import (
     LumiDeterminationState,
     SimRecipe,
@@ -374,8 +379,11 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
             else:
                 pathToRootFiles = generateAbsoluteROOTDataPath(configPackage=configPackage)
 
+            binningPath = pathToRootFiles / generateRelativeBunchesDir() / generateRelativeBinningDir()
+
+            # TODO: this check shouldn't be here but in the makeMultipleFileListBunches or createMultipleLmdData modules. This script should only execute the steps in the right order. If  anything is already there, the submodules can just exit early.
             status_code = wasSimulationSuccessful(
-                directory=pathToRootFiles,
+                directory=binningPath,
                 glob_pattern=data_pattern + "*",
             )
 
