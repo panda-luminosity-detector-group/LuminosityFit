@@ -1,6 +1,3 @@
-from pathlib import Path
-
-from attrs import evolve
 from lumifit.cluster import (
     Job,
     JobResourceRequest,
@@ -20,9 +17,6 @@ def create_reconstruction_job(
     # case switch for dataMode
     if thisMode == DataMode.DATA:
         configPackage = experiment.dataPackage
-    elif thisMode == DataMode.VERTEXDATA:
-        configPackage = experiment.dataPackage
-        configPackage.recoParams.disableCuts()
 
     elif thisMode == DataMode.RESACC:
         configPackage = experiment.resAccPackage

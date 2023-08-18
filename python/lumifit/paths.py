@@ -7,7 +7,7 @@ Instead, the paths are generated *deterministically from* the experiment config.
 
 They should ONLY be generated with this module.
 """
-
+import copy
 from pathlib import Path
 
 from lumifit.types import (
@@ -77,7 +77,7 @@ def generateAbsoluteROOTDataPath(configPackage: ConfigPackage, dataMode=DataMode
     """
 
     if dataMode == DataMode.VERTEXDATA:
-        recoParams = configPackage.recoParams
+        recoParams = copy.deepcopy(configPackage.recoParams)
         recoParams.disableCuts()
     else:
         recoParams = configPackage.recoParams

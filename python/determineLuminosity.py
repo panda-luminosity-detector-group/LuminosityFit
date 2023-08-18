@@ -218,10 +218,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                     # if alignement matrices were specified, we used them as a mis-alignment
                     # and alignment for the box simulations
 
-                    # returnPath is the absolute path to the directory where the newly created data is stored
-                    # TODO: this should'n be in the task anyway
-                    # returnPath = generateAbsoluteROOTDataPath(thisExperiment.resAccPackage)
-
                     job = create_simulation_and_reconstruction_job(
                         thisExperiment,
                         thisMode=DataMode.VERTEXDATA,

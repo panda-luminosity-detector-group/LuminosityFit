@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 
+"""
+This script is typically run on a compute node. Therefore ALL neccessary info
+must be in env variables or in the config file. It is not possible to convert it to
+a module (sadly).
+
+The good thing is that this script can not change the experiment config inadvertently.
+"""
+
 import os
 from pathlib import Path
 
-from attrs import evolve
 from lumifit.config import load_params_from_file
 from lumifit.general import (
     envPath,
