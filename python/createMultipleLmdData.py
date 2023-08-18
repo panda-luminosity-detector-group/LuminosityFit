@@ -3,16 +3,7 @@
 """
 This script is a wrapper for createLumiFitData or createKoaFitData and submits it to SLURM. Then why is it so long?
 
-
-TODO: shorten this down! jesus!
-This is soooooo much longer than it needs to be.
-- paths are searched via DirectorySearcher (regex comes from args)
-- this script is called as script (and not as module)
-
-Sooo:
-- make this a module
-- remove all search functions
-- and instead get the paths from the experiment config
+TODO make this a module
 """
 
 import argparse

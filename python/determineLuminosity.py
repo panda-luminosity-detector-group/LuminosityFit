@@ -449,27 +449,19 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
 
         # 3. merge data
         if task.simState == SimulationState.MERGE:
-            # check first if merged data already exists and skip it!
-            temp_dir_searcher = DirectorySearcher(merge_keywords)
-            temp_dir_searcher.searchListOfDirectories(thisShitPath, data_pattern)
-            found_dirs = temp_dir_searcher.getListOfDirectories()
-            if not found_dirs:
-                os.chdir(lmd_fit_script_path)
+            os.chdir(lmd_fit_script_path)
+            mergeCommand: List[str] = []
+            mergeCommand.append("python")
+            mergeCommand.append("mergeMultipleLmdData.py")
+            mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
+            mergeCommand.append(str(generateAbsoluteROOTDataPath(configPackage=configPackage)))
 
-                mergeCommand: List[str] = []
-                mergeCommand.append("python")
-                mergeCommand.append("mergeMultipleLmdData.py")
-                mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                mergeCommand.append(str(generateAbsoluteROOTDataPath(configPackage=configPackage)))
+            if task.simDataType == SimulationDataType.ANGULAR:
+                mergeCommand.append("--num_samples")
+                mergeCommand.append(str(bootstrapped_num_samples))
 
-                if task.simDataType == SimulationDataType.ANGULAR:
-                    mergeCommand.append("--num_samples")
-                    mergeCommand.append(str(bootstrapped_num_samples))
-
-                print("working directory:")
-                print(f"{os.getcwd()}")
-                print(f"running command:\n{mergeCommand}")
-                _ = subprocess.call(mergeCommand)
+            print(f"running command:\n{mergeCommand}")
+            _ = subprocess.call(mergeCommand)
 
             task.simState = SimulationState.DONE
 
