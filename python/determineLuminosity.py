@@ -567,6 +567,11 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
             with open(str(thisExperiment.recoIPpath), "r") as f:
                 ip_rec_data = json.load(f)
 
+            # check if ip_x and ip_y are in the reco_ip.json file
+            # if not, the IP was not determined correctly
+            if "ip_x" not in ip_rec_data or "ip_y" not in ip_rec_data:
+                raise RuntimeError(f"ERROR! Reco IP file {thisExperiment.recoIPpath} does not contain ip_x or ip_y!")
+
             newRecoIPX = float("{0:.3f}".format(round(float(ip_rec_data["ip_x"]), 3)))  # in cm
             newRecoIPY = float("{0:.3f}".format(round(float(ip_rec_data["ip_y"]), 3)))
             newRecoIPZ = float("{0:.3f}".format(round(float(ip_rec_data["ip_z"]), 3)))
