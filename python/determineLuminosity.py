@@ -8,6 +8,7 @@ import os
 import subprocess
 import sys
 import time
+from enum import Enum
 from pathlib import Path
 from typing import List
 
@@ -59,13 +60,20 @@ If the needed files aren't there (but the jobs don't run anymore either), there 
 """
 
 
+class StatusCode(Enum):
+    ENOUGH_FILES = 0
+    STILL_RUNNING = 1
+    NO_FILES = 2
+    FAILED = 3
+
+
 # TODO: add jobID or jobArrayID check here
 # TODO: the percentage check is also shite because files can be done after this check is true.
 def wasSimulationSuccessful(
     directory: Path,
     glob_pattern: str,
     min_filesize_in_bytes: int = 10000,
-) -> int:
+) -> StatusCode:
     """
     returns -1 if something went wrong,
     returns 0 found enough files,
@@ -73,7 +81,6 @@ def wasSimulationSuccessful(
     """
     print(f"checking if job was successful. checking in path {directory}, glob pattern {glob_pattern}")
     required_files_percentage = 0.8
-    return_value = 0
 
     _, files_percentage = getGoodFiles(
         directory,
@@ -83,10 +90,13 @@ def wasSimulationSuccessful(
 
     print(f"files percentage (depends on getGoodFiles) is {files_percentage}")
 
+    if files_percentage >= required_files_percentage:
+        return StatusCode.ENOUGH_FILES
+
     if files_percentage < required_files_percentage:
         if job_handler.get_active_number_of_jobs() > 0:
             print(f"there are still {job_handler.get_active_number_of_jobs()} jobs running")
-            return_value = 1
+            return StatusCode.STILL_RUNNING
         else:
             print(
                 "WARNING: "
@@ -96,9 +106,9 @@ def wasSimulationSuccessful(
                 + ") missing and no jobs on himster remaining..."
                 + " Something went wrong here..."
             )
-            return_value = -1
+            return StatusCode.NO_FILES
 
-    return return_value
+    return StatusCode.FAILED
 
 
 # ----------------------------------------------------------------------------
@@ -177,7 +187,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
         # 1. simulate data
         if task.simState == SimulationState.START_SIM:
             os.chdir(lmd_fit_script_path)
-            status_code = 1
             if task.simDataType == SimulationDataType.EFFICIENCY_RESOLUTION:
                 """
                 efficiency / resolution calculation.
@@ -196,11 +205,15 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                 # this elif belonged to the if found_dirs...
                 # so that means if NOT data dir was found, the data is obviously not there,
                 # so the simulation needs to be run
-                if status_code == 0:
+                if status_code == StatusCode.ENOUGH_FILES:
                     # everything is fucking dandy I suppose?!
-                    # FIXME: should the status be increased here somewhere?
-                    pass
-                elif task.lastState < SimulationState.START_SIM:
+                    task.lastState = SimulationState.START_SIM
+                    task.simState = SimulationState.MAKE_BUNCHES
+
+                elif status_code == StatusCode.STILL_RUNNING:
+                    return recipe
+
+                elif status_code == StatusCode.NO_FILES:
                     # then lets simulate!
                     # this command runs the full sim software with box gen data
                     # (or dpm gen data for KOALA)
@@ -226,6 +239,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                     job_manager.append(job)
 
                     task.lastState = SimulationState.START_SIM
+                    return recipe
 
             elif task.simDataType == SimulationDataType.ANGULAR:
                 """
@@ -244,12 +258,14 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                     directory=angularDataDir,
                     glob_pattern=thisExperiment.trackFilePattern + "*.root",
                 )
-                if status_code == 0:
-                    # everything is fucking dandy I suppose?!
-                    # FIXME: should the status be increased here somewhere?
-                    pass
-                # oh boi that's bound to be trouble
-                elif task.lastState < task.simState:
+                if status_code == StatusCode.ENOUGH_FILES:
+                    task.lastState = SimulationState.START_SIM
+                    task.simState = SimulationState.MAKE_BUNCHES
+
+                elif status_code == StatusCode.STILL_RUNNING:
+                    return recipe
+
+                elif status_code == StatusCode.NO_FILES:
                     # TODO: alignment part
 
                     job = create_reconstruction_job(
@@ -258,9 +274,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
-
-                    # Simulation is done, so update the last_state
-                    task.lastState = SimulationState.START_SIM
+                    return recipe
 
             # this is the very first branch we landed in
             # the internal path was therefore
@@ -273,11 +287,15 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
 
                 status_code = wasSimulationSuccessful(directory=mcDataDir, glob_pattern="Lumi_MC_*.root")
 
-                # so this may seem odd, but since there aren't any jobs running yet and theres still
-                # no files, the return code will actually be -1. better job supervision fixes that,
-                # but thats for later
-                # TODO: better job supervision
-                if status_code < 0:
+                if status_code == StatusCode.ENOUGH_FILES:
+                    # everything is fucking dandy I suppose?!
+                    task.lastState = SimulationState.START_SIM
+                    task.simState = SimulationState.MAKE_BUNCHES
+
+                elif status_code == StatusCode.STILL_RUNNING:
+                    return recipe
+
+                if status_code == StatusCode.NO_FILES:
                     # vertex data must always be created without any cuts first
                     copyExperiment = copy.deepcopy(thisExperiment)
                     copyExperiment.dataPackage.recoParams.disableCuts()
@@ -293,18 +311,10 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                     job_manager.append(job)
 
                     del copyExperiment
+                    return recipe
 
             else:
                 raise ValueError(f"This tasks simType is {task.simDataType}, which is invalid!")
-
-            if status_code == 0:
-                print("found simulation files, skipping")
-                task.simState = SimulationState.MAKE_BUNCHES
-                task.lastState = SimulationState.START_SIM
-            elif status_code > 0:
-                print(f"still waiting for himster simulation jobs for {task.simDataType} data to complete...")
-            else:
-                raise ValueError("status_code is negative, which means number of running jobs can't be determined. ")
 
         # 2. create data (that means bunch data, create data objects)
         if task.simState == SimulationState.MAKE_BUNCHES:
@@ -327,15 +337,12 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
             fix the logic.
             """
 
-            # check if data objects already exists and skip!
-
-            status_code = 1
-
             # okay, we are either in DATA mode or RESACC mode, so choose the
             # correct configPackage. also, in VERTEX mode, the reco params don't
             # have cuts!
             # yes, I hate this too, this will all be scrapped
             # once these scripts are proper modules
+            # TODO: kick this case switch!
             if task.simDataType == SimulationDataType.VERTEX:
                 pathToRootFiles = generateAbsoluteROOTDataPath(configPackage=configPackage, dataMode=DataMode.VERTEXDATA)
             else:
@@ -351,12 +358,15 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
 
             # jesus fuck these status code, "something is wrong" means
             # not enough files were found.
-            if status_code == 0:
+            if status_code == StatusCode.ENOUGH_FILES:
                 print("skipping bunching and data object creation...")
-                task.simState = SimulationState.MERGE
                 task.lastState = SimulationState.MAKE_BUNCHES
+                task.simState = SimulationState.MERGE
 
-            elif status_code < 0:
+            elif status_code == StatusCode.STILL_RUNNING:
+                return recipe
+
+            elif status_code == StatusCode.NO_FILES:
                 os.chdir(lmd_fit_script_path)
                 # bunch data
                 # TODO: pass experiment config, or better yet, make class instead of script
@@ -382,8 +392,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                 lmdDataCommand: List[str] = []
                 lmdDataCommand.append("python")
                 lmdDataCommand.append("createMultipleLmdData.py")
-                # lmdDataCommand.append("--dir_pattern")
-                # lmdDataCommand.append(data_keywords[0])
                 lmdDataCommand.append("--jobCommand")
                 lmdDataCommand.append(thisExperiment.LMDDataCommand)
                 lmdDataCommand.append(f"{thisExperiment.dataPackage.recoParams.lab_momentum:.2f}")
@@ -406,36 +414,51 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                 task.lastState = SimulationState.MERGE
 
                 lmdDataCommand.clear()
-
-            elif status_code > 0:
-                print(f"status_code {status_code}: still waiting for himster simulation jobs for {task.simDataType} data to complete...")
-            else:
-                # ok something went wrong there, exit this recipe and
-                # push on bad recipe stack
-                task.simState = SimulationState.FAILED
-                raise ValueError(f"Something went wrong with the cluster jobs! Status code was {status_code} This recipe will no longer be processed.")
+                return recipe
 
         # 3. merge data
         if task.simState == SimulationState.MERGE:
-            os.chdir(lmd_fit_script_path)
-            mergeCommand: List[str] = []
-            mergeCommand.append("python")
-            mergeCommand.append("mergeMultipleLmdData.py")
-            mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-            mergeCommand.append(str(generateAbsoluteROOTDataPath(configPackage=configPackage)))
+            # TODO: kick this case switch!
+            if task.simDataType == SimulationDataType.VERTEX:
+                pathToRootFiles = generateAbsoluteROOTDataPath(configPackage=configPackage, dataMode=DataMode.VERTEXDATA)
+            else:
+                pathToRootFiles = generateAbsoluteROOTDataPath(configPackage=configPackage)
 
-            if task.simDataType == SimulationDataType.ANGULAR:
-                mergeCommand.append("--num_samples")
-                mergeCommand.append(str(bootstrapped_num_samples))
+            mergePath = pathToRootFiles / generateRelativeBunchesDir() / generateRelativeBinningDir() / "merge_data"
 
-            print(f"running command:\n{mergeCommand}")
-            _ = subprocess.call(mergeCommand)
+            status_code = wasSimulationSuccessful(
+                directory=mergePath,
+                glob_pattern=data_pattern + "*",
+            )
 
-            task.simState = SimulationState.DONE
+            if status_code == StatusCode.ENOUGH_FILES:
+                print("skipping data merging...")
+                task.lastState = SimulationState.MERGE
+                task.simState = SimulationState.DONE
 
-        if task.lastState == SimulationState.FAILED:
-            recipe.is_broken = True
-            break
+            # this is just to be sure, but since this is NOT
+            # done on a separate compute node, this should never
+            # happen
+            elif status_code == StatusCode.STILL_RUNNING:
+                return recipe
+
+            elif status_code == StatusCode.NO_FILES:
+                os.chdir(lmd_fit_script_path)
+                mergeCommand: List[str] = []
+                mergeCommand.append("python")
+                mergeCommand.append("mergeMultipleLmdData.py")
+                mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
+                mergeCommand.append(str(pathToRootFiles))
+
+                if task.simDataType == SimulationDataType.ANGULAR:
+                    mergeCommand.append("--num_samples")
+                    mergeCommand.append(str(bootstrapped_num_samples))
+
+                print(f"running command:\n{mergeCommand}")
+                _ = subprocess.call(mergeCommand)
+
+                task.lastState = SimulationState.MERGE
+                task.simState = SimulationState.DONE
 
     # remove done tasks
     recipe.SimulationTasks = [simTask for simTask in recipe.SimulationTasks if simTask.simState != SimulationState.DONE]
