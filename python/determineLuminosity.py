@@ -199,7 +199,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                 assert thisExperiment.resAccPackage.simParams is not None
 
                 # TODO: later, WITH alignment since that affects the acceptance!
-                resAccDataDir = generateAbsoluteROOTDataPath(thisExperiment.resAccPackage)
+                resAccDataDir = generateAbsoluteROOTDataPath(configPackage=configPackage)
                 status_code = wasSimulationSuccessful(directory=resAccDataDir, glob_pattern=thisExperiment.trackFilePattern + "*.root")
 
                 if status_code == StatusCode.ENOUGH_FILES:
@@ -224,7 +224,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
 
                     job = create_simulation_and_reconstruction_job(
                         thisExperiment,
-                        thisMode=DataMode.VERTEXDATA,
+                        thisMode=DataMode.RESACC,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
@@ -582,6 +582,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         recipe.lumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
 
     # if lumiDetState == 3:
+    # FIXME: there is an error here, the number of sim tasks has nothing to do with the state
     if recipe.lumiDetState == LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP:
         # state 3a:
         # the IP position is now reconstructed. filter the DPM data again,
