@@ -63,10 +63,10 @@ def getGoodFiles(
 
     num_sim_files = len(good_files) + len(bad_files)
 
+    print(f"found {len(good_files)} good files out of {num_sim_files} files")
     if num_sim_files < 0:
         return [good_files, 0]
 
-    print(f"found {len(good_files)} good files out of {num_sim_files} files")
     files_percentage = len(good_files) / num_sim_files
 
     return [good_files, files_percentage]
