@@ -84,7 +84,6 @@ def genExperimentConfig(
         alignParams=AlignmentParameters(),
         baseDataDir=lmdfit_data_dir / experimentDir / "data",
         MCDataDir=lmdfit_data_dir / experimentDir / "data/mc_data",
-        recoIPpath=lmdfit_data_dir / experimentDir / "data/reco_ip.json",
     )
 
     simParamsResAcc = SimulationParameters(
@@ -113,7 +112,6 @@ def genExperimentConfig(
         alignParams=AlignmentParameters(),
         baseDataDir=lmdfit_data_dir / experimentDir / "resacc",
         MCDataDir=lmdfit_data_dir / experimentDir / "resacc/mc_data",
-        recoIPpath=lmdfit_data_dir / experimentDir / "data/reco_ip.json",
     )
 
     # = Path("LMD-" + "".join(random.choices(string.ascii_letters, k=10)))  # type: ignore
@@ -136,6 +134,7 @@ def genExperimentConfig(
         resAccPackage=resAccPackage,
         fitConfigPath=(LMDscriptpath / Path("../configs/fitconfig-fast.json")).resolve(),
         dataConfigPath=(LMDscriptpath / Path("../configs/dataconfig.json")).resolve(),
+        vertexConfigPath=(LMDscriptpath / Path("../configs/vertex_fitconfig.json")).resolve(),
     )
 
     return experiment

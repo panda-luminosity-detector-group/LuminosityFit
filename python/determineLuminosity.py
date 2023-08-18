@@ -546,34 +546,26 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         # TODO: refactor this logic to not use the directorySearchers
         if thisExperiment.dataPackage.recoParams.use_ip_determination:
             assert thisExperiment.resAccPackage.simParams is not None
-            assert thisExperiment.dataPackage.recoIPpath is not None
+            assert thisExperiment.recoIPpath is not None
 
-            temp_dir_searcher = DirectorySearcher(["merge_data", "binning"])
-            temp_dir_searcher.searchListOfDirectories(thisFuckingShitPath, "reco_ip.json")
-            found_dirs = temp_dir_searcher.getListOfDirectories()
-            # wait I think I know whats happening. If the reco_ip.json is not found, the bash command
-            # will be called with some path?!, but will create the reco_ip.json
-            # if the reco_ip.json is found, the bash command doen't have to be called,
-            # because the reco_ip.json is already there.
-            if not found_dirs:
+            pathToRootFiles = generateAbsoluteROOTDataPath(thisExperiment.dataPackage)
+            binningPath = pathToRootFiles / generateRelativeBunchesDir() / generateRelativeBinningDir()
+
+            if not thisExperiment.recoIPpath.exists():
                 # 2. determine offset on the vertex data sample
                 os.chdir(lmd_fit_bin_path)
-                temp_dir_searcher = DirectorySearcher(["merge_data", "binning"])
-                temp_dir_searcher.searchListOfDirectories(thisFuckingShitPath, ["lmd_vertex_data_", "of1.root"])
-
-                found_dirs = temp_dir_searcher.getListOfDirectories()
-                bashCommand = []
+                bashCommand: List[str] = []
                 bashCommand.append("./determineBeamOffset")
                 bashCommand.append("-p")
-                bashCommand.append(str(found_dirs[0]))
+                bashCommand.append(str(binningPath))
                 bashCommand.append("-c")
-                bashCommand.append("../../vertex_fitconfig.json")
+                bashCommand.append(str(thisExperiment.vertexConfigPath))
                 bashCommand.append("-o")
-                bashCommand.append(thisExperiment.resAccPackage.recoIPpath)
+                bashCommand.append(str(thisExperiment.recoIPpath))
 
                 _ = subprocess.call(bashCommand)
 
-            with open(str(thisExperiment.resAccPackage.recoIPpath), "r") as f:
+            with open(str(thisExperiment.recoIPpath), "r") as f:
                 ip_rec_data = json.load(f)
 
             newRecoIPX = float("{0:.3f}".format(round(float(ip_rec_data["ip_x"]), 3)))  # in cm

@@ -183,9 +183,6 @@ class ConfigPackage:
     MCDataDir: Optional[Path] = None
     simParams: Optional[SimulationParameters] = None
 
-    # this must only be there if the reconstructed IP is used
-    recoIPpath: Optional[Path] = None
-
 
 @define(frozen=True)
 class ExperimentParameters:
@@ -217,3 +214,9 @@ class ExperimentParameters:
 
     # absolute path to the data config (for bunches/binning)
     dataConfigPath: Path
+
+    # path to the vertex config (needed to reconstruct the IP)
+    vertexConfigPath: Path
+
+    # this must only be there if the reconstructed IP is used
+    recoIPpath: Optional[Path] = None
