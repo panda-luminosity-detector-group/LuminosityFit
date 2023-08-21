@@ -97,3 +97,14 @@ def generateRelativeBinningDir() -> Path:
     Generates a relative path to a bunches subdirectory.
     """
     return Path("binning")
+
+def generateRelativeMergeDir() -> Path:
+    """
+    Generates a relative path to the merge_data path,
+    where res/acc/lmd data should be stored
+    """
+    return Path("merge_data")
+
+def generateAbsoluteMergeDataPath(configPackage: ConfigPackage) -> Path:
+    # well fuck this
+    return generateAbsoluteROOTDataPath(configPackage=configPackage) / generateRelativeBunchesDir() / generateRelativeBinningDir() / generateRelativeMergeDir()
