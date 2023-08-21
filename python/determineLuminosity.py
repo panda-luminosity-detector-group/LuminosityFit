@@ -18,10 +18,12 @@ from lumifit.general import envPath, getGoodFiles
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
 from lumifit.paths import (
+    generateAbsoluteMergeDataPath,
     generateAbsoluteROOTDataPath,
     generateCutKeyword,
     generateRelativeBinningDir,
     generateRelativeBunchesDir,
+    generateRelativeMergeDir,
 )
 from lumifit.recipe import (
     LumiDeterminationState,
@@ -414,7 +416,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
             else:
                 pathToRootFiles = generateAbsoluteROOTDataPath(configPackage=configPackage)
 
-            mergePath = pathToRootFiles / generateRelativeBunchesDir() / generateRelativeBinningDir() / "merge_data"
+            mergePath = pathToRootFiles / generateRelativeBunchesDir() / generateRelativeBinningDir() / generateRelativeMergeDir()
 
             status_code = wasSimulationSuccessful(
                 directory=mergePath,
@@ -516,15 +518,14 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
             assert thisExperiment.resAccPackage.simParams is not None
             assert thisExperiment.recoIPpath is not None
 
-            pathToRootFiles = generateAbsoluteROOTDataPath(thisExperiment.dataPackage)
-            vertexDataPath = pathToRootFiles / generateRelativeBunchesDir() / generateRelativeBinningDir() / "merge_data"
+            vertexDataMergePath = generateAbsoluteMergeDataPath(thisExperiment.dataPackage)
 
             if not thisExperiment.recoIPpath.exists():
                 # 2. determine offset on the vertex data sample
                 bashCommand: List[str] = []
                 bashCommand.append(str(lmd_fit_bin_path / "determineBeamOffset"))
                 bashCommand.append("-p")
-                bashCommand.append(str(vertexDataPath))
+                bashCommand.append(str(vertexDataMergePath))
                 bashCommand.append("-c")
                 bashCommand.append(str(thisExperiment.vertexConfigPath))
                 bashCommand.append("-o")
@@ -612,27 +613,40 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         - look where the merged data is, find the lmd_fitted_data root files.
         """
 
-        print("Listen, if we've gotten this far, we can consider ourselves lucky.")
-        print("I'm exiting here becaues the fit itself is now almost trivial.")
-        sys.exit(9001)
-
         os.chdir(lmd_fit_script_path)
         print("running lmdfit!")
 
         cut_keyword = generateCutKeyword(thisExperiment.dataPackage.recoParams)
 
-        lumiFitCommand = []
+        """
+        Okay this is called with like a million arguments, but we only need 3:
+        - fit config path
+        - the resAcc path
+        - and the data path
+
+        Optional arguments are:
+        - number of threads (hard coded to 32 for now)
+
+        Do I really the the experiment config?
+        - for cluster env (submits job)
+        - for paths maybe?
+        - for threads? 
+
+        Okay yes we can just put all that in the experinemnt config
+        """
+
+        lumiFitCommand: List[str]= []
         lumiFitCommand.append("python")
         lumiFitCommand.append("doMultipleLuminosityFits.py")
-        lumiFitCommand.append("--forced_resAcc_gen_data")
-        lumiFitCommand.append(f"{recipe.acc_and_res_dir_path}")
+        # lumiFitCommand.append("--forced_resAcc_gen_data")
+        # lumiFitCommand.append(f"{recipe.acc_and_res_dir_path}")
         lumiFitCommand.append("-e")
         lumiFitCommand.append(f"{args.ExperimentConfigFile}")
-        lumiFitCommand.append(f"{recipe.filteredTrackDirectory}")
-        lumiFitCommand.append(f"{cut_keyword}")
-        lumiFitCommand.append(f"{lmd_fit_script_path}/{thisExperiment.fitConfigPath}")
+        # lumiFitCommand.append(f"{recipe.filteredTrackDirectory}")
+        # lumiFitCommand.append(f"{cut_keyword}")
+        # lumiFitCommand.append(f"{lmd_fit_script_path}/{thisExperiment.fitConfigPath}")
 
-        print(f"Bash command is:\n{' '.join(lumiFitCommand)}")
+        print(f"Bash command for LumiFit is:\n{' '.join(lumiFitCommand)}")
         _ = subprocess.call(lumiFitCommand)
 
         print("this recipe is fully processed!!!")
