@@ -256,6 +256,7 @@ number_of_threads = 32
 #! setup paths for lumifit
 LMDscriptpath = experiment.softwarePaths.LmdFitScripts
 elastic_data_path = generateAbsoluteROOTDataPath(experiment.dataPackage)
+log_path = generateAbsoluteMergeDataPath(experiment.dataPackage)
 acc_res_data_path = generateAbsoluteMergeDataPath(experiment.resAccPackage)
 config_url = experiment.fitConfigPath
 
@@ -267,8 +268,7 @@ job = Job(
     resource_request,
     application_url=f"{LMDscriptpath}/singularityJob.sh {LMDscriptpath}/runLmdFit.sh",
     name="runLmdFit",
-    # TODO: make logfile_url a Path object
-    logfile_url=str(elastic_data_path / "runLmdFit.log"),
+    logfile_url=str(log_path / "runLmdFit.log"),
     array_indices=[1],
 )
 
