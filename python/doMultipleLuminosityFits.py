@@ -257,6 +257,7 @@ number_of_threads = 32
 LMDscriptpath = experiment.softwarePaths.LmdFitScripts
 elastic_data_path = generateAbsoluteROOTDataPath(experiment.dataPackage)
 acc_res_data_path = generateAbsoluteMergeDataPath(experiment.resAccPackage)
+config_url = experiment.fitConfigPath
 
 resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
 resource_request.number_of_nodes = 1
@@ -272,9 +273,9 @@ job = Job(
 )
 
 job.exported_user_variables = {
-    "config_url": args.config_url[0],
-    "data_path": elastic_data_path,
-    "acceptance_resolution_path": acc_res_data_path,
+    "config_url": str(config_url),
+    "data_path": str(elastic_data_path),
+    "acceptance_resolution_path": str(acc_res_data_path),
     "number_of_threads": number_of_threads,
 }
 
