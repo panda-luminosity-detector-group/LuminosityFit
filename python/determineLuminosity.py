@@ -76,11 +76,6 @@ def wasSimulationSuccessful(
     glob_pattern: str,
     min_filesize_in_bytes: int = 10000,
 ) -> StatusCode:
-    """
-    returns -1 if something went wrong,
-    returns 0 found enough files,
-    returns 1 its not finished processing, just keep waiting
-    """
     print(f"checking if job was successful. checking in path {directory}, glob pattern {glob_pattern}")
     required_files_percentage = 0.8
 
@@ -242,9 +237,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                 only the last reco steps are rerun of the track reco
                 """
 
-                # TODO: found_dirs[0] should point to data/1-100_xy_m_cut/no_alignment_correction
-                # but only because this doesn't support alignment yet, otherwise this should be the
-                # final final final path, i.e. all cuts and applied alignment
                 angularDataDir = generateAbsoluteROOTDataPath(thisExperiment.dataPackage)
                 status_code = wasSimulationSuccessful(
                     directory=angularDataDir,
@@ -268,19 +260,13 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                     job_manager.append(job)
                     return recipe
 
-            # this is the very first branch we landed in
-            # the internal path was therefore
-            # data/1-100_uncut/no_alignment_correction
             elif task.simDataType == SimulationDataType.VERTEX:
-                # check if the sim data is already there
-
                 assert thisExperiment.dataPackage.MCDataDir is not None
                 mcDataDir = thisExperiment.dataPackage.MCDataDir
 
                 status_code = wasSimulationSuccessful(directory=mcDataDir, glob_pattern="Lumi_MC_*.root")
 
                 if status_code == StatusCode.ENOUGH_FILES:
-                    # everything is fucking dandy I suppose?!
                     task.lastState = SimulationState.START_SIM
                     task.simState = SimulationState.MAKE_BUNCHES
 
@@ -297,7 +283,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
 
                     job = create_simulation_and_reconstruction_job(
                         copyExperiment,
-                        thisMode=DataMode.DATA,
+                        thisMode=DataMode.VERTEXDATA,
                         use_devel_queue=args.use_devel_queue,
                     )
                     job_manager.append(job)
@@ -323,10 +309,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
             Fuck I want to rewrite this logic shit so badly, but the path shit is more
             important shit right now, so I'll just leave this shit comment to do this
             shit later.
-
-            That means I can only kick the DirectorySearcher out later too :(
-            For now, I'll just have to use the experiment path until I can properly
-            fix the logic.
             """
 
             # okay, we are either in DATA mode or RESACC mode, so choose the
@@ -348,8 +330,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                 glob_pattern=data_pattern + "*",
             )
 
-            # jesus fuck these status code, "something is wrong" means
-            # not enough files were found.
             if status_code == StatusCode.ENOUGH_FILES:
                 print("skipping bunching and data object creation...")
                 task.lastState = SimulationState.MAKE_BUNCHES
@@ -360,8 +340,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
 
             elif status_code == StatusCode.NO_FILES:
                 os.chdir(lmd_fit_script_path)
-                # bunch data
-                # TODO: pass experiment config, or better yet, make class instead of script
                 multiFileListCommand: List[str] = []
                 multiFileListCommand.append("python")
                 multiFileListCommand.append("makeMultipleFileListBunches.py")
@@ -379,8 +357,6 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
 
                 multiFileListCommand.clear()
 
-                # TODO: pass experiment config, or better yet, make module instead of script
-                # create data
                 lmdDataCommand: List[str] = []
                 lmdDataCommand.append("python")
                 lmdDataCommand.append("createMultipleLmdData.py")
@@ -475,14 +451,6 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 
     finished = False
 
-    """
-    Okay, in the previous version of the script, we had a path in the recipe object.
-    It pointed to the directory where the uncut dpm data was:
-    dir_searcher = DirectorySearcher(["dpm_elastic", "uncut"])
-
-    This is now (obviously) somewhere else, but why did the recipe need that info in the first place?
-    """
-
     # by default, we always start with SIMULATE_VERTEX_DATA, even though
     # runSimulationReconstruction has probably already been run.
     if recipe.lumiDetState == LumiDeterminationState.SIMULATE_VERTEX_DATA:
@@ -493,8 +461,6 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
             recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.VERTEX, simState=SimulationState.START_SIM))
 
         recipe = simulateDataOnHimster(thisExperiment, recipe)
-        if recipe.is_broken:
-            raise SystemError(f"ERROR! recipe is broken! debug recipe info:\n{recipe}")
 
         # when all sim Tasks are done, the IP can be determined
         if len(recipe.SimulationTasks) == 0:
@@ -576,23 +542,22 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
             print("============================================================")
             print("")
             print("Finished IP determination for this recipe!")
+
         else:
             print("Skipped IP determination for this recipe, using values from config.")
 
         recipe.lastLumiDetState = LumiDeterminationState.DETERMINE_IP
         recipe.lumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
 
-    # if lumiDetState == 3:
-    # FIXME: there is an error here, the number of sim tasks has nothing to do with the state
     if recipe.lumiDetState == LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP:
         # state 3a:
         # the IP position is now reconstructed. filter the DPM data again,
         # this time using the newly determined IP position as a cut criterion.
-        # (that again means bunch -> create -> merge)
+        # (that also means create fileLists -> bunches/binning -> merge)
         # 3b. generate acceptance and resolution with these reconstructed ip values
         # (that means simulation + bunching + creating data objects + merging)
-        # because this data is now with a cut applied, the new directory is called
-        # something 1-100_xy_m_cut_real
+
+        # TODO: there is an error here, only need to make sure the IP was reconstruced, that has nothing to do with the number of simTasks
         if len(recipe.SimulationTasks) == 0:
             recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.ANGULAR, simState=SimulationState.START_SIM))
             recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.EFFICIENCY_RESOLUTION, simState=SimulationState.START_SIM))
@@ -605,46 +570,19 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
             recipe.lastLumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
             recipe.lumiDetState = LumiDeterminationState.RUN_LUMINOSITY_FIT
 
-    # if lumiDetState == 4:
     if recipe.lumiDetState == LumiDeterminationState.RUN_LUMINOSITY_FIT:
         """
         4. runLmdFit!
-
-        - look where the merged data is, find the lmd_fitted_data root files.
         """
 
         os.chdir(lmd_fit_script_path)
         print("running lmdfit!")
 
-        cut_keyword = generateCutKeyword(thisExperiment.dataPackage.recoParams)
-
-        """
-        Okay this is called with like a million arguments, but we only need 3:
-        - fit config path
-        - the resAcc path
-        - and the data path
-
-        Optional arguments are:
-        - number of threads (hard coded to 32 for now)
-
-        Do I really the the experiment config?
-        - for cluster env (submits job)
-        - for paths maybe?
-        - for threads? 
-
-        Okay yes we can just put all that in the experinemnt config
-        """
-
         lumiFitCommand: List[str] = []
         lumiFitCommand.append("python")
         lumiFitCommand.append("doMultipleLuminosityFits.py")
-        # lumiFitCommand.append("--forced_resAcc_gen_data")
-        # lumiFitCommand.append(f"{recipe.acc_and_res_dir_path}")
         lumiFitCommand.append("-e")
         lumiFitCommand.append(f"{args.ExperimentConfigFile}")
-        # lumiFitCommand.append(f"{recipe.filteredTrackDirectory}")
-        # lumiFitCommand.append(f"{cut_keyword}")
-        # lumiFitCommand.append(f"{lmd_fit_script_path}/{thisExperiment.fitConfigPath}")
 
         print(f"Bash command for LumiFit is:\n{' '.join(lumiFitCommand)}")
         _ = subprocess.call(lumiFitCommand)

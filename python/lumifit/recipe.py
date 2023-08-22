@@ -33,6 +33,9 @@ class SimulationDataType(Enum):
     Wait, this holds largely the same info as types.DataMode, do we really need both?
 
     TODO: also, e and r can be individual modes
+
+    #! ATTENTION! Never change the literals for these enums (a, v, er, h)
+    #! they are needed by the binaries that crate lmdData and merge them.
     """
 
     NONE = "none"  # none bro, trust me bro
@@ -52,9 +55,8 @@ class SimulationTask:
 @define
 class SimRecipe:
     """
-    Scenarios are always simulated on a cluster, but all runtime parameters are set during construction!
-    # also the name scenario is wrong, this is more of a todo-list of running jobs
-    # maybe a better name would be "simulationRecipe"?
+    This is a shopping-list-style object that holds at which step the simulation currently is.
+    It is never to be written to disk, it only resides in memory for the determineLuminosity script.
     """
 
     elastic_pbarp_integrated_cross_secion_in_mb: float = 0.0
@@ -62,5 +64,3 @@ class SimRecipe:
     SimulationTasks: List[SimulationTask] = []
     lumiDetState: LumiDeterminationState = LumiDeterminationState.SIMULATE_VERTEX_DATA
     lastLumiDetState: LumiDeterminationState = LumiDeterminationState.INIT
-
-    is_broken: bool = False
