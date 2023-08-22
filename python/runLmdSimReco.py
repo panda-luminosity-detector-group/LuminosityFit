@@ -58,9 +58,6 @@ relativeDirToTrksQAFilesOnComputeNode = "LMD-TempRootFiles"
 # this must already be here because SLURM logs are written here
 assert MCDataDir.exists()
 
-# this can be created now
-pathToTrkQAFiles.mkdir(exist_ok=True, parents=True)
-
 filename_index = 1
 debug = True
 if "SLURM_ARRAY_TASK_ID" in os.environ:

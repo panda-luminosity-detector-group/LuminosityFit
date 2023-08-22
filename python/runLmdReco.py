@@ -49,8 +49,11 @@ PNDmacropath = experiment.softwarePaths.PandaRootMacroPath
 relativeDirToTrksQAFilesOnComputeNode = "LMD-TempRootFiles"
 
 # those must already be here because SLURM logs are written here
-assert pathToTrkQAFiles.exists()
 assert MCDataDir.exists()
+
+# this can be created now
+pathToTrkQAFiles.mkdir(parents=True, exist_ok=True)
+# yes I know I could have done the above in one line, but I think this is more readable
 (pathToTrkQAFiles / "Pairs").mkdir(parents=True, exist_ok=True)
 
 debug = True
