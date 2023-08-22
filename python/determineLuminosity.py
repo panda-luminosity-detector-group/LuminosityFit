@@ -693,7 +693,7 @@ args = parser.parse_args()
 experiment: ExperimentParameters = load_params_from_file(args.ExperimentConfigFile, ExperimentParameters)
 
 # before anything else, check if there is a copy in the experiment dir. if not, make it.
-if not (experiment.experimentPath / "Experiment.config").exists():
+if not (experiment.experimentDir / "Experiment.config").exists():
     print("No copy of the experiment config found in the experiment directory. Copying it there now.")
     write_params_to_file(experiment, experiment.experimentDir, "experiment.config")
 
