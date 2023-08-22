@@ -278,7 +278,7 @@ resource_request.memory_in_mb = 2000
 # )
 job = Job(
     resource_request,
-    application_url=f"{LMDscriptpath}/singularityJob.sh {LMDbinPath}/bin/runLmdFit -c {config_url} -d {elastic_data_path} -a {acc_res_data_path} -m {number_of_threads}",
+    application_url=f"{LMDscriptpath}/singularityJob.sh '{LMDbinPath}/bin/runLmdFit -c {config_url} -d {elastic_data_path} -a {acc_res_data_path} -m {number_of_threads}'",
     name="runLmdFit",
     logfile_url=str(elastic_data_path / "runLmdFit.log"),
     array_indices=[1],
