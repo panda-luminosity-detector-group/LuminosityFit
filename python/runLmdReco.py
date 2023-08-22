@@ -124,7 +124,7 @@ backPropAlgorithm = "Geane"
 # candidates = sorted(searchPath.glob(f"**/Lumi_digi_{start_evt}.root"))
 # pathToLumiDigi = candidates[0]
 
-# I'm not sure target path exists yet, but we need it to copy the lumu params file to
+# I'm not sure target path exists yet, but we need it to copy the lumi params file to
 workingDirOnComputeNode.mkdir(parents=True, exist_ok=True)
 
 # we always need the Lumi_(Params|MC) file, no matter what (except if it already exists)
