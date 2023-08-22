@@ -13,8 +13,8 @@ from pathlib import Path
 from typing import List
 
 from lumifit.cluster import ClusterJobManager
-from lumifit.config import load_params_from_file
-from lumifit.general import envPath, getGoodFiles
+from lumifit.config import load_params_from_file, write_params_to_file
+from lumifit.general import getGoodFiles
 from lumifit.gsi_virgo import create_virgo_job_handler
 from lumifit.himster import create_himster_job_handler
 from lumifit.paths import (
@@ -635,7 +635,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         Okay yes we can just put all that in the experinemnt config
         """
 
-        lumiFitCommand: List[str]= []
+        lumiFitCommand: List[str] = []
         lumiFitCommand.append("python")
         lumiFitCommand.append("doMultipleLuminosityFits.py")
         # lumiFitCommand.append("--forced_resAcc_gen_data")
@@ -690,11 +690,17 @@ args = parser.parse_args()
 
 
 # load experiment config
-loadedExperimentFromConfig: ExperimentParameters = load_params_from_file(args.ExperimentConfigFile, ExperimentParameters)
+experiment: ExperimentParameters = load_params_from_file(args.ExperimentConfigFile, ExperimentParameters)
+
+# before anything else, check if there is a copy in the experiment dir. if not, make it.
+if not (experiment.experimentPath / "Experiment.config").exists():
+    print("No copy of the experiment config found in the experiment directory. Copying it there now.")
+    write_params_to_file(experiment, experiment.experimentDir, "experiment.config")
+
 
 # read environ settings
-lmd_fit_script_path = envPath("LMDFIT_SCRIPTPATH")
-lmd_fit_bin_path = envPath("LMDFIT_BUILD_PATH") / "bin"
+lmd_fit_script_path = experiment.softwarePaths.LmdFitScripts
+lmd_fit_bin_path = experiment.softwarePaths.LmdFitBinaries / "bin"
 
 # * ----------------- create a recipe object. it resides only in memory and is never written to disk
 # it is however liberally modified and passed around
@@ -704,9 +710,9 @@ recipe = SimRecipe()
 bootstrapped_num_samples = args.bootstrapped_num_samples
 
 # * ----------------- check which cluster we're on and create job handler
-if loadedExperimentFromConfig.cluster == ClusterEnvironment.VIRGO:
+if experiment.cluster == ClusterEnvironment.VIRGO:
     job_handler = create_virgo_job_handler("long")
-elif loadedExperimentFromConfig.cluster == ClusterEnvironment.HIMSTER:
+elif experiment.cluster == ClusterEnvironment.HIMSTER:
     if args.use_devel_queue:
         job_handler = create_himster_job_handler("devel")
     else:
@@ -718,17 +724,16 @@ else:
 # as quite a lot of data is read in from the storage...)
 job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
-
 # * ----------------- start the lumi function for the first time.
-# it will be run again because it is implemented as a state machine (for now...)
-lumiDetermination(loadedExperimentFromConfig, recipe)
+# it will be run again because it is implemented as a loop over a state-machine-like thing (for now...)
+lumiDetermination(experiment, recipe)
 
 # TODO: okay this is tricky, sometimes recipes are pushed to the waiting stack,
 # and then they are run again? let's see if we can do this some other way.
 # while len(waiting_recipe_stack) > 0:
 while len(active_recipe_stack) > 0 or len(waiting_recipe_stack) > 0:
     for scen in active_recipe_stack:
-        lumiDetermination(loadedExperimentFromConfig, scen)
+        lumiDetermination(experiment, scen)
 
     # clear active stack, if the recipe needs to be processed again,
     # it will be placed in the waiting stack
@@ -740,7 +745,7 @@ while len(active_recipe_stack) > 0 or len(waiting_recipe_stack) > 0:
         print("press ctrl C (ONCE) to skip this waiting round.")
 
         try:
-            time.sleep(900)  # wait for 15min
+            time.sleep(5 * 60)  # wait for 5 min
         except KeyboardInterrupt:
             print("skipping wait.")
 
