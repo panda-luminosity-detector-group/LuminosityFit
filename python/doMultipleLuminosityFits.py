@@ -221,7 +221,10 @@ args = parser.parse_args()
 experiment: ExperimentParameters = load_params_from_file(args.ExperimentConfigFile, ExperimentParameters)
 
 
-number_of_threads = 32
+# allocate two times this many cores on a compute node, or we'll get a segault.
+# 16 seems to work when we allocate 32 cores, so just leave it like that. the fit
+# only takes like five minutes anyway
+number_of_threads: int = 16
 
 # tail_dir_pattern = args.tail_dir_pattern
 
@@ -263,6 +266,8 @@ resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
 resource_request.number_of_nodes = 1
 resource_request.processors_per_node = number_of_threads
 resource_request.memory_in_mb = 2000
+
+# TODO: don't call the runLmdFit.sh script, but instead the runLmdFit binary directly. all the neccessary varibles are already here
 job = Job(
     resource_request,
     application_url=f"{LMDscriptpath}/singularityJob.sh {LMDscriptpath}/runLmdFit.sh",
@@ -275,14 +280,14 @@ job.exported_user_variables = {
     "config_url": str(config_url),
     "data_path": str(elastic_data_path),
     "acceptance_resolution_path": str(acc_res_data_path),
-    "number_of_threads": number_of_threads,
+    "number_of_threads": str(number_of_threads),
 }
 
-    # # TODO: handle this case
-    # if args.ref_resacc_gen_data != "":
-    #     job.exported_user_variables["reference_acceptance_path"] = args.ref_resacc_gen_data
+# # TODO: handle this case
+# if args.ref_resacc_gen_data != "":
+#     job.exported_user_variables["reference_acceptance_path"] = args.ref_resacc_gen_data
 
-    # joblist.append(job)
+# joblist.append(job)
 
 if experiment.cluster == ClusterEnvironment.VIRGO:
     job_handler = create_virgo_job_handler("long")
