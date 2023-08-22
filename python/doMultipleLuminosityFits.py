@@ -258,6 +258,7 @@ number_of_threads: int = 16
 
 #! setup paths for lumifit
 LMDscriptpath = experiment.softwarePaths.LmdFitScripts
+LMDbinPath = experiment.softwarePaths.LmdFitBinaries
 elastic_data_path = generateAbsoluteMergeDataPath(experiment.dataPackage)
 acc_res_data_path = generateAbsoluteMergeDataPath(experiment.resAccPackage)
 config_url = experiment.fitConfigPath
@@ -268,20 +269,27 @@ resource_request.processors_per_node = number_of_threads
 resource_request.memory_in_mb = 2000
 
 # TODO: don't call the runLmdFit.sh script, but instead the runLmdFit binary directly. all the neccessary varibles are already here
+# job = Job(
+#     resource_request,
+#     application_url=f"{LMDscriptpath}/singularityJob.sh {LMDscriptpath}/runLmdFit.sh",
+#     name="runLmdFit",
+#     logfile_url=str(elastic_data_path / "runLmdFit.log"),
+#     array_indices=[1],
+# )
 job = Job(
     resource_request,
-    application_url=f"{LMDscriptpath}/singularityJob.sh {LMDscriptpath}/runLmdFit.sh",
+    application_url=f"{LMDscriptpath}/singularityJob.sh {LMDbinPath}/runLmdFit -c ${config_url} -d {elastic_data_path} -a {acc_res_data_path} -m {number_of_threads}",
     name="runLmdFit",
     logfile_url=str(elastic_data_path / "runLmdFit.log"),
     array_indices=[1],
 )
 
-job.exported_user_variables = {
-    "config_url": str(config_url),
-    "data_path": str(elastic_data_path),
-    "acceptance_resolution_path": str(acc_res_data_path),
-    "number_of_threads": str(number_of_threads),
-}
+# job.exported_user_variables = {
+#     "config_url": str(config_url),
+#     "data_path": str(elastic_data_path),
+#     "acceptance_resolution_path": str(acc_res_data_path),
+#     "number_of_threads": str(number_of_threads),
+# }
 
 # # TODO: handle this case
 # if args.ref_resacc_gen_data != "":
