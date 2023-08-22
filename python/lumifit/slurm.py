@@ -17,9 +17,6 @@ def _stringify(job_resource_request: JobResourceRequest):
         + " --time="
         + f"{_format_walltime(job_resource_request.walltime_in_minutes)}"
     )
-    # if job_resource_request.node_scratch_filesize_in_mb > 0:
-    #    resource_request += ' --tmp=' + \
-    #        str(job_resource_request.node_scratch_filesize_in_mb)
     return resource_request
 
 
@@ -85,7 +82,11 @@ class SlurmJobHandler(JobHandler):
         self.__useSlurmAgent__ = True
 
     def get_active_number_of_jobs(self) -> int:
-        """Check users current number of running and queued jobs."""
+        """
+        Check users current number of running and queued jobs.
+        This counts allocated cpus, not jobs.
+        """
+
         bashcommand = "squeue -u $USER -o %C | sed 's/CPUS/0/' | awk '{s+=$1} END {print s}'"
 
         # attention! sometimes this reads back the empty string, which shouldn't happen.
@@ -95,7 +96,6 @@ class SlurmJobHandler(JobHandler):
         attemptCounter = 0
         while attemptCounter < 3:
             if self.__useSlurmAgent__:
-                # client = Client()
                 with Client() as client:
                     thisOrder = SlurmOrder()
                     thisOrder.cmd = bashcommand

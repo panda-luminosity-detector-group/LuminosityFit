@@ -146,6 +146,10 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
     to understand or debug.
 
     So this must change.
+
+
+    TODO: AAAAAH SHIT there are multiple tasks here, we cannot exit early!
+    remove the "return recipe" statemants in the if clauses!
     """
 
     for task in recipe.SimulationTasks:
@@ -462,6 +466,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 
         recipe = simulateDataOnHimster(thisExperiment, recipe)
 
+        # TODO: add blocking here, the later branches should only be executed if the simulation is done
+
         # when all sim Tasks are done, the IP can be determined
         if len(recipe.SimulationTasks) == 0:
             recipe.lastLumiDetState = LumiDeterminationState.SIMULATE_VERTEX_DATA
@@ -564,6 +570,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 
         # remember, the experiment config may now contain the updated IP
         recipe = simulateDataOnHimster(thisExperiment, recipe)
+
+        # TODO: add blocking here, the later branches should only be executed if the simulation is done
 
         # when all simulation Tasks are done, the Lumi Fit may start
         if len(recipe.SimulationTasks) == 0:
