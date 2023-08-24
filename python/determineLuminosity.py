@@ -491,6 +491,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 
             vertexDataMergePath = generateAbsoluteMergeDataPath(
                 thisExperiment.dataPackage,
+                dataMode=DataMode.VERTEXDATA,
             )
 
             if not thisExperiment.recoIPpath.exists():
