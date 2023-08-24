@@ -57,11 +57,10 @@ def generateRecoDirSuffix(recoParams: ReconstructionParameters, alignParams: Ali
     """
     This generates the relative path suffix for the reconstruction data directory, including the cut and alignment information.
 
-    Example: 1-100_xy_n_cut/no_alignment_correction/
+    Example: reco_xy_n_cut/no_alignment_correction/
     """
 
-    reco_dirname_suffix = f"{recoParams.low_index}-" + f"{recoParams.low_index + recoParams.num_samples - 1}_"
-
+    reco_dirname_suffix = "reco_"
     reco_dirname_suffix += generateCutKeyword(recoParams)
     reco_dirname_suffix += __generateAlignPathKeyword(alignParams)
 
@@ -79,6 +78,7 @@ def generateAbsoluteROOTDataPath(configPackage: ConfigPackage, dataMode=DataMode
     """
 
     if dataMode == DataMode.VERTEXDATA:
+        # remember, recoParams is passed by reference, NEVER change the original
         recoParams = copy.deepcopy(configPackage.recoParams)
         recoParams.disableCuts()
     else:
@@ -110,7 +110,6 @@ def generateRelativeMergeDir() -> Path:
 
 
 def generateAbsoluteMergeDataPath(configPackage: ConfigPackage, dataMode=DataMode.DATA) -> Path:
-    # well fuck this
     return (
         generateAbsoluteROOTDataPath(configPackage=configPackage, dataMode=dataMode)
         / generateRelativeBunchesDir()
