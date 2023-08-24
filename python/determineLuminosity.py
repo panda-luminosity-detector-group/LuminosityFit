@@ -486,8 +486,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         """
 
         if thisExperiment.dataPackage.recoParams.use_ip_determination:
-            assert thisExperiment.resAccPackage.simParams is not None
-            assert thisExperiment.recoIPpath is not None
+            assert thisExperiment.resAccPackage.simParams is not None, "ERROR! simParams is not set in config!"
+            assert thisExperiment.recoIPpath is not None, "ERROR! recoIPpath is not set in config!"
 
             vertexDataMergePath = generateAbsoluteMergeDataPath(thisExperiment.dataPackage)
 
