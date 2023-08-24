@@ -3,7 +3,7 @@ import subprocess
 import threading
 from abc import abstractmethod
 from time import sleep, time
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import attr
 from attrs import define
@@ -52,7 +52,7 @@ class Job:
 
 class JobHandler:
     @abstractmethod
-    def submit(self, job: Job) -> int:
+    def submit(self, job: Job) -> Tuple[int, int]:
         pass
 
     @abstractmethod
@@ -61,12 +61,16 @@ class JobHandler:
 
 
 class DebugJobHandler(JobHandler):
-    def submit(self, job: Job) -> int:
+    def submit(self, job: Job) -> Tuple[int, int]:
+        """
+        Debug handler executes locally, not via Slurm.
+        Job Array ID is always 0.
+        """
         print(job.exported_user_variables)
         my_env = os.environ.copy()
         my_env.update(job.exported_user_variables)
         print(job.application_url)
-        return subprocess.call(job.application_url, env=my_env)
+        return subprocess.call(job.application_url, env=my_env), 0
 
     def get_active_number_of_jobs(self) -> int:
         return 0
@@ -115,7 +119,7 @@ class ClusterJobManager:
 
                 print(current_job)
                 # TODO: add job array ID
-                returncode = self.__job_handler.submit(current_job)
+                returncode, jobArrayID = self.__job_handler.submit(current_job)
                 if returncode > 0:
                     resubmit = True
                     if current_job in failed_jobs:
@@ -145,11 +149,13 @@ class ClusterJobManager:
     def is_active(self) -> bool:
         return self.__manage_thread.is_alive()
 
-    def append(self, job: Job) -> None:
-        """Append Job to this managers list of pending jobs.
+    def enqueue(self, job: Job) -> None:
+        """Enqueue Job to this managers list of pending jobs.
 
         The manager submits the jobs as soon as there is capacity on the cluster,
         no need to manually submit jobs!
+
+        TODO: return job array ID here
         """
         with self.__lock:
             self.__jobs.append(job)

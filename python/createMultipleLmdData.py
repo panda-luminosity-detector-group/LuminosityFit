@@ -3,11 +3,10 @@
 """
 This script is a wrapper for createLumiFitData or createKoaFitData and submits it to SLURM. Then why is it so long?
 
-TODO make this a module
+TODO make this a module, have it return a job object! Then the dermineLuminosity function is the only one that actually submits jobs!
 """
 
 import argparse
-import glob
 import os
 import socket
 from pathlib import Path
@@ -156,16 +155,6 @@ for bins in range(
     print(f"saving config to {binningPath}")
     configIO.writeConfigToPath(config, binningPath / "dataconfig.json")
 
-# TODO: read from experiment config! comes later when this is a module
-full_hostname = socket.getfqdn()
-if "gsi.de" in full_hostname:
-    job_handler = create_virgo_job_handler("long")
-else:
-    job_handler = create_himster_job_handler("himster2_exp")
-
-# job threshold of this type (too many jobs could generate to much io load
-# as quite a lot of data is read in from the storage...)
-job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
 fileList, _ = getGoodFiles(fileListPath, "filelist_*.txt", min_filesize_in_bytes=100)
 numFileList = len(fileList)
@@ -194,6 +183,19 @@ job.exported_user_variables["config_path"] = str(binningPath) + "/dataconfig.jso
 job.exported_user_variables["type"] = args.type
 job.exported_user_variables["elastic_cross_section"] = args.elastic_cross_section
 
-job_manager.append(job)
+# nay, return job!
+
+# TODO: read from experiment config! comes later when this is a module
+full_hostname = socket.getfqdn()
+if "gsi.de" in full_hostname:
+    job_handler = create_virgo_job_handler("long")
+else:
+    job_handler = create_himster_job_handler("himster2_exp")
+
+# job threshold of this type (too many jobs could generate to much io load
+# as quite a lot of data is read in from the storage...)
+job_manager = ClusterJobManager(job_handler, 2000, 3600)
+
+job_manager.enqueue(job)
 
 print(f"All done, waiting for job completion.")

@@ -149,6 +149,17 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
 
     TODO: AAAAAH SHIT there are multiple tasks here, we cannot exit early!
     remove the "return recipe" statements in the if clauses!
+
+    also, since we're looping over multiple tasks, we cannot simply block after a enqueue(job) call...
+
+    okay we can solve this by calling
+    for taks in tasks:
+        handleTask(task)
+
+    and the handleTask function returns a job array ID (since a task is always at most one submit call)
+
+    then this function can store the ids in a list and periodically check if the jobs are done, and
+    ONLY THEN return
     """
 
     for task in recipe.SimulationTasks:
@@ -218,7 +229,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                         thisMode=DataMode.RESACC,
                         use_devel_queue=args.use_devel_queue,
                     )
-                    job_manager.append(job)
+                    job_manager.enqueue(job)
 
                     return recipe
 
@@ -251,7 +262,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                         thisMode=DataMode.DATA,
                         use_devel_queue=args.use_devel_queue,
                     )
-                    job_manager.append(job)
+                    job_manager.enqueue(job)
                     return recipe
 
             elif task.simDataType == SimulationDataType.VERTEX:
@@ -280,7 +291,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
                         thisMode=DataMode.VERTEXDATA,
                         use_devel_queue=args.use_devel_queue,
                     )
-                    job_manager.append(job)
+                    job_manager.enqueue(job)
 
                     del copyExperiment
                     return recipe

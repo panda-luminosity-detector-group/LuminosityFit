@@ -12,7 +12,7 @@ Is is howver advides to also provide:
 - number of threads, ideally 16
 - output file name INCLUDING path
 
-TODO: make this a module
+TODO make this a module, have it return a job object! Then the dermineLuminosity function is the only one that actually submits jobs!
 """
 
 
@@ -71,6 +71,8 @@ job = Job(
     array_indices=[1],
 )
 
+# nay, return job!
+
 if experiment.cluster == ClusterEnvironment.VIRGO:
     job_handler = create_virgo_job_handler("long")
 elif experiment.cluster == ClusterEnvironment.HIMSTER:
@@ -83,4 +85,4 @@ else:
 job_manager = ClusterJobManager(job_handler, total_job_threshold=2500)
 
 # for job in joblist:
-job_manager.append(job)
+job_manager.enqueue(job)

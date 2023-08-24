@@ -49,7 +49,7 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> N
     # job threshold of this type (too many jobs could generate to much io load
     # as quite a lot of data is read in from the storage...)
     job_manager = ClusterJobManager(job_handler, 2000, 3600)
-    job_manager.append(job)
+    job_manager.enqueue(job)
 
     # copy this experiment's config file to the target path
 

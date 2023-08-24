@@ -3,7 +3,7 @@
 import os
 import subprocess
 import time
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 from lumifit.agent import Client, SlurmOrder
 from lumifit.cluster import Job, JobHandler, JobResourceRequest
@@ -121,7 +121,13 @@ class SlurmJobHandler(JobHandler):
         # if we've reached this point, all is lost
         raise ValueError("Error getting number of running jobs!")
 
-    def submit(self, job: Job) -> int:
+    def submit(self, job: Job) -> Tuple[int, int]:
+        """
+        Submits a job to the work manager (probably SLURM)
+        and returns the returnCode from the submit command
+        (mostly 0 if success or 1 if failed)
+        and the job array ID, if successful
+        """
         # TODO: add job array ID
         if self.__job_preprocessor:
             job = self.__job_preprocessor(job)
@@ -143,8 +149,8 @@ class SlurmJobHandler(JobHandler):
 
         bashcommand = bashcommand[:-1] + " " + job.additional_flags + " " + job.application_url
         if self.__useSlurmAgent__:
-            # client = Client()
             with Client() as client:
+                # todo handle jobArray ID as well
                 thisOrder = SlurmOrder()
                 thisOrder.cmd = bashcommand
                 thisOrder.runShell = True
@@ -152,7 +158,10 @@ class SlurmJobHandler(JobHandler):
                 client.sendOrder(thisOrder)
                 resultOrder = client.receiveOrder()
                 returnCode = resultOrder.returnCode
-                return int(returnCode)
+
+                jobArrayID = 0
+                return int(returnCode), jobArrayID
 
         else:
-            return subprocess.call(bashcommand, shell=True)
+            # todo handle jobArray ID as well
+            return subprocess.call(bashcommand, shell=True), 0

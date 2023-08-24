@@ -50,6 +50,7 @@ class SimulationTask:
     simDataType: SimulationDataType = SimulationDataType.NONE
     simState: SimulationState = SimulationState.INIT
     lastState: SimulationState = SimulationState.INIT
+    jobArrayID: int = -1
 
 
 @define
