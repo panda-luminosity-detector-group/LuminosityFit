@@ -678,6 +678,32 @@ job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
 # * ----------------- start the lumi function for the first time.
 # it will be run again because it is implemented as a loop over a state-machine-like thing (for now...)
+
+"""
+TODO for much later:
+use a thread pool. for each given expConfig, a new thread is spawned.
+each thread handles 1 (one, in words: O-N-E) experiment config.
+then this entire state bullshit can be tossed.
+
+so, for each thread:
+
+the lumiDetermination() function executes all individual steps in sequence, nothing else.
+but since each step may call simulateDataOnHimster(), each step must block.
+no more state bullshit.
+
+therefor the simulateDataOnHimster() function must only return once all tasks are done.
+this is ensured in the handleTasks function (which doesn't exist yet). this loops 
+over all tasks and checks if they are done, and only then return.
+
+Thread safety: since multiple threads can now call the clusterManager, that thing must be
+thread-safe. 
+use the "with clusterManager as manager:" directive, to ensure only one instance is there
+(singleton, just like with the agent).
+
+The manager blocks as soon as a job should be submitted and only returns once the submission
+was successful. No other error handling here, either the job was submitted successfully, or 
+the other threads have to wait anyway.  
+"""
 lumiDetermination(experiment, recipe)
 
 # TODO: okay this is tricky, sometimes recipes are pushed to the waiting stack,

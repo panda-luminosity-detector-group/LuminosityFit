@@ -77,7 +77,8 @@ class DebugJobHandler(JobHandler):
 
 
 class ClusterJobManager:
-    """Manages submission of jobs on a cluster environment.
+    """
+    Manages submission of jobs on a cluster environment.
 
     The jobs are pending in a queue until the number of jobs running on the
     cluster is below a certain threshold.
@@ -86,6 +87,15 @@ class ClusterJobManager:
     mindful when querying the agent (the agent is not thread-safe)!
 
     # TODO: add job array ID, so that multiple jobs can be monitored
+
+    Thread safety: since multiple threads can now call the clusterManager, that thing must be
+    thread-safe.
+    use the "with clusterManager as manager:" directive, to ensure only one instance is there
+    (singleton, just like with the agent).
+
+    The manager blocks as soon as a job should be submitted and only returns once the submission
+    was successful. No other error handling here, either the job was submitted successfully, or
+    the other threads have to wait anyway.
     """
 
     def __init__(
@@ -158,6 +168,7 @@ class ClusterJobManager:
         TODO: return job array ID here
         """
         with self.__lock:
+            # TOOD: nope, not append. submit!
             self.__jobs.append(job)
 
         if not self.__manage_thread.is_alive():

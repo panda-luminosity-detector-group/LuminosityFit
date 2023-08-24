@@ -304,7 +304,7 @@ class Client(Agent):
         - agent there will fork
         - original will send back order with name of new pipe
         - fork will send copy of that same order into new pipe (and will block until someone receives)
-        - client will reveive one order with path of new pipe (from original server)
+        - client will receive one order with path of new pipe (from original server)
         - client must also receive copy order from new pipe, else fork will block (useful as confirmation)
         """
 
