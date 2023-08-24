@@ -133,7 +133,7 @@ def genExperimentConfig(
         dataPackage=dataPackage,
         resAccPackage=resAccPackage,
         fitConfigPath=(LMDscriptpath / Path("../configs/fitconfig-fast.json")).resolve(),
-        dataConfigPath=(LMDscriptpath / Path("../configs/dataconfig.json")).resolve(),
+        dataConfigPath=(LMDscriptpath / Path("../configs/dataconfig_xy.json")).resolve(),
         vertexConfigPath=(LMDscriptpath / Path("../configs/vertex_fitconfig.json")).resolve(),
     )
 
