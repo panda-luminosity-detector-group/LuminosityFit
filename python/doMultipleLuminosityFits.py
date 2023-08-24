@@ -52,8 +52,8 @@ number_of_threads: int = 16
 
 LMDscriptpath = experiment.softwarePaths.LmdFitScripts
 LMDbinPath = experiment.softwarePaths.LmdFitBinaries
-elastic_data_path = generateAbsoluteMergeDataPath(experiment.dataPackage)
-acc_res_data_path = generateAbsoluteMergeDataPath(experiment.resAccPackage)
+elasticMergeDataPath = generateAbsoluteMergeDataPath(experiment.dataPackage)
+resAccMergeDataPath = generateAbsoluteMergeDataPath(experiment.resAccPackage)
 config_url = experiment.fitConfigPath
 
 resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
@@ -63,9 +63,9 @@ resource_request.memory_in_mb = 2000
 
 job = Job(
     resource_request,
-    application_url=f"{LMDscriptpath}/singularityJob.sh '{LMDbinPath}/bin/runLmdFit -c {config_url} -d {elastic_data_path} -a {acc_res_data_path} -m {number_of_threads}'",
+    application_url=f"{LMDscriptpath}/singularityJob.sh '{LMDbinPath}/bin/runLmdFit -c {config_url} -d {elasticMergeDataPath} -a {resAccMergeDataPath} -m {number_of_threads}'",
     name="runLmdFit",
-    logfile_url=str(elastic_data_path / "runLmdFit.log"),
+    logfile_url=str(elasticMergeDataPath / "runLmdFit.log"),
     array_indices=[1],
 )
 
