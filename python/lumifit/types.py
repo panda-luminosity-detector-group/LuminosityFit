@@ -220,3 +220,5 @@ class ExperimentParameters:
 
     # this must only be there if the reconstructed IP is used
     recoIPpath: Optional[Path] = None
+
+    lumiFileName: Optional[Path] = None

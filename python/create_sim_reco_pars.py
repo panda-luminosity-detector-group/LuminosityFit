@@ -136,6 +136,7 @@ def genExperimentConfig(
         dataConfigPath=(LMDscriptpath / Path("../configs/dataconfig_xy.json")).resolve(),
         vertexConfigPath=(LMDscriptpath / Path("../configs/vertex_fitconfig.json")).resolve(),
         recoIPpath=(experimentDir / Path("recoIP.json")).resolve(),
+        lumiFileName=(experimentDir / Path("lumi-values.json")).resolve(),
     )
 
     return experiment

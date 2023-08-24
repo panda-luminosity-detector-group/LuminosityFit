@@ -21,7 +21,7 @@ using std::string;
 
 void runLmdFit(string input_file_dir, string fit_config_path,
                string acceptance_file_dir, string reference_acceptance_file_dir,
-               unsigned int nthreads) {
+               unsigned int nthreads, string lumiFitResultPath) {
 
   boost::chrono::thread_clock::time_point start =
       boost::chrono::thread_clock::now();
@@ -31,6 +31,7 @@ void runLmdFit(string input_file_dir, string fit_config_path,
   lmd_runtime_config.setNumberOfThreads(nthreads);
   lmd_runtime_config.setGeneralConfigDirectory(fit_config_path);
 
+  // TODO: why is the file name hard coded?
   lmd_runtime_config.readAcceptanceOffsetTransformationParameters(
       "offset_trafo_matrix.json");
 
@@ -54,6 +55,8 @@ void runLmdFit(string input_file_dir, string fit_config_path,
   // get vertex data and determine and run ip determination for these
   vector<PndLmdHistogramData> my_vertex_vec = lmd_data_facade.getVertexData();
   // do fits
+
+  // TODO: why is the file name hard coded?
   lmd_runtime_config.readFitConfig("vertex_fitconfig.json");
   lmd_fit_facade.fitVertexData(my_vertex_vec);
   std::pair<double, double> ip_offsets(0.0, 0.0);
@@ -169,7 +172,6 @@ void runLmdFit(string input_file_dir, string fit_config_path,
             << " min\n";
 
   // write data to json here
-  
 
   //  This is surprisingly convoluted.
 
@@ -227,9 +229,14 @@ void runLmdFit(string input_file_dir, string fit_config_path,
           lumiJson.put("generated_lumi", data_sample.getReferenceLuminosity());
           lumiJson.put("relative_deviation_in_percent", lumi.first);
           lumiJson.put("relative_deviation_error_in_percent", lumi.second);
+
           std::stringstream filename;
-          filename << input_file_dir;
-          filename << "/lumi-values.json";
+          if (lumiFitResultPath == "") {
+            filename << input_file_dir;
+            filename << "/lumi-values.json";
+          } else {
+            filename << lumiFitResultPath;
+          }
           boost::property_tree::write_json(filename.str(), lumiJson);
         }
       }
@@ -253,13 +260,14 @@ int main(int argc, char *argv[]) {
   string acc_path("");
   string fit_config_path("");
   string ref_acc_path("");
+  string lumiFitResultPath("");
   unsigned int nthreads(1);
   bool is_data_set(false), is_config_set(false), is_acc_set(false),
       is_nthreads_set(false);
 
   int c;
 
-  while ((c = getopt(argc, argv, "hc:a:m:r:d:X:Y:")) != -1) {
+  while ((c = getopt(argc, argv, "hc:a:m:r:d:X:Y:o:")) != -1) {
     switch (c) {
     case 'a':
       acc_path = optarg;
@@ -280,6 +288,9 @@ int main(int argc, char *argv[]) {
       nthreads = atoi(optarg);
       is_nthreads_set = true;
       break;
+    case 'o':
+      lumiFitResultPath = optarg;
+      break;
     case '?':
       if (optopt == 'm' || optopt == 'd' || optopt == 'a' || optopt == 'c' ||
           optopt == 'r')
@@ -298,7 +309,8 @@ int main(int argc, char *argv[]) {
   }
 
   if (is_data_set && is_config_set)
-    runLmdFit(data_path, fit_config_path, acc_path, ref_acc_path, nthreads);
+    runLmdFit(data_path, fit_config_path, acc_path, ref_acc_path, nthreads,
+              lumiFitResultPath);
   else
     displayInfo();
   return 0;
