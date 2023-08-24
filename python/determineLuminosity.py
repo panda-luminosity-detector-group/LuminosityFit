@@ -149,7 +149,7 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
 
 
     TODO: AAAAAH SHIT there are multiple tasks here, we cannot exit early!
-    remove the "return recipe" statemants in the if clauses!
+    remove the "return recipe" statements in the if clauses!
     """
 
     for task in recipe.SimulationTasks:
@@ -486,10 +486,12 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         """
 
         if thisExperiment.dataPackage.recoParams.use_ip_determination:
-            assert thisExperiment.resAccPackage.simParams is not None, "ERROR! simParams is not set in config!"
-            assert thisExperiment.recoIPpath is not None, "ERROR! recoIPpath is not set in config!"
+            assert thisExperiment.resAccPackage.simParams is not None, "ERROR! simParams are not set in config!"
+            assert thisExperiment.recoIPpath is not None, "ERROR! path to recoIP.json is not set in config!"
 
-            vertexDataMergePath = generateAbsoluteMergeDataPath(thisExperiment.dataPackage)
+            vertexDataMergePath = generateAbsoluteMergeDataPath(
+                thisExperiment.dataPackage,
+            )
 
             if not thisExperiment.recoIPpath.exists():
                 # 2. determine offset on the vertex data sample

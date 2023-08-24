@@ -74,6 +74,8 @@ def generateAbsoluteROOTDataPath(configPackage: ConfigPackage, dataMode=DataMode
     That includes lmdFitDataDir/scenarioDir/cut/align/
 
     Example: /lustre/klasen/LMD-xkcdsmbc/sim/1-100_xy_n_cut/no_alignment_correction/
+
+    dataMode decides if the recoParams should really use cuts or not. (not ideal design, but works for now)
     """
 
     if dataMode == DataMode.VERTEXDATA:
@@ -98,6 +100,7 @@ def generateRelativeBinningDir() -> Path:
     """
     return Path("binning")
 
+
 def generateRelativeMergeDir() -> Path:
     """
     Generates a relative path to the merge_data path,
@@ -105,6 +108,12 @@ def generateRelativeMergeDir() -> Path:
     """
     return Path("merge_data")
 
-def generateAbsoluteMergeDataPath(configPackage: ConfigPackage) -> Path:
+
+def generateAbsoluteMergeDataPath(configPackage: ConfigPackage, dataMode=DataMode.DATA) -> Path:
     # well fuck this
-    return generateAbsoluteROOTDataPath(configPackage=configPackage) / generateRelativeBunchesDir() / generateRelativeBinningDir() / generateRelativeMergeDir()
+    return (
+        generateAbsoluteROOTDataPath(configPackage=configPackage, dataMode=dataMode)
+        / generateRelativeBunchesDir()
+        / generateRelativeBinningDir()
+        / generateRelativeMergeDir()
+    )
