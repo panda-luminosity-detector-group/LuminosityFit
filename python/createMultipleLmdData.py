@@ -152,6 +152,7 @@ for bins in range(
             if "bins" in subsubconfig:
                 subsubconfig["bins"] = bins
 
+    # TODO: why tho? what even are the changes above for?
     print(f"saving config to {binningPath}")
     configIO.writeConfigToPath(config, binningPath / "dataconfig.json")
 
