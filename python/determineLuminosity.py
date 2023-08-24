@@ -20,7 +20,6 @@ from lumifit.himster import create_himster_job_handler
 from lumifit.paths import (
     generateAbsoluteMergeDataPath,
     generateAbsoluteROOTDataPath,
-    generateCutKeyword,
     generateRelativeBinningDir,
     generateRelativeBunchesDir,
     generateRelativeMergeDir,
@@ -158,32 +157,20 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
         print(f"current state: {str(task.simState)}")
         print(f"last state:    {str(task.lastState)}")
 
+        # data pattern is used to check if previous simulation steps were successfully run
+        # the config patten switch is essential to generate the correct paths
         data_pattern = ""
-
-        # this case switch is needed for the DirectorySearchers, which determine the
-        # working dir for the scripts to:
-        # - create File lists (e.g. filelist_1.txt)
-        # - make bunches (bunches_ folders)
-        # - and merge them (binning_ folders)
-        # so obviously this is shit design which fucking sucks,
-        # but I can (and fucking will!) change it later
-        # for now, we need it this way.
         if task.simDataType == SimulationDataType.VERTEX:
-            cut_keyword = "uncut"
             data_pattern = "lmd_vertex_data_"
             configPackage = thisExperiment.dataPackage
         elif task.simDataType == SimulationDataType.ANGULAR:
             configPackage = thisExperiment.dataPackage
-            cut_keyword = generateCutKeyword(configPackage.recoParams)
             data_pattern = "lmd_data_"
         elif task.simDataType == SimulationDataType.EFFICIENCY_RESOLUTION:
             configPackage = thisExperiment.resAccPackage
-            cut_keyword = generateCutKeyword(configPackage.recoParams)
             data_pattern = "lmd_res_data_"
         else:
             raise NotImplementedError(f"Simulation type {task.simDataType} is not implemented!")
-
-        print(f"cut keyword is {cut_keyword}")
 
         # 1. simulate data
         if task.simState == SimulationState.START_SIM:
@@ -194,7 +181,10 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
 
                 Takes the offset of the IP into account.
 
-                TODO: This needs to know the misalignment of the detector.
+                TODO: This needs to know the misalignment of the detector for the sim steps
+                and the alignment for the reconstruction.
+                Since real data has unknown misalignment, we must use the inverse alignment matrices
+                to model the acceptance of the real detector faithfully.
                 """
 
                 assert thisExperiment.resAccPackage.simParams is not None
