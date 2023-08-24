@@ -473,7 +473,6 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
             recipe.lastLumiDetState = LumiDeterminationState.SIMULATE_VERTEX_DATA
             recipe.lumiDetState = LumiDeterminationState.DETERMINE_IP
 
-    # if lumiDetState == 2:
     if recipe.lumiDetState == LumiDeterminationState.DETERMINE_IP:
         """
         state 2 only handles the reconstructed IP. If use_ip_determination is set,
@@ -505,6 +504,9 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 
                 print(f"beam offset determination command:\n{bashCommand}")
                 _ = subprocess.call(bashCommand)
+
+            else:
+                print("IP determination file already exists, skipping IP determination!")
 
             with open(str(thisExperiment.recoIPpath), "r") as f:
                 ip_rec_data = json.load(f)
