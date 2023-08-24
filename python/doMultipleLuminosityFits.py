@@ -10,6 +10,7 @@ Two parameters are strictly required:
 Is is howver advides to also provide:
 - resAcc path
 - number of threads, ideally 16
+- output file name INCLUDING path
 
 TODO: make this a module
 """
@@ -45,7 +46,7 @@ args = parser.parse_args()
 experiment: ExperimentParameters = load_params_from_file(args.ExperimentConfigFile, ExperimentParameters)
 
 
-# allocate two times this many cores on a compute node, or we'll get a segault.
+# allocate two times this many cores on a compute node, or we'll get a segfault.
 # 16 seems to work when we allocate 32 cores, so just leave it like that. the fit
 # only takes like five minutes anyway
 number_of_threads: int = 16
