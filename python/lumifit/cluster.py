@@ -138,7 +138,7 @@ class ClusterJobManager:
                             print("something is wrong with this job. Skipping...")
                             resubmit = False
                     else:
-                        print("Submit failed! Appending job to resubmit" " list for later submission...")
+                        print("Submit failed! Appending job to resubmit list for later submission...")
                         failed_jobs[current_job] = time()
 
                     if resubmit:

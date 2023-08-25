@@ -688,12 +688,13 @@ then this entire state bullshit can be tossed.
 so, for each thread:
 
 the lumiDetermination() function executes all individual steps in sequence, nothing else.
+no more fucking states.
 but since each step may call simulateDataOnHimster(), each step must block.
 no more state bullshit.
 
 therefor the simulateDataOnHimster() function must only return once all tasks are done.
 this is ensured in the handleTasks function (which doesn't exist yet). this loops 
-over all tasks and checks if they are done, and only then return.
+over all tasks and checks if they are done, and only then returns.
 
 Thread safety: since multiple threads can now call the clusterManager, that thing must be
 thread-safe. 
