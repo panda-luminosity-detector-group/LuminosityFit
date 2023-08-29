@@ -3,7 +3,7 @@ import subprocess
 import threading
 from abc import abstractmethod
 from time import sleep, time
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import attr
 from attrs import define
@@ -56,7 +56,7 @@ class JobHandler:
         pass
 
     @abstractmethod
-    def get_active_number_of_jobs(self) -> int:
+    def get_active_number_of_jobs(self, jobID: Optional[int] = None) -> int:
         pass
 
 
@@ -183,8 +183,8 @@ class ClusterJobManager:
                         returncode, jobArrayID = self.__job_handler.submit(job)
                         if returncode > 0:
                             triesCounter += 1
-                            print("Submit failed! Waiting 30 seconds and then trying again...")
-                            sleep(secs=30)
+                            print("Submit failed! Waiting 15 seconds and then trying again...")
+                            sleep(secs=15)
 
                         else:
                             print("Job submitted!")

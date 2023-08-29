@@ -6,7 +6,7 @@ or read from file!
 """
 
 from enum import Enum, IntEnum
-from typing import List
+from typing import List, Optional
 
 from attrs import define
 
@@ -50,7 +50,7 @@ class SimulationTask:
     simDataType: SimulationDataType = SimulationDataType.NONE
     simState: SimulationState = SimulationState.INIT
     lastState: SimulationState = SimulationState.INIT
-    jobArrayID: int = -1
+    jobArrayID: Optional[int] = None
 
 
 @define
