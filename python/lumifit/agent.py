@@ -123,7 +123,7 @@ class Server(Agent):
         """
         If multiple clients connect to one server, the server may get too many requests at the same time and may confuse the orders and results. This method returns the path to a new named pipe that is to be used by only one client. This way the order -> result structure is preserved and only one command is expected and executed.
 
-        This is made this way so that each client instance can choose to get a unique server and doensn't have to care if it gets resutls for someone elses order.
+        This is made this way so that each client instance can choose to get a unique server and doesn't have to care if it gets results for someone elses order.
         """
 
         # generate random suffix for named pipe name, 8 should do just fine
@@ -163,7 +163,7 @@ class Server(Agent):
 
     def mainLoop(self) -> None:
         """
-        continouosly read from pipe and execute, write output and return codes back.
+        continuously read from pipe and execute, write output and return codes back.
         """
         while True:
             # read entire pipe contents and try to deserialize json from it (close pipe!)
