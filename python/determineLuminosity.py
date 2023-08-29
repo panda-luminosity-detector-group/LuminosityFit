@@ -702,7 +702,7 @@ no more fucking states.
 but since each step may call simulateDataOnHimster(), each step must block.
 no more state bullshit.
 
-therefor the simulateDataOnHimster() function must only return once all tasks are done.
+therefore the simulateDataOnHimster() function must only return once all tasks are done.
 this is ensured in the handleTasks function (which doesn't exist yet). this loops 
 over all tasks and checks if they are done, and only then returns.
 
