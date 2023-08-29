@@ -40,6 +40,7 @@ def createLmdDataJob(experiment: ExperimentParameters, task: SimulationTask, ela
 
     fileListPath = pathToRootFiles / generateRelativeBunchesDir()
     binningPath = pathToRootFiles / generateRelativeBunchesDir() / generateRelativeBinningDir()
+    binningPath.mkdir(parents=True, exist_ok=True)
 
     # Why OOP?
     configIO = ConfigReaderAndWriter()
