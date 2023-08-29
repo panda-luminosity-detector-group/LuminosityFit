@@ -64,13 +64,15 @@ class DebugJobHandler(JobHandler):
     def submit(self, job: Job) -> Tuple[int, int]:
         """
         Debug handler executes locally, not via Slurm.
-        Job Array ID is always 0.
+        Job Array ID is always -1.
         """
         print(job.exported_user_variables)
         my_env = os.environ.copy()
         my_env.update(job.exported_user_variables)
         print(job.application_url)
-        return subprocess.call(job.application_url, env=my_env), 0
+
+        # job array ID is always -1, because it's not a cluster
+        return subprocess.call(job.application_url, env=my_env), -1
 
     def get_active_number_of_jobs(self) -> int:
         return 0

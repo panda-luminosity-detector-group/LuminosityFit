@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 
 """
+! DEPRECATION WARNING! This script is now superseded by the wrappers.lumifit module!
+"""
+
+"""
 This script is a wrapper for runLmdFit and submits it to SLURM.
 
 Two parameters are strictly required:
 - fit config path
 - data path
 
-Is is howver advides to also provide:
+Is is however advised to also provide:
 - resAcc path
 - number of threads, ideally 16
 - output file name INCLUDING path

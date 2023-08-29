@@ -34,6 +34,8 @@ from lumifit.recipe import (
 from lumifit.types import ClusterEnvironment, DataMode, ExperimentParameters
 from wrappers.createRecoJob import create_reconstruction_job
 from wrappers.createSimRecoJob import create_simulation_and_reconstruction_job
+from wrappers.lmdData import createLmdDataJob
+from wrappers.lumiFit import createLumiFitJob
 
 """
 
@@ -90,6 +92,7 @@ def wasSimulationSuccessful(
         return StatusCode.ENOUGH_FILES
 
     if files_percentage < required_files_percentage:
+        # TODO: job_handler is a global object, I don't like that
         if job_handler.get_active_number_of_jobs() > 0:
             print(f"there are still {job_handler.get_active_number_of_jobs()} jobs running")
             return StatusCode.STILL_RUNNING
@@ -362,31 +365,35 @@ def simulateDataOnHimster(thisExperiment: ExperimentParameters, recipe: SimRecip
 
                 multiFileListCommand.clear()
 
-                lmdDataCommand: List[str] = []
-                lmdDataCommand.append("python")
-                lmdDataCommand.append("createMultipleLmdData.py")
-                lmdDataCommand.append("--jobCommand")
-                lmdDataCommand.append(thisExperiment.LMDDataCommand)
-                lmdDataCommand.append(f"{thisExperiment.dataPackage.recoParams.lab_momentum:.2f}")
-                lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-                lmdDataCommand.append(str(pathToRootFiles))
-                lmdDataCommand.append(str(thisExperiment.dataConfigPath))
+                # lmdDataCommand: List[str] = []
+                # lmdDataCommand.append("python")
+                # lmdDataCommand.append("createMultipleLmdData.py")
+                # lmdDataCommand.append("--jobCommand")
+                # lmdDataCommand.append(thisExperiment.LMDDataCommand)
+                # lmdDataCommand.append(f"{thisExperiment.dataPackage.recoParams.lab_momentum:.2f}")
+                # lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
+                # lmdDataCommand.append(str(pathToRootFiles))
+                # lmdDataCommand.append(str(thisExperiment.dataConfigPath))
 
-                if task.simDataType == SimulationDataType.ANGULAR:
-                    # TODO: can we write this to the experiment config? I mean it only depends on the momentum anyway,
-                    # so it could be written at generation time
-                    el_cs = recipe.elastic_pbarp_integrated_cross_secion_in_mb
-                    lmdDataCommand.append("--elastic_cross_section")
-                    lmdDataCommand.append(str(el_cs))
+                # if task.simDataType == SimulationDataType.ANGULAR:
+                #     # TODO: can we write this to the experiment config? I mean it only depends on the momentum anyway,
+                #     # so it could be written at generation time
+                #     el_cs = recipe.elastic_pbarp_integrated_cross_secion_in_mb
+                #     lmdDataCommand.append("--elastic_cross_section")
+                #     lmdDataCommand.append(str(el_cs))
 
-                print("bash command for LmdData creation")
-                print(lmdDataCommand)
-                _ = subprocess.call(lmdDataCommand)
+                # print("bash command for LmdData creation")
+                # print(lmdDataCommand)
+                # _ = subprocess.call(lmdDataCommand)
+
+                el_cs = recipe.elastic_pbarp_integrated_cross_secion_in_mb
+                LMDdataJob = createLmdDataJob(thisExperiment, task, el_cs)
+                job_manager.enqueue(LMDdataJob)
 
                 # was apparently bunches
                 task.lastState = SimulationState.MERGE
 
-                lmdDataCommand.clear()
+                # lmdDataCommand.clear()
                 return recipe
 
         # 3. merge data
@@ -569,7 +576,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         # 3b. generate acceptance and resolution with these reconstructed ip values
         # (that means simulation + bunching + creating data objects + merging)
 
-        # TODO: there is an error here, only need to make sure the IP was reconstruced, that has nothing to do with the number of simTasks
+        # TODO: there is an error here, only need to make sure the IP was reconstructed, that has nothing to do with the number of simTasks
         if len(recipe.SimulationTasks) == 0:
             recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.ANGULAR, simState=SimulationState.START_SIM))
             recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.EFFICIENCY_RESOLUTION, simState=SimulationState.START_SIM))
@@ -589,17 +596,19 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         4. runLmdFit!
         """
 
-        os.chdir(lmd_fit_script_path)
-        print("running lmdfit!")
+        # os.chdir(lmd_fit_script_path)
+        # print("running lmdfit!")
 
-        lumiFitCommand: List[str] = []
-        lumiFitCommand.append("python")
-        lumiFitCommand.append("doMultipleLuminosityFits.py")
-        lumiFitCommand.append("-e")
-        lumiFitCommand.append(f"{args.ExperimentConfigFile}")
+        # lumiFitCommand: List[str] = []
+        # lumiFitCommand.append("python")
+        # lumiFitCommand.append("doMultipleLuminosityFits.py")
+        # lumiFitCommand.append("-e")
+        # lumiFitCommand.append(f"{args.ExperimentConfigFile}")
 
-        print(f"Bash command for LumiFit is:\n{' '.join(lumiFitCommand)}")
-        _ = subprocess.call(lumiFitCommand)
+        # print(f"Bash command for LumiFit is:\n{' '.join(lumiFitCommand)}")
+        # _ = subprocess.call(lumiFitCommand)
+        lumiFitJob = createLumiFitJob(thisExperiment)
+        job_manager.enqueue(job=lumiFitJob)
 
         print("this recipe is fully processed!!!")
         finished = True
@@ -674,6 +683,7 @@ else:
 
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
+# TODO: nopey-nope, no global objects plz
 job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
 # * ----------------- start the lumi function for the first time.
@@ -711,8 +721,8 @@ lumiDetermination(experiment, recipe)
 # and then they are run again? let's see if we can do this some other way.
 # while len(waiting_recipe_stack) > 0:
 while len(active_recipe_stack) > 0 or len(waiting_recipe_stack) > 0:
-    for scen in active_recipe_stack:
-        lumiDetermination(experiment, scen)
+    for recipe in active_recipe_stack:
+        lumiDetermination(experiment, recipe)
 
     # clear active stack, if the recipe needs to be processed again,
     # it will be placed in the waiting stack
