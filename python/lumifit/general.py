@@ -75,11 +75,11 @@ def getGoodFiles(
 def isFilePresentAndValid(file_url: Path, minFileSize=3000) -> bool:
     if file_url.exists():
         if file_url.stat().st_size > minFileSize:
-            print(f"{file_url} exists and is larger than 3kb!")
+            # print(f"{file_url} exists and is larger than 3kb!")
             return True
-        print("file is too small.")
+        # print("file is too small.")
         return False
-    print(f"{file_url} does not exist!")
+    # print(f"{file_url} does not exist!")
     return False
 
 

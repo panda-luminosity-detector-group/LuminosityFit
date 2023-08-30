@@ -70,7 +70,7 @@ class StatusCode(Enum):
 
 # TODO: add jobID or jobArrayID check here
 # TODO: the percentage check is also shite because files can be done after this check is true.
-def wasSimulationSuccessful(
+def enoughFilesPresent(
     directory: Path,
     glob_pattern: str,
     min_filesize_in_bytes: int = 10000,
@@ -183,7 +183,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
 
             # TODO: later, WITH alignment since that affects the acceptance!
             resAccDataDir = generateAbsoluteROOTDataPath(configPackage=configPackage)
-            status_code = wasSimulationSuccessful(directory=resAccDataDir, glob_pattern=experiment.trackFilePattern + "*.root")
+            status_code = enoughFilesPresent(directory=resAccDataDir, glob_pattern=experiment.trackFilePattern + "*.root")
 
             if status_code == StatusCode.ENOUGH_FILES:
                 task.lastState = SimulationState.START_SIM
@@ -223,7 +223,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             """
 
             angularDataDir = generateAbsoluteROOTDataPath(experiment.dataPackage)
-            status_code = wasSimulationSuccessful(
+            status_code = enoughFilesPresent(
                 directory=angularDataDir,
                 glob_pattern=experiment.trackFilePattern + "*.root",
             )
@@ -249,7 +249,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             assert experiment.dataPackage.MCDataDir is not None
             mcDataDir = experiment.dataPackage.MCDataDir
 
-            status_code = wasSimulationSuccessful(directory=mcDataDir, glob_pattern="Lumi_MC_*.root")
+            status_code = enoughFilesPresent(directory=mcDataDir, glob_pattern="Lumi_MC_*.root")
 
             if status_code == StatusCode.ENOUGH_FILES:
                 task.lastState = SimulationState.START_SIM
@@ -309,7 +309,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
         binningPath = pathToRootFiles / generateRelativeBunchesDir() / generateRelativeBinningDir()
 
         # TODO: this check shouldn't be here but in the makeMultipleFileListBunches or createMultipleLmdData modules. This script should only execute the steps in the right order. If  anything is already there, the submodules can just exit early.
-        status_code = wasSimulationSuccessful(
+        status_code = enoughFilesPresent(
             directory=binningPath,
             glob_pattern=data_pattern + "*",
         )
@@ -380,7 +380,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
 
         mergePath = pathToRootFiles / generateRelativeBunchesDir() / generateRelativeBinningDir() / generateRelativeMergeDir()
 
-        status_code = wasSimulationSuccessful(
+        status_code = enoughFilesPresent(
             directory=mergePath,
             glob_pattern=data_pattern + "*",
         )
@@ -511,6 +511,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         # if len(recipe.SimulationTasks) == 0:
         #     recipe.lastLumiDetState = LumiDeterminationState.SIMULATE_VERTEX_DATA
         #     recipe.lumiDetState = LumiDeterminationState.DETERMINE_IP
+    else:
+        raise RuntimeError("Unexpected start state!")
 
     if recipe.lumiDetState == LumiDeterminationState.DETERMINE_IP:
         """
@@ -598,6 +600,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 
         recipe.lastLumiDetState = LumiDeterminationState.DETERMINE_IP
         recipe.lumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
+    else:
+        raise RuntimeError("State should be determine IP!")
 
     if recipe.lumiDetState == LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP:
         # state 3a:
@@ -620,6 +624,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         # if len(recipe.SimulationTasks) == 0:
         recipe.lastLumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
         recipe.lumiDetState = LumiDeterminationState.RUN_LUMINOSITY_FIT
+    else:
+        raise RuntimeError("State should be reconstruct with new IP!")
 
     if recipe.lumiDetState == LumiDeterminationState.RUN_LUMINOSITY_FIT:
         """
@@ -644,6 +650,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 
         print("this recipe is fully processed!!!")
         # finished = True
+    else:
+        raise RuntimeError("State should be run luminosity fit!")
 
     # if we are in an intermediate step then push on the waiting stack and
     # increase step state

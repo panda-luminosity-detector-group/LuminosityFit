@@ -50,6 +50,8 @@ class SimulationTask:
     simDataType: SimulationDataType = SimulationDataType.NONE
     simState: SimulationState = SimulationState.INIT
     lastState: SimulationState = SimulationState.INIT
+
+    # TODO: I don't think I'm actually using this
     jobArrayID: Optional[int] = None
 
 
