@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
+import concurrent.futures
 import copy
 import json
 import math
 import os
 import subprocess
-import sys
-import time
 from enum import Enum
 from pathlib import Path
 from time import sleep
@@ -417,7 +416,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
         raise NotImplementedError(f"Simulation state {task.simState} is not implemented!")
 
 
-def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) -> None:
+def singleTaskThread(experiment: ExperimentParameters, task: SimulationTask) -> bool:
     """
     The recipe will have one to many tasks. "Handling" a task means either running
     some script to process data, or submit a job to the cluster to process data,
@@ -429,54 +428,55 @@ def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) 
     A task has a state, which is changed by handleTask(). When it task is finished,
     its state will be DONE.
 
-    This function will be called in a loop until all tasks are done.
+    This function will be called in a loop until all tasks are done. It must be wrapped
+    in a thread if multiple tasks are to be handled at the same time.
 
-    TODO: this function is not done yet. Once it is, the entire script can be
-    tested again.
+    Returns True once the task is finished.
+    """
+    while True:
+        if task.simState == SimulationState.DONE:
+            return True
+        jobID = executeTask(experiment=experiment, task=task)
+
+        # no job was submitted, we can process the task again
+        if jobID is None:
+            continue
+        else:
+            # a job was submitted, we have to wait for it
+            while True:
+                # check if job is still running
+                runningJobs = job_manager.__job_handler.get_active_number_of_jobs(jobID)
+                if runningJobs == 0:
+                    task.jobArrayID = None
+                    break
+
+                # job is still running, do nothing for three minutes
+                else:
+                    print(f"Still waiting for task {task}...")
+                    sleep(3 * 60)
+
+
+def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) -> None:
+    """
+    The recipe will contain one to many SimulationTasks.
+    Use a thread pool to process all tasks at the same time,
+    use the singleTaskThread() method for that. I will return True
+    once the task is finished.
     """
 
-    tasksToDo: List[SimulationTask] = recipe.SimulationTasks
-    tasksRunningOnCluster: List[SimulationTask] = []
-    tasksForNextIteration: List[SimulationTask] = []
+    print(f"Submitting {len(recipe.SimulationTasks)} tasks to thread pool...")
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [executor.submit(singleTaskThread, experiment, task) for task in recipe.SimulationTasks]
 
-    jobIDs: List[int] = []
+    # wait for all tasks to finish
+    concurrent.futures.wait(futures)
+    print("All threads done!")
 
-    while len(tasksToDo) > 0:
-        # handles all tasks in the recipe
-        for task in tasksToDo:
-            jobID = executeTask(experiment=experiment, task=task)
-
-            # if the task wasn't submitted, we can process it the next iteration
-            if jobID is None:
-                tasksForNextIteration.append(task)
-
-            # if a task submitted a job, we have to wait for it
-            if jobID is not None:
-                jobIDs.append(jobID)
-                tasksRunningOnCluster.append(task)
-
-        # now, all tasks are either on cluster or ready for the next round
-        tasksToDo = tasksForNextIteration
-
-    # at some point, no tasks are left to do but some are still running on the cluster
-    # then we have to wait for them to finish. just wait 3 minutes and check again
-    sleep(3 * 60)
-
-    for task in tasksRunningOnCluster:
-        # check if task is still running
-        runningJobs = job_manager.__job_handler.get_active_number_of_jobs(task.jobArrayID)
-        if runningJobs == 0:
-            task.jobArrayID = None
-            tasksRunningOnCluster.remove(task)
-            tasksForNextIteration.append(task)
-
-        # job is still running, do nothing
-        else:
-            pass
-
-    # check if tasks are finished
+    # check if tasks are finished. ALL should be finished here!
     recipe.SimulationTasks = [simTask for simTask in recipe.SimulationTasks if simTask.simState != SimulationState.DONE]
-    # return recipe
+
+    if len(recipe.SimulationTasks) > 0:
+        raise RuntimeError(f"ERROR! There are still {len(recipe.SimulationTasks)} tasks left to process!")
 
 
 def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -> None:
