@@ -489,6 +489,8 @@ def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) 
     recipe.SimulationTasks = [simTask for simTask in recipe.SimulationTasks if simTask.simState != SimulationState.DONE]
 
     if len(recipe.SimulationTasks) > 0:
+        print("okay. what the fuck. im waiting 30 seconds to see if some output appears")
+        sleep(30)
         raise RuntimeError(f"ERROR! There are still {len(recipe.SimulationTasks)} tasks left to process!")
 
 
