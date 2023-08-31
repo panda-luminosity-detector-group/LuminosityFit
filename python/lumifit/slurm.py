@@ -173,7 +173,7 @@ class SlurmJobHandler(JobHandler):
                     # regex parse the job ID
                     match = re.search(r"Submitted batch job (\d+)", returnMessage)
                     if match is not None:
-                        jobArrayID = int(match.group())
+                        jobArrayID = int(match.group(1))
                     else:
                         raise RuntimeError("Job submission failed in a weird way! Return code was 0, but no job ID was found!")
 
