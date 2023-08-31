@@ -187,7 +187,7 @@ class ClusterJobManager:
                             sleep(secs=15)
 
                         else:
-                            print("Job submitted, waiting 5 seconds.")
+                            print(f"Job submitted as id {jobArrayID}, waiting 5 seconds.")
                             # it seems SLURM takes a few seconds to update the queue, so we wait a bit
                             sleep(secs=5)
                             return jobArrayID

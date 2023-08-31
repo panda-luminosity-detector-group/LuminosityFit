@@ -177,6 +177,8 @@ class SlurmJobHandler(JobHandler):
                     else:
                         raise RuntimeError("Job submission failed in a weird way! Return code was 0, but no job ID was found!")
 
+                if not isinstance(jobArrayID, int):
+                    raise RuntimeError(f"Job submission failed in a weird way! Return code was 0, but I could not parse the job ID {jobArrayID}!")
                 return int(returnCode), jobArrayID
 
         else:
