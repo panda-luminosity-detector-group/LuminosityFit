@@ -270,9 +270,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
                     use_devel_queue=args.use_devel_queue,
                 )
                 del copyExperiment
-                print("enqueuing")
                 returnJobID = job_manager.enqueue(job)
-                print(f"enqueued {returnJobID}")
                 return int(returnJobID)
             else:
                 raise RuntimeError(f"Status code {status_code} is unexpected!")
@@ -493,9 +491,9 @@ def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) 
     recipe.SimulationTasks = [simTask for simTask in recipe.SimulationTasks if simTask.simState != SimulationState.DONE]
 
     if len(recipe.SimulationTasks) > 0:
-        print("okay. what the fuck. im waiting 30 seconds to see if some output appears")
-        sleep(30)
-        raise RuntimeError(f"ERROR! There are still {len(recipe.SimulationTasks)} tasks left to process!")
+        raise RuntimeError(
+            f"ERROR! There are still {len(recipe.SimulationTasks)} tasks left to process, but all should be done or still processing. That means one of the threads crashed unexpectedly."
+        )
 
 
 def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -> None:

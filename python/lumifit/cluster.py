@@ -82,22 +82,11 @@ class ClusterJobManager:
     """
     Manages submission of jobs on a cluster environment.
 
-    The jobs are pending in a queue until the number of jobs running on the
-    cluster is below a certain threshold.
-
-    WARNING: This object is multithreaded, use locks when needed and be
-    mindful when querying the agent (the agent is not thread-safe)!
-
-    # TODO: add job array ID, so that multiple jobs can be monitored
-
-    Thread safety: since multiple threads can now call the clusterManager, that thing must be
-    thread-safe.
-    use the "with clusterManager as manager:" directive, to ensure only one instance is there
-    (singleton, just like with the agent).
-
-    The manager blocks as soon as a job should be submitted and only returns once the submission
+    The manager blocks as soon as a job should be submitted (enqueued) and only returns once the submission
     was successful. No other error handling here, either the job was submitted successfully, or
     the other threads have to wait anyway.
+
+    Manager should be thread safe, but do not create multiple instances.
     """
 
     def __init__(
@@ -105,67 +94,20 @@ class ClusterJobManager:
         job_handler: JobHandler,
         total_job_threshold: int = 1000,
         resubmit_wait_time_in_seconds: int = 1800,
-        # time_to_sleep_after_submission: int = 3,
     ) -> None:
         if not isinstance(job_handler, JobHandler):
             raise TypeError(f"job_handler must be of type JobHandler, got {job_handler}!")
         self.__job_handler = job_handler
-        # self.__jobs: List[Job] = []
         self.__total_job_threshold = total_job_threshold
-        # sleep time when total job threshold is reached in seconds
         self.__resubmit_wait_time_in_seconds = resubmit_wait_time_in_seconds
-        # self.__time_to_sleep_after_submission = time_to_sleep_after_submission
-        # self.__manage_thread = threading.Thread(target=self.__manage_jobs)
         self.__lock = threading.Lock()
-
-    # def __manage_jobs(self) -> None:
-    #     failed_jobs: Dict[Job, float] = {}
-
-    #     while self.__jobs:
-    #         print("checking if total job threshold is reached...")
-    #         if self.__job_handler.get_active_number_of_jobs() < self.__total_job_threshold:
-    #             print("Nope, trying to submit job...")
-    #             current_job = None
-    #             with self.__lock:
-    #                 current_job = self.__jobs.pop(0)
-
-    #             print(current_job)
-    #             # TODO: add job array ID
-    #             returncode, jobArrayID = self.__job_handler.submit(current_job)
-    #             if returncode > 0:
-    #                 resubmit = True
-    #                 if current_job in failed_jobs:
-    #                     if time() < (failed_jobs[current_job] + self.__resubmit_wait_time_in_seconds):
-    #                         print(current_job)
-    #                         print("something is wrong with this job. Skipping...")
-    #                         resubmit = False
-    #                 else:
-    #                     print("Submit failed! Appending job to resubmit list for later submission...")
-    #                     failed_jobs[current_job] = time()
-
-    #                 if resubmit:
-    #                     # put the command back into the list
-    #                     with self.__lock:
-    #                         self.__jobs.insert(0, current_job)
-    #             else:
-    #                 # sleep a bit to make the queue changes active
-    #                 sleep(self.__time_to_sleep_after_submission)
-    #         else:
-    #             with self.__lock:
-    #                 print("Yep, we have currently have " + str(len(self.__jobs)) + " jobs waiting in queue!")
-    #             # and sleep for some time
-    #             print("Waiting for " + str(self.__resubmit_wait_time_in_seconds / 60) + " min and then trying a resubmit...")
-    #             sleep(self.__resubmit_wait_time_in_seconds)
-    #     print("\n\nAll jobs submitted!\n\n")
-
-    # def is_active(self) -> bool:
-    #     return self.__manage_thread.is_alive()
 
     def get_active_number_of_jobs(self, jobID: int) -> int:
         """
         Calls the equivalent function in the job handler.
         """
-        return self.__job_handler.get_active_number_of_jobs(jobID)
+        with self.__lock:
+            return self.__job_handler.get_active_number_of_jobs(jobID)
 
     def enqueue(self, job: Job) -> int:
         """
@@ -177,13 +119,8 @@ class ClusterJobManager:
         returns job (array) ID
         """
         with self.__lock:
-            # self.__jobs.append(job)
-
             while True:
-                print("checking if total job threshold is reached...")
                 if self.__job_handler.get_active_number_of_jobs() < self.__total_job_threshold:
-                    print("Nope, trying to submit job...")
-
                     triesCounter = 0
                     while triesCounter < 3:
                         returncode, jobArrayID = self.__job_handler.submit(job)
@@ -193,10 +130,9 @@ class ClusterJobManager:
                             sleep(15)
 
                         else:
-                            print(f"Job submitted as id {jobArrayID}, waiting 5 seconds.")
+                            print(f"Job submitted as id {jobArrayID}, waiting 3 seconds.")
                             # it seems SLURM takes a few seconds to update the queue, so we wait a bit
-                            sleep(5)
-                            print("returning jobArrayID")
+                            sleep(3)
                             return jobArrayID
 
                     raise RuntimeError("Job submission failed 3 times in a row, aborting...")
@@ -206,7 +142,3 @@ class ClusterJobManager:
                     # and sleep for some time
                     print("Waiting for " + str(self.__resubmit_wait_time_in_seconds / 60) + " min and then trying a resubmit...")
                     sleep(self.__resubmit_wait_time_in_seconds)
-
-        # if not self.__manage_thread.is_alive():
-        #     self.__manage_thread = threading.Thread(target=self.__manage_jobs)
-        #     self.__manage_thread.start()
