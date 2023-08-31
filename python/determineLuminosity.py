@@ -453,7 +453,7 @@ def singleTaskThread(experiment: ExperimentParameters, task: SimulationTask) -> 
             # a job was submitted, we have to wait for it
             while True:
                 # check if job is still running
-                runningJobs = job_manager.__job_handler.get_active_number_of_jobs(jobID)
+                runningJobs = job_manager.get_active_number_of_jobs(jobID)
                 if runningJobs == 0:
                     # task.jobArrayID = None
                     break
