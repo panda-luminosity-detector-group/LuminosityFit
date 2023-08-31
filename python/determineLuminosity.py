@@ -472,17 +472,22 @@ def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) 
     once the task is finished.
     """
 
-    print(f"Submitting {len(recipe.SimulationTasks)} tasks to thread pool...")
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(singleTaskThread, experiment, task) for task in recipe.SimulationTasks]
+    if False:
+        print(f"Submitting {len(recipe.SimulationTasks)} tasks to thread pool...")
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(singleTaskThread, experiment, task) for task in recipe.SimulationTasks]
 
-        # wait for all tasks to finish
-        print("submitted, waiting...")
-        executor.shutdown(wait=True)
+            # wait for all tasks to finish
+            print("submitted, waiting...")
+            executor.shutdown(wait=True)
 
-        # concurrent.futures.wait(futures)
+            # concurrent.futures.wait(futures)
 
-    print("All threads done!")
+        print("All threads done!")
+    else:
+        print("running taks sequentiall without thread pool.")
+        for task in recipe.SimulationTasks:
+            singleTaskThread(experiment, task)
 
     # check if tasks are finished. ALL should be finished here!
     recipe.SimulationTasks = [simTask for simTask in recipe.SimulationTasks if simTask.simState != SimulationState.DONE]
