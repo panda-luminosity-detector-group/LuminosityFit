@@ -188,6 +188,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             if status_code == StatusCode.ENOUGH_FILES:
                 task.lastState = SimulationState.START_SIM
                 task.simState = SimulationState.MAKE_BUNCHES
+                task.jobArrayID = None
                 return None
 
             elif status_code == StatusCode.NO_FILES:
@@ -230,6 +231,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             if status_code == StatusCode.ENOUGH_FILES:
                 task.lastState = SimulationState.START_SIM
                 task.simState = SimulationState.MAKE_BUNCHES
+                task.jobArrayID = None
                 return None
 
             elif status_code == StatusCode.NO_FILES:
@@ -254,6 +256,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             if status_code == StatusCode.ENOUGH_FILES:
                 task.lastState = SimulationState.START_SIM
                 task.simState = SimulationState.MAKE_BUNCHES
+                task.jobArrayID = None
                 return None
 
             elif status_code == StatusCode.NO_FILES:
@@ -318,6 +321,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             print("skipping bunching and data object creation...")
             task.lastState = SimulationState.MAKE_BUNCHES
             task.simState = SimulationState.MERGE
+            task.jobArrayID = None
             return None
 
         elif status_code == StatusCode.NO_FILES:
@@ -389,6 +393,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             print("skipping data merging...")
             task.lastState = SimulationState.MERGE
             task.simState = SimulationState.DONE
+            task.jobArrayID = None
             return None
 
         elif status_code == StatusCode.NO_FILES:
@@ -408,6 +413,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
 
             task.lastState = SimulationState.MERGE
             task.simState = SimulationState.DONE
+            task.jobArrayID = None
             return None
         else:
             raise RuntimeError(f"Status code {status_code} is unexpected!")
@@ -435,6 +441,7 @@ def singleTaskThread(experiment: ExperimentParameters, task: SimulationTask) -> 
     """
     while True:
         if task.simState == SimulationState.DONE:
+            print(f"task {task} is done, returning...")
             return True
         jobID = executeTask(experiment=experiment, task=task)
 
@@ -470,6 +477,7 @@ def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) 
 
     # wait for all tasks to finish
     concurrent.futures.wait(futures)
+
     print("All threads done!")
 
     # check if tasks are finished. ALL should be finished here!
