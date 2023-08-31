@@ -110,7 +110,7 @@ class ClusterJobManager:
         if not isinstance(job_handler, JobHandler):
             raise TypeError(f"job_handler must be of type JobHandler, got {job_handler}!")
         self.__job_handler = job_handler
-        self.__jobs: List[Job] = []
+        # self.__jobs: List[Job] = []
         self.__total_job_threshold = total_job_threshold
         # sleep time when total job threshold is reached in seconds
         self.__resubmit_wait_time_in_seconds = resubmit_wait_time_in_seconds
@@ -161,6 +161,12 @@ class ClusterJobManager:
     # def is_active(self) -> bool:
     #     return self.__manage_thread.is_alive()
 
+    def get_active_number_of_jobs(self, jobID: int) -> int:
+        """
+        Calls the equivalent function in the job handler.
+        """
+        return self.__job_handler.get_active_number_of_jobs(jobID)
+
     def enqueue(self, job: Job) -> int:
         """
         Enqueues a job to slurm.
@@ -196,7 +202,7 @@ class ClusterJobManager:
                     raise RuntimeError("Job submission failed 3 times in a row, aborting...")
 
                 else:
-                    print("Yep, we have currently have " + str(len(self.__jobs)) + " jobs waiting in queue!")
+                    print("Yep, we have currently have too many jobs waiting in queue!")
                     # and sleep for some time
                     print("Waiting for " + str(self.__resubmit_wait_time_in_seconds / 60) + " min and then trying a resubmit...")
                     sleep(self.__resubmit_wait_time_in_seconds)
