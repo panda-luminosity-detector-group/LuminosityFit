@@ -163,7 +163,7 @@ class SlurmJobHandler(JobHandler):
                 returnCode = resultOrder.returnCode
 
                 if returnCode != 0:
-                    jobArrayID = 0
+                    jobArrayID: int = 0
                     raise RuntimeError("Job submission failed!")
                 else:
                     returnMessage = resultOrder.stdout

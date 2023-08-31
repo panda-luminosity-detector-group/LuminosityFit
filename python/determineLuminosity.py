@@ -273,7 +273,9 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
                     use_devel_queue=args.use_devel_queue,
                 )
                 del copyExperiment
+                print("enqueuing")
                 task.jobArrayID = job_manager.enqueue(job)
+                print(f"enqueued {task.jobArrayID}")
                 return int(task.jobArrayID)
             else:
                 raise RuntimeError(f"Status code {status_code} is unexpected!")
@@ -439,7 +441,10 @@ def singleTaskThread(experiment: ExperimentParameters, task: SimulationTask) -> 
 
     Returns True once the task is finished.
     """
+    iteration = 0
     while True:
+        iteration += 1
+        print(f"Task: {task}, iteration {iteration}")
         if task.simState == SimulationState.DONE:
             print(f"task {task} is done, returning...")
             return True
