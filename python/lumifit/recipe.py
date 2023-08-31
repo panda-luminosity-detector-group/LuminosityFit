@@ -52,7 +52,7 @@ class SimulationTask:
     lastState: SimulationState = SimulationState.INIT
 
     # TODO: I don't think I'm actually using this
-    jobArrayID: Optional[int] = None
+    # jobArrayID: Optional[int] = None
 
 
 @define

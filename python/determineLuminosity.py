@@ -188,7 +188,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             if status_code == StatusCode.ENOUGH_FILES:
                 task.lastState = SimulationState.START_SIM
                 task.simState = SimulationState.MAKE_BUNCHES
-                task.jobArrayID = None
                 return None
 
             elif status_code == StatusCode.NO_FILES:
@@ -209,8 +208,8 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
                     thisMode=DataMode.RESACC,
                     use_devel_queue=args.use_devel_queue,
                 )
-                task.jobArrayID = job_manager.enqueue(job)
-                return int(task.jobArrayID)
+                returnJobID = job_manager.enqueue(job)
+                return int(returnJobID)
             else:
                 raise RuntimeError(f"Status code {status_code} is unexpected!")
 
@@ -231,7 +230,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             if status_code == StatusCode.ENOUGH_FILES:
                 task.lastState = SimulationState.START_SIM
                 task.simState = SimulationState.MAKE_BUNCHES
-                task.jobArrayID = None
                 return None
 
             elif status_code == StatusCode.NO_FILES:
@@ -242,8 +240,8 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
                     thisMode=DataMode.DATA,
                     use_devel_queue=args.use_devel_queue,
                 )
-                task.jobArrayID = job_manager.enqueue(job)
-                return int(task.jobArrayID)
+                returnJobID = job_manager.enqueue(job)
+                return int(returnJobID)
             else:
                 raise RuntimeError(f"Status code {status_code} is unexpected!")
 
@@ -256,7 +254,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             if status_code == StatusCode.ENOUGH_FILES:
                 task.lastState = SimulationState.START_SIM
                 task.simState = SimulationState.MAKE_BUNCHES
-                task.jobArrayID = None
                 return None
 
             elif status_code == StatusCode.NO_FILES:
@@ -274,9 +271,9 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
                 )
                 del copyExperiment
                 print("enqueuing")
-                task.jobArrayID = job_manager.enqueue(job)
-                print(f"enqueued {task.jobArrayID}")
-                return int(task.jobArrayID)
+                returnJobID = job_manager.enqueue(job)
+                print(f"enqueued {returnJobID}")
+                return int(returnJobID)
             else:
                 raise RuntimeError(f"Status code {status_code} is unexpected!")
 
@@ -323,7 +320,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             print("skipping bunching and data object creation...")
             task.lastState = SimulationState.MAKE_BUNCHES
             task.simState = SimulationState.MERGE
-            task.jobArrayID = None
             return None
 
         elif status_code == StatusCode.NO_FILES:
@@ -371,8 +367,8 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
 
             # was apparently bunches
             task.lastState = SimulationState.MERGE
-            task.jobArrayID = job_manager.enqueue(LMDdataJob)
-            return int(task.jobArrayID)
+            returnJobID = job_manager.enqueue(LMDdataJob)
+            return int(returnJobID)
         else:
             raise RuntimeError(f"Status code {status_code} is unexpected!")
 
@@ -395,7 +391,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             print("skipping data merging...")
             task.lastState = SimulationState.MERGE
             task.simState = SimulationState.DONE
-            task.jobArrayID = None
             return None
 
         elif status_code == StatusCode.NO_FILES:
@@ -415,7 +410,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
 
             task.lastState = SimulationState.MERGE
             task.simState = SimulationState.DONE
-            task.jobArrayID = None
             return None
         else:
             raise RuntimeError(f"Status code {status_code} is unexpected!")
@@ -461,7 +455,7 @@ def singleTaskThread(experiment: ExperimentParameters, task: SimulationTask) -> 
                 # check if job is still running
                 runningJobs = job_manager.__job_handler.get_active_number_of_jobs(jobID)
                 if runningJobs == 0:
-                    task.jobArrayID = None
+                    # task.jobArrayID = None
                     break
 
                 # job is still running, do nothing for three minutes

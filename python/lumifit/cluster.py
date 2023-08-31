@@ -190,7 +190,9 @@ class ClusterJobManager:
                             print(f"Job submitted as id {jobArrayID}, waiting 5 seconds.")
                             # it seems SLURM takes a few seconds to update the queue, so we wait a bit
                             sleep(secs=5)
+                            print("returning jobArrayID")
                             return jobArrayID
+
                     raise RuntimeError("Job submission failed 3 times in a row, aborting...")
 
                 else:
