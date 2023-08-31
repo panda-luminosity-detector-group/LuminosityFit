@@ -477,8 +477,11 @@ def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [executor.submit(singleTaskThread, experiment, task) for task in recipe.SimulationTasks]
 
-    # wait for all tasks to finish
-    concurrent.futures.wait(futures)
+        # wait for all tasks to finish
+        print("submitted, waiting...")
+        executor.shutdown(wait=True)
+
+        # concurrent.futures.wait(futures)
 
     print("All threads done!")
 
