@@ -2,7 +2,7 @@ import os
 import subprocess
 import threading
 from abc import abstractmethod
-from time import sleep, time
+from time import sleep
 from typing import Any, Dict, List, Optional, Tuple
 
 import attr
@@ -184,12 +184,12 @@ class ClusterJobManager:
                         if returncode > 0:
                             triesCounter += 1
                             print("Submit failed! Waiting 15 seconds and then trying again...")
-                            sleep(secs=15)
+                            sleep(15)
 
                         else:
                             print(f"Job submitted as id {jobArrayID}, waiting 5 seconds.")
                             # it seems SLURM takes a few seconds to update the queue, so we wait a bit
-                            sleep(secs=5)
+                            sleep(5)
                             print("returning jobArrayID")
                             return jobArrayID
 
