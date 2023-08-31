@@ -143,7 +143,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
     This function returns the job ID if a job was submitted or None
     if an intermediate step was executed locally (i.e. not on a cluster).
     """
-    print(f"simulateDataOnHimster: {experiment.experimentDir}")
+    print(f"executeTask: {experiment.experimentDir}")
     print(f"running simulation of type {str(task.simDataType)} at states:")
     print(f"current state: {str(task.simState)}")
     print(f"last state:    {str(task.lastState)}")
@@ -444,6 +444,8 @@ def singleTaskThread(experiment: ExperimentParameters, task: SimulationTask) -> 
             print(f"task {task} is done, returning...")
             return True
         jobID = executeTask(experiment=experiment, task=task)
+
+        print(f"jobID is {jobID}")
 
         # no job was submitted, we can process the task again
         if jobID is None:
