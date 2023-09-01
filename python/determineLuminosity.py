@@ -304,8 +304,15 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
 
             multiFileListCommand.clear()
 
+            # we need the elastic cross section for the angular data
+            csFile = experiment.experimentDir / "elastic_cross_section.txt"
+            if not csFile.exists():
+                raise FileNotFoundError("ERROR! Can not find elastic cross section file! The determined Luminosity will be wrong!\n")
+            with open(csFile, "r") as f:
+                content = f.readlines()
+                el_cs = float(content[0])
+
             # create LMD data objects
-            el_cs = recipe.elastic_pbarp_integrated_cross_secion_in_mb
             LMDdataJob = createLmdDataJob(experiment, task, el_cs)
 
             # was apparently bunches
@@ -361,14 +368,14 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
         raise NotImplementedError(f"Simulation state {task.simState} is not implemented!")
 
 
-def singleTaskThread(experiment: ExperimentParameters, task: SimulationTask) -> bool:
+def singleTaskWorker(experiment: ExperimentParameters, task: SimulationTask) -> bool:
     """
     The recipe will have one to many tasks. "Handling" a task means either running
-    some script to process data, or submit a job to the cluster to process data,
-    or submit a job to the cluster to generate data. Either way, the handleTask()
-    function either returns None, which means the task is immediately ready for
-    the next step (that means call handleTask() again) or it returns a jobID,
-    which means the task is submitted to the cluster and we have to wait for it.
+    some script to process data, or submit a job to the cluster to generate or process
+    data.
+    Either way, the handleTask() function either returns None, which means the task is
+    immediately ready for the next step (that means call handleTask() again)
+    or it returns a jobID, which means the task is submitted to the cluster and we have to wait for it.
 
     A task has a state, which is changed by handleTask(). When it task is finished,
     its state will be DONE.
@@ -376,7 +383,7 @@ def singleTaskThread(experiment: ExperimentParameters, task: SimulationTask) -> 
     This function will be called in a loop until all tasks are done. It must be wrapped
     in a thread if multiple tasks are to be handled at the same time.
 
-    Returns True once the task is finished.
+    Returns True once the task is finished successfully (so we can catch exceptions).
     """
     iteration = 0
     while True:
@@ -387,24 +394,19 @@ def singleTaskThread(experiment: ExperimentParameters, task: SimulationTask) -> 
             return True
         jobID = executeTask(experiment=experiment, task=task)
 
-        print(f"jobID is {jobID}")
-
         # no job was submitted, we can process the task again
         if jobID is None:
             continue
+
+        # a job was submitted, we have to wait for it
         else:
-            # a job was submitted, we have to wait for it
+            print(f"Waiting for job ID {jobID}, task {task}...")
             while True:
-                # check if job is still running
                 runningJobs = job_manager.get_active_number_of_jobs(jobID)
                 if runningJobs == 0:
-                    # task.jobArrayID = None
                     break
-
-                # job is still running, do nothing for three minutes
                 else:
-                    print(f"Still waiting for task {task}...")
-                    sleep(3 * 60)
+                    sleep(60)
 
 
 def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) -> None:
@@ -415,10 +417,14 @@ def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) 
     once the task is finished.
     """
 
-    if False:
+    if args.debug:
+        print("DEBUG: running task sequentially without thread pool.")
+        for task in recipe.SimulationTasks:
+            singleTaskWorker(experiment, task)
+    else:
         print(f"Submitting {len(recipe.SimulationTasks)} tasks to thread pool...")
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [executor.submit(singleTaskThread, experiment, task) for task in recipe.SimulationTasks]
+            futures = [executor.submit(singleTaskWorker, experiment, task) for task in recipe.SimulationTasks]
 
             # wait for all tasks to finish
             print("submitted, waiting...")
@@ -427,10 +433,11 @@ def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) 
             # concurrent.futures.wait(futures)
 
         print("All threads done!")
-    else:
-        print("running taks sequentiall without thread pool.")
-        for task in recipe.SimulationTasks:
-            singleTaskThread(experiment, task)
+
+        # check the results of the futures to see if a task raised an exception
+        for future in futures:
+            if future.result() is False:
+                raise RuntimeError("ERROR! A task crashed!")
 
     # check if tasks are finished. ALL should be finished here!
     recipe.SimulationTasks = [simTask for simTask in recipe.SimulationTasks if simTask.simState != SimulationState.DONE]
@@ -441,22 +448,8 @@ def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) 
         )
 
 
-def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -> None:
-    # open cross section file (this was generated by apps/generatePbarPElasticScattering
-    elastic_cross_section_file_path = thisExperiment.experimentDir / "elastic_cross_section.txt"
-    if elastic_cross_section_file_path.exists():
-        print("Found an elastic cross section file!")
-        with open(elastic_cross_section_file_path, "r") as f:
-            content = f.readlines()
-            recipe.elastic_pbarp_integrated_cross_secion_in_mb = float(content[0])
-    elif recipe.lumiDetState == LumiDeterminationState.SIMULATE_VERTEX_DATA:
-        print("No elastic cross section file found. This is ok if you are first simulating vertex data!")
-    else:
-        raise FileNotFoundError("ERROR! Can not find elastic cross section file! The determined Luminosity will be wrong!\n")
-
+def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -> bool:
     print(f"processing recipe {thisExperiment.experimentDir} at step {recipe.lumiDetState}")
-
-    # finished = False
 
     # by default, we always start with SIMULATE_VERTEX_DATA, even though
     # runSimulationReconstruction has probably already been run.
@@ -469,15 +462,13 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 
         processSimulationTasks(thisExperiment, recipe)
 
-        # when all sim Tasks are done, the IP can be determined
-        # if len(recipe.SimulationTasks) == 0:
-        #     recipe.lastLumiDetState = LumiDeterminationState.SIMULATE_VERTEX_DATA
-        #     recipe.lumiDetState = LumiDeterminationState.DETERMINE_IP
     else:
         raise RuntimeError("Unexpected start state!")
 
     # increment state, will be removed after successful test
     recipe.lumiDetState = LumiDeterminationState.DETERMINE_IP
+
+    # at this time, we MUST have the elastic cross section
 
     if recipe.lumiDetState == LumiDeterminationState.DETERMINE_IP:
         """
@@ -579,9 +570,6 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         # 3b. generate acceptance and resolution with these reconstructed ip values
         # (that means simulation + bunching + creating data objects + merging)
 
-        # there is an error here, only need to make sure the IP was reconstructed, that has nothing to do with the number of simTasks
-        # if len(recipe.SimulationTasks) == 0:
-
         recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.ANGULAR, simState=SimulationState.START_SIM))
         recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.EFFICIENCY_RESOLUTION, simState=SimulationState.START_SIM))
 
@@ -589,7 +577,6 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         processSimulationTasks(thisExperiment, recipe)
 
         # when all simulation Tasks are done, the Lumi Fit may start
-        # if len(recipe.SimulationTasks) == 0:
         recipe.lastLumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
         recipe.lumiDetState = LumiDeterminationState.RUN_LUMINOSITY_FIT
     else:
@@ -611,6 +598,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
     else:
         raise RuntimeError("State should be run luminosity fit!")
 
+    return True
+
 
 #! --------------------------------------------------
 #!             script part starts here
@@ -625,13 +614,33 @@ parser.add_argument(
     help="number of elastic data samples to create via bootstrapping (for statistical analysis)",
 )
 
-parser.add_argument(
+configGroup = parser.add_mutually_exclusive_group(required=True)
+
+configGroup.add_argument(
     "-e",
     "--experiment_config",
     dest="ExperimentConfigFile",
     type=Path,
     help="The Experiment.config file that holds all info.",
-    required=True,
+    default=None,
+)
+
+configGroup.add_argument(
+    "-E",
+    "--experiment_dir",
+    dest="ExperimentDir",
+    type=Path,
+    help="Process all configs in this directory. If not set, at least one config must be specified with -e.",
+    default=None,
+)
+
+parser.add_argument(
+    "-d",
+    "--debug",
+    dest="debug",
+    type=bool,
+    help="In debug mode, all concurrency is disabled an all task are executed sequentially.",
+    default=False,
 )
 
 parser.add_argument(
@@ -676,11 +685,7 @@ else:
 
 # job threshold of this type (too many jobs could generate to much io load
 # as quite a lot of data is read in from the storage...)
-# TODO: nopey-nope, no global objects plz
 job_manager = ClusterJobManager(job_handler, 2000, 3600)
-
-# * ----------------- start the lumi function for the first time.
-# it will be run again because it is implemented as a loop over a state-machine-like thing (for now...)
 
 """
 TODO for much later:
@@ -708,4 +713,5 @@ The manager blocks as soon as a job should be submitted and only returns once th
 was successful. No other error handling here, either the job was submitted successfully, or 
 the other threads have to wait anyway.  
 """
+
 lumiDetermination(experiment, recipe)
