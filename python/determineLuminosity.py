@@ -25,7 +25,6 @@ from lumifit.paths import (
     generateRelativeMergeDir,
 )
 from lumifit.recipe import (
-    LumiDeterminationState,
     SimRecipe,
     SimulationDataType,
     SimulationState,
@@ -110,7 +109,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
     print(f"executeTask: {experiment.experimentDir}")
     print(f"running simulation of type {str(task.simDataType)} at states:")
     print(f"current state: {str(task.simState)}")
-    print(f"last state:    {str(task.lastState)}")
 
     # data pattern is used to check if previous simulation steps were successfully run
     # the config patten switch is essential to generate the correct paths
@@ -150,7 +148,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             status_code = enoughFilesPresent(directory=resAccDataDir, glob_pattern=experiment.trackFilePattern + "*.root")
 
             if status_code == StatusCode.ENOUGH_FILES:
-                task.lastState = SimulationState.START_SIM
                 task.simState = SimulationState.MAKE_BUNCHES
                 return None
 
@@ -192,7 +189,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
                 glob_pattern=experiment.trackFilePattern + "*.root",
             )
             if status_code == StatusCode.ENOUGH_FILES:
-                task.lastState = SimulationState.START_SIM
                 task.simState = SimulationState.MAKE_BUNCHES
                 return None
 
@@ -216,7 +212,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             status_code = enoughFilesPresent(directory=mcDataDir, glob_pattern="Lumi_MC_*.root")
 
             if status_code == StatusCode.ENOUGH_FILES:
-                task.lastState = SimulationState.START_SIM
                 task.simState = SimulationState.MAKE_BUNCHES
                 return None
 
@@ -280,7 +275,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
 
         if status_code == StatusCode.ENOUGH_FILES:
             print("skipping bunching and data object creation...")
-            task.lastState = SimulationState.MAKE_BUNCHES
             task.simState = SimulationState.MERGE
             return None
 
@@ -316,7 +310,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             LMDdataJob = createLmdDataJob(experiment, task, el_cs)
 
             # was apparently bunches
-            task.lastState = SimulationState.MERGE
             returnJobID = job_manager.enqueue(LMDdataJob)
             return int(returnJobID)
         else:
@@ -339,7 +332,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
 
         if status_code == StatusCode.ENOUGH_FILES:
             print("skipping data merging...")
-            task.lastState = SimulationState.MERGE
             task.simState = SimulationState.DONE
             return None
 
@@ -358,7 +350,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             print(f"running command:\n{mergeCommand}")
             _ = subprocess.call(mergeCommand)
 
-            task.lastState = SimulationState.MERGE
             task.simState = SimulationState.DONE
             return None
         else:
@@ -449,154 +440,129 @@ def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) 
 
 
 def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -> bool:
-    print(f"processing recipe {thisExperiment.experimentDir} at step {recipe.lumiDetState}")
+    print(f"processing recipe {thisExperiment.experimentDir}")
 
-    # by default, we always start with SIMULATE_VERTEX_DATA, even though
-    # runSimulationReconstruction has probably already been run.
-    if recipe.lumiDetState == LumiDeterminationState.SIMULATE_VERTEX_DATA:
-        """
-        State 1 simulates vertex data from which the IP can be determined.
-        """
-        # if len(recipe.SimulationTasks) == 0:
-        recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.VERTEX, simState=SimulationState.START_SIM))
+    """
+    *
+    State 1 simulates vertex data from which the IP can be determined.
+    
+    by default, we always start with SIMULATE_VERTEX_DATA, even though
+    runSimulationReconstruction has probably already been run.
+    """
+    recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.VERTEX, simState=SimulationState.START_SIM))
+    processSimulationTasks(thisExperiment, recipe)
 
-        processSimulationTasks(thisExperiment, recipe)
+    """
+    *
+    State 2 only handles the reconstructed IP. If use_ip_determination is set,
+    the IP is reconstructed from the uncut data set and written to a reco_ip.json
+    file. The IP position will only be used from this file from now on.
 
-    else:
-        raise RuntimeError("Unexpected start state!")
+    If use_ip_determination is false, the reconstruction will use the IP as
+    specified from the reco params of the experiment config.
 
-    # increment state, will be removed after successful test
-    recipe.lumiDetState = LumiDeterminationState.DETERMINE_IP
+    ! Therefore, this is the ONLY place where a new IP may be set.
+    """
 
-    # at this time, we MUST have the elastic cross section
+    if thisExperiment.dataPackage.recoParams.use_ip_determination:
+        assert thisExperiment.resAccPackage.simParams is not None, "ERROR! simParams are not set in config!"
+        assert thisExperiment.recoIPpath is not None, "ERROR! path to recoIP.json is not set in config!"
 
-    if recipe.lumiDetState == LumiDeterminationState.DETERMINE_IP:
-        """
-        state 2 only handles the reconstructed IP. If use_ip_determination is set,
-        the IP is reconstructed from the uncut data set and written to a reco_ip.json
-        file. The IP position will only be used from this file from now on.
+        vertexDataMergePath = generateAbsoluteMergeDataPath(
+            thisExperiment.dataPackage,
+            dataMode=DataMode.VERTEXDATA,
+        )
 
-        If use_ip_determination is false, the reconstruction will use the IP as
-        specified from the reco params of the experiment config.
+        if not thisExperiment.recoIPpath.exists():
+            # 2. determine offset on the vertex data sample
+            bashCommand: List[str] = []
+            bashCommand.append(str(lmd_fit_bin_path / "determineBeamOffset"))
+            bashCommand.append("-p")
+            bashCommand.append(str(vertexDataMergePath))
+            bashCommand.append("-c")
+            bashCommand.append(str(thisExperiment.vertexConfigPath))
+            bashCommand.append("-o")
+            bashCommand.append(str(thisExperiment.recoIPpath))
 
-        ! Therefore, this is the ONLY place where a new IP may be set.
-        """
-
-        if thisExperiment.dataPackage.recoParams.use_ip_determination:
-            assert thisExperiment.resAccPackage.simParams is not None, "ERROR! simParams are not set in config!"
-            assert thisExperiment.recoIPpath is not None, "ERROR! path to recoIP.json is not set in config!"
-
-            vertexDataMergePath = generateAbsoluteMergeDataPath(
-                thisExperiment.dataPackage,
-                dataMode=DataMode.VERTEXDATA,
-            )
-
-            if not thisExperiment.recoIPpath.exists():
-                # 2. determine offset on the vertex data sample
-                bashCommand: List[str] = []
-                bashCommand.append(str(lmd_fit_bin_path / "determineBeamOffset"))
-                bashCommand.append("-p")
-                bashCommand.append(str(vertexDataMergePath))
-                bashCommand.append("-c")
-                bashCommand.append(str(thisExperiment.vertexConfigPath))
-                bashCommand.append("-o")
-                bashCommand.append(str(thisExperiment.recoIPpath))
-
-                print(f"beam offset determination command:\n{bashCommand}")
-                _ = subprocess.call(bashCommand)
-
-            else:
-                print("IP determination file already exists, skipping IP determination!")
-
-            with open(str(thisExperiment.recoIPpath), "r") as f:
-                ip_rec_data = json.load(f)
-
-            # check if ip_x and ip_y are in the reco_ip.json file
-            # if not, the IP was not determined correctly
-            if "ip_x" not in ip_rec_data or "ip_y" not in ip_rec_data:
-                raise RuntimeError(f"ERROR! Reco IP file {thisExperiment.recoIPpath} does not contain ip_x or ip_y!")
-
-            newRecoIPX = float("{0:.3f}".format(round(float(ip_rec_data["ip_x"]), 3)))  # in cm
-            newRecoIPY = float("{0:.3f}".format(round(float(ip_rec_data["ip_y"]), 3)))
-            newRecoIPZ = float("{0:.3f}".format(round(float(ip_rec_data["ip_z"]), 3)))
-
-            # I don't like this. Actually I hate this.
-            # The experiment config is frozen for a reason.
-            # But unfortunately there doesn't seem to be a better way
-
-            # so, three param sets must be updated with the new IP:
-            # - the dataPackage recoParams
-            # - the resAccPackage simParams (both IP and theta min/max)
-            # - the resAccPackage recoParams
-            #
-            # at least we know it can happen ONLY here
-            # remember, this config is never written to disk
-
-            max_xy_shift = math.sqrt(newRecoIPX**2 + newRecoIPY**2)
-            max_xy_shift = float("{0:.2f}".format(round(float(max_xy_shift), 2)))
-
-            resAccThetaMin = thisExperiment.resAccPackage.simParams.theta_min_in_mrad - max_xy_shift
-            resAccThetaMax = thisExperiment.resAccPackage.simParams.theta_max_in_mrad + max_xy_shift
-
-            thisExperiment.dataPackage.recoParams.setNewIPPosition(newRecoIPX, newRecoIPY, newRecoIPZ)
-            thisExperiment.resAccPackage.simParams.setNewIPPosition(newRecoIPX, newRecoIPY, newRecoIPZ)
-            thisExperiment.resAccPackage.simParams.setNewThetaAngles(resAccThetaMin, resAccThetaMax)
-            thisExperiment.resAccPackage.recoParams.setNewIPPosition(newRecoIPX, newRecoIPY, newRecoIPZ)
-
-            print("============================================================")
-            print("                       Attention!                           ")
-            print("     Experiment Config has been changed in memory!          ")
-            print("This MUST only happen if you are using the IP determination!")
-            print("============================================================")
-            print("")
-            print("Finished IP determination for this recipe!")
+            print(f"beam offset determination command:\n{bashCommand}")
+            _ = subprocess.call(bashCommand)
 
         else:
-            print("Skipped IP determination for this recipe, using values from config.")
+            print("IP determination file already exists, skipping IP determination!")
 
-        recipe.lastLumiDetState = LumiDeterminationState.DETERMINE_IP
-        recipe.lumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
+        with open(str(thisExperiment.recoIPpath), "r") as f:
+            ip_rec_data = json.load(f)
+
+        # check if ip_x and ip_y are in the reco_ip.json file
+        # if not, the IP was not determined correctly
+        if "ip_x" not in ip_rec_data or "ip_y" not in ip_rec_data:
+            raise RuntimeError(f"ERROR! Reco IP file {thisExperiment.recoIPpath} does not contain ip_x or ip_y!")
+
+        newRecoIPX = float("{0:.3f}".format(round(float(ip_rec_data["ip_x"]), 3)))  # in cm
+        newRecoIPY = float("{0:.3f}".format(round(float(ip_rec_data["ip_y"]), 3)))
+        newRecoIPZ = float("{0:.3f}".format(round(float(ip_rec_data["ip_z"]), 3)))
+
+        # I don't like this. Actually I hate this.
+        # The experiment config is frozen for a reason.
+        # But unfortunately there doesn't seem to be a better way
+
+        # so, three param sets must be updated with the new IP:
+        # - the dataPackage recoParams
+        # - the resAccPackage simParams (both IP and theta min/max)
+        # - the resAccPackage recoParams
+        #
+        # at least we know it can happen ONLY here
+        # remember, this config is never written to disk
+
+        max_xy_shift = math.sqrt(newRecoIPX**2 + newRecoIPY**2)
+        max_xy_shift = float("{0:.2f}".format(round(float(max_xy_shift), 2)))
+
+        resAccThetaMin = thisExperiment.resAccPackage.simParams.theta_min_in_mrad - max_xy_shift
+        resAccThetaMax = thisExperiment.resAccPackage.simParams.theta_max_in_mrad + max_xy_shift
+
+        thisExperiment.dataPackage.recoParams.setNewIPPosition(newRecoIPX, newRecoIPY, newRecoIPZ)
+        thisExperiment.resAccPackage.simParams.setNewIPPosition(newRecoIPX, newRecoIPY, newRecoIPZ)
+        thisExperiment.resAccPackage.simParams.setNewThetaAngles(resAccThetaMin, resAccThetaMax)
+        thisExperiment.resAccPackage.recoParams.setNewIPPosition(newRecoIPX, newRecoIPY, newRecoIPZ)
+
+        print("============================================================")
+        print("                       Attention!                           ")
+        print("     Experiment Config has been changed in memory!          ")
+        print("This MUST only happen if you are using the IP determination!")
+        print("============================================================")
+        print("")
+        print("Finished IP determination for this recipe!")
+
     else:
-        raise RuntimeError("State should be determine IP!")
+        print("Skipped IP determination for this recipe, using values from config.")
 
-    # increment state, will be removed after successful test
-    recipe.lumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
+    """
+    *
+    State 3
+    the IP position is now reconstructed. filter the DPM data again,
+    this time using the newly determined IP position as a cut criterion.
+    (that also means create fileLists -> bunches/binning -> merge)
+    at the same time:
+    generate acceptance and resolution with these reconstructed ip values
+    (that means simulation + bunching + creating data objects + merging)
+    """
 
-    if recipe.lumiDetState == LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP:
-        # state 3a:
-        # the IP position is now reconstructed. filter the DPM data again,
-        # this time using the newly determined IP position as a cut criterion.
-        # (that also means create fileLists -> bunches/binning -> merge)
-        # 3b. generate acceptance and resolution with these reconstructed ip values
-        # (that means simulation + bunching + creating data objects + merging)
+    recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.ANGULAR, simState=SimulationState.START_SIM))
+    recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.EFFICIENCY_RESOLUTION, simState=SimulationState.START_SIM))
 
-        recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.ANGULAR, simState=SimulationState.START_SIM))
-        recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.EFFICIENCY_RESOLUTION, simState=SimulationState.START_SIM))
+    # remember, the experiment config may now contain the updated IP
+    processSimulationTasks(thisExperiment, recipe)
 
-        # remember, the experiment config may now contain the updated IP
-        processSimulationTasks(thisExperiment, recipe)
+    """
+    *
+    State 4: Luminosity Fit
+    """
+    lumiFitJob = createLumiFitJob(thisExperiment)
 
-        # when all simulation Tasks are done, the Lumi Fit may start
-        recipe.lastLumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
-        recipe.lumiDetState = LumiDeterminationState.RUN_LUMINOSITY_FIT
-    else:
-        raise RuntimeError("State should be reconstruct with new IP!")
+    # TODO: ayo we get the job ID, let's wait for it to finish?
+    job_manager.enqueue(job=lumiFitJob)
 
-    # increment state, will be removed after successful test
-    recipe.lumiDetState = LumiDeterminationState.RUN_LUMINOSITY_FIT
-
-    if recipe.lumiDetState == LumiDeterminationState.RUN_LUMINOSITY_FIT:
-        """
-        4. runLmdFit!
-        """
-        lumiFitJob = createLumiFitJob(thisExperiment)
-
-        # TODO: ayo we get the job ID, let's wait for it to finish?
-        job_manager.enqueue(job=lumiFitJob)
-
-        print("this recipe is fully processed!!!")
-    else:
-        raise RuntimeError("State should be run luminosity fit!")
+    print("this recipe is fully processed!!!")
 
     return True
 

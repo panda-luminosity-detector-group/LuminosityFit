@@ -6,17 +6,9 @@ or read from file!
 """
 
 from enum import Enum, IntEnum
-from typing import List, Optional
+from typing import List
 
 from attrs import define
-
-
-class LumiDeterminationState(IntEnum):
-    INIT = 0
-    SIMULATE_VERTEX_DATA = 1
-    DETERMINE_IP = 2
-    RECONSTRUCT_WITH_NEW_IP = 3
-    RUN_LUMINOSITY_FIT = 4
 
 
 class SimulationState(IntEnum):
@@ -49,10 +41,6 @@ class SimulationDataType(Enum):
 class SimulationTask:
     simDataType: SimulationDataType = SimulationDataType.NONE
     simState: SimulationState = SimulationState.INIT
-    lastState: SimulationState = SimulationState.INIT
-
-    # TODO: I don't think I'm actually using this
-    # jobArrayID: Optional[int] = None
 
 
 @define
@@ -62,8 +50,4 @@ class SimRecipe:
     It is never to be written to disk, it only resides in memory for the determineLuminosity script.
     """
 
-    elastic_pbarp_integrated_cross_secion_in_mb: float = 0.0
-
     SimulationTasks: List[SimulationTask] = []
-    lumiDetState: LumiDeterminationState = LumiDeterminationState.SIMULATE_VERTEX_DATA
-    lastLumiDetState: LumiDeterminationState = LumiDeterminationState.INIT
