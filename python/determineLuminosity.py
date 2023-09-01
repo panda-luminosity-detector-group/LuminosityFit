@@ -47,19 +47,6 @@ Determines the luminosity of a set of Lumi_TrksQA_* files.
 
 This file needs one major rewrite, thats for sure.
 - the logic is implemented as a GIANT state machine
-- because job submission doesn't block
-- job supervision is based on number of files;
-- AND number of running jobs, even if these jobs belong to some other function
-- but its not monitored if a given job has crashed
-- and the entire thing is declarative, when object orientation would be better suited
-
-For this rewrite, a better job supervision is needed. It would suffice already to
-accept the jobID (or job Array ID) and simply poll once a minute if the jobs for that ID 
-are still running.
-
-If not, proceed.
-If the needed files aren't there (but the jobs don't run anymore either), there is a runtime error.
-
 """
 
 
@@ -95,30 +82,7 @@ def enoughFilesPresent(
     if files_percentage >= required_files_percentage:
         return StatusCode.ENOUGH_FILES
 
-    # if files_percentage < required_files_percentage:
-    #     # TODO: job_handler is a global object, I don't like that
-    #     if job_handler.get_active_number_of_jobs() > 0:
-    #         print(f"there are still {job_handler.get_active_number_of_jobs()} jobs running")
-    #         return StatusCode.STILL_RUNNING
-    #     else:
-    #         print(
-    #             "WARNING: "
-    #             + str((1 - files_percentage) * 100)
-    #             + "% of input files ("
-    #             + str(glob_pattern)
-    #             + ") missing and no jobs on himster remaining..."
-    #             + " Something went wrong here..."
-    #         )
-    #         return StatusCode.NO_FILES
-
     return StatusCode.NO_FILES
-
-
-# ----------------------------------------------------------------------------
-# ok we do it in such a way we have a step state for each directory and stacks
-# we try to process
-# active_recipe_stack: List[SimRecipe] = []
-# waiting_recipe_stack: List[SimRecipe] = []
 
 
 def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optional[int]:
@@ -321,6 +285,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             return None
 
         elif status_code == StatusCode.NO_FILES:
+            # create bunch files
             os.chdir(lmd_fit_script_path)
             multiFileListCommand: List[str] = []
             multiFileListCommand.append("python")
@@ -339,27 +304,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
 
             multiFileListCommand.clear()
 
-            # lmdDataCommand: List[str] = []
-            # lmdDataCommand.append("python")
-            # lmdDataCommand.append("createMultipleLmdData.py")
-            # lmdDataCommand.append("--jobCommand")
-            # lmdDataCommand.append(thisExperiment.LMDDataCommand)
-            # lmdDataCommand.append(f"{thisExperiment.dataPackage.recoParams.lab_momentum:.2f}")
-            # lmdDataCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
-            # lmdDataCommand.append(str(pathToRootFiles))
-            # lmdDataCommand.append(str(thisExperiment.dataConfigPath))
-
-            # if task.simDataType == SimulationDataType.ANGULAR:
-            #     # TODO: can we write this to the experiment config? I mean it only depends on the momentum anyway,
-            #     # so it could be written at generation time
-            #     el_cs = recipe.elastic_pbarp_integrated_cross_secion_in_mb
-            #     lmdDataCommand.append("--elastic_cross_section")
-            #     lmdDataCommand.append(str(el_cs))
-
-            # print("bash command for LmdData creation")
-            # print(lmdDataCommand)
-            # _ = subprocess.call(lmdDataCommand)
-
+            # create LMD data objects
             el_cs = recipe.elastic_pbarp_integrated_cross_secion_in_mb
             LMDdataJob = createLmdDataJob(experiment, task, el_cs)
 
@@ -531,6 +476,9 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
     else:
         raise RuntimeError("Unexpected start state!")
 
+    # increment state, will be removed after successful test
+    recipe.lumiDetState = LumiDeterminationState.DETERMINE_IP
+
     if recipe.lumiDetState == LumiDeterminationState.DETERMINE_IP:
         """
         state 2 only handles the reconstructed IP. If use_ip_determination is set,
@@ -620,6 +568,9 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
     else:
         raise RuntimeError("State should be determine IP!")
 
+    # increment state, will be removed after successful test
+    recipe.lumiDetState = LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP
+
     if recipe.lumiDetState == LumiDeterminationState.RECONSTRUCT_WITH_NEW_IP:
         # state 3a:
         # the IP position is now reconstructed. filter the DPM data again,
@@ -644,36 +595,21 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
     else:
         raise RuntimeError("State should be reconstruct with new IP!")
 
+    # increment state, will be removed after successful test
+    recipe.lumiDetState = LumiDeterminationState.RUN_LUMINOSITY_FIT
+
     if recipe.lumiDetState == LumiDeterminationState.RUN_LUMINOSITY_FIT:
         """
         4. runLmdFit!
         """
-
-        # os.chdir(lmd_fit_script_path)
-        # print("running lmdfit!")
-
-        # lumiFitCommand: List[str] = []
-        # lumiFitCommand.append("python")
-        # lumiFitCommand.append("doMultipleLuminosityFits.py")
-        # lumiFitCommand.append("-e")
-        # lumiFitCommand.append(f"{args.ExperimentConfigFile}")
-
-        # print(f"Bash command for LumiFit is:\n{' '.join(lumiFitCommand)}")
-        # _ = subprocess.call(lumiFitCommand)
         lumiFitJob = createLumiFitJob(thisExperiment)
 
         # TODO: ayo we get the job ID, let's wait for it to finish?
         job_manager.enqueue(job=lumiFitJob)
 
         print("this recipe is fully processed!!!")
-        # finished = True
     else:
         raise RuntimeError("State should be run luminosity fit!")
-
-    # if we are in an intermediate step then push on the waiting stack and
-    # increase step state
-    # if not finished:
-    # waiting_recipe_stack.append(recipe)
 
 
 #! --------------------------------------------------
@@ -773,34 +709,3 @@ was successful. No other error handling here, either the job was submitted succe
 the other threads have to wait anyway.  
 """
 lumiDetermination(experiment, recipe)
-
-# TODO: okay this is tricky, sometimes recipes are pushed to the waiting stack,
-# and then they are run again? let's see if we can do this some other way.
-# while len(waiting_recipe_stack) > 0:
-# while len(active_recipe_stack) > 0 or len(waiting_recipe_stack) > 0:
-#     for recipe in active_recipe_stack:
-#         lumiDetermination(experiment, recipe)
-
-#     # clear active stack, if the recipe needs to be processed again,
-#     # it will be placed in the waiting stack
-#     active_recipe_stack = []
-#     # if all recipes are currently processed just wait a bit and check again
-#     # TODO: I think it would be better to wait for a real signal and not just "when enough files are there"
-#     if len(waiting_recipe_stack) > 0:
-#         print("currently waiting for 15 min to process recipes again")
-#         print("press ctrl C (ONCE) to skip this waiting round.")
-
-#         try:
-#             time.sleep(5 * 60)  # wait for 5 min
-#         except KeyboardInterrupt:
-#             print("skipping wait.")
-
-#         print("press ctrl C again withing 3 seconds to kill this script")
-#         try:
-#             time.sleep(3)
-#         except KeyboardInterrupt:
-#             print("understood. killing program.")
-#             sys.exit(1)
-
-#         active_recipe_stack = waiting_recipe_stack
-#         waiting_recipe_stack = []
