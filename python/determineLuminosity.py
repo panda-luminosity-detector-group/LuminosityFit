@@ -54,8 +54,8 @@ class StatusCode(Enum):
     NO_FILES = 2
 
 
-# TODO: add jobID or jobArrayID check here
-# TODO: the percentage check is also shite because files can be done after this check is true.
+# TODO: the percentage check is shite because we don't know how many files there are in total
+# all we know is how MANY are good
 def enoughFilesPresent(
     directory: Path,
     glob_pattern: str,
@@ -99,12 +99,12 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
     and each of these can be in a different state, there are a lot of if branches
     here.
 
-    Worse, a task will have a state it's in, and once it is done, it will
-    change it's state. That means a task must be handled multiple times
-    UNTIL it's in the done-state.
+    Worse, a task will have a state its in. When it finishes a step, this internal
+    state is incremented. That means a task must be handled multiple times UNTIL
+    it's in the done-state.
 
-    This function returns the job ID if a job was submitted or None
-    if an intermediate step was executed locally (i.e. not on a cluster).
+    Returns: the job ID if a job was submitted or
+    None if an intermediate step was executed locally (i.e. not on a cluster).
     """
     print(f"executeTask: {experiment.experimentDir}")
     print(f"running simulation of type {str(task.simDataType)} at states:")
@@ -127,8 +127,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
 
     # 1. simulate data
     if task.simState == SimulationState.START_SIM:
-        # TODO: remove when all paths are absolute
-        os.chdir(lmd_fit_script_path)
         if task.simDataType == SimulationDataType.EFFICIENCY_RESOLUTION:
             """
             efficiency / resolution calculation.
@@ -404,8 +402,10 @@ def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) 
     """
     The recipe will contain one to many SimulationTasks.
     Use a thread pool to process all tasks at the same time,
-    use the singleTaskThread() method for that. I will return True
+    use the singleTaskWorker() method for that. It will return True
     once the task is finished.
+
+    If the debug flag is set, all tasks are processed sequentially
     """
 
     if args.debug:
@@ -421,16 +421,15 @@ def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) 
             print("submitted, waiting...")
             executor.shutdown(wait=True)
 
-            # concurrent.futures.wait(futures)
-
         print("All threads done!")
 
         # check the results of the futures to see if a task raised an exception
+        # it will be raised here
         for future in futures:
             if future.result() is False:
                 raise RuntimeError("ERROR! A task crashed!")
 
-    # check if tasks are finished. ALL should be finished here!
+    # check if all tasks are finished. ALL should be finished here!
     recipe.SimulationTasks = [simTask for simTask in recipe.SimulationTasks if simTask.simState != SimulationState.DONE]
 
     if len(recipe.SimulationTasks) > 0:
@@ -551,6 +550,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
     recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.EFFICIENCY_RESOLUTION, simState=SimulationState.START_SIM))
 
     # remember, the experiment config may now contain the updated IP
+    # there are now two simulation tasks running, but this call only returns once BOTH are done
     processSimulationTasks(thisExperiment, recipe)
 
     """
