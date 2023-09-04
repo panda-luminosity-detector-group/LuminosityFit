@@ -568,7 +568,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     // free parameters
     freeParametersForModel(model, fit_options);
 
-    std::vector<std::string> var_names = {"tilt_x", "tilt_y"};
+    /*std::vector<std::string> var_names = {"tilt_x", "tilt_y"};
 
     auto const &no_div_fit_res_params =
         lmd_data.getFitResults(fit_options_no_div).back().getFitParameters();
@@ -582,7 +582,16 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
           break;
         }
       }
-    }
+    }*/
+
+      auto const &no_div_fit_res_params =
+          lmd_data.getFitResults(fit_options_no_div).back().getFitParameters();
+      auto const &tilt_x_start = lmd_data.getFitResults(fit_options_no_div).back().getFitParameter("tilt_x");
+      auto const &tilt_y_start = lmd_data.getFitResults(fit_options_no_div).back().getFitParameter("tilt_y");
+      model->getModelParameterSet().getModelParameter("tilt_x")->setValue(tilt_x_start.value);
+      model->getModelParameterSet().getModelParameter("tilt_y")->setValue(tilt_y_start.value);
+      std::cout << "setting " << "tilt_x" << " to " << tilt_x_start.value << std::endl;
+      std::cout << "setting " << "tilt_y" << " to " << tilt_y_start.value << std::endl;
 
     // now set better starting amplitude value
     std::cout << "calculating model integral..." << std::endl;
