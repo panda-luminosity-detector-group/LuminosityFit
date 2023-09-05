@@ -111,6 +111,10 @@ void mergeData(const vector<string> &found_files, const string &outfile_path,
   //     bootstrapData(found_files, samples);
   vector<vector<string>> data_file_samples;
   data_file_samples.push_back(found_files);
+  // also sort the samples
+  for (auto &sample : data_file_samples) {
+    std::sort(sample.begin(), sample.end());
+  }
 
   boost::filesystem::path outdir(outfile_path);
   boost::filesystem::create_directory(outdir);
