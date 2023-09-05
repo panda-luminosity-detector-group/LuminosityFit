@@ -107,8 +107,10 @@ void mergeData(const vector<string> &found_files, const string &outfile_path,
                std::pair<unsigned int, unsigned int> samples) {
   string output_filename = getOutputFilename(data_type);
 
-  vector<vector<string>> data_file_samples =
-      bootstrapData(found_files, samples);
+  // vector<vector<string>> data_file_samples =
+  //     bootstrapData(found_files, samples);
+  vector<vector<string>> data_file_samples;
+  data_file_samples.push_back(found_files);
 
   boost::filesystem::path outdir(outfile_path);
   boost::filesystem::create_directory(outdir);
