@@ -5,9 +5,7 @@ set(INCLUDE_DIRECTORIES
 )
 include_directories(${INCLUDE_DIRECTORIES})
 
-
-########################### active apps ##################################
-
+# ########################## active apps ##################################
 add_executable(calculateElasticCrossSection calculateElasticCrossSection.cxx)
 target_link_libraries(calculateElasticCrossSection LmdUI ROOT::Hist ROOT::Gpad ROOT::RIO)
 
@@ -46,7 +44,7 @@ add_executable(extractLuminosity extractLuminosityValues.cxx)
 target_link_libraries(extractLuminosity LmdUI)
 
 add_executable(plotLumiFitResults plotLumiFitResults.cxx)
-target_link_libraries(plotLumiFitResults LmdUI  ROOT::Hist ROOT::Gpad ROOT::RIO ROOT::Graf)
+target_link_libraries(plotLumiFitResults LmdUI ROOT::Hist ROOT::Gpad ROOT::RIO ROOT::Graf)
 
 add_executable(runLmdFit runLmdFit.cxx)
 target_link_libraries(runLmdFit LmdUI)
@@ -59,48 +57,44 @@ target_link_libraries(plot2DDPMModel LmdUI ROOT::Hist ROOT::RIO)
 
 add_executable(generatePbarPElasticScattering generatePbarPElasticScattering.cxx)
 target_link_libraries(generatePbarPElasticScattering LmdModel LmdFitData Boost::filesystem ROOT::Tree ROOT::MathCore ROOT::Physics ROOT::EG)
-	
+
 add_executable(checkFramework checkFramework.cxx)
 target_link_libraries(checkFramework Model ROOT::Core ROOT::MathCore ROOT::RIO ROOT::Hist Boost::system)
 
+# ########################## inactive apps ##################################
 
-########################### inactive apps ##################################
+# ########################## create fitRawDPMElasticData app ##################################
+add_executable(compareAcceptances compareAcceptances.cxx)
+target_link_libraries(compareAcceptances LmdUI)
 
-########################### create fitRawDPMElasticData app ##################################
+# add_executable(analyzeAcceptances analyzeAcceptances.cxx)
+# target_link_libraries(analyzeAcceptances LmdUI Minuit2)
 
+# add_executable(phiSliceData phiSliceData.cxx)
+# target_link_libraries(phiSliceData Lmd LmdTool MathMore Eve)
 
-#add_executable(compareAcceptances compareAcceptances.cxx)
-#target_link_libraries(compareAcceptances LmdUI)
+# ########################## create resolutionModelFitTesting1D app ##################################
 
-#add_executable(analyzeAcceptances analyzeAcceptances.cxx)
-#target_link_libraries(analyzeAcceptances LmdUI Minuit2)
+# add_executable(resolutionModelFitTesting1D resolutionModelFitTesting1D.cxx)
+# target_link_libraries(resolutionModelFitTesting1D LmdFit)
 
-#add_executable(phiSliceData phiSliceData.cxx)
-#target_link_libraries(phiSliceData Lmd LmdTool MathMore Eve)
+# ########################## create checkTilted2DDPMModel app ##################################
 
-########################### create resolutionModelFitTesting1D app ##################################
+# add_executable(checkTilted2DDPMModel checkTilted2DDPMModel.cxx)
+# target_link_libraries(checkTilted2DDPMModel $ENV{ROOT_LIBRARIES} LmdFit)
 
-#add_executable(resolutionModelFitTesting1D resolutionModelFitTesting1D.cxx)
-#target_link_libraries(resolutionModelFitTesting1D LmdFit)
+# ########################## create checkMCInfoTrackMatching app ##################################
+# add_executable(checkMCInfoTrackMatching checkMCInfoTrackMatching.cxx)
+# target_link_libraries(checkMCInfoTrackMatching ${LINK_LIBS})
 
-########################### create checkTilted2DDPMModel app ##################################
+# ########################## create makeTalkPlots app ##################################
 
-#add_executable(checkTilted2DDPMModel checkTilted2DDPMModel.cxx)
-#target_link_libraries(checkTilted2DDPMModel $ENV{ROOT_LIBRARIES} LmdFit)
+# add_executable(makeTalkPlots makeTalkPlots.cxx)
+# target_link_libraries(makeTalkPlots LmdFit)
 
-########################### create checkMCInfoTrackMatching app ##################################
-#add_executable(checkMCInfoTrackMatching checkMCInfoTrackMatching.cxx)
-#target_link_libraries(checkMCInfoTrackMatching ${LINK_LIBS})
+# ########################## create DPMModel plotter app ##################################
 
-########################### create makeTalkPlots app ##################################
+# add_executable(plotDPMModelParts plotDPMModelParts.cxx)
+# target_link_libraries(plotDPMModelParts LmdFit)
 
-#add_executable(makeTalkPlots makeTalkPlots.cxx)
-#target_link_libraries(makeTalkPlots LmdFit)
-
-########################### create DPMModel plotter app ##################################
-
-#add_executable(plotDPMModelParts plotDPMModelParts.cxx)
-#target_link_libraries(plotDPMModelParts LmdFit)
-
-########################### create DPMModel2D plotter app ##################################
-
+# ########################## create DPMModel2D plotter app ##################################

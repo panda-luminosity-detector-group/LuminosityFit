@@ -63,10 +63,20 @@ void compareAcceptances(std::vector<std::string> &acceptance_files) {
 }
 
 int main(int argc, char *argv[]) {
+  std::cout << "argc: " << argc << '\n';
+
+  for (auto i = 0; i < argc; i++)
+    std::cout << "argv[" << i << "]: " << argv[i] << '\n';
+
   if (argc >= 2) {
     std::vector<std::string> acceptance_file_urls;
     for (unsigned int i = 1; i < argc; i = i++)
       acceptance_file_urls.push_back(std::string(argv[i]));
+
+    std::cout << 'I got these files:\n';
+    for (auto &url : acceptance_file_urls)
+      std::cout << url << '\n';
+    std::cout << std::flush;
     compareAcceptances(acceptance_file_urls);
     return 0;
   }
