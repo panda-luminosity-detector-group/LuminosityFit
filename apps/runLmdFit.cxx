@@ -198,7 +198,7 @@ void runLmdFit(string input_file_dir, string fit_config_path,
           if (div_smeared) {
             if (fit_res.getFitStatus() == 0) {
               final_fit_result.setModelFitResult(fit_res);
-              break;
+              //break;
             }
           } else {
             final_fit_result.setModelFitResult(fit_res);
