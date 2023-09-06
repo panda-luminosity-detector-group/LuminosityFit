@@ -208,7 +208,6 @@ void PndLmdDataReader::read() {
     for (auto const &trk_pair_info : track_pair_infos) {
       fillData(trk_pair_info);
     }
-
     ++show_progress;
   }
 
@@ -251,6 +250,19 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
     if (track_info.IsSecondary) {
       if (!track_accepted)
         continue;
+    }
+    if (track_accepted) {
+      double pX = track_info.MCIP.Momentum[0];
+      double pY = track_info.MCIP.Momentum[1];
+      double pZ = track_info.MCIP.Momentum[2];
+      double thetaX = pX / pZ;
+      double thetaY = pY / pZ;
+
+      double thetaPlane = sqrt(thetaX * thetaX + thetaY * thetaY);
+
+      if (thetaPlane > 0.0105) {
+        track_accepted = false;
+      }
     }
     // skip tracks that do not pass the filters
     if (successfullyPassedFilters(registered_acceptances[i], track_info)) {
