@@ -260,7 +260,7 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
 
       double thetaPlane = sqrt(thetaX * thetaX + thetaY * thetaY);
 
-      if (thetaPlane > 0.0105) {
+      if (thetaPlane < 0.003 || thetaPlane > 0.0105) {
         track_accepted = false;
       }
     }
