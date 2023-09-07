@@ -5,6 +5,7 @@ void plotEfficiency(std::string inFileName, std::string outName) {
   TFile *f = new TFile(inFileName.c_str());
   auto acceptance = f->Get<PndLmdAcceptance>("lmd_acceptance");
   auto eff2D = acceptance->getAcceptance2D();
+  gStyle->SetPalette(1);
   {
 
     auto canvas = TCanvas("canvas", "canvas", 1920, 1080);
