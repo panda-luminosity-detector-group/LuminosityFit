@@ -218,9 +218,9 @@ void PndLmdDataReader::read() {
 void PndLmdDataReader::addDirt() {
   for (unsigned int rounds = 0; rounds < 1; rounds++) {
     for (unsigned int i = 0; i < registered_acceptances.size(); i++) {
-      registered_acceptances[i]->addData(true, 0.0015, 0.0015);
-      registered_acceptances[i]->addData(true, -0.002, 0.0015);
-      registered_acceptances[i]->addData(true, -0.002, -0.001);
+      registered_acceptances[i]->addData(true, 0.0, 0.0);
+      // registered_acceptances[i]->addData(true, -0.002, 0.0015);
+      // registered_acceptances[i]->addData(true, -0.002, -0.001);
     }
   }
 }
