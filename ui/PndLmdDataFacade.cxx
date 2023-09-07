@@ -19,9 +19,7 @@ using std::vector;
 PndLmdDataFacade::PndLmdDataFacade()
     : lmd_runtime_config(PndLmdRuntimeConfiguration::Instance()) {}
 
-PndLmdDataFacade::~PndLmdDataFacade() {
-  
-}
+PndLmdDataFacade::~PndLmdDataFacade() {}
 
 void PndLmdDataFacade::initializeData(PndLmdAbstractData &data) const {
   data.setNumEvents(lmd_runtime_config.getNumEvents());
@@ -657,6 +655,10 @@ void PndLmdDataFacade::fillCreatedData(PndLmdDataReader &data_reader) {
 
   // and read data
   data_reader.read();
+
+  // add a little bit of dirt to see how it affects the lumi fit
+  // FIXME: REMOVE THIS, OBVIOUSLY!!!
+  data_reader.addDirt();
 }
 
 void PndLmdDataFacade::saveDataToFiles() {
