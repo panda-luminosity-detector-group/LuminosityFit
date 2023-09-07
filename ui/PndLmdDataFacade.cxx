@@ -653,12 +653,12 @@ void PndLmdDataFacade::fillCreatedData(PndLmdDataReader &data_reader) {
   data_reader.registerData(lmd_hist_data);
   data_reader.registerMapData(lmd_map_data);
 
-  // and read data
-  data_reader.read();
-
   // add a little bit of dirt to see how it affects the lumi fit
   // FIXME: REMOVE THIS, OBVIOUSLY!!!
   data_reader.addDirt();
+
+  // and read data
+  data_reader.read();
 }
 
 void PndLmdDataFacade::saveDataToFiles() {
