@@ -74,7 +74,7 @@ public:
   virtual ~PndLmdDataReader();
 
   // FIXME: REMOVE THIS, OBVIOUSLY!!!
-  void PndLmdDataReader::addDirt();
+  void addDirt();
   void setBeam(double lab_momentum);
 
   void addFilePath(TString file_path);
