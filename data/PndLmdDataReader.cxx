@@ -216,10 +216,13 @@ void PndLmdDataReader::read() {
 
 // FIXME: REMOVE THIS, OBVIOUSLY!!!
 void PndLmdDataReader::addDirt() {
-  for (unsigned int i = 0; i < registered_acceptances.size(); i++) {
-    registered_acceptances[i]->addData(true, 0.0015, 0.0015);
-    registered_acceptances[i]->addData(true, 0.0015, -0.0015);
-    registered_acceptances[i]->addData(true, -0.0015, -0.0015);
+  std::cout << "adding dirt" << std::endl;
+  for (unsigned int rounds = 0; rounds < 100; rounds++) {
+    for (unsigned int i = 0; i < registered_acceptances.size(); i++) {
+      registered_acceptances[i]->addData(true, 0.0015, 0.0015);
+      registered_acceptances[i]->addData(true, -0.002, 0.0015);
+      registered_acceptances[i]->addData(true, -0.002, -0.001);
+    }
   }
 }
 
