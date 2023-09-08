@@ -636,6 +636,9 @@ experiments: List[ExperimentParameters] = []
 
 # either we have one experiment config file or a directory with many
 if args.ExperimentDir is not None:
+    if args.ExperimentDir.is_file():
+        raise ValueError("ERROR! ExperimentDir must be a directory!")
+
     # process all experiment configs in the given dir
     for experimentConfig in args.ExperimentDir.glob("*.config"):
         experiment: ExperimentParameters = load_params_from_file(args.ExperimentConfigFile, ExperimentParameters)
@@ -643,6 +646,9 @@ if args.ExperimentDir is not None:
 
         # this is a hack to make the code work with the old config files
 elif args.ExperimentConfigFile is not None:
+    if args.ExperimentConfigFile.is_dir():
+        raise ValueError("ERROR! ExperimentConfigFile must be a file!")
+
     # load experiment config
     experiment = load_params_from_file(args.ExperimentConfigFile, ExperimentParameters)
     experiments.append(experiment)
