@@ -653,6 +653,17 @@ elif args.ExperimentConfigFile is not None:
     experiment = load_params_from_file(args.ExperimentConfigFile, ExperimentParameters)
     experiments.append(experiment)
 
+# ask confirmation
+print("The following experiments will be processed:")
+for experiment in experiments:
+    print(f"  {experiment.experimentDir}")
+print("")
+print("Continue? [y/n]")
+user_input = input()
+if user_input != "y":
+    print("Aborting!")
+    exit(0)
+
 # check which cluster we're on and create job handler
 # we know there is at least one config, and we just assume all use the same cluster
 if experiments[0].cluster == ClusterEnvironment.VIRGO:
