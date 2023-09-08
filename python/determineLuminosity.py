@@ -416,11 +416,6 @@ def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) 
     else:
         print(f"Submitting {len(recipe.SimulationTasks)} tasks to thread pool...")
 
-        # print detailed debug info for all tasks and all memory addresses
-        print(f"tasks in recipe {recipe} at {hex(id(recipe))}")
-        for task in recipe.SimulationTasks:
-            print(f"task {task} at {hex(id(task))}")
-
         with concurrent.futures.ThreadPoolExecutor() as taskExecutor:
             futures = [taskExecutor.submit(singleTaskWorker, experiment, task) for task in recipe.SimulationTasks]
 
