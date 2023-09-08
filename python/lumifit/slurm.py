@@ -6,7 +6,7 @@ import subprocess
 import time
 from typing import Callable, Optional, Tuple
 
-from lumifit.agent import Client, SlurmOrder
+from lumifit.agent import Client, SlurmOrder, orderType
 from lumifit.cluster import Job, JobHandler, JobResourceRequest
 
 
@@ -84,6 +84,9 @@ class SlurmJobHandler(JobHandler):
         self.__useSlurmAgent__ = True
         if self.__useSlurmAgent__:
             self.client = Client().getUniqueServer()
+
+    def __del__(self):
+        self.client.sendOrder(SlurmOrder(thisType=orderType.EXIT))
 
     def get_active_number_of_jobs(self, jobID: Optional[int] = None) -> int:
         """
