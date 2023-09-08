@@ -342,6 +342,7 @@ class Client(Agent):
         return self
 
     def exit(self) -> None:
+        logging.shutdown()
         self.sendOrder(SlurmOrder(thisType=orderType.EXIT))
 
     def __exit__(self, type, value, traceback) -> None:
