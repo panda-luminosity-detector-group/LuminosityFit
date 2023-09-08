@@ -641,7 +641,7 @@ if args.ExperimentDir is not None:
 
     # process all experiment configs in the given dir
     for experimentConfig in args.ExperimentDir.glob("*.config"):
-        experiment: ExperimentParameters = load_params_from_file(args.ExperimentConfigFile, ExperimentParameters)
+        experiment: ExperimentParameters = load_params_from_file(experimentConfig, ExperimentParameters)
         experiments.append(experiment)
 
         # this is a hack to make the code work with the old config files
