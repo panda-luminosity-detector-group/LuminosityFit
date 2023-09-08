@@ -341,6 +341,9 @@ class Client(Agent):
             raise ValueError("returned confirmation is invalid!")
         return self
 
+    def exit(self) -> None:
+        self.sendOrder(SlurmOrder(thisType=orderType.EXIT))
+
     def __exit__(self, type, value, traceback) -> None:
         self.sendOrder(SlurmOrder(thisType=orderType.EXIT))
 

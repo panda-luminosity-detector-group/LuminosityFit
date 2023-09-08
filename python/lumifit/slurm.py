@@ -86,7 +86,7 @@ class SlurmJobHandler(JobHandler):
             self.client = Client().getUniqueServer()
 
     def __del__(self):
-        self.client.sendOrder(SlurmOrder(thisType=orderType.EXIT))
+        self.client.exit()
 
     def get_active_number_of_jobs(self, jobID: Optional[int] = None) -> int:
         """
