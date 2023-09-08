@@ -569,6 +569,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 
 
 def experimentWorker(experiment: ExperimentParameters) -> None:
+    experiment.experimentDir.mkdir(parents=True, exist_ok=True)
+
     # before anything else, check if there is a copy in the experiment dir. if not, make it.
     if not (experiment.experimentDir / "experiment.config").exists():
         print("No copy of the experiment config found in the experiment directory. Copying it there now.")
@@ -662,9 +664,14 @@ else:
 # as quite a lot of data is read in from the storage...)
 job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
-with concurrent.futures.ThreadPoolExecutor() as executor:
-    futures = [executor.submit(experimentWorker, experiment) for experiment in experiments]
+if args.debug:
+    print("DEBUG: running experiment sequentially without thread pool.")
+    for experiment in experiments:
+        experimentWorker(experiment)
+else:
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [executor.submit(experimentWorker, experiment) for experiment in experiments]
 
-    # wait for all tasks to finish
-    print("Enqueued all experiments, waiting...")
-    executor.shutdown(wait=True)
+        # wait for all tasks to finish
+        print("Enqueued all experiments, waiting...")
+        executor.shutdown(wait=True)
