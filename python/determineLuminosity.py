@@ -415,12 +415,18 @@ def processSimulationTasks(experiment: ExperimentParameters, recipe: SimRecipe) 
             singleTaskWorker(experiment, task)
     else:
         print(f"Submitting {len(recipe.SimulationTasks)} tasks to thread pool...")
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [executor.submit(singleTaskWorker, experiment, task) for task in recipe.SimulationTasks]
+
+        # print detailed debug info for all tasks and all memory addresses
+        print(f"tasks in recipe {recipe} at {hex(id(recipe))}")
+        for task in recipe.SimulationTasks:
+            print(f"task {task} at {hex(id(task))}")
+
+        with concurrent.futures.ThreadPoolExecutor() as taskExecutor:
+            futures = [taskExecutor.submit(singleTaskWorker, experiment, task) for task in recipe.SimulationTasks]
 
             # wait for all tasks to finish
             print("submitted, waiting...")
-            executor.shutdown(wait=True)
+            taskExecutor.shutdown(wait=True)
 
         print("All threads done!")
 
@@ -685,9 +691,15 @@ if args.debug:
     for experiment in experiments:
         experimentWorker(experiment)
 else:
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(experimentWorker, experiment) for experiment in experiments]
+    with concurrent.futures.ThreadPoolExecutor() as recipeExecutor:
+        futures = [recipeExecutor.submit(experimentWorker, experiment) for experiment in experiments]
 
         # wait for all tasks to finish
         print("Enqueued all experiments, waiting...")
-        executor.shutdown(wait=True)
+        recipeExecutor.shutdown(wait=True)
+
+        for future in futures:
+            if future.result() is False:
+                raise RuntimeError("ERROR! A recipe crashed!")
+
+print("all done!")
