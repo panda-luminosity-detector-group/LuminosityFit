@@ -86,7 +86,8 @@ class ClusterJobManager:
     was successful. No other error handling here, either the job was submitted successfully, or
     the other threads have to wait anyway.
 
-    Manager should be thread safe, but do not create multiple instances.
+    Manager should be thread safe. Each instance gets its own agent, so it should
+    also be multi-process safe.
     """
 
     def __init__(

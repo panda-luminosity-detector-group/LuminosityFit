@@ -75,12 +75,16 @@ class SlurmJobHandler(JobHandler):
         account: Optional[str] = None,
         constraints: Optional[str] = None,
         job_preprocessor: Optional[Callable[[Job], Job]] = None,
+        client: Optional[Client] = None,
     ) -> None:
         self.__partition = partition
         self.__account = account
         self.__constraints = constraints
         self.__job_preprocessor = job_preprocessor
         self.__useSlurmAgent__ = True
+        if self.__useSlurmAgent__:
+            with Client() as client:
+                self.client = client
 
     def get_active_number_of_jobs(self, jobID: Optional[int] = None) -> int:
         """
@@ -100,16 +104,15 @@ class SlurmJobHandler(JobHandler):
         attemptCounter = 0
         while attemptCounter < 3:
             if self.__useSlurmAgent__:
-                with Client() as client:
-                    thisOrder = SlurmOrder()
-                    thisOrder.cmd = bashCommand
-                    thisOrder.runShell = True
-                    # default output to zero, doesn't work otherwise
-                    thisOrder.stdout = "0"
-                    thisOrder.env = os.environ.copy()
-                    client.sendOrder(thisOrder, 30)  # this may take some time
-                    resultOrder = client.receiveOrder()
-                    resultOut = resultOrder.stdout
+                thisOrder = SlurmOrder()
+                thisOrder.cmd = bashCommand
+                thisOrder.runShell = True
+                # default output to zero, doesn't work otherwise
+                thisOrder.stdout = "0"
+                thisOrder.env = os.environ.copy()
+                self.client.sendOrder(thisOrder, 30)  # this may take some time
+                resultOrder = self.client.receiveOrder()
+                resultOut = resultOrder.stdout
 
             else:
                 returnValue = subprocess.Popen(bashCommand, shell=True, stdout=subprocess.PIPE, text=True)
@@ -152,34 +155,32 @@ class SlurmJobHandler(JobHandler):
 
         bashCommand = bashCommand[:-1] + " " + job.additional_flags + " " + job.application_url
         if self.__useSlurmAgent__:
-            with Client() as client:
-                # todo handle jobArray ID as well
-                thisOrder = SlurmOrder()
-                thisOrder.cmd = bashCommand
-                thisOrder.runShell = True
-                thisOrder.env = os.environ.copy()
-                client.sendOrder(thisOrder)
-                resultOrder = client.receiveOrder()
-                returnCode = resultOrder.returnCode
+            thisOrder = SlurmOrder()
+            thisOrder.cmd = bashCommand
+            thisOrder.runShell = True
+            thisOrder.env = os.environ.copy()
+            self.client.sendOrder(thisOrder)
+            resultOrder = self.client.receiveOrder()
+            returnCode = resultOrder.returnCode
 
-                if returnCode != 0:
-                    jobArrayID: int = 0
-                    raise RuntimeError("Job submission failed!")
+            if returnCode != 0:
+                jobArrayID: int = 0
+                raise RuntimeError("Job submission failed!")
+            else:
+                returnMessage = resultOrder.stdout
+                # will be something like
+                # Submitted batch job 14049737
+
+                # regex parse the job ID
+                match = re.search(r"Submitted batch job (\d+)", returnMessage)
+                if match is not None:
+                    jobArrayID = int(match.group(1))
                 else:
-                    returnMessage = resultOrder.stdout
-                    # will be something like
-                    # Submitted batch job 14049737
+                    raise RuntimeError("Job submission failed in a weird way! Return code was 0, but no job ID was found!")
 
-                    # regex parse the job ID
-                    match = re.search(r"Submitted batch job (\d+)", returnMessage)
-                    if match is not None:
-                        jobArrayID = int(match.group(1))
-                    else:
-                        raise RuntimeError("Job submission failed in a weird way! Return code was 0, but no job ID was found!")
-
-                if not isinstance(jobArrayID, int):
-                    raise RuntimeError(f"Job submission failed in a weird way! Return code was 0, but I could not parse the job ID {jobArrayID}!")
-                return int(returnCode), jobArrayID
+            if not isinstance(jobArrayID, int):
+                raise RuntimeError(f"Job submission failed in a weird way! Return code was 0, but I could not parse the job ID {jobArrayID}!")
+            return int(returnCode), jobArrayID
 
         else:
             # todo handle jobArray ID as well
