@@ -119,7 +119,7 @@ class Server(Agent):
     - if parent path for pipe exists, if not, creates it. then make pipe
     """
 
-    def getUniqueServer(self) -> Path:
+    def migrateToNewPipePath(self) -> Path:
         """
         If multiple clients connect to one server, the server may get too many requests at the same time and may confuse the orders and results. This method returns the path to a new named pipe that is to be used by only one client. This way the order -> result structure is preserved and only one command is expected and executed.
 
@@ -199,7 +199,7 @@ class Server(Agent):
                 return thisOrder
 
         elif thisOrder.thisType == orderType.MAKE_UNQUE:
-            thisOrder.stdout = str(self.getUniqueServer())
+            thisOrder.stdout = str(self.migrateToNewPipePath())
             thisOrder.returnCode = 0
             thisOrder.thisType = orderType.UNIQUE_CONFIRM
             return thisOrder
@@ -296,6 +296,9 @@ class Client(Agent):
         self.checkConnection()
 
     def __enter__(self) -> "Client":
+        return self.getUniqueServer()
+
+    def getUniqueServer(self) -> "Client":
         """
         when the "with Client() as client" method is used, each client get's their own pipe.
 

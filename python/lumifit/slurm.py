@@ -83,8 +83,7 @@ class SlurmJobHandler(JobHandler):
         self.__job_preprocessor = job_preprocessor
         self.__useSlurmAgent__ = True
         if self.__useSlurmAgent__:
-            with Client() as client:
-                self.client = client
+            self.client = Client().getUniqueServer()
 
     def get_active_number_of_jobs(self, jobID: Optional[int] = None) -> int:
         """
