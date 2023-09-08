@@ -50,9 +50,4 @@ class SimRecipe:
     It is never to be written to disk, it only resides in memory for the determineLuminosity script.
     """
 
-    SimulationTasks: List[SimulationTask] = field(init=False)
-
-    # use a post init hook to initialize the list so that it becomes a
-    # instance-specific list and not a class-specific list (thread safety!)
-    def __attrs_post_init__(self):
-        self.SimulationTasks = []
+    SimulationTasks: List[SimulationTask] = field(factory=list)
