@@ -150,7 +150,7 @@ class SoftwarePaths:
     hold paths where the LumiFit binaries and scripts are located, and where PandaRoot macros are.
     """
 
-    LmdFitBinaries: Path  # where the LmdFit build is (i.e. LuminosityFit/build/) but NOT ./bin/
+    LmdFitBuildDir: Path  # where the LmdFit build is (i.e. LuminosityFit/build/) but NOT ./bin/
     LmdFitScripts: Path  # where the python scripts for LmdFit are
     PandaRootMacroPath: Path  # where the macros for PandaRoot are
 

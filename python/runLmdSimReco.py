@@ -49,7 +49,7 @@ MCDataDir = configPackage.MCDataDir
 simParams = configPackage.simParams
 alignParams = configPackage.alignParams
 pathToTrkQAFiles = generateAbsoluteROOTDataPath(configPackage=configPackage)
-lmd_build_path = experiment.softwarePaths.LmdFitBinaries
+lmd_build_path = experiment.softwarePaths.LmdFitBuildDir
 PNDmacropath = experiment.softwarePaths.PandaRootMacroPath
 LMDscriptpath = experiment.softwarePaths.LmdFitScripts
 relativeDirToTrksQAFilesOnComputeNode = "LMD-TempRootFiles"

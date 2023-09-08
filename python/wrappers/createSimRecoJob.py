@@ -56,7 +56,7 @@ def create_simulation_and_reconstruction_job(
         print("Warning: number of samples in debug mode is limited to 1! Setting to 1!")
         num_samples = 1
 
-    lmdfit_build_dir = experiment.softwarePaths.LmdFitBinaries
+    lmdfit_build_dir = experiment.softwarePaths.LmdFitBuildDir
 
     # determine the elastic cross section in the theta range
     if simParams.simGeneratorType == SimulationGeneratorType.PBARP_ELASTIC:

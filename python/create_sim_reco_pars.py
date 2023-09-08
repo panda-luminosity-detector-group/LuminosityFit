@@ -117,7 +117,7 @@ def genExperimentConfig(
     # = Path("LMD-" + "".join(random.choices(string.ascii_letters, k=10)))  # type: ignore
 
     softwarePaths = SoftwarePaths(
-        LmdFitBinaries=lmd_build_path,
+        LmdFitBuildDir=lmd_build_path,
         PandaRootMacroPath=PNDmacropath,
         LmdFitScripts=LMDscriptpath,
     )

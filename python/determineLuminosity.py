@@ -477,7 +477,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         if not thisExperiment.recoIPpath.exists():
             # 2. determine offset on the vertex data sample
             bashCommand: List[str] = []
-            bashCommand.append(str(thisExperiment.softwarePaths.LmdFitBinaries / "determineBeamOffset"))
+            bashCommand.append(str(thisExperiment.softwarePaths.LmdFitBuildDir / "bin/determineBeamOffset"))
             bashCommand.append("-p")
             bashCommand.append(str(vertexDataMergePath))
             bashCommand.append("-c")

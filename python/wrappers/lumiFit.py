@@ -17,7 +17,7 @@ def createLumiFitJob(experiment: ExperimentParameters) -> Job:
     number_of_threads: int = 16
 
     LMDscriptpath = experiment.softwarePaths.LmdFitScripts
-    LMDbinPath = experiment.softwarePaths.LmdFitBinaries
+    LMDbinPath = experiment.softwarePaths.LmdFitBuildDir
     elasticMergeDataPath = generateAbsoluteMergeDataPath(experiment.dataPackage)
     resAccMergeDataPath = generateAbsoluteMergeDataPath(experiment.resAccPackage)
     config_url = experiment.fitConfigPath
