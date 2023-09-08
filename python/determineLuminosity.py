@@ -657,7 +657,7 @@ elif args.ExperimentConfigFile is not None:
 # ask confirmation
 print("The following experiments will be processed:")
 for experiment in experiments:
-    print(f"  {experiment.experimentDir}")
+    print(f"  {experiment.experimentDir} ({experiment.dataPackage.recoParams.lab_momentum} GeV)")
 print("")
 print("Continue? [y/n]")
 user_input = input()

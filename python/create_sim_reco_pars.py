@@ -58,7 +58,7 @@ def genExperimentConfig(
     else:
         raise ValueError("Experiment Type not defined!")
 
-    experimentDir = lmdfit_data_dir / Path("LMD-" + "".join(random.choices(string.ascii_letters, k=8)))
+    experimentDir = lmdfit_data_dir / Path(f"LMD-{momentum:.2f}" + "".join(random.choices(string.ascii_letters, k=8)))
 
     simParamsData = SimulationParameters(
         simulationCommand=simulationCommand,
