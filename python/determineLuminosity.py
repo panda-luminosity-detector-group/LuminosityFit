@@ -621,13 +621,14 @@ parser.add_argument(
     "--debug",
     dest="debug",
     type=bool,
+    action="store_true",
     help="In debug mode, all concurrency is disabled an all task are executed sequentially.",
-    default=False,
 )
 
 parser.add_argument(
     "--use_devel_queue",
     action="store_true",
+    type=bool,
     help="If flag is set, the devel queue is used",
 )
 
