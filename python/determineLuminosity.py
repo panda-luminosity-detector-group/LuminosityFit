@@ -278,7 +278,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
 
         elif status_code == StatusCode.NO_FILES:
             # create bunch files
-            os.chdir(lmd_fit_script_path)
+            os.chdir(experiment.softwarePaths.LmdFitScripts)
             multiFileListCommand: List[str] = []
             multiFileListCommand.append("python")
             multiFileListCommand.append("makeMultipleFileListBunches.py")
@@ -334,16 +334,17 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             return None
 
         elif status_code == StatusCode.NO_FILES:
-            os.chdir(lmd_fit_script_path)
+            os.chdir(experiment.softwarePaths.LmdFitScripts)
             mergeCommand: List[str] = []
             mergeCommand.append("python")
             mergeCommand.append("mergeMultipleLmdData.py")
             mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
             mergeCommand.append(str(pathToRootFiles))
 
-            if task.simDataType == SimulationDataType.ANGULAR:
-                mergeCommand.append("--num_samples")
-                mergeCommand.append(str(bootstrapped_num_samples))
+            # TODO: do we still need this?
+            # if task.simDataType == SimulationDataType.ANGULAR:
+            #     mergeCommand.append("--num_samples")
+            #     mergeCommand.append(str(1))
 
             print(f"running command:\n{mergeCommand}")
             _ = subprocess.call(mergeCommand)
@@ -475,7 +476,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         if not thisExperiment.recoIPpath.exists():
             # 2. determine offset on the vertex data sample
             bashCommand: List[str] = []
-            bashCommand.append(str(lmd_fit_bin_path / "determineBeamOffset"))
+            bashCommand.append(str(thisExperiment.softwarePaths.LmdFitBinaries / "determineBeamOffset"))
             bashCommand.append("-p")
             bashCommand.append(str(vertexDataMergePath))
             bashCommand.append("-c")
@@ -567,6 +568,19 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
     return True
 
 
+def experimentWorker(experiment: ExperimentParameters) -> None:
+    # before anything else, check if there is a copy in the experiment dir. if not, make it.
+    if not (experiment.experimentDir / "experiment.config").exists():
+        print("No copy of the experiment config found in the experiment directory. Copying it there now.")
+        write_params_to_file(experiment, experiment.experimentDir, "experiment.config")
+
+    # create a recipe object. it resides only in memory and is never written to disk
+    # it is however liberally modified and passed around
+    recipe = SimRecipe()
+
+    lumiDetermination(experiment, recipe)
+
+
 #! --------------------------------------------------
 #!             script part starts here
 #! --------------------------------------------------
@@ -617,31 +631,26 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+experiments: List[ExperimentParameters] = []
 
-# load experiment config
-experiment: ExperimentParameters = load_params_from_file(args.ExperimentConfigFile, ExperimentParameters)
+# either we have one experiment config file or a directory with many
+if args.ExperimentDir is not None:
+    # process all experiment configs in the given dir
+    for experimentConfig in args.ExperimentDir.glob("*.config"):
+        experiment: ExperimentParameters = load_params_from_file(args.ExperimentConfigFile, ExperimentParameters)
+        experiments.append(experiment)
 
-# before anything else, check if there is a copy in the experiment dir. if not, make it.
-if not (experiment.experimentDir / "experiment.config").exists():
-    print("No copy of the experiment config found in the experiment directory. Copying it there now.")
-    write_params_to_file(experiment, experiment.experimentDir, "experiment.config")
+        # this is a hack to make the code work with the old config files
+elif args.ExperimentConfigFile is not None:
+    # load experiment config
+    experiment = load_params_from_file(args.ExperimentConfigFile, ExperimentParameters)
+    experiments.append(experiment)
 
-
-# read environ settings
-lmd_fit_script_path = experiment.softwarePaths.LmdFitScripts
-lmd_fit_bin_path = experiment.softwarePaths.LmdFitBinaries / "bin"
-
-# * ----------------- create a recipe object. it resides only in memory and is never written to disk
-# it is however liberally modified and passed around
-recipe = SimRecipe()
-
-# set via command line argument, usually 1
-bootstrapped_num_samples = args.bootstrapped_num_samples
-
-# * ----------------- check which cluster we're on and create job handler
-if experiment.cluster == ClusterEnvironment.VIRGO:
+# check which cluster we're on and create job handler
+# we know there is at least one config, and we just assume all use the same cluster
+if experiments[0].cluster == ClusterEnvironment.VIRGO:
     job_handler = create_virgo_job_handler("long")
-elif experiment.cluster == ClusterEnvironment.HIMSTER:
+elif experiments[0].cluster == ClusterEnvironment.HIMSTER:
     if args.use_devel_queue:
         job_handler = create_himster_job_handler("devel")
     else:
@@ -653,31 +662,9 @@ else:
 # as quite a lot of data is read in from the storage...)
 job_manager = ClusterJobManager(job_handler, 2000, 3600)
 
-"""
-TODO for much later:
-use a thread pool. for each given expConfig, a new thread is spawned.
-each thread handles 1 (one, in words: O-N-E) experiment config.
-then this entire state bullshit can be tossed.
+with concurrent.futures.ThreadPoolExecutor() as executor:
+    futures = [executor.submit(experimentWorker, experiment) for experiment in experiments]
 
-so, for each thread:
-
-the lumiDetermination() function executes all individual steps in sequence, nothing else.
-no more fucking states.
-but since each step may call simulateDataOnHimster(), each step must block.
-no more state bullshit.
-
-therefore the simulateDataOnHimster() function must only return once all tasks are done.
-this is ensured in the handleTasks function (which doesn't exist yet). this loops 
-over all tasks and checks if they are done, and only then returns.
-
-Thread safety: since multiple threads can now call the clusterManager, that thing must be
-thread-safe. 
-use the "with clusterManager as manager:" directive, to ensure only one instance is there
-(singleton, just like with the agent).
-
-The manager blocks as soon as a job should be submitted and only returns once the submission
-was successful. No other error handling here, either the job was submitted successfully, or 
-the other threads have to wait anyway.  
-"""
-
-lumiDetermination(experiment, recipe)
+    # wait for all tasks to finish
+    print("Enqueued all experiments, waiting...")
+    executor.shutdown(wait=True)
