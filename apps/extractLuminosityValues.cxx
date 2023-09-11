@@ -12,7 +12,6 @@
 
 #include "boost/filesystem.hpp"
 #include "boost/property_tree/json_parser.hpp"
-#include "boost/regex.hpp"
 #include <boost/algorithm/string.hpp>
 
 void extractLuminosityResults(std::vector<std::string> paths,

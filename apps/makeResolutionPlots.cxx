@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "boost/filesystem.hpp"
-#include "boost/regex.hpp"
 
 #include "TF2.h"
 #include "TFitResult.h"
@@ -40,25 +39,6 @@ void makeResolutionPlots(std::vector<std::string> paths) {
   std::vector<PndLmdMapData> data_vec;
 
   std::vector<std::string> file_paths;
-  /*// ------ get files -------------------------------------------------------
-  for (auto const path : paths) {
-    std::vector<std::string> temp_file_paths = lmd_data_facade.findFilesByName(
-        path, "merge_data", "lmd_res_data_.*\\.root");
-    file_paths.insert(file_paths.end(), temp_file_paths.begin(),
-        temp_file_paths.end());
-  }
-
-  for (unsigned int j = 0; j < file_paths.size(); j++) {
-    std::string fullpath = file_paths[j];
-    TFile fdata(fullpath.c_str(), "READ");
-
-    // read in data from a root file which will return a map of
-  PndLmdAngularData objects std::vector<PndLmdMapData> temp_data_vec =
-  lmd_data_facade.getDataFromFile< PndLmdMapData>(fdata);
-
-    // append all data objects to the end of the corresponding data map vectors
-    data_vec.insert(data_vec.end(), temp_data_vec.begin(), temp_data_vec.end());
-  }*/
 
   std::stringstream basepath;
   basepath << std::getenv("HOME") << "/plots";

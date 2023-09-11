@@ -19,9 +19,7 @@ using std::vector;
 PndLmdDataFacade::PndLmdDataFacade()
     : lmd_runtime_config(PndLmdRuntimeConfiguration::Instance()) {}
 
-PndLmdDataFacade::~PndLmdDataFacade() {
-  
-}
+PndLmdDataFacade::~PndLmdDataFacade() {}
 
 void PndLmdDataFacade::initializeData(PndLmdAbstractData &data) const {
   data.setNumEvents(lmd_runtime_config.getNumEvents());

@@ -1,20 +1,25 @@
-import glob
 import json
 import os
 import re
-from argparse import (
-    ArgumentDefaultsHelpFormatter,
-    ArgumentParser,
-    RawTextHelpFormatter,
-)
-from enum import Enum
+from argparse import ArgumentParser
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, List, Optional
 
-import cattrs
+from dotenv import load_dotenv
 
-cattrs.register_structure_hook(Path, lambda d, t: Path(d))
-cattrs.register_unstructure_hook(Path, lambda d: str(d))
+
+def envPath(env_var: str) -> Path:
+    """
+    returns a Path object from an environment variable, ensures that the variable is set.
+    raises a ValueError if the variable is not set.
+    """
+    load_dotenv(dotenv_path=Path("../lmdEnvFile.env"))
+    env_var_value = os.environ.get(env_var)
+
+    if env_var_value:
+        return Path(env_var_value)
+
+    raise ValueError(f'Environment variable "{env_var}" not set!')
 
 
 def toCbool(input: bool) -> str:
@@ -27,7 +32,13 @@ def toCbool(input: bool) -> str:
         return "false"
 
 
-def matrixMacroFileName(input: Union[None, Path]) -> str:
+def matrixMacroFileName(input: Optional[Path]) -> str:
+    """
+    returns a string representation for a Path object.
+    If the path is None, it returns the empty string (NOT the string "None").
+    This is important for ROOT macros.
+    """
+
     if isinstance(input, Path):
         return str(input)
     elif input is None:
@@ -37,44 +48,39 @@ def matrixMacroFileName(input: Union[None, Path]) -> str:
 
 # TODO: overhaul this function
 def getGoodFiles(
-    directory: str,
+    directory: Path,
     glob_pattern: str,
     min_filesize_in_bytes: int = 2000,
-    is_bunches: bool = False,
 ) -> list:
-    found_files = glob.glob(directory + "/" + glob_pattern)
-    good_files = []
-    bad_files = []
+    found_files = directory.glob(glob_pattern)
+    good_files: List[Path] = []
+    bad_files: List[Path] = []
     for file in found_files:
-        if os.stat(file).st_size > min_filesize_in_bytes:
+        if isFilePresentAndValid(file, min_filesize_in_bytes):
             good_files.append(file)
         else:
             bad_files.append(file)
 
-    if is_bunches:
-        m = re.search(r"\/bunches_(\d+)", directory)
-        num_sim_files = int(m.group(1))  # type: ignore
-    else:
-        m = re.search(r"\/(\d+)-(\d+)_.+?cut", directory)
-        num_sim_files = int(m.group(2)) - int(m.group(1)) + 1  # type: ignore
+    num_sim_files = len(good_files) + len(bad_files)
+
+    print(f"found {len(good_files)} good files out of {num_sim_files} files")
+    if num_sim_files < 1:
+        return [good_files, 0]
 
     files_percentage = len(good_files) / num_sim_files
 
     return [good_files, files_percentage]
 
 
-def check_stage_success(file_url: str) -> bool:
-    if os.path.exists(file_url):
-        if os.stat(file_url).st_size > 3000:
-            print(f"{file_url} exists and is larger than 3kb!")
+def isFilePresentAndValid(file_url: Path, minFileSize=3000) -> bool:
+    if file_url.exists():
+        if file_url.stat().st_size > minFileSize:
+            # print(f"{file_url} exists and is larger than 3kb!")
             return True
-
+        # print("file is too small.")
+        return False
+    # print(f"{file_url} does not exist!")
     return False
-
-
-class SmartFormatter(ArgumentDefaultsHelpFormatter):
-    def _split_lines(self, text: str, width: int) -> list:
-        return RawTextHelpFormatter._split_lines(self, text, width)
 
 
 def addDebugArgumentsToParser(parser: ArgumentParser) -> ArgumentParser:
@@ -104,105 +110,89 @@ def addDebugArgumentsToParser(parser: ArgumentParser) -> ArgumentParser:
     return parser
 
 
-class _EnumEncoder(json.JSONEncoder):
-    def default(self, obj: Any) -> json.JSONEncoder:
-        if isinstance(obj, Enum):
-            return obj.value
-        return json.JSONEncoder.default(self, obj)
-
-
-def write_params_to_file(params: dict, pathname: str, filename: str, overwrite=False) -> None:
-    Path(pathname).mkdir(exist_ok=True, parents=True)
-    file_path = pathname + "/" + filename
-    if overwrite or (not os.path.exists(file_path)):
-        print("creating config file: " + file_path)
-        with open(file_path, "w") as json_file:
-            json.dump(params, json_file, sort_keys=True, indent=4, cls=_EnumEncoder)
-    else:
-        print(f"Config file {filename} already exists!")
-
-
-def load_params_from_file(file_path: str, asType: type):
-    """
-    Uses cattrs to deserialize a json file to a python object. Requires target type
-    """
-    if asType is None:
-        raise NotImplementedError("Please specify the type to deserialize as.")
-
-    if os.path.exists(file_path):
-        with open(file_path, "r") as json_file:
-            return cattrs.structure(json.load(json_file), asType)
-
-    print(f"file {file_path} does not exist!")
-    return {}
-
-
 class DirectorySearcher:
-    def __init__(self, patterns_: list, not_contain_pattern_: str = "") -> None:
-        self.patterns = patterns_
-        self.not_contain_pattern = not_contain_pattern_
-        self.dirs: list = []
+    """
+    Class to search directories that include files according to a list of patterns.   A pattern is for example a file name. A pattern is for example a file name. A directory that matches any of the patterns is included.
 
-    def getListOfDirectories(self) -> list:
+
+    You can specify a list of patterns that are to be excluded from search. If a directory includes any of the exclude patterns, it is ignored.
+
+    TODO: this shouldn't even exist. All paths should be:
+        - in the experiment config
+        - or generated deterministically from the paths module
+    """
+
+    def __init__(self, patterns_: List[str], excludePatterns: str = "") -> None:
+        self.patterns = patterns_
+        self.not_contain_pattern = excludePatterns
+        self.dirs: List[Path] = []
+
+    def getListOfDirectories(self) -> List[Path]:
         return self.dirs
 
-    def searchListOfDirectories(self, path: str, glob_patterns: Any) -> None:
-        print("looking in path:", path)
+    def searchListOfDirectories(self, path: Path, glob_patterns: Any) -> None:
+        """
+        Searches a directory for the file patterns given in the constructor.
+        Returns all subdirectories that match the given patterns.
+        """
+        print(f"looking in path: {path}")
         print("looking for files with pattern: ", glob_patterns)
         print("dirpath forbidden patterns:", self.not_contain_pattern)
         print("dirpath patterns:", self.patterns)
+
         if isinstance(glob_patterns, list):
             file_patterns = glob_patterns
         else:
             file_patterns = [glob_patterns]
 
-        for dirpath, dirs, files in os.walk(path):
-            # print('currently looking at directory', dirpath)
-            if dirpath == "mc_data" or dirpath == "Pairs":
+        for dirpath in path.glob("**/*"):
+            if not dirpath.is_dir():
                 continue
 
-            # first check if dirpath does not contain pattern
-            if self.not_contain_pattern != "":
-                m = re.search(self.not_contain_pattern, dirpath)
-                if m:
-                    continue
+            if dirpath.name == "mc_data" or dirpath.name == "Pairs":
+                continue
+
+            if self.not_contain_pattern != "" and self.not_contain_pattern in str(dirpath):
+                continue
 
             is_good = True
-            # print path
             for pattern in self.patterns:
-                m = re.search(pattern, dirpath)
-                if not m:
+                if pattern not in str(dirpath):
                     is_good = False
                     break
             if is_good:
-                # check if there are useful files here
                 found_files = False
-                if len(file_patterns) == 1:
-                    # TODO: this line is highly dubious, but don't touch it for now.
-                    found_files = len([x for x in files if glob_patterns in x]) > 0
-                else:
-                    for filename in files:
-                        found_file = True
-                        for pattern in file_patterns:
-                            if pattern not in filename:
-                                found_file = False
-                                break
-                        if found_file:
+                for filename in dirpath.glob("*"):
+                    if not filename.is_file():
+                        continue
+
+                    for pattern in file_patterns:
+                        if pattern in filename.name:
                             found_files = True
                             break
 
-                if found_files:
-                    self.dirs.append(dirpath)
+                    if found_files:
+                        self.dirs.append(dirpath)
+                        break
 
 
-class ConfigModifier:
+class ConfigReaderAndWriter:
+    """
+    Todo: actually just remove that when you're sure you've removed all references to it.
+    The config should be read, not modified.
+    """
+
     def __init__(self) -> None:
         pass
 
-    def loadConfig(self, config_file_path: str) -> Any:
-        f = open(config_file_path, "r")
-        return json.loads(f.read())
+    def loadConfig(self, config_file_path: Path) -> Any:
+        with open(config_file_path, "r") as f:
+            return json.load(f)
 
-    def writeConfigToPath(self, config: Any, config_file_path: str) -> None:
-        f = open(config_file_path, "w")
-        f.write(json.dumps(config, indent=2, separators=(",", ": ")))
+    def writeConfigToPath(self, config: Any, config_file_path: Path) -> None:
+        """
+        Writes the config to the given path, overwriting any existing file.
+        """
+        with open(config_file_path, "w") as f:
+            json.dump(config, f, indent=2, separators=(",", ": "))
+            # f.write(json.dumps(config, indent=2, separators=(",", ": ")))

@@ -12,7 +12,6 @@
 
 #include "boost/filesystem.hpp"
 #include "boost/property_tree/json_parser.hpp"
-#include "boost/regex.hpp"
 #include <boost/algorithm/string.hpp>
 
 #include "TGaxis.h"
@@ -81,7 +80,8 @@ void plotLumiFitResults(std::vector<std::string> paths, int type,
         paths[i], filter_string, "lmd_fitted_data.root");
     std::cout << "found " << file_paths.size() << " file paths!\n";
     for (unsigned int j = 0; j < file_paths.size(); j++) {
-      // next lines are dirty... very unsafe
+      // FIXME: next lines are dirty... very unsafe
+      // LOL WTF
       std::string ip_path(file_paths[j]);
       boost::replace_all(ip_path, "xy_m_cut_real", "uncut");
       boost::replace_all(ip_path, "lmd_fitted_data.root", "reco_ip.json");

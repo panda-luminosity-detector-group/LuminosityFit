@@ -4,8 +4,8 @@ import os
 import subprocess
 
 from lumifit.alignment import AlignmentParameters
-from lumifit.general import check_stage_success, load_params_from_file
-from lumifit.reconstruction import ReconstructionParameters
+from lumifit.general import isFilePresentAndValid, load_params_from_file
+from wrappers.createRecoJob import ReconstructionParameters
 
 debug = True
 filename_index = 1
@@ -19,10 +19,8 @@ pathname = os.environ["pathname"]
 macropath = os.environ["LMDFIT_MACROPATH"]
 force_level = int(os.environ["force_level"])
 
-reco_param: ReconstructionParameters = load_params_from_file(
-    pathname + "/reco_params.config", ReconstructionParameters
-)
-ali_params = AlignmentParameters()      # TODO Alignment with KOALA isn't implemented yet.
+reco_param: ReconstructionParameters = load_params_from_file(pathname + "/reco_params.config", ReconstructionParameters)
+ali_params = AlignmentParameters()  # TODO Alignment with KOALA isn't implemented yet.
 
 verbositylvl: int = 0
 start_evt: int = reco_param.num_events_per_sample * filename_index
@@ -59,7 +57,7 @@ BoxFilt = False
 dX = 0
 dY = 0
 
-radLength = 0.32# merge hits on sensors from different sides. true=yes# merge hits on sensors from different sides. true=yes
+radLength = 0.32  # merge hits on sensors from different sides. true=yes# merge hits on sensors from different sides. true=yes
 
 prefilter = False
 if reco_param.use_xy_cut:
@@ -68,12 +66,9 @@ if reco_param.use_xy_cut:
 
 os.chdir(macropath)
 # check_stage_success "workpathname + "/Koala_TCand_${start_evt}.root""
-if (
-    not check_stage_success(pathname + f"/Koala_Track_{start_evt}.root")
-    or force_level == 1
-):
+if not isFilePresentAndValid(pathname + f"/Koala_Track_{start_evt}.root") or force_level == 1:
     os.chdir(macropath)
-    
+
     os.system(
         f"root -l -b -q 'KoaPixel3Finder.C({reco_param.num_events_per_sample},"
         + f"{start_evt},"
@@ -92,21 +87,14 @@ if (
         + f'"Minuit", {1 if mergedHits else 0})\''
     )
     # copy Lumi_recoMerged_ for module aligner
-    os.system(
-        f"cp {workpathname}/Koala_Track_{start_evt}.root {pathname}/Koala_Track_{start_evt}.root"
-    )
+    os.system(f"cp {workpathname}/Koala_Track_{start_evt}.root {pathname}/Koala_Track_{start_evt}.root")
 else:
-    if not debug:            
-        os.system(
-            f"cp {pathname}/Koala_Track_{start_evt}.root {workpathname}/Koala_Track_{start_evt}.root"
-        )
+    if not debug:
+        os.system(f"cp {pathname}/Koala_Track_{start_evt}.root {workpathname}/Koala_Track_{start_evt}.root")
 
-if (
-    not check_stage_success(pathname + f"/Koala_comp_{start_evt}.root")
-    or force_level == 1
-):
+if not isFilePresentAndValid(pathname + f"/Koala_comp_{start_evt}.root") or force_level == 1:
     os.chdir(macropath)
-    
+
     returnvalue = subprocess.run(
         f"root -l -b -q 'KoaPixel5BackProp.C({reco_param.num_events_per_sample},{start_evt},"
         + f'"{workpathname}",{verbositylvl},'
@@ -121,37 +109,25 @@ if (
     )
 
     os.chdir(macropath)
-    
+
     os.system(
         f"root -l -b -q 'KoaPixel6Compare.C({reco_param.num_events_per_sample},{start_evt},"
         + f'"{workpathname}",{verbositylvl},'
         + f"{1 if missalign else 0})'"
     )
     # copy Koala_comp
-    os.system(
-        f"cp {workpathname}/Koala_comp_{start_evt}.root {pathname}/Koala_comp_{start_evt}.root"
-    )
+    os.system(f"cp {workpathname}/Koala_comp_{start_evt}.root {pathname}/Koala_comp_{start_evt}.root")
 
     os.chdir(macropath)
     os.system(
-        f"root -l -b -q 'KoaPixel7Unify.C({reco_param.num_events_per_sample},{start_evt},"
-        + f'"{workpathname}",{verbositylvl},'
-        + f"{1 if missalign else 0})'"
+        f"root -l -b -q 'KoaPixel7Unify.C({reco_param.num_events_per_sample},{start_evt}," + f'"{workpathname}",{verbositylvl},' + f"{1 if missalign else 0})'"
     )
     # copy Koala_IP for determineLuminosity
-    os.system(
-        f"cp {workpathname}/Koala_IP_{start_evt}.root {pathname}/Koala_IP_{start_evt}.root"
-    )
-
+    os.system(f"cp {workpathname}/Koala_IP_{start_evt}.root {pathname}/Koala_IP_{start_evt}.root")
 
     os.chdir(macropath)
     os.system(
-        f"root -l -b -q 'KoaPixel7Unify.C({reco_param.num_events_per_sample},{start_evt},"
-        + f'"{workpathname}",{verbositylvl},'
-        + f"{1 if missalign else 0})'"
+        f"root -l -b -q 'KoaPixel7Unify.C({reco_param.num_events_per_sample},{start_evt}," + f'"{workpathname}",{verbositylvl},' + f"{1 if missalign else 0})'"
     )
     # copy Koala_IP for determineLuminosity
-    os.system(
-        f"cp {workpathname}/Koala_IP_{start_evt}.root {pathname}/Koala_IP_{start_evt}.root"
-    )
-
+    os.system(f"cp {workpathname}/Koala_IP_{start_evt}.root {pathname}/Koala_IP_{start_evt}.root")

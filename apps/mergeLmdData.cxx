@@ -13,7 +13,6 @@
 #include <vector>
 
 #include "boost/filesystem.hpp" // includes all needed Boost.Filesystem declarations
-#include "boost/regex.hpp"
 
 using boost::filesystem::directory_iterator;
 using boost::filesystem::path;
@@ -108,8 +107,14 @@ void mergeData(const vector<string> &found_files, const string &outfile_path,
                std::pair<unsigned int, unsigned int> samples) {
   string output_filename = getOutputFilename(data_type);
 
-  vector<vector<string>> data_file_samples =
-      bootstrapData(found_files, samples);
+  // vector<vector<string>> data_file_samples =
+  //     bootstrapData(found_files, samples);
+  vector<vector<string>> data_file_samples;
+  data_file_samples.push_back(found_files);
+  // also sort the samples
+  for (auto &sample : data_file_samples) {
+    std::sort(sample.begin(), sample.end());
+  }
 
   boost::filesystem::path outdir(outfile_path);
   boost::filesystem::create_directory(outdir);
@@ -172,7 +177,7 @@ void displayInfo() {
   // display info
   std::cout << "Required arguments are: " << std::endl;
   std::cout << "-p [path to data]" << std::endl;
-  std::cout << "-t [type of data to create] (a = angular, e = efficiency, r = "
+  std::cout << "-t [type of data to merge] (a = angular, e = efficiency, r = "
                "resolution, v = vertex)"
             << std::endl;
   std::cout << "Optional arguments are: " << std::endl;

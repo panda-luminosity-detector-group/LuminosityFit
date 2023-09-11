@@ -1,12 +1,13 @@
 # cSpell:ignore slurm,sbatch,squeue,CPUs,Popen
 
 import os
+import re
 import subprocess
 import time
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
-from .agent import Client, SlurmOrder
-from .cluster import Job, JobHandler, JobResourceRequest
+from lumifit.agent import Client, SlurmOrder, orderType
+from lumifit.cluster import Job, JobHandler, JobResourceRequest
 
 
 def _stringify(job_resource_request: JobResourceRequest):
@@ -17,9 +18,6 @@ def _stringify(job_resource_request: JobResourceRequest):
         + " --time="
         + f"{_format_walltime(job_resource_request.walltime_in_minutes)}"
     )
-    # if job_resource_request.node_scratch_filesize_in_mb > 0:
-    #    resource_request += ' --tmp=' + \
-    #        str(job_resource_request.node_scratch_filesize_in_mb)
     return resource_request
 
 
@@ -51,9 +49,7 @@ def _create_array_string(job: Job) -> str:
                 temp_range_start = index
             elif index > previous_index + 1:
                 if previous_index - temp_range_start > 1:
-                    indices_string += (
-                        str(temp_range_start) + "-" + str(previous_index) + ","
-                    )
+                    indices_string += str(temp_range_start) + "-" + str(previous_index) + ","
                 else:
                     if temp_range_start != previous_index:
                         indices_string += str(temp_range_start) + ","
@@ -61,9 +57,7 @@ def _create_array_string(job: Job) -> str:
                 temp_range_start = index
             previous_index = index
         if temp_range_start < index:
-            indices_string += (
-                str(temp_range_start) + "-" + str(array_indices[-1])
-            )
+            indices_string += str(temp_range_start) + "-" + str(array_indices[-1])
         else:
             indices_string += str(array_indices[-1])
         return " --array=" + indices_string
@@ -81,16 +75,29 @@ class SlurmJobHandler(JobHandler):
         account: Optional[str] = None,
         constraints: Optional[str] = None,
         job_preprocessor: Optional[Callable[[Job], Job]] = None,
+        client: Optional[Client] = None,
     ) -> None:
         self.__partition = partition
         self.__account = account
         self.__constraints = constraints
         self.__job_preprocessor = job_preprocessor
         self.__useSlurmAgent__ = True
+        if self.__useSlurmAgent__:
+            self.client = Client().getUniqueServer()
 
-    def get_active_number_of_jobs(self) -> int:
-        """Check users current number of running and queued jobs."""
-        bashcommand = "squeue -u $USER -o %C | sed 's/CPUS/0/' | awk '{s+=$1} END {print s}'"
+    def __del__(self):
+        self.client.exit()
+
+    def get_active_number_of_jobs(self, jobID: Optional[int] = None) -> int:
+        """
+        Check users current number of running and queued jobs.
+        If no jobID is given, this counts allocated cpus, not jobs.
+        """
+
+        if jobID is None:
+            bashCommand = "squeue -u $USER -o %C | sed 's/CPUS/0/' | awk '{s+=$1} END {print s}'"
+        else:
+            bashCommand = f"squeue -u $USER -h --state R,PD --job {jobID}  | wc -l"
 
         # attention! sometimes this reads back the empty string, which shouldn't happen.
         # I don't know why, maybe because two orders came at the same time.
@@ -98,25 +105,20 @@ class SlurmJobHandler(JobHandler):
 
         attemptCounter = 0
         while attemptCounter < 3:
-
             if self.__useSlurmAgent__:
-                # client = Client()
-                with Client() as client:
-                    thisOrder = SlurmOrder()
-                    thisOrder.cmd = bashcommand
-                    thisOrder.runShell = True
-                    # default output to zero, doesn't work otherwise
-                    thisOrder.stdout = "0"
-                    thisOrder.env = os.environ.copy()
-                    client.sendOrder(thisOrder, 30)  # this may take some time
-                    resultOrder = client.receiveOrder()
-                    resultOut = resultOrder.stdout
+                thisOrder = SlurmOrder()
+                thisOrder.cmd = bashCommand
+                thisOrder.runShell = True
+                # default output to zero, doesn't work otherwise
+                thisOrder.stdout = "0"
+                thisOrder.env = os.environ.copy()
+                self.client.sendOrder(thisOrder, 30)  # this may take some time
+                resultOrder = self.client.receiveOrder()
+                resultOut = resultOrder.stdout
 
             else:
-                returnvalue = subprocess.Popen(
-                    bashcommand, shell=True, stdout=subprocess.PIPE, text=True
-                )
-                resultOut, _ = returnvalue.communicate()
+                returnValue = subprocess.Popen(bashCommand, shell=True, stdout=subprocess.PIPE, text=True)
+                resultOut, _ = returnValue.communicate()
 
             if resultOut == "":
                 time.sleep(30)
@@ -128,51 +130,60 @@ class SlurmJobHandler(JobHandler):
         # if we've reached this point, all is lost
         raise ValueError("Error getting number of running jobs!")
 
-    def submit(self, job: Job) -> int:
+    def submit(self, job: Job) -> Tuple[int, int]:
+        """
+        Submits a job to the work manager (probably SLURM)
+        and returns the returnCode from the submit command
+        (mostly 0 if success or 1 if failed)
+        and the job array ID, if successful
+        """
         if self.__job_preprocessor:
             job = self.__job_preprocessor(job)
 
-        bashcommand = (
+        bashCommand = (
             "sbatch"
             + (f" -A {self.__account}" if self.__account else "")
             + f" -p {self.__partition}"
-            + (
-                f" --constraint={self.__constraints}"
-                if self.__constraints
-                else ""
-            )
+            + (f" --constraint={self.__constraints}" if self.__constraints else "")
         )
 
-        bashcommand += _create_array_string(job)
+        bashCommand += _create_array_string(job)
 
-        bashcommand += (
-            f" --job-name={job.name}"
-            + _stringify(job.resource_request)
-            + f" --output={job.logfile_url}"
-        )
+        bashCommand += f" --job-name={job.name}" + _stringify(job.resource_request) + f" --output={job.logfile_url}"
         # export variables
-        bashcommand += " --export=ALL,"
+        bashCommand += " --export=ALL,"
         for name, value in job.exported_user_variables.items():
-            bashcommand += f"{name}={value},"
+            bashCommand += f"{name}={value},"
 
-        bashcommand = (
-            bashcommand[:-1]
-            + " "
-            + job.additional_flags
-            + " "
-            + job.application_url
-        )
+        bashCommand = bashCommand[:-1] + " " + job.additional_flags + " " + job.application_url
         if self.__useSlurmAgent__:
-            # client = Client()
-            with Client() as client:
-                thisOrder = SlurmOrder()
-                thisOrder.cmd = bashcommand
-                thisOrder.runShell = True
-                thisOrder.env = os.environ.copy()
-                client.sendOrder(thisOrder)
-                resultOrder = client.receiveOrder()
-                returnCode = resultOrder.returnCode
-                return int(returnCode)
+            thisOrder = SlurmOrder()
+            thisOrder.cmd = bashCommand
+            thisOrder.runShell = True
+            thisOrder.env = os.environ.copy()
+            self.client.sendOrder(thisOrder)
+            resultOrder = self.client.receiveOrder()
+            returnCode = resultOrder.returnCode
+
+            if returnCode != 0:
+                jobArrayID: int = 0
+                raise RuntimeError("Job submission failed!")
+            else:
+                returnMessage = resultOrder.stdout
+                # will be something like
+                # Submitted batch job 14049737
+
+                # regex parse the job ID
+                match = re.search(r"Submitted batch job (\d+)", returnMessage)
+                if match is not None:
+                    jobArrayID = int(match.group(1))
+                else:
+                    raise RuntimeError("Job submission failed in a weird way! Return code was 0, but no job ID was found!")
+
+            if not isinstance(jobArrayID, int):
+                raise RuntimeError(f"Job submission failed in a weird way! Return code was 0, but I could not parse the job ID {jobArrayID}!")
+            return int(returnCode), jobArrayID
 
         else:
-            return subprocess.call(bashcommand, shell=True)
+            # todo handle jobArray ID as well
+            return subprocess.call(bashCommand, shell=True), 0
