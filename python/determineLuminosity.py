@@ -530,10 +530,22 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         print("                       Attention!                           ")
         print("     Experiment Config has been changed in memory!          ")
         print("This MUST only happen if you are using the IP determination!")
-        print("============================================================")
         print("")
+        print("New IP position:")
+        print(f"  x: {thisExperiment.dataPackage.recoParams.recoIPX} cm")
+        print(f"  y: {thisExperiment.dataPackage.recoParams.recoIPY} cm")
+        print(f"  z: {thisExperiment.dataPackage.recoParams.recoIPZ} cm")
+        print("")
+        print("New theta angles:")
+        print(f"  theta min: {thisExperiment.resAccPackage.simParams.theta_min_in_mrad} mrad")
+        print(f"  theta max: {thisExperiment.resAccPackage.simParams.theta_max_in_mrad} mrad")
+        print("")
+        print("============================================================")
         print("Finished IP determination for this recipe!")
 
+        # overwrite existing config file
+        print(f"Overwriting experiment config file at {thisExperiment.experimentDir}/experiment.config with new IP position...")
+        write_params_to_file(thisExperiment, thisExperiment.experimentDir, "experiment.config", overwrite=True)
     else:
         print("Skipped IP determination for this recipe, using values from config.")
 
@@ -548,8 +560,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
     (that means simulation + bunching + creating data objects + merging)
     """
 
-    recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.ANGULAR, simState=SimulationState.START_SIM))
     recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.EFFICIENCY_RESOLUTION, simState=SimulationState.START_SIM))
+    recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.ANGULAR, simState=SimulationState.START_SIM))
 
     # remember, the experiment config may now contain the updated IP
     # there are now two simulation tasks running, but this call only returns once BOTH are done
