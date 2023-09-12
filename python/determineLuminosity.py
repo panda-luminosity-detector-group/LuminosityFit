@@ -531,6 +531,16 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         print("     Experiment Config has been changed in memory!          ")
         print("This MUST only happen if you are using the IP determination!")
         print("============================================================")
+
+        print("New IP position:")
+        print(f"  x: {thisExperiment.dataPackage.recoParams.recoIPX} cm")
+        print(f"  y: {thisExperiment.dataPackage.recoParams.recoIPY} cm")
+        print(f"  z: {thisExperiment.dataPackage.recoParams.recoIPZ} cm")
+
+        print("New theta angles:")
+        print(f"  theta min: {thisExperiment.resAccPackage.simParams.theta_min_in_mrad} mrad")
+        print(f"  theta max: {thisExperiment.resAccPackage.simParams.theta_max_in_mrad} mrad")
+
         print("")
         print("Finished IP determination for this recipe!")
 
@@ -548,8 +558,8 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
     (that means simulation + bunching + creating data objects + merging)
     """
 
-    recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.ANGULAR, simState=SimulationState.START_SIM))
     recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.EFFICIENCY_RESOLUTION, simState=SimulationState.START_SIM))
+    recipe.SimulationTasks.append(SimulationTask(simDataType=SimulationDataType.ANGULAR, simState=SimulationState.START_SIM))
 
     # remember, the experiment config may now contain the updated IP
     # there are now two simulation tasks running, but this call only returns once BOTH are done
