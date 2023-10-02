@@ -148,6 +148,8 @@ def genOffsetIPconfigs() -> None:
     for momentum in [1.5, 15]:
         # offsets are in mm here, remember root units are cm!
         for offset in [-1.0, -0.5, -0.25, 0, 0.25, 0.5, 1.0]:
+            offset = offset / 10.0
+
             experimentType = ExperimentType.LUMI
 
             lmdScriptPath = envPath("LMDFIT_SCRIPTPATH")
