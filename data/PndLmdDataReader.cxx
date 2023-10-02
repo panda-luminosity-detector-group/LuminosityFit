@@ -259,12 +259,6 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
       double thetaY = pY / pZ;
 
       double thetaPlane = sqrt(thetaX * thetaX + thetaY * thetaY);
-
-      // FIXME: this doesn't belong here, but more appropriately in the track
-      // reconstruction that is in PandaRoot however, not Lumi Fit
-      if (thetaPlane < 0.003 || thetaPlane > 0.0105) {
-        track_accepted = false;
-      }
     }
     // skip tracks that do not pass the filters
     if (successfullyPassedFilters(registered_acceptances[i], track_info)) {
