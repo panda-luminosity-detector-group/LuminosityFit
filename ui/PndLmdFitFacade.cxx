@@ -3,7 +3,7 @@
 #include "fit/estimatorImpl/Chi2Estimator.h"
 #include "fit/estimatorImpl/LogLikelihoodEstimator.h"
 #include "fit/minimizerImpl/ROOT/ROOTMinimizer.h"
-//#include "fit/minimizerImpl/Ceres/CeresMinimizer.h"
+// #include "fit/minimizerImpl/Ceres/CeresMinimizer.h"
 #include "PndLmdComparisonStructs.h"
 #include "PndLmdDataFacade.h"
 #include "fit/data/Data.h"
@@ -255,6 +255,28 @@ void PndLmdFitFacade::freeParametersForModel(
   }
 }
 
+void PndLmdFitFacade::initIPForModel(std::shared_ptr<Model> current_model,
+                                     const ptree &model_opt_ptree) const {
+  current_model->getModelParameterSet()
+      .getModelParameter("offset_x")
+      ->setParameterFixed(false);
+  current_model->getModelParameterSet()
+      .getModelParameter("offset_y")
+      ->setParameterFixed(false);
+  current_model->getModelParameterSet()
+      .getModelParameter("offset_x")
+      ->setValue(model_opt_ptree.get<double>("ip_offset_x"));
+  current_model->getModelParameterSet()
+      .getModelParameter("offset_y")
+      ->setValue(model_opt_ptree.get<double>("ip_offset_y"));
+  current_model->getModelParameterSet()
+      .getModelParameter("offset_x")
+      ->setParameterFixed(true);
+  current_model->getModelParameterSet()
+      .getModelParameter("offset_y")
+      ->setParameterFixed(true);
+}
+
 void PndLmdFitFacade::initBeamParametersForModel(
     std::shared_ptr<Model> current_model, const ptree &model_opt_ptree) const {
   current_model->getModelParameterSet().setModelParameterValue("luminosity",
@@ -484,6 +506,8 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     initBeamParametersForModel(
         model, fit_options_no_div.getModelOptionsPropertyTree());
 
+    initIPForModel(model, fit_options_no_div.getModelOptionsPropertyTree());
+
     if (model->init()) {
       std::cout << "ERROR: Not all parameters of the model were successfully "
                    "initialized!"
@@ -550,6 +574,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     model_fit_facade.setEstimator(estimator);
     model_fit_facade.setEstimatorOptions(fit_options.getEstimatorOptions());
 
+    model->getModelParameterSet().printInfo();
     doFit(lmd_data, fit_options_no_div);
 
     model = generateModel(lmd_data, fit_options);
@@ -557,6 +582,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     // init beam parameters in model
     initBeamParametersForModel(model,
                                fit_options.getModelOptionsPropertyTree());
+    initIPForModel(model, fit_options_no_div.getModelOptionsPropertyTree());
 
     if (model->init()) {
       std::cout << "ERROR: Not all parameters of the model were successfully "
@@ -584,14 +610,24 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
       }
     }*/
 
-      auto const &no_div_fit_res_params =
-          lmd_data.getFitResults(fit_options_no_div).back().getFitParameters();
-      auto const &tilt_x_start = lmd_data.getFitResults(fit_options_no_div).back().getFitParameter("tilt_x");
-      auto const &tilt_y_start = lmd_data.getFitResults(fit_options_no_div).back().getFitParameter("tilt_y");
-      model->getModelParameterSet().getModelParameter("tilt_x")->setValue(tilt_x_start.value);
-      model->getModelParameterSet().getModelParameter("tilt_y")->setValue(tilt_y_start.value);
-      std::cout << "setting " << "tilt_x" << " to " << tilt_x_start.value << std::endl;
-      std::cout << "setting " << "tilt_y" << " to " << tilt_y_start.value << std::endl;
+    auto const &no_div_fit_res_params =
+        lmd_data.getFitResults(fit_options_no_div).back().getFitParameters();
+    auto const &tilt_x_start = lmd_data.getFitResults(fit_options_no_div)
+                                   .back()
+                                   .getFitParameter("tilt_x");
+    auto const &tilt_y_start = lmd_data.getFitResults(fit_options_no_div)
+                                   .back()
+                                   .getFitParameter("tilt_y");
+    model->getModelParameterSet().getModelParameter("tilt_x")->setValue(
+        tilt_x_start.value);
+    model->getModelParameterSet().getModelParameter("tilt_y")->setValue(
+        tilt_y_start.value);
+    std::cout << "setting "
+              << "tilt_x"
+              << " to " << tilt_x_start.value << std::endl;
+    std::cout << "setting "
+              << "tilt_y"
+              << " to " << tilt_y_start.value << std::endl;
 
     // now set better starting amplitude value
     std::cout << "calculating model integral..." << std::endl;
@@ -630,6 +666,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
       }
     }
 
+    model->getModelParameterSet().printInfo();
     doFit(lmd_data, fit_options);
   }
 
@@ -640,12 +677,14 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     initBeamParametersForModel(model,
                                fit_options.getModelOptionsPropertyTree());
 
+    initIPForModel(model, fit_options.getModelOptionsPropertyTree());
+
     if (model->init()) {
       std::cout << "ERROR: Not all parameters of the model were successfully "
                    "initialized!"
                 << std::endl;
-      model->getModelParameterSet().printInfo();
     }
+    model->getModelParameterSet().printInfo();
 
     // free parameters
     freeParametersForModel(model, fit_options);
@@ -706,6 +745,7 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     model_fit_facade.setEstimator(estimator);
     model_fit_facade.setEstimatorOptions(fit_options.getEstimatorOptions());
 
+    model->getModelParameterSet().printInfo();
     doFit(lmd_data, fit_options);
   }
 }

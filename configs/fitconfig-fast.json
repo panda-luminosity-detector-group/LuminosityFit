@@ -23,6 +23,8 @@
          "beam_tilt_x": 0.0,
          "beam_tilt_y": 0.0,
          "fix_ip_offsets": true,
+         "ip_offset_x": -0.025,
+         "ip_offset_y": -0.025,
          "acceptance_correction_active": true,
          "acceptance_interpolation": "CONSTANT",
          "automatic_acceptance_boundary_finding_active": true,
