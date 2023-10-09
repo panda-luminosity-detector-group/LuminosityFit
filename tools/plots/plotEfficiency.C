@@ -19,3 +19,5 @@ void plotEfficiency(std::string inFileName, std::string outName) {
     canvas.Print((outName + "-colz.png").c_str());
   }
 }
+
+void plotEfficiency() { plotEfficiency("lmd_acc_data.root", "acceptance"); }
