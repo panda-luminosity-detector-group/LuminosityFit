@@ -29,7 +29,7 @@
          "acceptance_interpolation": "CONSTANT",
          "automatic_acceptance_boundary_finding_active": true,
          "automatic_acceptance_shifting_active": false,
-         "clean_lower_acceptance": false,
+         "clean_lower_acceptance": true,
          "acceptance_bound_low": 0.002,
          "acceptance_bound_high": 0.01,
          "resolution_smearing_active": true,
