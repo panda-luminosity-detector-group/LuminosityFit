@@ -200,7 +200,7 @@ void runLmdFit(string input_file_dir, string fit_config_path,
           if (div_smeared) {
             if (fit_res.getFitStatus() == 0) {
               final_fit_result.setModelFitResult(fit_res);
-              //break;
+              // break;
             }
           } else {
             final_fit_result.setModelFitResult(fit_res);
@@ -229,6 +229,9 @@ void runLmdFit(string input_file_dir, string fit_config_path,
           lumiJson.put("generated_lumi", data_sample.getReferenceLuminosity());
           lumiJson.put("relative_deviation_in_percent", lumi.first);
           lumiJson.put("relative_deviation_error_in_percent", lumi.second);
+          lumiJson.put("fit_converged",
+                       final_fit_result.getModelFitResult().getFitStatus() ==
+                           0);
 
           std::stringstream filename;
           if (lumiFitResultPath == "") {
