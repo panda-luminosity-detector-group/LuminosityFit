@@ -741,7 +741,7 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
           std::cout << "INFO: using forced lower acceptance radius of "
                     << forced_lower_acc_bound.get() << std::endl;
         }
-
+        int tooLow, tooLittleEffinMiddle = 0;
         // clean inner part of acceptance
         double efficiency_threshold(0.2);
         std::cout << "INFO: setting acceptance to zero in the circle around ("
@@ -757,12 +757,15 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
           if (distance_from_center < lowboundsquared) {
             // just remove efficiency values inside the
             keystoremove.push_back(x.first);
+            tooLow++;
+
           } else if (distance_from_center <
                      inner_acceptance_edge_upper_radius_squared) {
             if (x.second < efficiency_threshold) {
               // we only cut acceptance edges below threshold
               // this cleans up the inner acceptance edge
               keystoremove.push_back(x.first);
+              tooLittleEffinMiddle++;
             }
           }
         }
@@ -770,9 +773,10 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
         std::cout << "INFO: erasing " << keystoremove.size()
                   << " efficiency entries, which are either:"
                   << "\n- below the bound of "
-                  << inner_acceptance_edge_inner_radius
+                  << inner_acceptance_edge_inner_radius << " (" << tooLow << ")"
                   << "\n- below the bound of "
                   << std::sqrt(inner_acceptance_edge_upper_radius_squared)
+                  << " (" << tooLittleEffinMiddle << ")"
                   << " and a efficiency below " << efficiency_threshold
                   << std::endl;
         for (auto k : keystoremove)
