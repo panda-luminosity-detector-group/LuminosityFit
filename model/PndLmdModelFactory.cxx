@@ -741,7 +741,7 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
           std::cout << "INFO: using forced lower acceptance radius of "
                     << forced_lower_acc_bound.get() << std::endl;
         }
-        int tooLow, tooLittleEffinMiddle = 0;
+        int tooLow = 0, tooLittleEffinMiddle = 0;
         // clean inner part of acceptance
         double efficiency_threshold(0.2);
         std::cout << "INFO: setting acceptance to zero in the circle around ("
