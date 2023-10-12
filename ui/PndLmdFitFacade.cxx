@@ -270,14 +270,14 @@ void PndLmdFitFacade::initIPForModel(std::shared_ptr<Model> current_model,
       .getModelParameter("offset_y")
       ->setValue(model_opt_ptree.get<double>("ip_offset_y"));
 
-  if (model_opt_ptree.get<bool>("fix_ip_offsets")) {
-    current_model->getModelParameterSet()
-        .getModelParameter("offset_x")
-        ->setParameterFixed(true);
-    current_model->getModelParameterSet()
-        .getModelParameter("offset_y")
-        ->setParameterFixed(true);
-  }
+  // if (model_opt_ptree.get<bool>("fix_ip_offsets")) {
+  current_model->getModelParameterSet()
+      .getModelParameter("offset_x")
+      ->setParameterFixed(true);
+  current_model->getModelParameterSet()
+      .getModelParameter("offset_y")
+      ->setParameterFixed(true);
+  // }
 }
 
 void PndLmdFitFacade::initBeamParametersForModel(
