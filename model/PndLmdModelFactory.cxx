@@ -730,8 +730,9 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
         // acceptance hole can lead to systematic errors due to the divergence
         // of the model in this domain. These efficiency values have to be set
         // to zero!
-        mydouble inner_acceptance_edge_inner_radius(0.002);
-        mydouble inner_acceptance_edge_upper_radius_squared(std::pow(0.004, 2));
+        mydouble inner_acceptance_edge_inner_radius(0.003);
+        mydouble inner_acceptance_edge_upper_radius_squared(
+            std::pow(0.0035, 2));
 
         boost::optional<double> forced_lower_acc_bound =
             model_opt_ptree.get_optional<double>(
