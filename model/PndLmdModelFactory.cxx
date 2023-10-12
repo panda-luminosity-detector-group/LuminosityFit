@@ -659,6 +659,11 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
         // get offset values as measured by the offset determination (user
         // should have specified that)
         std::pair<double, double> ip_offsets = data.getIPOffsets();
+
+        // print the offsets
+        std::cout << "ip offsets: " << ip_offsets.first << " "
+                  << ip_offsets.second << std::endl;
+
         // then read transformation json file
         auto pt = PndLmdRuntimeConfiguration::Instance()
                       .getAcceptanceOffsetsTranformationParameters();
@@ -682,6 +687,10 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
                              trans_params[3] * ip_offsets.second;
         angular_offsets[0] /= 1000.0; // convert to mrad
         angular_offsets[1] /= 1000.0;
+
+        // and print the angular offsets
+        std::cout << "angular offsets: " << angular_offsets[0] << " "
+                  << angular_offsets[1] << std::endl;
       }
 
       std::pair<mydouble, mydouble> acceptance_masscenter(0.0, 0.0);
