@@ -59,31 +59,36 @@ void runLmdFit(string input_file_dir, string fit_config_path,
   // TODO: why is the file name hard coded?
   lmd_runtime_config.readFitConfig("vertex_fitconfig.json");
   lmd_fit_facade.fitVertexData(my_vertex_vec);
-  std::pair<double, double> ip_offsets(0.0, 0.0);
-  for (auto const &vertex_data : my_vertex_vec) {
-    if (vertex_data.getPrimaryDimension().dimension_options.track_type ==
-        LumiFit::RECO) {
-      if (!vertex_data.getSecondaryDimension().is_active) {
-        auto fit_results = vertex_data.getFitResults();
-        if (fit_results.size() > 0) {
-          if (vertex_data.getPrimaryDimension()
-                  .dimension_options.dimension_type == LumiFit::X) {
-            ip_offsets.first = fit_results.begin()
-                                   ->second[0]
-                                   .getFitParameter("gauss_mean")
-                                   .value;
-          }
-          if (vertex_data.getPrimaryDimension()
-                  .dimension_options.dimension_type == LumiFit::Y) {
-            ip_offsets.second = fit_results.begin()
-                                    ->second[0]
-                                    .getFitParameter("gauss_mean")
-                                    .value;
-          }
-        }
-      }
-    }
-  }
+  std::pair<double, double> ip_offsets(0.1, 0.1);
+
+  // This is old code that no longer works.
+  // for (auto const &vertex_data : my_vertex_vec) {
+  //   if (vertex_data.getPrimaryDimension().dimension_options.track_type ==
+  //       LumiFit::RECO) {
+  //     if (!vertex_data.getSecondaryDimension().is_active) {
+  //       auto fit_results = vertex_data.getFitResults();
+  //       if (fit_results.size() > 0) {
+  //         if (vertex_data.getPrimaryDimension()
+  //                 .dimension_options.dimension_type == LumiFit::X) {
+  //           ip_offsets.first = fit_results.begin()
+  //                                  ->second[0]
+  //                                  .getFitParameter("gauss_mean")
+  //                                  .value;
+  //         }
+  //         if (vertex_data.getPrimaryDimension()
+  //                 .dimension_options.dimension_type == LumiFit::Y) {
+  //           ip_offsets.second = fit_results.begin()
+  //                                   ->second[0]
+  //                                   .getFitParameter("gauss_mean")
+  //                                   .value;
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+
+  // instead, we have the reco_ip.json, so we're just gonna read from there.
+
   // ok now we have to set the correct ip offsets to the elastic data sets
   // so compare the data on an abstract level
   vector<PndLmdAngularData> all_lmd_data_vec = lmd_data_facade.getElasticData();
