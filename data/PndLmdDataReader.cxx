@@ -247,9 +247,10 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
   }
   for (unsigned int i = 0; i < registered_acceptances.size(); i++) {
     bool track_accepted = wasReconstructed(track_info);
+    // why not just skip all secondary tracks?
     if (track_info.IsSecondary) {
-      if (!track_accepted)
-        continue;
+      // if (!track_accepted)
+      continue;
     }
     // skip tracks that do not pass the filters
     if (successfullyPassedFilters(registered_acceptances[i], track_info)) {
