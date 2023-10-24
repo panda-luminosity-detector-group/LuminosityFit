@@ -59,7 +59,7 @@ void runLmdFit(string input_file_dir, string fit_config_path,
   // TODO: why is the file name hard coded?
   lmd_runtime_config.readFitConfig("vertex_fitconfig.json");
   lmd_fit_facade.fitVertexData(my_vertex_vec);
-  std::pair<double, double> ip_offsets(0.1, 0.1);
+  std::pair<double, double> ip_offsets(0.0, 0.0);
 
   // This is old code that no longer works.
   // for (auto const &vertex_data : my_vertex_vec) {
