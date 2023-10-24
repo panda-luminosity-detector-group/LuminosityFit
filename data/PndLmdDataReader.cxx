@@ -250,6 +250,7 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
     // why not just skip all secondary tracks?
     if (track_info.IsSecondary) {
       // if (!track_accepted)
+      std::cout << "skipping secondary track" << std::endl;
       continue;
     }
     // skip tracks that do not pass the filters
