@@ -485,7 +485,6 @@ PndLmdFitDataBundle PndLmdFitFacade::doLuminosityFits(
       data_bundle.addFittedElasticData(lmd_data);
     }
     data_bundle.addCurrentDataBundleToList();
-    data_bundle.printInfo();
   }
 
   return data_bundle;
@@ -577,7 +576,6 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     model_fit_facade.setEstimator(estimator);
     model_fit_facade.setEstimatorOptions(fit_options.getEstimatorOptions());
 
-    model->getModelParameterSet().printInfo();
     doFit(lmd_data, fit_options_no_div);
 
     model = generateModel(lmd_data, fit_options);
@@ -591,7 +589,6 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
       std::cout << "ERROR: Not all parameters of the model were successfully "
                    "initialized!"
                 << std::endl;
-      model->getModelParameterSet().printInfo();
     }
 
     // free parameters
@@ -669,7 +666,6 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
       }
     }
 
-    model->getModelParameterSet().printInfo();
     doFit(lmd_data, fit_options);
   }
 
@@ -687,7 +683,6 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
                    "initialized!"
                 << std::endl;
     }
-    model->getModelParameterSet().printInfo();
 
     // free parameters
     freeParametersForModel(model, fit_options);
@@ -748,7 +743,6 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     model_fit_facade.setEstimator(estimator);
     model_fit_facade.setEstimatorOptions(fit_options.getEstimatorOptions());
 
-    model->getModelParameterSet().printInfo();
     doFit(lmd_data, fit_options);
   }
 }
