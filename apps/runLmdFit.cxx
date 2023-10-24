@@ -264,7 +264,7 @@ int main(int argc, char *argv[]) {
 
   int c;
 
-  while ((c = getopt(argc, argv, "hc:a:m:r:d:X:Y:o:")) != -1) {
+  while ((c = getopt(argc, argv, "hc:a:m:r:d:X:Y:o:i:")) != -1) {
     switch (c) {
     case 'a':
       acc_path = optarg;
