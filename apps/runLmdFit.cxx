@@ -21,7 +21,8 @@ using std::string;
 
 void runLmdFit(string input_file_dir, string fit_config_path,
                string acceptance_file_dir, string reference_acceptance_file_dir,
-               unsigned int nthreads, string lumiFitResultPath) {
+               unsigned int nthreads, string lumiFitResultPath,
+               string recoIPfile) {
 
   boost::chrono::thread_clock::time_point start =
       boost::chrono::thread_clock::now();
@@ -59,35 +60,20 @@ void runLmdFit(string input_file_dir, string fit_config_path,
   // TODO: why is the file name hard coded?
   lmd_runtime_config.readFitConfig("vertex_fitconfig.json");
   lmd_fit_facade.fitVertexData(my_vertex_vec);
+
   std::pair<double, double> ip_offsets(0.0, 0.0);
-
-  // This is old code that no longer works.
-  // for (auto const &vertex_data : my_vertex_vec) {
-  //   if (vertex_data.getPrimaryDimension().dimension_options.track_type ==
-  //       LumiFit::RECO) {
-  //     if (!vertex_data.getSecondaryDimension().is_active) {
-  //       auto fit_results = vertex_data.getFitResults();
-  //       if (fit_results.size() > 0) {
-  //         if (vertex_data.getPrimaryDimension()
-  //                 .dimension_options.dimension_type == LumiFit::X) {
-  //           ip_offsets.first = fit_results.begin()
-  //                                  ->second[0]
-  //                                  .getFitParameter("gauss_mean")
-  //                                  .value;
-  //         }
-  //         if (vertex_data.getPrimaryDimension()
-  //                 .dimension_options.dimension_type == LumiFit::Y) {
-  //           ip_offsets.second = fit_results.begin()
-  //                                   ->second[0]
-  //                                   .getFitParameter("gauss_mean")
-  //                                   .value;
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-
-  // instead, we have the reco_ip.json, so we're just gonna read from there.
+  // read reco IP from file
+  if (recoIPfile == "") {
+    std::cout << "WARNING: no reco IP file given, using 0,0 as reco IP\n";
+  } else {
+    std::cout << "reading reco IP from file: " << recoIPfile << "\n";
+    boost::property_tree::ptree reco_ip_ptree;
+    read_json(recoIPfile, reco_ip_ptree);
+    double reco_ip_x = reco_ip_ptree.get<double>("ip_x");
+    double reco_ip_y = reco_ip_ptree.get<double>("ip_x");
+    ip_offsets.first = reco_ip_x;
+    ip_offsets.second = reco_ip_y;
+  }
 
   // ok now we have to set the correct ip offsets to the elastic data sets
   // so compare the data on an abstract level
@@ -255,12 +241,13 @@ void runLmdFit(string input_file_dir, string fit_config_path,
 void displayInfo() {
   // display info
   cout << "Required arguments are: " << endl;
-  cout << "-d [path to data]" << endl;
-  cout << "-c [path to fit config file]" << endl;
+  cout << "-d [abs path to data]" << endl;
+  cout << "-c [abs path to fit config file]" << endl;
   cout << "Optional arguments are: " << endl;
   cout << "-m [number of threads]" << endl;
-  cout << "-a [path to box gen data] (acceptance)" << endl;
-  cout << "-r [path to reference box gen data] (acceptance)" << endl;
+  cout << "-a [abs path to box gen data] (acceptance)" << endl;
+  cout << "-r [abs path to reference box gen data] (acceptance)" << endl;
+  cout << "-i [abs path to reco IP file]" << endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -269,6 +256,8 @@ int main(int argc, char *argv[]) {
   string fit_config_path("");
   string ref_acc_path("");
   string lumiFitResultPath("");
+  string recoIPfile("");
+
   unsigned int nthreads(1);
   bool is_data_set(false), is_config_set(false), is_acc_set(false),
       is_nthreads_set(false);
@@ -299,6 +288,9 @@ int main(int argc, char *argv[]) {
     case 'o':
       lumiFitResultPath = optarg;
       break;
+    case 'i':
+      recoIPfile = optarg;
+      break;
     case '?':
       if (optopt == 'm' || optopt == 'd' || optopt == 'a' || optopt == 'c' ||
           optopt == 'r')
@@ -318,7 +310,7 @@ int main(int argc, char *argv[]) {
 
   if (is_data_set && is_config_set)
     runLmdFit(data_path, fit_config_path, acc_path, ref_acc_path, nthreads,
-              lumiFitResultPath);
+              lumiFitResultPath, recoIPfile);
   else
     displayInfo();
   return 0;
