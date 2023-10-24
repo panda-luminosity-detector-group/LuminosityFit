@@ -22,6 +22,7 @@ def createLumiFitJob(experiment: ExperimentParameters) -> Job:
     resAccMergeDataPath = generateAbsoluteMergeDataPath(experiment.resAccPackage)
     config_url = experiment.fitConfigPath
     lumiFileName = experiment.lumiFileName
+    recoIPfile = experiment.recoIPpath
 
     resource_request = JobResourceRequest(walltime_in_minutes=12 * 60)
     resource_request.number_of_nodes = 1
@@ -30,7 +31,7 @@ def createLumiFitJob(experiment: ExperimentParameters) -> Job:
 
     job = Job(
         resource_request,
-        application_url=f"{LMDscriptpath}/singularityJob.sh '{LMDbinPath}/bin/runLmdFit -c {config_url} -d {elasticMergeDataPath} -a {resAccMergeDataPath} -m {number_of_threads} -o {lumiFileName}'",
+        application_url=f"{LMDscriptpath}/singularityJob.sh '{LMDbinPath}/bin/runLmdFit -c {config_url} -d {elasticMergeDataPath} -a {resAccMergeDataPath} -m {number_of_threads} -o {lumiFileName} -i {recoIPfile}'",
         name="runLmdFit",
         logfile_url=str(elasticMergeDataPath / "runLmdFit.log"),
         array_indices=[1],
