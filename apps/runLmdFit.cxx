@@ -70,7 +70,7 @@ void runLmdFit(string input_file_dir, string fit_config_path,
     boost::property_tree::ptree reco_ip_ptree;
     read_json(recoIPfile, reco_ip_ptree);
     double reco_ip_x = reco_ip_ptree.get<double>("ip_x");
-    double reco_ip_y = reco_ip_ptree.get<double>("ip_x");
+    double reco_ip_y = reco_ip_ptree.get<double>("ip_y");
     ip_offsets.first = reco_ip_x;
     ip_offsets.second = reco_ip_y;
   }
