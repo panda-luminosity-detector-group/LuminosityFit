@@ -284,11 +284,13 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
             getTrackParameterValue(
                 track_info,
                 registered_acceptances[i]->getSecondaryDimension()));
+        std::cout << "skipping jack shit" << std::endl;
       } else {
         registered_acceptances[i]->addData(
             track_accepted,
             getTrackParameterValue(
                 track_info, registered_acceptances[i]->getPrimaryDimension()));
+        std::cout << "skipping jack shit" << std::endl;
       }
     }
   }
