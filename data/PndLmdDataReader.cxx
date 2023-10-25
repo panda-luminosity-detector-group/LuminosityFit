@@ -266,11 +266,7 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
         track_accepted = false;
         std::cout << "skipping track with thetaPlane = " << thetaPlane
                   << std::endl;
-      } else {
-        std::cout << "skipping jack shit" << std::endl;
       }
-    } else {
-      std::cout << "track is not accepted anyway\n";
     }
 
     // skip tracks that do not pass the filters
