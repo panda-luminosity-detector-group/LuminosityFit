@@ -74,6 +74,9 @@ void runLmdFit(string input_file_dir, string fit_config_path,
     ip_offsets.first = reco_ip_x;
     ip_offsets.second = reco_ip_y;
   }
+  // print them just to be sure
+  std::cout << "Read reco IP values " << ip_offsets.first << " and "
+            << ip_offsets.second << "\n";
 
   // ok now we have to set the correct ip offsets to the elastic data sets
   // so compare the data on an abstract level
