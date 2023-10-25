@@ -262,7 +262,8 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
 
       // FIXME: this doesn't belong here, but more appropriately in the track
       // reconstruction that is in PandaRoot however, not Lumi Fit
-      if (thetaPlane < 0.003 || thetaPlane > 0.0105) {
+      // if (thetaPlane < 0.003 || thetaPlane > 0.0105) {
+      if (thetaPlane < 0.003) {
         track_accepted = false;
         std::cout << "skipping track with thetaPlane = " << thetaPlane
                   << std::endl;
