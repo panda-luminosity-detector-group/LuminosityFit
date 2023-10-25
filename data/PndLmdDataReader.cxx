@@ -247,14 +247,10 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
   }
   for (unsigned int i = 0; i < registered_acceptances.size(); i++) {
     bool track_accepted = wasReconstructed(track_info);
-    // why not just skip all secondary tracks?
     if (track_info.IsSecondary) {
-      if (!track_accepted) {
-        std::cout << "skipping secondary track." << std::endl;
+      if (!track_accepted)
         continue;
-      }
     }
-
     if (track_accepted) {
       double pX = track_info.MCIP.Momentum[0];
       double pY = track_info.MCIP.Momentum[1];
@@ -268,10 +264,13 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
       // reconstruction that is in PandaRoot however, not Lumi Fit
       if (thetaPlane < 0.003 || thetaPlane > 0.0105) {
         track_accepted = false;
-
         std::cout << "skipping track with thetaPlane = " << thetaPlane
                   << std::endl;
+      } else {
+        std::cout << "skipping jack shit" << std::endl;
       }
+    } else {
+      std::cout << "track is not accepted anyway\n";
     }
 
     // skip tracks that do not pass the filters
@@ -284,13 +283,11 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
             getTrackParameterValue(
                 track_info,
                 registered_acceptances[i]->getSecondaryDimension()));
-        std::cout << "skipping jack shit" << std::endl;
       } else {
         registered_acceptances[i]->addData(
             track_accepted,
             getTrackParameterValue(
                 track_info, registered_acceptances[i]->getPrimaryDimension()));
-        std::cout << "skipping jack shit" << std::endl;
       }
     }
   }
