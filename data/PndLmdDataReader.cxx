@@ -254,6 +254,26 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
         continue;
       }
     }
+
+    if (track_accepted) {
+      double pX = track_info.MCIP.Momentum[0];
+      double pY = track_info.MCIP.Momentum[1];
+      double pZ = track_info.MCIP.Momentum[2];
+      double thetaX = pX / pZ;
+      double thetaY = pY / pZ;
+
+      double thetaPlane = sqrt(thetaX * thetaX + thetaY * thetaY);
+
+      // FIXME: this doesn't belong here, but more appropriately in the track
+      // reconstruction that is in PandaRoot however, not Lumi Fit
+      if (thetaPlane < 0.003 || thetaPlane > 0.0105) {
+        track_accepted = false;
+
+        std::cout << "skipping track with thetaPlane = " << thetaPlane
+                  << std::endl;
+      }
+    }
+
     // skip tracks that do not pass the filters
     if (successfullyPassedFilters(registered_acceptances[i], track_info)) {
       if (registered_acceptances[i]->getSecondaryDimension().is_active) {
