@@ -733,12 +733,16 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
 
       boost::optional<bool> clean_lower_acceptance =
           model_opt_ptree.get_optional<bool>("clean_lower_acceptance");
+
+      // TODO: repair this logic, it doesn't what it's supposed to do
       if (clean_lower_acceptance.is_initialized() &&
           clean_lower_acceptance.get()) {
         // clean the acceptance! Non-zero efficiency values inside the
         // acceptance hole can lead to systematic errors due to the divergence
         // of the model in this domain. These efficiency values have to be set
         // to zero!
+
+        // FIXME: get this parameter from the fitconfig file!
         mydouble inner_acceptance_edge_inner_radius(0.003);
         mydouble inner_acceptance_edge_upper_radius_squared(
             std::pow(0.0035, 2));
@@ -802,6 +806,7 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
       current_model.reset(
           new ProductModel2D(model_name.str(), current_model, acc));
 
+      // TODO: why are the offsets set back to zero here?!
       current_model->getModelParameterSet()
           .getModelParameter("offset_x")
           ->setValue(0.0);
