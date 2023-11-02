@@ -574,7 +574,16 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
     lumiFitJob = createLumiFitJob(thisExperiment)
 
     # TODO: ayo we get the job ID, let's wait for it to finish?
-    job_manager.enqueue(job=lumiFitJob)
+    fitJobId = job_manager.enqueue(job=lumiFitJob)
+
+    print(f"waiting for job {fitJobId} to finish...\n")
+
+    while True:
+        runningJobs = job_manager.get_active_number_of_jobs(fitJobId)
+        if runningJobs == 0:
+            break
+        else:
+            sleep(30)
 
     print("this recipe is fully processed!!!")
 
