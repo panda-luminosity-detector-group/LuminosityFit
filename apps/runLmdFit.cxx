@@ -106,23 +106,6 @@ void runLmdFit(string input_file_dir, string fit_config_path,
   vector<PndLmdAngularData> my_lmd_data_vec =
       lmd_data_facade.filterData<PndLmdAngularData>(all_lmd_data_vec, filter);
 
-  // add mc acc data
-  // filter out specific data
-  /*lmd_dim_opt.track_type = LumiFit::MC_ACC;
-   LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter
-   filter_mc_acc(lmd_dim_opt); vector<PndLmdAngularData>  my_lmd_data_vec2 =
-   lmd_data_facade.filterData<PndLmdAngularData>( all_lmd_data_vec,
-   filter_mc_acc); std::cout<<"adding "<<my_lmd_data_vec2.size()<<" mc acc
-   data\n"; my_lmd_data_vec.insert(my_lmd_data_vec.end(),
-   my_lmd_data_vec2.begin(), my_lmd_data_vec2.end()); my_lmd_data_vec2.clear();
-   all_lmd_data_vec.clear();
-
-   std::cout<<"number of data in list: "<<my_lmd_data_vec.size()<<std::endl;
-   LumiFit::Comparisons::SecondaryTrackFilter with_cut_on_secondaries;
-   my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
-   my_lmd_data_vec, with_cut_on_secondaries);
-   std::cout<<"number of data in list: "<<my_lmd_data_vec.size()<<std::endl;*/
-
   LumiFit::Comparisons::NoSecondaryTrackFilter no_cut_on_secondary_filter;
   my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
       my_lmd_data_vec, no_cut_on_secondary_filter);
@@ -181,6 +164,8 @@ void runLmdFit(string input_file_dir, string fit_config_path,
 
   LumiFit::PndLmdPlotter lmd_plotter;
 
+  // TODO: wait if there are multiple bundles, don't we also have multiple lumi
+  // fits? what about the others?
   for (auto const &data_sample : elasticDataBundles) {
     if (data_sample.getFitResults().size() > 0 &&
         data_sample.getSelectorSet().size() == 0) {
