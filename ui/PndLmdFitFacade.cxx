@@ -255,31 +255,6 @@ void PndLmdFitFacade::freeParametersForModel(
   }
 }
 
-void PndLmdFitFacade::initIPForModel(std::shared_ptr<Model> current_model,
-                                     const ptree &model_opt_ptree) const {
-  current_model->getModelParameterSet()
-      .getModelParameter("offset_x")
-      ->setParameterFixed(false);
-  current_model->getModelParameterSet()
-      .getModelParameter("offset_y")
-      ->setParameterFixed(false);
-  current_model->getModelParameterSet()
-      .getModelParameter("offset_x")
-      ->setValue(model_opt_ptree.get<double>("ip_offset_x"));
-  current_model->getModelParameterSet()
-      .getModelParameter("offset_y")
-      ->setValue(model_opt_ptree.get<double>("ip_offset_y"));
-
-  if (model_opt_ptree.get<bool>("fix_ip_offsets")) {
-    current_model->getModelParameterSet()
-        .getModelParameter("offset_x")
-        ->setParameterFixed(true);
-    current_model->getModelParameterSet()
-        .getModelParameter("offset_y")
-        ->setParameterFixed(true);
-  }
-}
-
 void PndLmdFitFacade::initBeamParametersForModel(
     std::shared_ptr<Model> current_model, const ptree &model_opt_ptree) const {
   current_model->getModelParameterSet().setModelParameterValue("luminosity",
@@ -508,8 +483,6 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     initBeamParametersForModel(
         model, fit_options_no_div.getModelOptionsPropertyTree());
 
-    initIPForModel(model, fit_options_no_div.getModelOptionsPropertyTree());
-
     if (model->init()) {
       std::cout << "ERROR: Not all parameters of the model were successfully "
                    "initialized!"
@@ -583,7 +556,6 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     // init beam parameters in model
     initBeamParametersForModel(model,
                                fit_options.getModelOptionsPropertyTree());
-    // initIPForModel(model, fit_options_no_div.getModelOptionsPropertyTree());
 
     if (model->init()) {
       std::cout << "ERROR: Not all parameters of the model were successfully "
@@ -675,8 +647,6 @@ void PndLmdFitFacade::fitElasticPPbar(PndLmdAngularData &lmd_data) {
     // init beam parameters in model
     initBeamParametersForModel(model,
                                fit_options.getModelOptionsPropertyTree());
-
-    initIPForModel(model, fit_options.getModelOptionsPropertyTree());
 
     if (model->init()) {
       std::cout << "ERROR: Not all parameters of the model were successfully "
