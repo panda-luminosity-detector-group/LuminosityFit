@@ -42,10 +42,8 @@ def createLumiFitJob(experiment: ExperimentParameters) -> Job:
         recoIPfile = experiment.experimentDir / "recoIP-fromConfig.json"
         with open(recoIPfile, "w") as f:
             externalIPjson = {
-                "ip_x",
-                experiment.dataPackage.recoParams.recoIPX,
-                "ip_y",
-                experiment.dataPackage.recoParams.recoIPY,
+                "ip_x": experiment.dataPackage.recoParams.recoIPX,
+                "ip_y": experiment.dataPackage.recoParams.recoIPY,
             }
             json.dump(externalIPjson, f)
 
