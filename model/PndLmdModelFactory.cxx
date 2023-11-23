@@ -734,7 +734,7 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
       boost::optional<bool> clean_lower_acceptance =
           model_opt_ptree.get_optional<bool>("clean_lower_acceptance");
 
-      // TODO: repair this logic, it doesn't what it's supposed to do
+      // TODO: repair this logic, it doesn't do what it's supposed to do
       if (clean_lower_acceptance.is_initialized() &&
           clean_lower_acceptance.get()) {
         // clean the acceptance! Non-zero efficiency values inside the
