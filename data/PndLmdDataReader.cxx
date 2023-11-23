@@ -260,6 +260,9 @@ void PndLmdDataReader::fillData(const Lmd::Data::TrackPairInfo &track_info) {
 
       double thetaPlane = sqrt(thetaX * thetaX + thetaY * thetaY);
 
+      //* --------------------
+      //* This is the halo cut
+      //* --------------------
       // FIXME: this doesn't belong here, but more appropriately in the track
       // reconstruction that is in PandaRoot however, not Lumi Fit
       // if (thetaPlane < 0.003 || thetaPlane > 0.0105) {
