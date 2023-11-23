@@ -1,0 +1,8 @@
+{
+    "measured_lumi": "2666209.0536252349",
+    "measured_lumi_error": "1978.9221364629209",
+    "generated_lumi": "2661273.1530764317",
+    "relative_deviation_in_percent": "0.18547139902182733",
+    "relative_deviation_error_in_percent": "0.074359978199730711",
+    "fit_converged": "true"
+}
