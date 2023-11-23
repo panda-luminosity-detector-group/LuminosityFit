@@ -844,7 +844,7 @@ std::vector<PndLmdMapData> PndLmdDataFacade::getMapData() const {
 
     for (auto const &filename : filenames) {
       TFile file(filename.c_str(), "READ");
-      auto temp_vec = getDataFromFile<PndLmdMapData>(file);
+      auto temp_vec = getDataFromFile<PndLmdMapData>(file, filename);
       data_vec.insert(data_vec.end(), temp_vec.begin(), temp_vec.end());
     }
   }
@@ -1051,6 +1051,33 @@ std::vector<PndLmdMapData> PndLmdDataFacade::getDataFromFile(TFile &f) const {
     f.GetObject(key->GetName(), data);
     if (data) {
       counter++;
+
+      data->readFromRootTrees();
+      lmd_data_vec.push_back(*data);
+      delete data; // this delete is crucial! otherwise we have a memory leak!
+    }
+  }
+  // std::cout << "Found " << counter << " objects!" << std::endl;
+  return lmd_data_vec;
+}
+
+template <>
+std::vector<PndLmdMapData>
+PndLmdDataFacade::getDataFromFile(TFile &f,
+                                  std::string overwriteFilename) const {
+  std::vector<PndLmdMapData> lmd_data_vec;
+
+  unsigned int counter = 0;
+
+  TIter next(f.GetListOfKeys());
+  TKey *key;
+  while ((key = (TKey *)next())) {
+
+    PndLmdMapData *data;
+    f.GetObject(key->GetName(), data);
+    if (data) {
+      counter++;
+      data->overwriteDataTreeFileUrl(overwriteFilename);
       data->readFromRootTrees();
       lmd_data_vec.push_back(*data);
       delete data; // this delete is crucial! otherwise we have a memory leak!
