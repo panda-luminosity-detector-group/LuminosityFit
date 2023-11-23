@@ -61,8 +61,8 @@ void runLmdFit(string input_file_dir, string fit_config_path,
   lmd_runtime_config.readFitConfig("vertex_fitconfig.json");
   lmd_fit_facade.fitVertexData(my_vertex_vec);
 
-  std::pair<double, double> ip_offsets(0.0, 0.0);
   // read reco IP from file
+  std::pair<double, double> ip_offsets(0.0, 0.0);
   if (recoIPfile == "") {
     std::cout << "WARNING: no reco IP file given, using 0,0 as reco IP\n";
   } else {
@@ -236,6 +236,7 @@ void displayInfo() {
   cout << "-a [abs path to box gen data] (acceptance)" << endl;
   cout << "-r [abs path to reference box gen data] (acceptance)" << endl;
   cout << "-i [abs path to reco IP file]" << endl;
+  cout << "-o [abs path to lumi fit result file]" << endl;
 }
 
 int main(int argc, char *argv[]) {
