@@ -21,7 +21,8 @@ using std::string;
 
 void runLmdFit(string input_file_dir, string fit_config_path,
                string acceptance_file_dir, string reference_acceptance_file_dir,
-               unsigned int nthreads, string lumiFitResultPath) {
+               unsigned int nthreads, string lumiFitResultPath,
+               string recoIPfile) {
 
   boost::chrono::thread_clock::time_point start =
       boost::chrono::thread_clock::now();
@@ -59,31 +60,24 @@ void runLmdFit(string input_file_dir, string fit_config_path,
   // TODO: why is the file name hard coded?
   lmd_runtime_config.readFitConfig("vertex_fitconfig.json");
   lmd_fit_facade.fitVertexData(my_vertex_vec);
+
+  // read reco IP from file
   std::pair<double, double> ip_offsets(0.0, 0.0);
-  for (auto const &vertex_data : my_vertex_vec) {
-    if (vertex_data.getPrimaryDimension().dimension_options.track_type ==
-        LumiFit::RECO) {
-      if (!vertex_data.getSecondaryDimension().is_active) {
-        auto fit_results = vertex_data.getFitResults();
-        if (fit_results.size() > 0) {
-          if (vertex_data.getPrimaryDimension()
-                  .dimension_options.dimension_type == LumiFit::X) {
-            ip_offsets.first = fit_results.begin()
-                                   ->second[0]
-                                   .getFitParameter("gauss_mean")
-                                   .value;
-          }
-          if (vertex_data.getPrimaryDimension()
-                  .dimension_options.dimension_type == LumiFit::Y) {
-            ip_offsets.second = fit_results.begin()
-                                    ->second[0]
-                                    .getFitParameter("gauss_mean")
-                                    .value;
-          }
-        }
-      }
-    }
+  if (recoIPfile == "") {
+    std::cout << "WARNING: no reco IP file given, using 0,0 as reco IP\n";
+  } else {
+    std::cout << "reading reco IP from file: " << recoIPfile << "\n";
+    boost::property_tree::ptree reco_ip_ptree;
+    read_json(recoIPfile, reco_ip_ptree);
+    double reco_ip_x = reco_ip_ptree.get<double>("ip_x");
+    double reco_ip_y = reco_ip_ptree.get<double>("ip_y");
+    ip_offsets.first = reco_ip_x;
+    ip_offsets.second = reco_ip_y;
   }
+  // print them just to be sure
+  std::cout << "Read reco IP values " << ip_offsets.first << " and "
+            << ip_offsets.second << "\n";
+
   // ok now we have to set the correct ip offsets to the elastic data sets
   // so compare the data on an abstract level
   vector<PndLmdAngularData> all_lmd_data_vec = lmd_data_facade.getElasticData();
@@ -111,23 +105,6 @@ void runLmdFit(string input_file_dir, string fit_config_path,
   LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter filter(lmd_dim_opt);
   vector<PndLmdAngularData> my_lmd_data_vec =
       lmd_data_facade.filterData<PndLmdAngularData>(all_lmd_data_vec, filter);
-
-  // add mc acc data
-  // filter out specific data
-  /*lmd_dim_opt.track_type = LumiFit::MC_ACC;
-   LumiFit::Comparisons::DataPrimaryDimensionOptionsFilter
-   filter_mc_acc(lmd_dim_opt); vector<PndLmdAngularData>  my_lmd_data_vec2 =
-   lmd_data_facade.filterData<PndLmdAngularData>( all_lmd_data_vec,
-   filter_mc_acc); std::cout<<"adding "<<my_lmd_data_vec2.size()<<" mc acc
-   data\n"; my_lmd_data_vec.insert(my_lmd_data_vec.end(),
-   my_lmd_data_vec2.begin(), my_lmd_data_vec2.end()); my_lmd_data_vec2.clear();
-   all_lmd_data_vec.clear();
-
-   std::cout<<"number of data in list: "<<my_lmd_data_vec.size()<<std::endl;
-   LumiFit::Comparisons::SecondaryTrackFilter with_cut_on_secondaries;
-   my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
-   my_lmd_data_vec, with_cut_on_secondaries);
-   std::cout<<"number of data in list: "<<my_lmd_data_vec.size()<<std::endl;*/
 
   LumiFit::Comparisons::NoSecondaryTrackFilter no_cut_on_secondary_filter;
   my_lmd_data_vec = lmd_data_facade.filterData<PndLmdAngularData>(
@@ -187,6 +164,8 @@ void runLmdFit(string input_file_dir, string fit_config_path,
 
   LumiFit::PndLmdPlotter lmd_plotter;
 
+  // TODO: wait if there are multiple bundles, don't we also have multiple lumi
+  // fits? what about the others?
   for (auto const &data_sample : elasticDataBundles) {
     if (data_sample.getFitResults().size() > 0 &&
         data_sample.getSelectorSet().size() == 0) {
@@ -200,7 +179,7 @@ void runLmdFit(string input_file_dir, string fit_config_path,
           if (div_smeared) {
             if (fit_res.getFitStatus() == 0) {
               final_fit_result.setModelFitResult(fit_res);
-              //break;
+              // break;
             }
           } else {
             final_fit_result.setModelFitResult(fit_res);
@@ -229,6 +208,9 @@ void runLmdFit(string input_file_dir, string fit_config_path,
           lumiJson.put("generated_lumi", data_sample.getReferenceLuminosity());
           lumiJson.put("relative_deviation_in_percent", lumi.first);
           lumiJson.put("relative_deviation_error_in_percent", lumi.second);
+          lumiJson.put("fit_converged",
+                       final_fit_result.getModelFitResult().getFitStatus() ==
+                           0);
 
           std::stringstream filename;
           if (lumiFitResultPath == "") {
@@ -247,12 +229,14 @@ void runLmdFit(string input_file_dir, string fit_config_path,
 void displayInfo() {
   // display info
   cout << "Required arguments are: " << endl;
-  cout << "-d [path to data]" << endl;
-  cout << "-c [path to fit config file]" << endl;
+  cout << "-d [abs path to data]" << endl;
+  cout << "-c [abs path to fit config file]" << endl;
   cout << "Optional arguments are: " << endl;
   cout << "-m [number of threads]" << endl;
-  cout << "-a [path to box gen data] (acceptance)" << endl;
-  cout << "-r [path to reference box gen data] (acceptance)" << endl;
+  cout << "-a [abs path to box gen data] (acceptance)" << endl;
+  cout << "-r [abs path to reference box gen data] (acceptance)" << endl;
+  cout << "-i [abs path to reco IP file]" << endl;
+  cout << "-o [abs path to lumi fit result file]" << endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -261,13 +245,15 @@ int main(int argc, char *argv[]) {
   string fit_config_path("");
   string ref_acc_path("");
   string lumiFitResultPath("");
+  string recoIPfile("");
+
   unsigned int nthreads(1);
   bool is_data_set(false), is_config_set(false), is_acc_set(false),
       is_nthreads_set(false);
 
   int c;
 
-  while ((c = getopt(argc, argv, "hc:a:m:r:d:X:Y:o:")) != -1) {
+  while ((c = getopt(argc, argv, "hc:a:m:r:d:X:Y:o:i:")) != -1) {
     switch (c) {
     case 'a':
       acc_path = optarg;
@@ -291,6 +277,9 @@ int main(int argc, char *argv[]) {
     case 'o':
       lumiFitResultPath = optarg;
       break;
+    case 'i':
+      recoIPfile = optarg;
+      break;
     case '?':
       if (optopt == 'm' || optopt == 'd' || optopt == 'a' || optopt == 'c' ||
           optopt == 'r')
@@ -310,7 +299,7 @@ int main(int argc, char *argv[]) {
 
   if (is_data_set && is_config_set)
     runLmdFit(data_path, fit_config_path, acc_path, ref_acc_path, nthreads,
-              lumiFitResultPath);
+              lumiFitResultPath, recoIPfile);
   else
     displayInfo();
   return 0;

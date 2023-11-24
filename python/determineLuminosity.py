@@ -63,7 +63,7 @@ def enoughFilesPresent(
 ) -> StatusCode:
     """
     Returns StatusCode.ENOUGH_FILES if at least 80% of the files in the directory
-    match the glob pattern and are larger than min_filesize_in_bytes.
+    that match the glob pattern are larger than min_filesize_in_bytes.
 
     Returns StatusCode.NO_FILES otherwise
     """
@@ -501,7 +501,6 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 
         newRecoIPX = float("{0:.3f}".format(round(float(ip_rec_data["ip_x"]), 3)))  # in cm
         newRecoIPY = float("{0:.3f}".format(round(float(ip_rec_data["ip_y"]), 3)))
-        #newRecoIPZ = float("{0:.3f}".format(round(float(ip_rec_data["ip_z"]), 3)))
         newRecoIPZ = thisExperiment.dataPackage.simParams.ip_offset_z
 
         # I don't like this. Actually I hate this.
@@ -575,7 +574,16 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
     lumiFitJob = createLumiFitJob(thisExperiment)
 
     # TODO: ayo we get the job ID, let's wait for it to finish?
-    job_manager.enqueue(job=lumiFitJob)
+    fitJobId = job_manager.enqueue(job=lumiFitJob)
+
+    print(f"waiting for job {fitJobId} to finish...\n")
+
+    while True:
+        runningJobs = job_manager.get_active_number_of_jobs(fitJobId)
+        if runningJobs == 0:
+            break
+        else:
+            sleep(30)
 
     print("this recipe is fully processed!!!")
 

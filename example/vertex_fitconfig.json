@@ -1,0 +1,29 @@
+{
+   "fit":
+   {	
+      "estimator_type": "LOG_LIKELIHOOD",
+      
+      "estimator_options":
+      {
+        "with_integral_scaling": false,
+        
+        "fit_range_x_active": false,
+        "fit_range_x_low": 0.002,
+        "fit_range_x_high": 0.012,
+        
+        "fit_range_y_active": false,
+        "fit_range_y_low": 0.001,
+        "fit_range_y_high": 0.012
+      },
+      
+      "fit_model_options":
+      {
+         "fit_dimension": 1,
+	     "model_type": "GAUSSIAN"
+      },
+      
+      "free_parameter_names":
+      [
+      ]
+   }
+}

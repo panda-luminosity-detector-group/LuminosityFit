@@ -109,37 +109,6 @@ void PndLmdMapData::saveToRootFile() {
 
 void PndLmdMapData::saveToRootTrees() {
 
-  /*std::cout<<"estimating size of data in memory...\n";
-   unsigned long bytes_unsigned_ints(0);
-   unsigned long bytes_doubles(0);
-   unsigned long total_overhead_bytes_unsigned_ints(0);
-   unsigned long total_overhead_bytes_doubles(0);
-   unsigned short overhead_unsigned_ints(sizeof(std::vector<unsigned int>));
-   unsigned short overhead_doubles(sizeof(std::vector<double>));
-   unsigned long all_reco_points(0);
-
-   for (auto const& entry : hit_map_2d) {
-   bytes_unsigned_ints += overhead_unsigned_ints;
-   total_overhead_bytes_unsigned_ints += overhead_unsigned_ints;
-   bytes_doubles += overhead_doubles;
-   total_overhead_bytes_doubles += overhead_doubles;
-   bytes_unsigned_ints += sizeof(unsigned int)*entry.second.points.size();
-   bytes_doubles += sizeof(double)*entry.second.points.size();
-   all_reco_points += entry.second.points.size();
-   }
-   std::cout<<"memory summary:\n";
-   std::cout<<"overhead for a single unsigned int vector:
-   "<<overhead_unsigned_ints<<" bytes\n"; std::cout<<"overhead for a single
-   double vector: "<<overhead_doubles<<" bytes\n"; std::cout<<"number of
-   entries: "<<hit_map_2d.size()<<std::endl; std::cout<<"number of reco entries:
-   "<<all_reco_points<<std::endl; std::cout<<"total memory consumption for all
-   unsigned int vectors: "<<bytes_unsigned_ints<<" bytes\n"; std::cout<<"total
-   memory consumption for all double vectors: "<<bytes_doubles<<" bytes\n";
-   std::cout<<"total overhead for the unsigned int vectors:
-   "<<total_overhead_bytes_unsigned_ints<<" bytes\n"; std::cout<<"total overhead
-   for the double vectors: "<<total_overhead_bytes_doubles<<" bytes\n\n";
-   std::cout << "converting hit map to root tree...\n";*/
-
   std::cout << "trying to write map data to " << data_tree_names.size()
             << " trees...\n";
 
@@ -192,8 +161,14 @@ void PndLmdMapData::saveToRootTrees() {
   }
 }
 
+void PndLmdMapData::overwriteDataTreeFileUrl(const std::string &url) {
+  std::cout << "Attention! Overwriting data tree file url from "
+            << data_tree_file_url << " to " << url << std::endl;
+  data_tree_file_url = url;
+};
+
 void PndLmdMapData::readFromRootTrees() {
-  std::cout << "Trying to read data from" << data_tree_file_url << "...\n";
+  std::cout << "Trying to read data from " << data_tree_file_url << "...\n";
 
   TDirectory *current_root_dir(gDirectory);
 

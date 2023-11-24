@@ -659,6 +659,11 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
         // get offset values as measured by the offset determination (user
         // should have specified that)
         std::pair<double, double> ip_offsets = data.getIPOffsets();
+
+        // print the offsets
+        std::cout << "ip offsets: " << ip_offsets.first << " "
+                  << ip_offsets.second << std::endl;
+
         // then read transformation json file
         auto pt = PndLmdRuntimeConfiguration::Instance()
                       .getAcceptanceOffsetsTranformationParameters();
@@ -682,6 +687,10 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
                              trans_params[3] * ip_offsets.second;
         angular_offsets[0] /= 1000.0; // convert to mrad
         angular_offsets[1] /= 1000.0;
+
+        // and print the angular offsets
+        std::cout << "angular offsets: " << angular_offsets[0] << " "
+                  << angular_offsets[1] << std::endl;
       }
 
       std::pair<mydouble, mydouble> acceptance_masscenter(0.0, 0.0);
@@ -724,14 +733,19 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
 
       boost::optional<bool> clean_lower_acceptance =
           model_opt_ptree.get_optional<bool>("clean_lower_acceptance");
+
+      // TODO: repair this logic, it doesn't do what it's supposed to do
       if (clean_lower_acceptance.is_initialized() &&
           clean_lower_acceptance.get()) {
         // clean the acceptance! Non-zero efficiency values inside the
         // acceptance hole can lead to systematic errors due to the divergence
         // of the model in this domain. These efficiency values have to be set
         // to zero!
-        mydouble inner_acceptance_edge_inner_radius(0.002);
-        mydouble inner_acceptance_edge_upper_radius_squared(std::pow(0.004, 2));
+
+        // FIXME: get this parameter from the fitconfig file!
+        mydouble inner_acceptance_edge_inner_radius(0.003);
+        mydouble inner_acceptance_edge_upper_radius_squared(
+            std::pow(0.0035, 2));
 
         boost::optional<double> forced_lower_acc_bound =
             model_opt_ptree.get_optional<double>(
@@ -741,7 +755,7 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
           std::cout << "INFO: using forced lower acceptance radius of "
                     << forced_lower_acc_bound.get() << std::endl;
         }
-
+        int tooLow = 0, tooLittleEffinMiddle = 0;
         // clean inner part of acceptance
         double efficiency_threshold(0.2);
         std::cout << "INFO: setting acceptance to zero in the circle around ("
@@ -757,12 +771,15 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
           if (distance_from_center < lowboundsquared) {
             // just remove efficiency values inside the
             keystoremove.push_back(x.first);
+            tooLow++;
+
           } else if (distance_from_center <
                      inner_acceptance_edge_upper_radius_squared) {
             if (x.second < efficiency_threshold) {
               // we only cut acceptance edges below threshold
               // this cleans up the inner acceptance edge
               keystoremove.push_back(x.first);
+              tooLittleEffinMiddle++;
             }
           }
         }
@@ -770,9 +787,10 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
         std::cout << "INFO: erasing " << keystoremove.size()
                   << " efficiency entries, which are either:"
                   << "\n- below the bound of "
-                  << inner_acceptance_edge_inner_radius
+                  << inner_acceptance_edge_inner_radius << " (" << tooLow << ")"
                   << "\n- below the bound of "
                   << std::sqrt(inner_acceptance_edge_upper_radius_squared)
+                  << " (" << tooLittleEffinMiddle << ")"
                   << " and a efficiency below " << efficiency_threshold
                   << std::endl;
         for (auto k : keystoremove)
@@ -788,6 +806,7 @@ std::shared_ptr<Model2D> PndLmdModelFactory::generate2DModel(
       current_model.reset(
           new ProductModel2D(model_name.str(), current_model, acc));
 
+      // TODO: why are the offsets set back to zero here?!
       current_model->getModelParameterSet()
           .getModelParameter("offset_x")
           ->setValue(0.0);

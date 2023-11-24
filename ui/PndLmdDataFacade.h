@@ -155,6 +155,29 @@ public:
   }
 
   template <class T>
+  std::vector<T> getDataFromFile(TFile &f,
+                                 std::string overwriteFilename) const {
+    std::vector<T> lmd_data_vec;
+
+    unsigned int counter = 0;
+
+    TIter next(f.GetListOfKeys());
+    TKey *key;
+    while ((key = (TKey *)next())) {
+
+      T *data;
+      f.GetObject(key->GetName(), data);
+      if (data) {
+        counter++;
+        lmd_data_vec.push_back(*data);
+        delete data; // this delete is crucial! otherwise we have a memory leak!
+      }
+    }
+    // std::cout << "Found " << counter << " objects!" << std::endl;
+    return lmd_data_vec;
+  }
+
+  template <class T>
   std::vector<T>
   filterData(const std::vector<T> &all_data,
              LumiFit::Comparisons::AbstractLmdDataFilter &filter) const {
@@ -202,5 +225,10 @@ public:
 
 template <>
 std::vector<PndLmdMapData> PndLmdDataFacade::getDataFromFile(TFile &f) const;
+
+template <>
+std::vector<PndLmdMapData>
+PndLmdDataFacade::getDataFromFile(TFile &f,
+                                  std::string overwriteFilename) const;
 
 #endif /* PNDLMDDATAFACADE_H_ */
