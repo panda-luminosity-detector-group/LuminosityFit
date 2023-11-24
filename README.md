@@ -1,9 +1,9 @@
 # Table of Contents
 
 - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
+- [Installation](#installation)
   - [New Version, with Docker](#new-version-with-docker)
-  - [Old Version](#old-version)
+  - [Old Version, Manual without Docker](#old-version-manual-without-docker)
     - [Prerequisites](#prerequisites)
     - [Generate Container](#generate-container)
     - [Compilation](#compilation)
@@ -21,7 +21,7 @@
     - [ExtractLuminosityValues](#extractluminosityvalues)
 - [Singularity Wrapper](#singularity-wrapper)
 
-## Installation
+# Installation
 
 ## New Version, with Docker
 
@@ -180,7 +180,9 @@ In the `example` dir, a new file called `lumi-values.json` should appear and con
 
 It should contain more or less *exactly* these values.
 
-## Old Version
+## Old Version, Manual without Docker
+
+I wouldn't recommend this anymore, but it's still here for reference.
 
 ### Prerequisites
 
