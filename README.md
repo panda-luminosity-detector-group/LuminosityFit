@@ -43,7 +43,7 @@ And clone PandaRoot (you need an Account for that):
 
 ```bash
 cd ~
-https://git.panda.gsi.de/PandaRootGroup/PandaRoot.git
+git clone https://git.panda.gsi.de/PandaRootGroup/PandaRoot.git
 ```
 
 Add two aliases for containers, one for `cvmfs`:
@@ -55,16 +55,16 @@ echo "alias cvmfs='docker run --rm --privileged --cap-add SYS_ADMIN --device /de
 
 and one for `lmdfit:`
 
-*substitute my `$(HOME)/LuminosityFit` to your directories!* (or leave them in the user home)
+*substitute my `${HOME}/LuminosityFit` to your directories!* (or leave them in the user home)
 
 Requires paths:
 
 | Path                                        | Function                                              |
 | ------------------------------------------- | ----------------------------------------------------- |
-| `$(HOME)/LuminosityFit` | Path to the LMD Fit Souce code (this code right here) |
-| `$(HOME)/PandaRoot`     | Path to the PandaRoot source code (not compiled yet)  |
-| `$(HOME)/lmdfit`                    | Path for an named pipe for IPC                        |
-| `$(HOME)/LMD-Alignment` | Path to the LMD Alignment code (optional)             |
+| `${HOME}/LuminosityFit` | Path to the LMD Fit Souce code (this code right here) |
+| `${HOME}/PandaRoot`     | Path to the PandaRoot source code (not compiled yet)  |
+| `${HOME}/lmdfit`                    | Path for an named pipe for IPC                        |
+| `${HOME}/LMD-Alignment` | Path to the LMD Alignment code (optional)             |
 
 The other variables (`DISPLAY`, `Xauthority`, `X11-unix`) etc are needed to run ROOT TBrowsers from within the container with GUI (very helpful).
 
@@ -75,9 +75,9 @@ cd ~
 echo "alias lmdfit='DISPLAY=:0 xhost +local:; \
 docker run -u $(id -u):$(id -g) \
 --net=host -it --rm \
---mount type=bind,source=$(HOME)/LuminosityFit,target=/mnt/work/LuminosityFit \
---mount type=bind,source=$(HOME)/PandaRoot,target=/mnt/work/PandaRoot \
---mount type=bind,source=$(HOME)/LMD-Alignment,target=/mnt/work/LMD-Alignment \ #optional
+--mount type=bind,source=${HOME}/LuminosityFit,target=/mnt/work/LuminosityFit \
+--mount type=bind,source=${HOME}/PandaRoot,target=/mnt/work/PandaRoot \
+--mount type=bind,source=${HOME}/LMD-Alignment,target=/mnt/work/LMD-Alignment \ #optional
 -e="DISPLAY" -v="$HOME/.Xauthority:/mnt/work/.Xauthority:rw" \
 -v="/tmp/.X11-unix:/tmp/.X11-unix:rw" -v /cvmfs:/cvmfs:shared \
 rklasen/lmdfit:miniApr21p2'" >> .bashrc
