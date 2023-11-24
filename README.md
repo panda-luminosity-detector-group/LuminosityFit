@@ -7,6 +7,8 @@ Note: For future development I would recommend to port the necessary code python
 - [LuminosityFit](#luminosityfit)
 - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
+  - [New Version, so much docker, wow](#new-version-so-much-docker-wow)
+  - [Old Version](#old-version)
     - [Prerequisites](#prerequisites)
     - [Generate Container](#generate-container)
     - [Compilation](#compilation)
@@ -25,6 +27,130 @@ Note: For future development I would recommend to port the necessary code python
 - [Singularity Wrapper](#singularity-wrapper)
 
 ## Installation
+
+## New Version, so much docker, wow
+
+On a fresh system, this **should** now work:
+
+Clone this repo:
+
+```bash
+cd ~
+git clone https://github.com/rklasen/LuminosityFit.git
+```
+
+And clone PandaRoot (you need an Account for that):
+
+```bash
+cd ~
+https://git.panda.gsi.de/PandaRootGroup/PandaRoot.git
+```
+
+Add two aliases for containers, one for `cvmfs`:
+
+```bash
+cd ~
+echo "alias cvmfs='docker run --rm --privileged --cap-add SYS_ADMIN --device /dev/fuse --volume /cvmfs:/cvmfs:shared --name cvmfs --ulimit nofile=1024:1024 rklasen/cvmfs'" >> .bashrc
+```
+
+and one for `lmdfit:`
+
+*substitute my `$(HOME)/LuminosityFit` to your directories!* (or leave them in the user home)
+
+Requires paths:
+
+| Path                                        | Function                                              |
+| ------------------------------------------- | ----------------------------------------------------- |
+| `$(HOME)/LuminosityFit` | Path to the LMD Fit Souce code (this code right here) |
+| `$(HOME)/PandaRoot`     | Path to the PandaRoot source code (not compiled yet)  |
+| `$(HOME)/lmdfit`                    | Path for an named pipe for IPC                        |
+| `$(HOME)/LMD-Alignment` | Path to the LMD Alignment code (optional)             |
+
+The other variables (`DISPLAY`, `Xauthority`, `X11-unix`) etc are needed to run ROOT TBrowsers from within the container with GUI (very helpful).
+
+If you cloned PandaRoot and LuminosityFit to you user directory, you can just copy and paste this command:
+
+```bash
+cd ~
+echo "alias lmdfit='DISPLAY=:0 xhost +local:; \
+docker run -u $(id -u):$(id -g) \
+--net=host -it --rm \
+--mount type=bind,source=$(HOME)/LuminosityFit,target=/mnt/work/LuminosityFit \
+--mount type=bind,source=$(HOME)/PandaRoot,target=/mnt/work/PandaRoot \
+--mount type=bind,source=$(HOME)/LMD-Alignment,target=/mnt/work/LMD-Alignment \ #optional
+-e="DISPLAY" -v="$HOME/.Xauthority:/mnt/work/.Xauthority:rw" \
+-v="/tmp/.X11-unix:/tmp/.X11-unix:rw" -v /cvmfs:/cvmfs:shared \
+rklasen/lmdfit:miniApr21p2'" >> .bashrc
+```
+
+Start the CVMFS container:
+
+```bash
+cvmfs
+```
+
+Go into the Lmd Fit Container
+
+```
+lmdfit
+```
+
+Compile PandaRoot:
+
+```
+cd PandaRoot
+mkdir build
+cd build
+cmake ../
+make -j16
+```
+
+Once that was successful, leave the container and enter it again, so that the updated `.bashrc` is loaded:
+
+```
+lmdfit
+```
+
+Then, compile the Luminosity Fit Software:
+
+```
+cd ~
+cd LuminosityFit
+mkdir build
+cd build
+cmake ..
+make -j 16
+```
+
+The Software should now be setup. Go into the `example` dir:
+
+```
+cd ~/example
+```
+
+And run the fit:
+
+```bash
+cd LuminosityFit/example
+../build/bin/runLmdFit -d $(pwd)/angular -c $(pwd)/fitconfig-fast.json -m 8 -a $(pwd)/resAcc -o $(pwd)/lumi-values.json
+```
+
+In the `example` dir, a new file called `lumi-values.json` should appear and contain:
+
+```
+{
+    "measured_lumi": "2666209.0536252349",
+    "measured_lumi_error": "1978.9221364629209",
+    "generated_lumi": "2661273.1530764317",
+    "relative_deviation_in_percent": "0.18547139902182733",
+    "relative_deviation_error_in_percent": "0.074359978199730711",
+    "fit_converged": "true"
+}
+```
+
+It should contain more or less *exactly* these values.
+
+## Old Version
 
 ### Prerequisites
 
