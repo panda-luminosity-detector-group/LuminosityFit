@@ -1,13 +1,8 @@
-# LuminosityFit
-
-Note: For future development I would recommend to port the necessary code python and perform all needed operations in tensorflow, numpy and pandas. This will reduce the repo size and improve the UX and DX dramatically. Also when using tensorflow many features like running on gpus ship out of the box. Performance improvements can also be expected.
-
 # Table of Contents
 
-- [LuminosityFit](#luminosityfit)
 - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
-  - [New Version, so much docker, wow](#new-version-so-much-docker-wow)
+  - [New Version, with Docker](#new-version-with-docker)
   - [Old Version](#old-version)
     - [Prerequisites](#prerequisites)
     - [Generate Container](#generate-container)
@@ -28,7 +23,7 @@ Note: For future development I would recommend to port the necessary code python
 
 ## Installation
 
-## New Version, so much docker, wow
+## New Version, with Docker
 
 On a fresh system, this **should** now work:
 
@@ -36,7 +31,7 @@ Clone this repo:
 
 ```bash
 cd ~
-git clone https://github.com/rklasen/LuminosityFit.git
+git clone https://github.com/panda-luminosity-detector-group/LuminosityFit.git
 ```
 
 And clone PandaRoot (you need an Account for that):
@@ -46,11 +41,20 @@ cd ~
 git clone https://git.panda.gsi.de/PandaRootGroup/PandaRoot.git
 ```
 
+And lastly the LMD-Alignment repo:
+
+```bash
+cd ~
+git clone https://github.com/panda-luminosity-detector-group/LMD-Alignment.git
+```
+
+Then, install Docker (Please see the docker docs).
+
 Add two aliases for containers, one for `cvmfs`:
 
 ```bash
 cd ~
-echo "alias cvmfs='docker run --rm --privileged --cap-add SYS_ADMIN --device /dev/fuse --volume /cvmfs:/cvmfs:shared --name cvmfs --ulimit nofile=1024:1024 rklasen/cvmfs'" >> .bashrc
+echo "sudo alias cvmfs='docker run --rm --privileged --cap-add SYS_ADMIN --device /dev/fuse --volume /cvmfs:/cvmfs:shared --name cvmfs --ulimit nofile=1024:1024 rklasen/cvmfs'" >> .bashrc
 ```
 
 and one for `lmdfit:`
@@ -73,14 +77,20 @@ If you cloned PandaRoot and LuminosityFit to you user directory, you can just co
 ```bash
 cd ~
 echo "alias lmdfit='DISPLAY=:0 xhost +local:; \
-docker run -u $(id -u):$(id -g) \
+sudo docker run -u $(id -u):$(id -g) \
 --net=host -it --rm \
 --mount type=bind,source=${HOME}/LuminosityFit,target=/mnt/work/LuminosityFit \
 --mount type=bind,source=${HOME}/PandaRoot,target=/mnt/work/PandaRoot \
---mount type=bind,source=${HOME}/LMD-Alignment,target=/mnt/work/LMD-Alignment \ #optional
+--mount type=bind,source=${HOME}/LMD-Alignment,target=/mnt/work/LMD-Alignment \
 -e="DISPLAY" -v="$HOME/.Xauthority:/mnt/work/.Xauthority:rw" \
 -v="/tmp/.X11-unix:/tmp/.X11-unix:rw" -v /cvmfs:/cvmfs:shared \
 rklasen/lmdfit:miniApr21p2'" >> .bashrc
+```
+
+Refresh the `.bashrc`:
+
+```bash
+. ~/.bashrc
 ```
 
 Start the CVMFS container:
@@ -91,53 +101,73 @@ cvmfs
 
 Go into the Lmd Fit Container
 
-```
+```bash
 lmdfit
 ```
 
 Compile PandaRoot:
 
-```
+```bash
 cd PandaRoot
 mkdir build
 cd build
 cmake ../
+```
+
+When the configuration is done, you can compile the software:
+
+```bash
 make -j16
 ```
 
-Once that was successful, leave the container and enter it again, so that the updated `.bashrc` is loaded:
+Once that was successful, leave the container and enter it again, so that the updated `.bashrc` is loaded and to test if the PandaRoot build was found:
 
-```
+```bash
 lmdfit
+```
+
+You should be greeted with:
+
+```bash
+user@user-VirtualBox:~$ lmdfit 
+non-network local connections being added to access control list
+Yay container!
+System during compilation: Debian GNU/Linux 10 (buster)
+                           x86_64
+System now               : Debian GNU/Linux 10 (buster)
+                           x86_64
 ```
 
 Then, compile the Luminosity Fit Software:
 
-```
+```bash
 cd ~
 cd LuminosityFit
 mkdir build
 cd build
 cmake ..
+```
+
+When the configuration is done, you can compile the software:
+
+```bash
 make -j 16
 ```
 
-The Software should now be setup. Go into the `example` dir:
+This may take up to 30 minutes on a reasonably modern PC, or much longer on a potato. Please feel free to get a coffee, tea, beer, or lunch.
 
-```
-cd ~/example
-```
+---
 
-And run the fit:
+The Software should now be setup. Go into the `example` dir and run the fit:
 
 ```bash
-cd LuminosityFit/example
+cd ~/LuminosityFit/example
 ../build/bin/runLmdFit -d $(pwd)/angular -c $(pwd)/fitconfig-fast.json -m 8 -a $(pwd)/resAcc -o $(pwd)/lumi-values.json
 ```
 
 In the `example` dir, a new file called `lumi-values.json` should appear and contain:
 
-```
+```json
 {
     "measured_lumi": "2666209.0536252349",
     "measured_lumi_error": "1978.9221364629209",
