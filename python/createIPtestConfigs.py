@@ -55,6 +55,7 @@ def genOffsetIPconfigs() -> None:
                 lab_momentum=momentum,
                 recoIPX=offset,
                 recoIPY=offset,
+                use_ip_determination=False
             )
 
             dataPackage = ConfigPackage(
@@ -81,6 +82,7 @@ def genOffsetIPconfigs() -> None:
                 num_events_per_sample=100000,
                 recoIPX=offset,
                 recoIPY=offset,
+                use_ip_determination=False
             )
 
             resAccPackage = ConfigPackage(
