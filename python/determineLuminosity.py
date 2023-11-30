@@ -593,7 +593,12 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 def experimentWorker(experiment: ExperimentParameters) -> None:
     experiment.experimentDir.mkdir(parents=True, exist_ok=True)
 
-    # before anything else, check if there is a copy in the experiment dir. if not, make it.
+    # before anything else, check if config is internally consistant
+    if not experiment.isConsistent():
+        print("Error! Experiment config is inconsitent!")
+        return
+
+    # then check if there is a copy in the experiment dir. if not, make it.
     if not (experiment.experimentDir / "experiment.config").exists():
         print("No copy of the experiment config found in the experiment directory. Copying it there now.")
         write_params_to_file(experiment, experiment.experimentDir, "experiment.config")

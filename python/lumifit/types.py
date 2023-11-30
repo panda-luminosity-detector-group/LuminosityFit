@@ -222,3 +222,12 @@ class ExperimentParameters:
     recoIPpath: Optional[Path] = None
 
     lumiFileName: Optional[Path] = None
+
+    def isConsistent(self) -> bool:
+        if self.dataPackage.recoParams.use_ip_determination != self.resAccPackage.recoParams.use_ip_determination:
+            return False
+        
+        if self.dataPackage.simParams.lab_momentum != self.resAccPackage.simParams.lab_momentum:
+            return False
+
+        return True
