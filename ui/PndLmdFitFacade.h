@@ -89,6 +89,10 @@ public:
   void initBeamParametersForModel(
       std::shared_ptr<Model> current_model,
       const boost::property_tree::ptree &model_opt_ptree) const;
+ 
+  void initIPForModel(
+      std::shared_ptr<Model> current_model,
+      const boost::property_tree::ptree &model_opt_ptree) const;
 
   PndLmdFitDataBundle
   doLuminosityFits(std::vector<PndLmdAngularData> &lmd_data_vec);

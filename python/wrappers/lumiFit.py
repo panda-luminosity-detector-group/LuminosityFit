@@ -5,6 +5,8 @@ Module to call the runLmdFit binary from an experiment config.
 Can either be run as script with the experiment config as argument, or imported as module.
 """
 
+import json
+
 from lumifit.cluster import Job, JobResourceRequest
 from lumifit.paths import generateAbsoluteMergeDataPath
 from lumifit.types import ExperimentParameters
@@ -28,9 +30,26 @@ def createLumiFitJob(experiment: ExperimentParameters) -> Job:
     resource_request.processors_per_node = number_of_threads
     resource_request.memory_in_mb = 2000
 
+    # use either the reconstructed IP or the IP from the experiment config
+    # (data package reco settings)
+    # this is slightly hacky, but the runLmdFit binary can't read the experiment config.
+    # so we're reading the experiment config ourselves and write a second recoIP.json file
+    # that we're passing
+
+    if experiment.dataPackage.recoParams.use_ip_determination:
+        recoIPfile = experiment.recoIPpath
+    else:
+        recoIPfile = experiment.experimentDir / "recoIP-fromConfig.json"
+        with open(recoIPfile, "w") as f:
+            externalIPjson = {
+                "ip_x": experiment.dataPackage.recoParams.recoIPX,
+                "ip_y": experiment.dataPackage.recoParams.recoIPY,
+            }
+            json.dump(externalIPjson, f)
+
     job = Job(
         resource_request,
-        application_url=f"{LMDscriptpath}/singularityJob.sh '{LMDbinPath}/bin/runLmdFit -c {config_url} -d {elasticMergeDataPath} -a {resAccMergeDataPath} -m {number_of_threads} -o {lumiFileName}'",
+        application_url=f"{LMDscriptpath}/singularityJob.sh '{LMDbinPath}/bin/runLmdFit -c {config_url} -d {elasticMergeDataPath} -a {resAccMergeDataPath} -m {number_of_threads} -o {lumiFileName} -i {recoIPfile}'",
         name="runLmdFit",
         logfile_url=str(elasticMergeDataPath / "runLmdFit.log"),
         array_indices=[1],

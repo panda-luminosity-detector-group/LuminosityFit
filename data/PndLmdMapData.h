@@ -59,6 +59,8 @@ public:
 
   void saveToRootFile();
 
+  void overwriteDataTreeFileUrl(const std::string &url);
+
   void saveToRootTrees();
   void readFromRootTrees();
 

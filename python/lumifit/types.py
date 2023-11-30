@@ -56,8 +56,8 @@ class SimulationParameters:
     random_seed: int
 
     simGeneratorType: SimulationGeneratorType = SimulationGeneratorType.PBARP_ELASTIC
-    num_events_per_sample: int = 1000
-    num_samples: int = 1
+    num_events_per_sample: int = 100000
+    num_samples: int = 100
     lab_momentum: float = 1.5
     low_index: int = 1
     lmd_geometry_filename: str = "Luminosity-Detector.root"
@@ -104,8 +104,8 @@ class SimulationParameters:
 @define(frozen=True)
 class ReconstructionParameters:
     reconstructionCommand: str
-    num_events_per_sample: int = 1000
-    num_samples: int = 1
+    num_events_per_sample: int = 100000
+    num_samples: int = 100
     lab_momentum: float = 1.5
     low_index: int = 1
     lmd_geometry_filename: str = "Luminosity-Detector.root"
