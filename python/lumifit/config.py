@@ -35,11 +35,15 @@ def load_params_from_file(file_path: Path, asType: Type[T]) -> T:
     Uses cattrs to deserialize a json file to a python object. Requires target type
     (i.e. AlignmentParams, SimulationParams or ReconstructionParams ) to be specified.
     """
-    if asType is None:
-        raise NotImplementedError("Please specify the type to deserialize as.")
+    try:
+        if asType is None:
+            raise NotImplementedError("Please specify the type to deserialize as.")
 
-    if file_path.exists():
-        with open(file_path, "r") as json_file:
-            return cattrs.structure(json.load(json_file), asType)
-    else:
-        raise FileNotFoundError(f"file {file_path} does not exist!")
+        if file_path.exists():
+            with open(file_path, "r") as json_file:
+                return cattrs.structure(json.load(json_file), asType)
+        else:
+            raise FileNotFoundError(f"file {file_path} does not exist!")
+    except Exception as e:
+        print(f"Error loading config file {file_path}:\n{e}")
+        raise e
