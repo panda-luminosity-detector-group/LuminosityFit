@@ -20,4 +20,6 @@ void plotEfficiency(std::string inFileName, std::string outName) {
   }
 }
 
-void plotEfficiency() { plotEfficiency("lmd_acc_data.root", "acceptance"); }
+void plotEfficiency() {
+  plotEfficiency("lmd_acc_data_1of1.root", "acceptance");
+}
