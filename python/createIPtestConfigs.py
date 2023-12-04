@@ -73,6 +73,8 @@ def genOffsetIPconfigs() -> None:
                 num_events_per_sample=100000,
                 random_seed=random.randint(11, 9999),
                 simGeneratorType=SimulationGeneratorType.BOX,
+                ip_offset_x=offset,
+                ip_offset_y=offset,
             )
 
             recoParamsResAcc = ReconstructionParameters(
