@@ -225,9 +225,29 @@ class ExperimentParameters:
 
     def isConsistent(self) -> bool:
         if self.dataPackage.recoParams.use_ip_determination != self.resAccPackage.recoParams.use_ip_determination:
+            print("Error! use_ip_determination must be the same for data and resAcc mode!")
             return False
         if self.dataPackage.simParams is not None and self.resAccPackage.simParams is not None:
             if self.dataPackage.simParams.lab_momentum != self.resAccPackage.simParams.lab_momentum:
+                print("Error! lab_momentum must be the same for data and resAcc mode!")
                 return False
+            
+            # when auto IP is off, both modes must have the same IP for sim AND reco
+            if not self.dataPackage.recoParams.use_ip_determination:
+                if self.dataPackage.simParams.ip_offset_x != self.resAccPackage.simParams.ip_offset_x:
+                    print("Error! ip_offset_x must be the same for data and resAcc mode!")
+                    return False
+                
+                if self.dataPackage.simParams.ip_offset_y != self.resAccPackage.simParams.ip_offset_y:
+                    print("Error! ip_offset_y must be the same for data and resAcc mode!")
+                    return False
+                
+                if self.dataPackage.recoParams.recoIPX != self.resAccPackage.recoParams.recoIPX:
+                    print("Error! recoIPX must be the same for data and resAcc mode!")
+                    return False
+                
+                if self.dataPackage.recoParams.recoIPY != self.resAccPackage.recoParams.recoIPY:
+                    print("Error! recoIPY must be the same for data and resAcc mode!")
+                    return False
 
         return True
