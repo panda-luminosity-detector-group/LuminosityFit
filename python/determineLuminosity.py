@@ -542,9 +542,10 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         print("============================================================")
         print("Finished IP determination for this recipe!                  ")
 
-        # overwrite existing config file
-        # print(f"Overwriting experiment config file at {thisExperiment.experimentDir}/experiment.config with new IP position...")
-        # write_params_to_file(thisExperiment, thisExperiment.experimentDir, "experiment.config", overwrite=True)
+        # overwrite existing config file, otherwise the scripts on the compute nodes don't have access to the 
+        # new IP position
+        print(f"Overwriting experiment config file at {thisExperiment.experimentDir}/experiment.config with new IP position...")
+        write_params_to_file(thisExperiment, thisExperiment.experimentDir, "experiment.config", overwrite=True)
     else:
         print("Skipped IP determination for this recipe, using values from config.")
 
@@ -597,7 +598,7 @@ def experimentWorker(experiment: ExperimentParameters) -> None:
         print("Error! Experiment config is inconsistent!")
         return
 
-    # overwrite existing config file
+    # overwrite existing config file, otherwise old settings from the last run could remain
     write_params_to_file(experiment, experiment.experimentDir, "experiment.config", overwrite=True)
 
     # create a recipe object. it resides only in memory and is never written to disk
