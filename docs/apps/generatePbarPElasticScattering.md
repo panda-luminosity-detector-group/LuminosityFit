@@ -1,6 +1,6 @@
 Table of Contents:
 
-- [Generate $\bar{P}P$ Elastic Scattering](#generate-barpp-elastic-scattering)
+- [Generate $\\bar{P}P$ Elastic Scattering](#generate-barpp-elastic-scattering)
   - [Minimum Example](#minimum-example)
   - [Example Output](#example-output)
   - [Why do we need lower and upper bounds at all?](#why-do-we-need-lower-and-upper-bounds-at-all)
