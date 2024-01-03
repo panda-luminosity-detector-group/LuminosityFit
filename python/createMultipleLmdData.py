@@ -105,7 +105,7 @@ args = parser.parse_args()
 # - path to binning (i.e. data/1-100_uncut/no_alignment/bunches/binning)
 #
 # there seem to be two data configs, one input and one output?
-# the input is actuallt dataconfig_xy!!! and it is in the LuminosityFit directory!
+# the input is actually dataconfig_xy!!! and it is in the LuminosityFit directory!
 # the output is created in the binning dir by this script
 # thats because this script takes one config, changes it somehow (I don't care how)
 # and writes it to binning. That latter one is then read by the createLumiFitData binary

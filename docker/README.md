@@ -1,6 +1,12 @@
 # Docker Image for Luminosity Fit
 
-## Building
+## Using an image from the Docker Hub
+
+```
+singularity build lmdfitNov22p1.sif docker://rklasen/fairroot:miniNov22p1
+```
+
+## Building Offline from Local Docker Image
 
 Depends on the PandaRoot docker image (in which KoalaSoft can be compiled and run as well).
 
