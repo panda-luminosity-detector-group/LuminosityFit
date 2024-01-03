@@ -3,9 +3,12 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.black]
-line-length = 79
+line-length = 180
 
 [tool.isort]
 profile = "black"
 src_paths = ["scripts"]
-line_length = 79
+line_length = 180
+
+[tool.ruff]
+line-length = 180

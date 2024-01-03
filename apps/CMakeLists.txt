@@ -17,7 +17,7 @@ target_link_libraries(analyzeResolutionMapData LmdUI ROOT::Hist ROOT::Gpad ROOT:
 
 if(PANDAROOT_FOUND)
   add_executable(createLmdFitData createLmdFitData.cxx)
-  target_link_libraries(createLmdFitData LmdUI LmdFitPandaDataIO Pythia6 ${BOOST_LIBRARIES})
+  target_link_libraries(createLmdFitData LmdUI LmdFitPandaDataIO ${BOOST_LIBRARIES})
 endif()
 
 if(KOALASOFT_FOUND)

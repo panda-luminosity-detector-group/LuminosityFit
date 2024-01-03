@@ -43,9 +43,6 @@ Determines the luminosity of a set of Lumi_TrksQA_* files.
     This is pretty complicated and uses a lot of intermediate steps.
     Many of them have to be run on a cluster system, which is done
     with a slurm job handler.
-
-This file needs one major rewrite, thats for sure.
-- the logic is implemented as a GIANT state machine
 """
 
 
@@ -265,7 +262,7 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
 
         binningPath = pathToRootFiles / generateRelativeBunchesDir() / generateRelativeBinningDir()
 
-        # TODO: this check shouldn't be here but in the makeMultipleFileListBunches or createMultipleLmdData modules. This script should only execute the steps in the right order. If  anything is already there, the submodules can just exit early.
+        # TODO: this check shouldn't be here but in the makeMultipleFileListBunches or createMultipleLmdData modules. This script should only execute the steps in the right order. If anything is already there, the submodules can just exit early.
         status_code = enoughFilesPresent(
             directory=binningPath,
             glob_pattern=data_pattern + "*",
@@ -501,7 +498,9 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 
         newRecoIPX = float("{0:.3f}".format(round(float(ip_rec_data["ip_x"]), 3)))  # in cm
         newRecoIPY = float("{0:.3f}".format(round(float(ip_rec_data["ip_y"]), 3)))
-        newRecoIPZ = thisExperiment.dataPackage.simParams.ip_offset_z
+
+        newRecoIPZ = 0 # we can't detect anything else anyway, so why bother
+        # newRecoIPZ = thisExperiment.dataPackage.simParams.ip_offset_z
 
         # I don't like this. Actually I hate this.
         # The experiment config is frozen for a reason.
@@ -530,20 +529,21 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
         print("                       Attention!                           ")
         print("     Experiment Config has been changed in memory!          ")
         print("This MUST only happen if you are using the IP determination!")
-        print("")
-        print("New IP position:")
-        print(f"  x: {thisExperiment.dataPackage.recoParams.recoIPX} cm")
-        print(f"  y: {thisExperiment.dataPackage.recoParams.recoIPY} cm")
-        print(f"  z: {thisExperiment.dataPackage.recoParams.recoIPZ} cm")
-        print("")
-        print("New theta angles:")
+        print("                                                            ")
+        print("New IP position:                                            ")
+        print(f"  x: {thisExperiment.dataPackage.recoParams.recoIPX} cm    ")
+        print(f"  y: {thisExperiment.dataPackage.recoParams.recoIPY} cm    ")
+        print(f"  z: {thisExperiment.dataPackage.recoParams.recoIPZ} cm    ")
+        print("                                                            ")
+        print("New theta angles:                                           ")
         print(f"  theta min: {thisExperiment.resAccPackage.simParams.theta_min_in_mrad} mrad")
         print(f"  theta max: {thisExperiment.resAccPackage.simParams.theta_max_in_mrad} mrad")
-        print("")
+        print("                                                            ")
         print("============================================================")
-        print("Finished IP determination for this recipe!")
+        print("Finished IP determination for this recipe!                  ")
 
-        # overwrite existing config file
+        # overwrite existing config file, otherwise the scripts on the compute nodes don't have access to the 
+        # new IP position
         print(f"Overwriting experiment config file at {thisExperiment.experimentDir}/experiment.config with new IP position...")
         write_params_to_file(thisExperiment, thisExperiment.experimentDir, "experiment.config", overwrite=True)
     else:
@@ -593,10 +593,13 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 def experimentWorker(experiment: ExperimentParameters) -> None:
     experiment.experimentDir.mkdir(parents=True, exist_ok=True)
 
-    # before anything else, check if there is a copy in the experiment dir. if not, make it.
-    if not (experiment.experimentDir / "experiment.config").exists():
-        print("No copy of the experiment config found in the experiment directory. Copying it there now.")
-        write_params_to_file(experiment, experiment.experimentDir, "experiment.config")
+    # before anything else, check if config is internally consistant
+    if not experiment.isConsistent():
+        print("Error! Experiment config is inconsistent!")
+        return
+
+    # overwrite existing config file, otherwise old settings from the last run could remain
+    write_params_to_file(experiment, experiment.experimentDir, "experiment.config", overwrite=True)
 
     # create a recipe object. it resides only in memory and is never written to disk
     # it is however liberally modified and passed around
