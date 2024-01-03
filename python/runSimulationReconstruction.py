@@ -56,7 +56,7 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> N
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Script to run a simulation and reconstruction of the PANDA " "Luminosity Detector from parameter config files.",
+        description="Script to run a simulation and reconstruction of the PANDA Luminosity Detector from parameter config files.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
