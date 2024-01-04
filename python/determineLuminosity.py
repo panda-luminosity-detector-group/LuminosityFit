@@ -591,8 +591,8 @@ def experimentWorker(experiment: ExperimentParameters) -> None:
     # if no alignment matrices are found, create an empty json file so that ROOT doesn't crash
     # the file must be overwritten by the user once alignment matrices are aviailable
     # but even when it is empty, we should still get a working (albeit wrong) lumifit
-    if experiment.dataPackage.alignmentMatrices is not None:
-        alignmentMatrixPath = experiment.dataPackage.alignmentMatrices
+    if experiment.dataPackage.alignParams.alignment_matrices_path is not None:
+        alignmentMatrixPath = experiment.dataPackage.alignParams.alignment_matrices_path
 
         # make parent path if it doesn't exist
         alignmentMatrixPath.parent.mkdir(parents=True, exist_ok=True)
