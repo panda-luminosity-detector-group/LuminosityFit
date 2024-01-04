@@ -288,10 +288,12 @@ def genConfigs() -> None:
 
         # change simpars if misalignment matrices are given
         if args.misalignMatrixFileP is not None:
-            alignParams = AlignmentParameters(misalignment_matrices_path=args.misalignMatrixFileP)
+            misalignAbsPath = args.misalignMatrixFileP.resolve()
+            alignParams = AlignmentParameters(misalignment_matrices_path=misalignAbsPath)
 
             # we have to use evolve (deep copies) since all configs are frozen
-            experiment = evolve(experiment, alignParams=alignParams)
+            dataPackage = evolve(experiment.dataPackage, alignParams=alignParams)
+            experiment = evolve(experiment, dataPackage=dataPackage)
 
         write_params_to_file(
             experiment,
@@ -314,8 +316,11 @@ def genConfigs() -> None:
 
         # change simpars if misalignment matrices are given
         if args.misalignMatrixFileK is not None:
-            alignParams = AlignmentParameters(misalignment_matrices_path=args.misalignMatrixFileK)
-            experiment = evolve(experiment, alignParams=alignParams)
+            misalignAbsPath = args.misalignMatrixFileP.resolve()
+            alignParams = AlignmentParameters(misalignment_matrices_path=misalignAbsPath)
+            
+            dataPackage = evolve(experiment.dataPackage, alignParams=alignParams)
+            experiment = evolve(experiment, dataPackage=dataPackage)
 
         write_params_to_file(experiment, Path("."), f"{confPathKoala}/{mom}.config", overwrite=True)
 
