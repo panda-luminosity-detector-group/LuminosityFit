@@ -594,6 +594,9 @@ def experimentWorker(experiment: ExperimentParameters) -> None:
     if experiment.dataPackage.alignmentMatrices is not None:
         alignmentMatrixPath = experiment.dataPackage.alignmentMatrices
 
+        # make parent path if it doesn't exist
+        alignmentMatrixPath.parent.mkdir(parents=True, exist_ok=True)
+
         if not alignmentMatrixPath.exists():
             print(f"INFO: Alignment matrix file {alignmentMatrixPath} does not exist! Creating empty file...")
             with open(alignmentMatrixPath, "w") as f:
