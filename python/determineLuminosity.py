@@ -128,17 +128,16 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             """
             efficiency / resolution calculation.
 
-            Takes the offset of the IP into account.
+            Takes the offset of the IP and misalignment into account.
 
-            TODO: This needs to know the misalignment of the detector for the sim steps
+            This needs to know the misalignment of the detector for the sim steps
             and the alignment for the reconstruction.
-            Since real data has unknown misalignment, we must use the inverse alignment matrices
+            Since real data has unknown misalignment, we must use the alignment matrices
             to model the acceptance of the real detector faithfully.
             """
 
             assert experiment.resAccPackage.simParams is not None
 
-            # TODO: later, WITH alignment since that affects the acceptance!
             resAccDataDir = generateAbsoluteROOTDataPath(configPackage=configPackage)
             status_code = enoughFilesPresent(directory=resAccDataDir, glob_pattern=experiment.trackFilePattern + "*.root")
 
@@ -154,10 +153,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
                 # for this sample
                 # note: beam tilt and divergence are not necessary here,
                 # because that is handled completely by the model
-
-                # TODO: alignment part
-                # if alignement matrices were specified, we used them as a mis-alignment
-                # and alignment for the box simulations
 
                 job = create_simulation_and_reconstruction_job(
                     experiment,
@@ -188,7 +183,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
                 return None
 
             elif status_code == StatusCode.NO_FILES:
-                # TODO: alignment part
 
                 job = create_reconstruction_job(
                     experiment,
@@ -211,12 +205,10 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
                 return None
 
             elif status_code == StatusCode.NO_FILES:
-                # vertex data must always be created without any cuts first
+                # vertex data must always be created without any cuts first,
+                # however it can (and should!) have alignment if there was misalignment
                 copyExperiment = copy.deepcopy(experiment)
                 copyExperiment.dataPackage.recoParams.disableCuts()
-
-                # TODO: misalignment is important here. the vertex data can have misalignment (because it's real data)
-                # but it has no alignment yet. that is only for the second reconstruction
 
                 job = create_simulation_and_reconstruction_job(
                     copyExperiment,
@@ -337,11 +329,6 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             mergeCommand.append("mergeMultipleLmdData.py")
             mergeCommand.append(str(task.simDataType.value))  # we have to give the value because the script expects a/er/v !
             mergeCommand.append(str(pathToRootFiles))
-
-            # TODO: do we still need this?
-            # if task.simDataType == SimulationDataType.ANGULAR:
-            #     mergeCommand.append("--num_samples")
-            #     mergeCommand.append(str(1))
 
             print(f"running command:\n{mergeCommand}")
             _ = subprocess.call(mergeCommand)
@@ -600,6 +587,17 @@ def experimentWorker(experiment: ExperimentParameters) -> None:
 
     # overwrite existing config file, otherwise old settings from the last run could remain
     write_params_to_file(experiment, experiment.experimentDir, "experiment.config", overwrite=True)
+
+    # if no alignment matrices are found, create an empty json file so that ROOT doesn't crash
+    # the file must be overwritten by the user once alignment matrices are aviailable
+    # but even when it is empty, we should still get a working (albeit wrong) lumifit
+    if experiment.dataPackage.alignmentMatrices is not None:
+        alignmentMatrixPath = experiment.dataPackage.alignmentMatrices
+
+        if not alignmentMatrixPath.exists():
+            print(f"INFO: Alignment matrix file {alignmentMatrixPath} does not exist! Creating empty file...")
+            with open(alignmentMatrixPath, "w") as f:
+                json.dump({}, f, ensure_ascii=True)
 
     # create a recipe object. it resides only in memory and is never written to disk
     # it is however liberally modified and passed around

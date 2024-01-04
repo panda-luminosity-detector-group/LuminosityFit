@@ -289,11 +289,25 @@ def genConfigs() -> None:
         # change simpars if misalignment matrices are given
         if args.misalignMatrixFileP is not None:
             misalignAbsPath = args.misalignMatrixFileP.resolve()
-            alignParams = AlignmentParameters(misalignment_matrices_path=misalignAbsPath)
+
+            # okay for now we have to just define a new path for the alignment matrices, and the user has to take care to actually fill it
+            alignAbsPath = experiment.experimentDir / Path("alignment/alignment-matrices.json")
+            alignParams = AlignmentParameters(misalignment_matrices_path=misalignAbsPath, alignment_matrices_path=alignAbsPath)
 
             # we have to use evolve (deep copies) since all configs are frozen
             dataPackage = evolve(experiment.dataPackage, alignParams=alignParams)
-            experiment = evolve(experiment, dataPackage=dataPackage)
+            
+            # now, the alignment matrices are ALSO used for the res/acc mode, that's the entire point
+            # in the res/acc case, both the MISalignment matrices for the sim data and 
+            # the alignment matrices for the reco data are THE SAME alignment matrix.
+            # seems pointless, but remember that the acceptance changes when the detector is misaligned! 
+
+            # so we have to use the same alignment matrices for both modes
+            alignParamsResAcc = AlignmentParameters(misalignment_matrices_path=alignAbsPath, alignment_matrices_path=alignAbsPath)
+            resAccPackage = evolve(experiment.resAccPackage, alignParams=alignParamsResAcc)
+
+            # evolve the whole thing
+            experiment = evolve(experiment, dataPackage=dataPackage, resAccPackage=resAccPackage)
 
         write_params_to_file(
             experiment,
@@ -314,12 +328,18 @@ def genConfigs() -> None:
             simGenTypeForResAcc=SimulationGeneratorType.PBARP_ELASTIC,
         )
 
+        # TODO: also change alignment matrix for dataPaclage and resAccPackage
+        # however, I don't know why this block is even needed, the functionality is the same as for PANDA
+
         # change simpars if misalignment matrices are given
         if args.misalignMatrixFileK is not None:
             misalignAbsPath = args.misalignMatrixFileP.resolve()
             alignParams = AlignmentParameters(misalignment_matrices_path=misalignAbsPath)
             
             dataPackage = evolve(experiment.dataPackage, alignParams=alignParams)
+
+            alignParamsResAcc = AlignmentParameters(misalignment_matrices_path=misalignAbsPath)
+
             experiment = evolve(experiment, dataPackage=dataPackage)
 
         write_params_to_file(experiment, Path("."), f"{confPathKoala}/{mom}.config", overwrite=True)
