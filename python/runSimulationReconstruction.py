@@ -6,6 +6,7 @@ This script is only run by a user, not any other script!
 
 import argparse
 import json
+import shutil
 from pathlib import Path
 
 from lumifit.cluster import ClusterJobManager
@@ -13,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from lumifit.config import load_params_from_file, write_params_to_file
 from lumifit.general import addDebugArgumentsToParser
 from lumifit.gsi_virgo import create_virgo_job_handler
+from lumifit.paths import generateAbsoluteROOTDataPath
 from lumifit.himster import create_himster_job_handler
 from lumifit.types import ClusterEnvironment, DataMode, ExperimentParameters
 from typing import List
@@ -24,8 +26,10 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> b
     assert thisExperiment.dataPackage.MCDataDir is not None
 
     thisExperiment.experimentDir.mkdir(parents=True, exist_ok=True)
+    thisExperiment.dataPackage.MCDataDir.mkdir(parents=True, exist_ok=True)
+    thisExperiment.dataPackage.baseDataDir.mkdir(parents=True, exist_ok=True)
 
-    # before anything else, check if config is internally consistant
+    # before anything else, check if config is internally consistent
     if not thisExperiment.isConsistent():
         print("Error! Experiment config is inconsistent!")
         return
@@ -34,7 +38,7 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> b
     write_params_to_file(thisExperiment, thisExperiment.experimentDir, "experiment.config", overwrite=True)
 
     # if no alignment matrices are found, create an empty json file so that ROOT doesn't crash
-    # the file must be overwritten by the user once alignment matrices are aviailable
+    # the file must be overwritten by the user once alignment matrices are available
     # but even when it is empty, we should still get a working (albeit wrong) lumifit
     if thisExperiment.dataPackage.alignParams.alignment_matrices_path is not None:
         alignmentMatrixPath = thisExperiment.dataPackage.alignParams.alignment_matrices_path
@@ -47,8 +51,15 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> b
             with open(alignmentMatrixPath, "w") as f:
                 json.dump({}, f, ensure_ascii=True)
 
-    thisExperiment.dataPackage.MCDataDir.mkdir(parents=True, exist_ok=True)
-    thisExperiment.dataPackage.baseDataDir.mkdir(parents=True, exist_ok=True)
+    # lastly, if this scipt was called specifically for alignment, delete the reco_uncut dir
+    # and disable cuts
+    if args.alignment:
+        print("INFO: Running sim and reco for alignment, deleting reco_uncut dir and disabling cuts...")
+        recoDirUncut = generateAbsoluteROOTDataPath(thisExperiment.dataPackage, DataMode.VERTEXDATA)
+        if recoDirUncut.exists():
+            shutil.rmtree(recoDirUncut)
+
+        thisExperiment.dataPackage.recoParams.disableCuts()
 
     job = create_simulation_and_reconstruction_job(
         thisExperiment,
@@ -86,6 +97,14 @@ if __name__ == "__main__":
         type=Path,
         help="Process all configs in this directory. If not set, at least one config must be specified with -e.",
         default=None,
+    )
+
+    parser.add_argument(
+        "-a",
+        "--alignment",
+        dest="alignment",
+        action="store_false",
+        help="Run the simulation and reconstruction so that alignment can be performed. This disables cuts and deletes any existing reco_uncut dirs.",
     )
 
     parser = addDebugArgumentsToParser(parser)
