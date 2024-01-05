@@ -204,8 +204,10 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             # if either are missing, we can just run the simRec again, it will only recreate data
             # that is missing
 
+            recoDataDir = generateAbsoluteROOTDataPath(experiment.dataPackage, dataMode=DataMode.VERTEXDATA)
+
             status_code_MC_Files = enoughFilesPresent(directory=mcDataDir, glob_pattern="Lumi_MC_*.root")
-            status_code_reco_Files = enoughFilesPresent(directory=angularDataDir, glob_pattern="Lumi_TrksQA_*.root")
+            status_code_reco_Files = enoughFilesPresent(directory=recoDataDir, glob_pattern="Lumi_TrksQA_*.root")
 
             if status_code_MC_Files == StatusCode.ENOUGH_FILES and status_code_reco_Files == StatusCode.ENOUGH_FILES:
                 status_code = StatusCode.ENOUGH_FILES
