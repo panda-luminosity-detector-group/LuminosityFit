@@ -580,7 +580,7 @@ def lumiDetermination(thisExperiment: ExperimentParameters, recipe: SimRecipe) -
 def experimentWorker(experiment: ExperimentParameters) -> None:
     experiment.experimentDir.mkdir(parents=True, exist_ok=True)
 
-    # before anything else, check if config is internally consistant
+    # before anything else, check if config is internally consistent
     if not experiment.isConsistent():
         print("Error! Experiment config is inconsistent!")
         return
@@ -589,7 +589,7 @@ def experimentWorker(experiment: ExperimentParameters) -> None:
     write_params_to_file(experiment, experiment.experimentDir, "experiment.config", overwrite=True)
 
     # if no alignment matrices are found, create an empty json file so that ROOT doesn't crash
-    # the file must be overwritten by the user once alignment matrices are aviailable
+    # the file must be overwritten by the user once alignment matrices are available
     # but even when it is empty, we should still get a working (albeit wrong) lumifit
     if experiment.dataPackage.alignParams.alignment_matrices_path is not None:
         alignmentMatrixPath = experiment.dataPackage.alignParams.alignment_matrices_path
