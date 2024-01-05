@@ -198,7 +198,19 @@ def executeTask(experiment: ExperimentParameters, task: SimulationTask) -> Optio
             assert experiment.dataPackage.MCDataDir is not None
             mcDataDir = experiment.dataPackage.MCDataDir
 
-            status_code = enoughFilesPresent(directory=mcDataDir, glob_pattern="Lumi_MC_*.root")
+            # even when lumi_MC_ files exist, it is possible that the
+            # reconstructed data is not present (may have been deleted for alignment)
+            # so we need to check if Lumis_MC_ files exist AND if the reconstructed data is present
+            # if either are missing, we can just run the simRec again, it will only recreate data
+            # that is missing
+
+            status_code_MC_Files = enoughFilesPresent(directory=mcDataDir, glob_pattern="Lumi_MC_*.root")
+            status_code_reco_Files = enoughFilesPresent(directory=angularDataDir, glob_pattern="Lumi_TrksQA_*.root")
+
+            if status_code_MC_Files == StatusCode.ENOUGH_FILES and status_code_reco_Files == StatusCode.ENOUGH_FILES:
+                status_code = StatusCode.ENOUGH_FILES
+            else:
+                status_code = StatusCode.NO_FILES
 
             if status_code == StatusCode.ENOUGH_FILES:
                 task.simState = SimulationState.MAKE_BUNCHES
