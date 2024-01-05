@@ -23,21 +23,21 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> b
     assert thisExperiment.dataPackage.simParams is not None
     assert thisExperiment.dataPackage.MCDataDir is not None
 
-    experiment.experimentDir.mkdir(parents=True, exist_ok=True)
+    thisExperiment.experimentDir.mkdir(parents=True, exist_ok=True)
 
     # before anything else, check if config is internally consistant
-    if not experiment.isConsistent():
+    if not thisExperiment.isConsistent():
         print("Error! Experiment config is inconsistent!")
         return
 
     # overwrite existing config file, otherwise old settings from the last run could remain
-    write_params_to_file(experiment, experiment.experimentDir, "experiment.config", overwrite=True)
+    write_params_to_file(thisExperiment, thisExperiment.experimentDir, "experiment.config", overwrite=True)
 
     # if no alignment matrices are found, create an empty json file so that ROOT doesn't crash
     # the file must be overwritten by the user once alignment matrices are aviailable
     # but even when it is empty, we should still get a working (albeit wrong) lumifit
-    if experiment.dataPackage.alignParams.alignment_matrices_path is not None:
-        alignmentMatrixPath = experiment.dataPackage.alignParams.alignment_matrices_path
+    if thisExperiment.dataPackage.alignParams.alignment_matrices_path is not None:
+        alignmentMatrixPath = thisExperiment.dataPackage.alignParams.alignment_matrices_path
 
         # make parent path if it doesn't exist
         alignmentMatrixPath.parent.mkdir(parents=True, exist_ok=True)
