@@ -27,7 +27,7 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> b
 
     thisExperiment.experimentDir.mkdir(parents=True, exist_ok=True)
     thisExperiment.dataPackage.MCDataDir.mkdir(parents=True, exist_ok=True)
-    thisExperiment.dataPackage.baseDataDir.mkdir(parents=True, exist_ok=True)
+    # thisExperiment.dataPackage.baseDataDir.mkdir(parents=True, exist_ok=True)
 
     # before anything else, check if config is internally consistent
     if not thisExperiment.isConsistent():
@@ -58,8 +58,8 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> b
         recoDirUncut = generateAbsoluteROOTDataPath(thisExperiment.dataPackage, DataMode.VERTEXDATA)
         if recoDirUncut.exists():
             shutil.rmtree(recoDirUncut)
+        # cuts are disabled by runLmdSimReco.py when the data mode is set to VERTEXDATA, so nothing to do here
 
-        thisExperiment.dataPackage.recoParams.disableCuts()
 
     job = create_simulation_and_reconstruction_job(
         thisExperiment,
@@ -103,7 +103,7 @@ if __name__ == "__main__":
         "-a",
         "--alignment",
         dest="alignment",
-        action="store_false",
+        action="store_true",
         help="Run the simulation and reconstruction so that alignment can be performed. This disables cuts and deletes any existing reco_uncut dirs.",
     )
 
