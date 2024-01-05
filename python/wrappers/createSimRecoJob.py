@@ -30,7 +30,7 @@ def create_simulation_and_reconstruction_job(
     """
 
     # case switch for dataMode
-    if (thisMode == DataMode.DATA) or (thisMode == DataMode.VERTEXDATA):
+    if thisMode in (DataMode.DATA, DataMode.VERTEXDATA):
         configPackage = experiment.dataPackage
     elif thisMode == DataMode.RESACC:
         configPackage = experiment.resAccPackage
