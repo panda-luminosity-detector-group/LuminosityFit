@@ -74,7 +74,9 @@ def generateAbsoluteROOTDataPath(configPackage: ConfigPackage, dataMode=DataMode
 
     Example: /lustre/klasen/LMD-xkcdsmbc/sim/1-100_xy_n_cut/no_alignment_correction/
 
-    dataMode decides if the recoParams should really use cuts or not. (not ideal design, but works for now)
+    dataMode decides if the recoParams should really use cuts or not. 
+    if dataMode == DataMode.VERTEXDATA, cuts are disabled.
+    (not ideal design, but works for now)
     """
 
     if dataMode == DataMode.VERTEXDATA:
