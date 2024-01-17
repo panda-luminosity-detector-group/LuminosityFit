@@ -35,9 +35,6 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> b
         print("Error! Experiment config is inconsistent!")
         return
 
-    # overwrite existing config file, otherwise old settings from the last run could remain
-    write_params_to_file(thisExperiment, thisExperiment.experimentDir, "experiment.config", overwrite=True)
-
     # if no alignment matrices are found, create an empty json file so that ROOT doesn't crash
     # the file must be overwritten by the user once alignment matrices are available
     # but even when it is empty, we should still get a working (albeit wrong) lumifit
@@ -67,6 +64,9 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> b
             shutil.rmtree(recoDirUncut)
         # cuts are disabled by runLmdSimReco.py when the data mode is set to VERTEXDATA, so nothing to do here
         thisExperiment = newExperiment
+
+    # overwrite existing config file, otherwise old settings from the last run could remain
+    write_params_to_file(thisExperiment, thisExperiment.experimentDir, "experiment.config", overwrite=True)
 
     job = create_simulation_and_reconstruction_job(
         thisExperiment,
