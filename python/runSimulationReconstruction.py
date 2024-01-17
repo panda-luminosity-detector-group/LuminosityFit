@@ -57,7 +57,6 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> b
     if args.alignment:
         print("INFO: Running sim and reco for alignment, deleting reco_uncut dir and disabling alignment matrices & cuts...")
 
-        thisExperiment.dataPackage.alignParams.alignment_matrices_path = None
         newDataAlignParams = evolve(thisExperiment.dataPackage.alignParams, alignment_matrices_path=None)
         newDataPackage = evolve(thisExperiment.dataPackage, alignParams=newDataAlignParams)
         newExperiment = evolve(thisExperiment, dataPackage=newDataPackage)
