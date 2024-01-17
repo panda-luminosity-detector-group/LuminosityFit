@@ -59,6 +59,7 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> b
 
         newDataAlignParams = evolve(thisExperiment.dataPackage.alignParams, alignment_matrices_path=None)
         newDataPackage = evolve(thisExperiment.dataPackage, alignParams=newDataAlignParams)
+        newDataPackage.recoParams.disableCuts()
         newExperiment = evolve(thisExperiment, dataPackage=newDataPackage)
 
         recoDirUncut = generateAbsoluteROOTDataPath(newExperiment.dataPackage, DataMode.VERTEXDATA)
