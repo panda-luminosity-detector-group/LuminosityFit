@@ -7,6 +7,7 @@ This script is only run by a user, not any other script!
 import argparse
 import json
 import shutil
+from attrs import evolve
 from pathlib import Path
 
 from lumifit.cluster import ClusterJobManager
@@ -34,9 +35,6 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> b
         print("Error! Experiment config is inconsistent!")
         return
 
-    # overwrite existing config file, otherwise old settings from the last run could remain
-    write_params_to_file(thisExperiment, thisExperiment.experimentDir, "experiment.config", overwrite=True)
-
     # if no alignment matrices are found, create an empty json file so that ROOT doesn't crash
     # the file must be overwritten by the user once alignment matrices are available
     # but even when it is empty, we should still get a working (albeit wrong) lumifit
@@ -54,12 +52,21 @@ def run_simulation_and_reconstruction(thisExperiment: ExperimentParameters) -> b
     # lastly, if this scipt was called specifically for alignment, delete the reco_uncut dir
     # and disable cuts
     if args.alignment:
-        print("INFO: Running sim and reco for alignment, deleting reco_uncut dir and disabling cuts...")
-        recoDirUncut = generateAbsoluteROOTDataPath(thisExperiment.dataPackage, DataMode.VERTEXDATA)
+        print("INFO: Running sim and reco for alignment, deleting reco_uncut dir and disabling alignment matrices & cuts...")
+
+        newDataAlignParams = evolve(thisExperiment.dataPackage.alignParams, alignment_matrices_path=None)
+        newDataPackage = evolve(thisExperiment.dataPackage, alignParams=newDataAlignParams)
+        newDataPackage.recoParams.disableCuts()
+        newExperiment = evolve(thisExperiment, dataPackage=newDataPackage)
+
+        recoDirUncut = generateAbsoluteROOTDataPath(newExperiment.dataPackage, DataMode.VERTEXDATA)
         if recoDirUncut.exists():
             shutil.rmtree(recoDirUncut)
         # cuts are disabled by runLmdSimReco.py when the data mode is set to VERTEXDATA, so nothing to do here
+        thisExperiment = newExperiment
 
+    # overwrite existing config file, otherwise old settings from the last run could remain
+    write_params_to_file(thisExperiment, thisExperiment.experimentDir, "experiment.config", overwrite=True)
 
     job = create_simulation_and_reconstruction_job(
         thisExperiment,
@@ -104,7 +111,7 @@ if __name__ == "__main__":
         "--alignment",
         dest="alignment",
         action="store_true",
-        help="Run the simulation and reconstruction so that alignment can be performed. This disables cuts and deletes any existing reco_uncut dirs.",
+        help="Run the simulation and reconstruction so that alignment can be performed. This disables cuts, application of alignment matrices and deletes any existing reco_uncut dirs.",
     )
 
     parser = addDebugArgumentsToParser(parser)
