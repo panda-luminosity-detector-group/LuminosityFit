@@ -14,6 +14,6 @@ export SINGULARITY_TMPDIR
 mkdir -p $SINGULARITY_TMPDIR
 LMDPATH=${LMDFIT_BUILD_DIR}/..
 
-# TODO: this can pass only one argument, but there may be others.
-# change it so an arbitrary number of args can be passed
+# the main command that the compute node will run
+# singularity exec --env-file ${HOME}/LuminosityFit/lmdEnvFile.env ${HOME}/lmdfit-mini.sif bash -c ". \$VMCWORKDIR/build/config.sh -a ; ${1}"
 singularity exec --env-file ${HOME}/LuminosityFit/lmdEnvFile.env ${HOME}/lmdfitNov22p1.sif bash -c ". \$VMCWORKDIR/build/config.sh -a ; ${1}"

@@ -3,6 +3,8 @@
 - [Table of Contents](#table-of-contents)
 - [Installation](#installation)
   - [New Version, with Docker](#new-version-with-docker)
+    - [The LumiFit Software with KoalaSoft](#the-lumifit-software-with-koalasoft)
+    - [Which Container Version to Use?](#which-container-version-to-use)
   - [Old Version, Manual without Docker](#old-version-manual-without-docker)
     - [Prerequisites](#prerequisites)
     - [Generate Container](#generate-container)
@@ -179,6 +181,43 @@ In the `example` dir, a new file called `lumi-values.json` should appear and con
 ```
 
 It should contain more or less *exactly* these values.
+
+### The LumiFit Software with KoalaSoft
+
+On the Himster, the software is run in singularity containers. They have a lot of advantages, but one big disadvantage is that Singularity ignores `$HOME/.bashrc` as it is defined in a container and instead uses the host system's `$HOME/.bashrc`. This is a problem because once PandaRoot oder KoalaSoft are compiled, they have to be loaded to the active shell with the `config.sh` script. This script is called from the host `$HOME/.bashrc` and thus ignored by Singularity (which is also why we can use one container for both softwares).
+
+So, on the Himster, you have to add the following lines to your `$HOME/.bashrc`:
+
+```bash
+# ==============================
+# ==== FairROOT / PANDAROOT ====
+# ==============================
+
+# we still need to source the configs, since Singularity reverts to the real
+# (non-container) $HOME
+ . ~/KoalaSoft/docker/sourceMe.sh
+#. ~/PandaRoot/docs/Docker/sourceMe.sh
+```
+
+And choose the appropriate line, either PandaRoot or KoalaSoft.
+
+### Which Container Version to Use?
+
+So for the Lumifit with PandaRoot, the best idea is to use the container that uses FairSoft Nov22p1, and the container image file is appropriately named `lmdfit-Nov22p1.sif`. 
+
+
+KoalaSoft currently doesn't compile in that container however, so we have to use the old one. It's just called `lmdfit-mini.sif` I think it uses FairSoft Oct19p1.
+
+**IMPORTANT:**
+
+The names of the container images are hard coded in the Lumi Fit Software right now, I've always wanted to read them from the experiment config as well, but didn't get around to that yet. You have to change the container name in the `singularityJob.sh` script in the `python` directory:
+
+
+```bash
+# the main command that the compute node will run
+# singularity exec --env-file ${HOME}/LuminosityFit/lmdEnvFile.env ${HOME}/lmdfit-mini.sif bash -c ". \$VMCWORKDIR/build/config.sh -a ; ${1}"
+singularity exec --env-file ${HOME}/LuminosityFit/lmdEnvFile.env ${HOME}/lmdfitNov22p1.sif bash -c ". \$VMCWORKDIR/build/config.sh -a ; ${1}"
+```
 
 ## Old Version, Manual without Docker
 
