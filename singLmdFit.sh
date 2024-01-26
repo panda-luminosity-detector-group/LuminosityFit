@@ -7,4 +7,6 @@ if ! command -v singularity &> /dev/null; then
 fi
 
 # After ensuring that Singularity is available, run the singularity image
+# Choose wisely here!
+# singularity run $HOME/lmdfit-mini.sif
 singularity run $HOME/lmdfitNov22p1.sif
