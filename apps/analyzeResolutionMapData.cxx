@@ -83,7 +83,7 @@ Stats calcStats(const PndLmdMapData &res_map) {
   return st;
 }
 
-std::vector<NeatPlotting::GraphPoint> generateGraphs(
+void generateGraphs(
     const std::map<std::string, std::map<unsigned int, double>> &data) {
   NeatPlotting::DataObjectStyle style;
   style.draw_option = "";

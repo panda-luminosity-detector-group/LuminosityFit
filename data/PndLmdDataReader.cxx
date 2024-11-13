@@ -9,7 +9,7 @@
 #include <iostream>
 #include <set>
 
-#include "boost/progress.hpp"
+#include "boost/timer/progress_display.hpp"
 
 #include "TrackData.h"
 
@@ -192,7 +192,7 @@ void PndLmdDataReader::read() {
 
   std::cout << "Processing " << num_events << " events" << std::endl;
 
-  boost::progress_display show_progress(num_events);
+  boost::timer::progress_display show_progress(num_events);
 
   for (Int_t j = 0; j < num_events; j++) {
     // this check is to remove the data registered data objects for which
