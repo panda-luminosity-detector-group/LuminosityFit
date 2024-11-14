@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
     for (unsigned int i = 1; i < argc; i = i++)
       acceptance_file_urls.push_back(std::string(argv[i]));
 
-    std::cout << 'I got these files:\n';
+    std::cout << "I got these files:\n";
     for (auto &url : acceptance_file_urls)
       std::cout << url << '\n';
     std::cout << std::flush;
