@@ -71,8 +71,8 @@ mydouble IntegralStrategyGSL2D::Integral(
 
   double result, error;
 
-  double xl[2] = {ranges[0].range_low, ranges[1].range_low};
-  double xu[2] = {ranges[0].range_high, ranges[1].range_high};
+  double xl[2] = {(double)ranges[0].range_low, (double)ranges[1].range_low};
+  double xu[2] = {(double)ranges[0].range_high, (double)ranges[1].range_high};
 
   gsl_rng *r = gsl_rng_alloc(T);
   gsl_monte_vegas_state *s = gsl_monte_vegas_alloc(2);
