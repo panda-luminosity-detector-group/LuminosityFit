@@ -10,7 +10,7 @@
     - [Generate Container](#generate-container)
     - [Compilation](#compilation)
     - [First Run](#first-run)
-- [My First MC Simulation, Reconstruction and Luminosirt Fit](#my-first-mc-simulation-reconstruction-and-luminosirt-fit)
+- [My First MC Simulation, Reconstruction and Luminosity Fit](#my-first-mc-simulation-reconstruction-and-luminosity-fit)
   - [Doing this Manually](#doing-this-manually)
   - [Details](#details)
 - [Using in Container with the Slurm Agent](#using-in-container-with-the-slurm-agent)
@@ -26,6 +26,9 @@
 # Installation
 
 ## New Version, with Docker
+
+**Note:** Running these containers with podman on a network filesystem does not work. You do need to run them from a local disk.
+Should you not have administrative rights on the computer on which you are trying to run `cvmfs` to mount the FairSoft container remotely you can run one of the containers from [here](https://hub.docker.com/u/tstockmanns) locally. Not all of them seem to work out of the box with the luminosity fit software but [this](https://hub.docker.com/r/tstockmanns/fairroot_v18_8_fairsoft_jan24_debian11 one did stockmanns/fairroot_v18_8_fairsoft_jan24_debian11) one did.
 
 On a fresh system, this **should** now work:
 
